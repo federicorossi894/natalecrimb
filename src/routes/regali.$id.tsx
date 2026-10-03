@@ -128,7 +128,7 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
         </section>
       )}
 
-      <section className="glass-strong sticky bottom-20 mt-10 rounded-3xl p-5 shadow-deep">
+      <section className="glass-strong mt-10 rounded-3xl p-5 shadow-deep">
         <p className="mb-3 font-display text-xl">Scegli il tuo regalo</p>
         <Amounts p={p} amount={amount} setAmount={setAmount} />
         <button onClick={onGo} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground transition hover:scale-[1.01]">

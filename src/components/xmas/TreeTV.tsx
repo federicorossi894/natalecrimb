@@ -77,7 +77,7 @@ export function TreeTV() {
       <div className="absolute right-[4cqw] top-1/2 flex w-[34cqw] -translate-y-1/2 flex-col gap-[1.6cqw]">
         <div>
           <p className="font-display text-[5.4cqw] leading-none text-glow">
-            <span className="shimmer-gold bg-clip-text text-transparent">{count}</span>
+            <span className="text-gold">{count}</span>
           </p>
           <p className="mt-[0.6cqw] text-[1.5cqw] text-muted-foreground">regali appesi all'Albero di Monza <span className="text-[1cqw]">(demo)</span></p>
         </div>
