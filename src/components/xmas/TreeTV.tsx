@@ -30,11 +30,11 @@ export function TreeTV() {
       { p: "arrive", ms: 4500 },
       { p: "callout", ms: 5000 },
     ];
-    const cur = seq[step % seq.length];
+    const cur = seq[step % seq.length]!;
     setPhase(cur.p);
     if (cur.p === "focus") {
       const n = Math.floor(step / seq.length) * 2 + (step % seq.length === 1 ? 0 : 1);
-      setTarget(DEDICATED[n % DEDICATED.length]);
+      setTarget(DEDICATED[n % DEDICATED.length] ?? null);
     }
     if (cur.p === "arrive") {
       setOrnaments((o) => (o.some((x) => x.id === 99) ? o : [...o, NEW_ONE]));

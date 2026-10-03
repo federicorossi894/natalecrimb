@@ -20,9 +20,9 @@ export function Tree({
   onPick,
 }: {
   ornaments: TreeOrnament[];
-  focusId?: number | null;
-  flippedId?: number | null;
-  arrivingId?: number | null;
+  focusId?: number | null | undefined;
+  flippedId?: number | null | undefined;
+  arrivingId?: number | null | undefined;
   onPick?: (o: TreeOrnament) => void;
 }) {
   const tiers = [
@@ -80,7 +80,7 @@ export function Tree({
         </div>
         {/* garland */}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" style={{ transform: "translateZ(10px)" }}>
-          {[[38, 32, 60, 37], [32, 50, 68, 55], [24, 68, 76, 72], [16, 86, 84, 89]].map(([x1, y1, x2, y2], i) => (
+          {([[38, 32, 60, 37], [32, 50, 68, 55], [24, 68, 76, 72], [16, 86, 84, 89]] as const).map(([x1, y1, x2, y2], i) => (
             <path key={i} d={`M${x1} ${y1} Q50 ${y2 + 6} ${x2} ${y2}`} stroke="var(--gold)" strokeOpacity="0.55" strokeWidth="0.35" fill="none" strokeDasharray="1 0.8" />
           ))}
         </svg>

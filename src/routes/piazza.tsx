@@ -26,7 +26,7 @@ const DAYS = Array.from({ length: 40 }).map((_, i) => {
 
 function Piazza() {
   const [sel, setSel] = useState(0);
-  const day = DAYS[sel];
+  const day = DAYS[sel]!;
   return (
     <Shell>
       <PageHead kicker="Villaggio di Natale · Monza" title={<>Oggi in<br /><span className="text-gold">Piazza San Paolo</span></>}>

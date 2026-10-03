@@ -39,13 +39,13 @@ function Kids() {
               <button onClick={() => setI(0)} className="mt-8 rounded-full bg-primary px-8 py-4 font-semibold text-primary-foreground">Inizia la missione</button>
             </div>
           )}
-          {i >= 0 && i < Q.length && (
+          {i >= 0 && i < Q.length && Q[i] && (
             <div key={i} className="animate-rise relative">
               <p className="text-xs uppercase tracking-widest text-gold">Domanda {i + 1} di 3</p>
-              <p className="mt-3 font-display text-2xl leading-snug">{Q[i].q}</p>
+              <p className="mt-3 font-display text-2xl leading-snug">{Q[i]!.q}</p>
               <div className="mt-6 space-y-2">
-                {Q[i].a.map((a, j) => (
-                  <button key={a} onClick={() => (j === Q[i].ok ? (setWrong(null), setI(i + 1)) : setWrong(j))} className={`glass w-full rounded-2xl p-4 text-left text-lg transition ${wrong === j ? "border-primary" : ""}`}>
+                {Q[i]!.a.map((a, j) => (
+                  <button key={a} onClick={() => (j === Q[i]!.ok ? (setWrong(null), setI(i + 1)) : setWrong(j))} className={`glass w-full rounded-2xl p-4 text-left text-lg transition ${wrong === j ? "border-primary" : ""}`}>
                     {a}
                   </button>
                 ))}
