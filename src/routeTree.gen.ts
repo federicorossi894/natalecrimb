@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AlberoRouteImport } from './routes/albero'
+import { Route as AlberoLiveRouteImport } from './routes/albero-live'
+import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
+import { Route as PiazzaRouteImport } from './routes/piazza'
+import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
+import { Route as RegaliIndexRouteImport } from './routes/regali.index'
+import { Route as RegaliIdRouteImport } from './routes/regali.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlberoRoute = AlberoRouteImport.update({
+  id: '/albero',
+  path: '/albero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlberoLiveRoute = AlberoLiveRouteImport.update({
+  id: '/albero-live',
+  path: '/albero-live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BabboNataleRoute = BabboNataleRouteImport.update({
+  id: '/babbo-natale',
+  path: '/babbo-natale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PiazzaRoute = PiazzaRouteImport.update({
+  id: '/piazza',
+  path: '/piazza',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PiccoliVolontariRoute = PiccoliVolontariRouteImport.update({
+  id: '/piccoli-volontari',
+  path: '/piccoli-volontari',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegaliIndexRoute = RegaliIndexRouteImport.update({
+  id: '/regali/',
+  path: '/regali/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegaliIdRoute = RegaliIdRouteImport.update({
+  id: '/regali/$id',
+  path: '/regali/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/albero': typeof AlberoRoute
+  '/albero-live': typeof AlberoLiveRoute
+  '/babbo-natale': typeof BabboNataleRoute
+  '/piazza': typeof PiazzaRoute
+  '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/regali/$id': typeof RegaliIdRoute
+  '/regali/': typeof RegaliIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/albero': typeof AlberoRoute
+  '/albero-live': typeof AlberoLiveRoute
+  '/babbo-natale': typeof BabboNataleRoute
+  '/piazza': typeof PiazzaRoute
+  '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/regali/$id': typeof RegaliIdRoute
+  '/regali': typeof RegaliIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/albero': typeof AlberoRoute
+  '/albero-live': typeof AlberoLiveRoute
+  '/babbo-natale': typeof BabboNataleRoute
+  '/piazza': typeof PiazzaRoute
+  '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/regali/$id': typeof RegaliIdRoute
+  '/regali/': typeof RegaliIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/albero'
+    | '/albero-live'
+    | '/babbo-natale'
+    | '/piazza'
+    | '/piccoli-volontari'
+    | '/regali/$id'
+    | '/regali/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/albero'
+    | '/albero-live'
+    | '/babbo-natale'
+    | '/piazza'
+    | '/piccoli-volontari'
+    | '/regali/$id'
+    | '/regali'
+  id:
+    | '__root__'
+    | '/'
+    | '/albero'
+    | '/albero-live'
+    | '/babbo-natale'
+    | '/piazza'
+    | '/piccoli-volontari'
+    | '/regali/$id'
+    | '/regali/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlberoRoute: typeof AlberoRoute
+  AlberoLiveRoute: typeof AlberoLiveRoute
+  BabboNataleRoute: typeof BabboNataleRoute
+  PiazzaRoute: typeof PiazzaRoute
+  PiccoliVolontariRoute: typeof PiccoliVolontariRoute
+  RegaliIdRoute: typeof RegaliIdRoute
+  RegaliIndexRoute: typeof RegaliIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/albero': {
+      id: '/albero'
+      path: '/albero'
+      fullPath: '/albero'
+      preLoaderRoute: typeof AlberoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/albero-live': {
+      id: '/albero-live'
+      path: '/albero-live'
+      fullPath: '/albero-live'
+      preLoaderRoute: typeof AlberoLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/babbo-natale': {
+      id: '/babbo-natale'
+      path: '/babbo-natale'
+      fullPath: '/babbo-natale'
+      preLoaderRoute: typeof BabboNataleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/piazza': {
+      id: '/piazza'
+      path: '/piazza'
+      fullPath: '/piazza'
+      preLoaderRoute: typeof PiazzaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/piccoli-volontari': {
+      id: '/piccoli-volontari'
+      path: '/piccoli-volontari'
+      fullPath: '/piccoli-volontari'
+      preLoaderRoute: typeof PiccoliVolontariRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/regali/': {
+      id: '/regali/'
+      path: '/regali'
+      fullPath: '/regali/'
+      preLoaderRoute: typeof RegaliIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/regali/$id': {
+      id: '/regali/$id'
+      path: '/regali/$id'
+      fullPath: '/regali/$id'
+      preLoaderRoute: typeof RegaliIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlberoRoute: AlberoRoute,
+  AlberoLiveRoute: AlberoLiveRoute,
+  BabboNataleRoute: BabboNataleRoute,
+  PiazzaRoute: PiazzaRoute,
+  PiccoliVolontariRoute: PiccoliVolontariRoute,
+  RegaliIdRoute: RegaliIdRoute,
+  RegaliIndexRoute: RegaliIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
