@@ -40,15 +40,15 @@ export function Tree({
         {tiers.map((t, i) => (
           <div
             key={`b${i}`}
-            className="absolute left-1/2 -translate-x-1/2"
+            className="absolute"
             style={{
               top: `${t.top}%`,
               height: `${t.h}%`,
               width: `${t.w}%`,
               clipPath: "polygon(50% 0, 100% 100%, 0 100%)",
               background: "linear-gradient(180deg, var(--fir-deep), oklch(0.2 0.05 160))",
-              transform: "translateZ(-40px) translateX(-50%) scale(1.04)",
-              left: "50%",
+              transform: "translateZ(-40px) scale(1.06)",
+              left: `${50 - t.w / 2}%`,
             }}
           />
         ))}

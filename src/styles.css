@@ -155,7 +155,7 @@
 .animate-rise { animation: rise 0.7s cubic-bezier(.2,.8,.2,1) both; }
 .animate-arrive { animation: arrive 1.6s cubic-bezier(.2,.8,.2,1) both; }
 .shimmer-gold {
-  background: linear-gradient(90deg, var(--gold), oklch(0.95 0.06 85), var(--gold));
+  background-image: linear-gradient(90deg, var(--gold), oklch(0.95 0.06 85), var(--gold));
   background-size: 200% 100%;
   animation: shimmer 4s linear infinite;
 }
