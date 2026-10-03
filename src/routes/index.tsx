@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-export function GiftOpening({ onDone }: { onDone: () => void }) {
+function GiftOpening({ onDone }: { onDone: () => void }) {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/90 backdrop-blur-md" onAnimationEnd={(e) => e.animationName === "box-pop" && onDone()}>
       <div className="relative h-44 w-44" style={{ animation: "box-pop 1.5s cubic-bezier(.2,.8,.2,1) forwards" }}>
