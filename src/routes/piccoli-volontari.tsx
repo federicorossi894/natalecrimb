@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell, PageHead } from "@/components/xmas/Shell";
@@ -65,6 +66,7 @@ function Kids() {
           )}
         </div>
       </section>
-    </Shell>
+    <div className="mx-auto max-w-5xl px-4 pt-8"><Link to="/giochi" className="inline-block rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">🎮 Gioca: zaino del soccorritore e ritmo</Link></div>
+      </Shell>
   );
 }

@@ -39,8 +39,8 @@ export function addOrnament(kind: OrnamentKind, firma: string, dedica: string): 
     id: 1000 + list.length + Date.now() % 1000,
     kind,
     ...slot(list.length + 3),
-    dedica: dedica.trim() || undefined,
-    firma: firma.trim() || undefined,
+    ...(dedica.trim() ? { dedica: dedica.trim() } : {}),
+    ...(firma.trim() ? { firma: firma.trim() } : {}),
     // Without a dedica nothing needs review. With a dedica: auto-filter + manual demo review.
     status: !dedica.trim() && !firma.trim() ? "approved" : flagged ? "rejected" : "pending",
     createdAt: Date.now(),
