@@ -20,9 +20,9 @@ export function Tree({
   onPick,
 }: {
   ornaments: TreeOrnament[];
-  focusId?: number | null | undefined;
-  flippedId?: number | null | undefined;
-  arrivingId?: number | null | undefined;
+  focusId?: number | string | null | undefined;
+  flippedId?: number | string | null | undefined;
+  arrivingId?: number | string | null | undefined;
   onPick?: (o: TreeOrnament) => void;
 }) {
   const tiers = [
