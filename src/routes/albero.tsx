@@ -21,9 +21,8 @@ export const Route = createFileRoute("/albero")({
 });
 
 function Albero() {
-  const { publicOrnaments, list } = useTreeStore();
+  const { publicOrnaments, mine } = useTreeStore();
   const [pick, setPick] = useState<TreeOrnament | null>(null);
-  const mine = list.filter((o) => o.mine);
   return (
     <Shell>
       <PageHead kicker="L'Albero di Monza" title={<>Ogni regalo<br /><span className="text-gold">accende l'albero.</span></>} />
@@ -32,7 +31,7 @@ function Albero() {
           <Tv className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
           <div>
             <p className="font-semibold"><span className="text-gold">DEMO</span> · Questa è l'anteprima della modalità TV che verrà proiettata in Piazza San Paolo.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Qui sotto puoi già esplorare l'albero e leggere le dediche approvate. Dati demo salvati solo su questo dispositivo.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Qui sotto puoi già esplorare l'albero e leggere le dediche approvate. L'albero è condiviso tra tutti i dispositivi e si aggiorna da solo. Dati e numeri sono DEMO.</p>
           </div>
         </div>
         <h2 className="mt-8 font-display text-2xl">Esplora l'albero <span className="text-sm text-muted-foreground">· tocca un addobbo</span></h2>
@@ -46,9 +45,8 @@ function Albero() {
             </div>
             {mine.length > 0 && (
               <div className="glass rounded-2xl p-4 text-sm">
-                <p className="font-semibold">I tuoi addobbi (demo, questo dispositivo)</p>
-                {mine.map((o) => <p key={o.id} className="mt-1 text-muted-foreground">{o.dedica ? `“${o.dedica}”` : "Senza dedica"} · <span className="text-gold">{o.status === "approved" ? "pubblico" : o.status === "pending" ? "in moderazione" : "testo non pubblicato"}</span></p>)}
-                <Link to="/moderazione" className="mt-2 inline-block text-xs text-gold underline">Simula moderazione →</Link>
+                <p className="font-semibold">I tuoi addobbi (demo)</p>
+                {mine.map((o) => <p key={o.id} className="mt-1 text-muted-foreground">{o.dedica ? `“${o.dedica}”` : "Senza dedica"} · <span className="text-gold">{!o.dedica ? "visibile" : o.status === "approved" ? "dedica pubblica" : o.status === "pending" ? "in moderazione" : "testo non pubblicato"}</span></p>)}
               </div>
             )}
           </div>

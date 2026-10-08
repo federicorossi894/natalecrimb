@@ -7,7 +7,7 @@ import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { Modal, DemoNotice } from "@/components/xmas/Modal";
 import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
 import { CRI, getProject, type Project } from "@/lib/data";
-import { addOrnament, dedicaSchema, type StoredOrnament } from "@/lib/tree-store";
+import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
@@ -214,12 +214,18 @@ function Mine({ p }: { p: Project }) {
   const [msg, setMsg] = useState("");
   const [name, setName] = useState("");
   const [err, setErr] = useState("");
-  const [done, setDone] = useState<StoredOrnament | null>(null);
-  const submit = () => {
-    const r = dedicaSchema.safeParse({ firma: name, dedica: msg });
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ status: string; dedica: string } | null>(null);
+  const submit = async () => {
+    const r = dedicaSchema.safeParse({ firma: name, dedica: msg, consent });
     if (!r.success) { setErr(r.error.issues[0]?.message ?? "Dati non validi"); return; }
-    setErr("");
-    setDone(addOrnament(p.ornament, r.data.firma ?? "", r.data.dedica ?? ""));
+    setErr(""); setBusy(true);
+    try {
+      const res = await addOrnament(p.ornament, r.data.firma, r.data.dedica, r.data.consent);
+      setDone({ status: res?.status ?? "pending", dedica: r.data.consent ? r.data.dedica : "" });
+    } catch (e) { setErr(e instanceof Error ? e.message : "Errore, riprova"); }
+    finally { setBusy(false); }
   };
   return (
     <section className="mx-auto max-w-lg px-4 pt-6">
@@ -229,10 +235,13 @@ function Mine({ p }: { p: Project }) {
       <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Dedica facoltativa · max 90 caratteri" className="glass mt-4 w-full rounded-2xl p-4 outline-none focus:border-gold" />
       <p className="text-right text-[11px] text-muted-foreground">{msg.length}/90</p>
       {err && <p className="mt-1 text-sm text-primary">{err}</p>}
-      <p className="mt-2 text-[11px] text-muted-foreground">Le dediche vengono verificate prima di comparire pubblicamente.</p>
-      <button onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Appendi all'Albero</button>
+      <label className="mt-3 flex items-start gap-3 text-sm">
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
+        <span>Acconsento a pubblicare firma e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore. <span className="text-muted-foreground">Senza consenso, nome e dedica non vengono salvati.</span></span>
+      </label>
+      <button disabled={busy} onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Appendi all'Albero</button>
       <Modal open={!!done} onClose={() => setDone(null)}>
-        <DemoNotice>Addobbo appeso all'albero demo (salvato solo su questo dispositivo).</DemoNotice>
+        <DemoNotice>Addobbo appeso all'albero demo condiviso. Donazione simulata: nessun importo reale.</DemoNotice>
         <OrnamentIcon kind={p.ornament} className="animate-floaty mx-auto mt-4 w-20" />
         {done?.dedica && <p className="mt-3 text-center font-display italic">“{done.dedica}”</p>}
         <p className="mt-2 text-center text-xs text-gold">

@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
-import { moderate, resetDemo, useTreeStore } from "@/lib/tree-store";
+import type { OrnamentKind } from "@/lib/data";
 
 export const Route = createFileRoute("/moderazione")({
   head: () => ({
     meta: [
       { title: "Moderazione dediche (demo) – CRI Monza" },
-      { name: "description", content: "Simulazione della revisione delle dediche prima della pubblicazione sull'Albero di Monza." },
+      { name: "description", content: "Area riservata ai moderatori per approvare le dediche dell'Albero di Monza demo." },
       { property: "og:title", content: "Moderazione dediche · demo" },
-      { property: "og:description", content: "Come vengono verificate le dediche prima di comparire sull'albero." },
+      { property: "og:description", content: "Area riservata ai moderatori dell'Albero di Monza demo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -18,33 +22,99 @@ export const Route = createFileRoute("/moderazione")({
   component: Mod,
 });
 
+type Row = { id: string; kind: string; firma: string | null; dedica: string | null; status: string; publish_consent: boolean; created_at: string };
+const cred = z.object({ email: z.string().trim().email("Email non valida").max(255), password: z.string().min(8, "Almeno 8 caratteri").max(72) });
+
 function Mod() {
-  const { list } = useTreeStore();
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(false);
+  const [isMod, setIsMod] = useState(false);
+  const [rows, setRows] = useState<Row[]>([]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const load = useCallback(async () => {
+    const { data: m } = await supabase.rpc("is_moderator");
+    setIsMod(!!m);
+    if (!m) return;
+    const { data } = await supabase.from("demo_ornaments").select("id,kind,firma,dedica,status,publish_consent,created_at").not("dedica", "is", null).order("created_at", { ascending: false }).limit(100);
+    setRows(data ?? []);
+  }, []);
+  useEffect(() => { if (session) void load(); }, [session, load]);
+
+  const setStatus = async (id: string, status: "approved" | "rejected") => {
+    await supabase.from("demo_ornaments").update({ status }).eq("id", id);
+    void load();
+  };
+
   return (
     <Shell>
-      <PageHead kicker="DEMO · Moderazione" title="Dediche da verificare" />
+      <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche" />
       <section className="mx-auto max-w-3xl px-4">
-        <p className="glass rounded-2xl p-4 text-sm text-muted-foreground"><span className="font-semibold text-gold">DEMO</span> · Nella versione reale questa area sarà riservata ai volontari con accesso protetto. Qui è aperta solo per mostrare il flusso; i dati restano su questo dispositivo.</p>
-        <div className="mt-6 space-y-3">
-          {list.length === 0 && <p className="text-muted-foreground">Nessun addobbo inserito in questa demo.</p>}
-          {list.map((o) => (
-            <div key={o.id} className="glass flex items-center gap-4 rounded-2xl p-4">
-              <OrnamentIcon kind={o.kind} className="w-10 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="font-display italic">{o.dedica ? `“${o.dedica}”` : "Senza dedica"}</p>
-                <p className="text-xs text-muted-foreground">— {o.firma ?? "Anonimo"} · <span className="text-gold">{o.status}</span></p>
-              </div>
-              {o.dedica && (
-                <div className="flex gap-2">
-                  <button onClick={() => moderate(o.id, "approved")} className="rounded-full bg-fir px-3 py-2 text-xs font-semibold text-snow">Approva</button>
-                  <button onClick={() => moderate(o.id, "rejected")} className="rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Rifiuta</button>
-                </div>
-              )}
+        {!ready ? null : !session ? <AuthBox /> : !isMod ? (
+          <div className="glass rounded-2xl p-5 text-sm">
+            <p>Sei connesso come <b>{session.user.email}</b>, ma il tuo account non ha il ruolo di moderatore.</p>
+            <p className="mt-2 text-muted-foreground">Chiedi a un amministratore di assegnarti il ruolo.</p>
+            <button onClick={() => supabase.auth.signOut()} className="mt-3 text-xs underline">Esci</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>Moderatore: {session.user.email}</span>
+              <button onClick={() => supabase.auth.signOut()} className="underline">Esci</button>
             </div>
-          ))}
-        </div>
-        {list.length > 0 && <button onClick={resetDemo} className="mt-6 text-xs text-muted-foreground underline">Azzera dati demo</button>}
+            <div className="mt-4 space-y-3">
+              {rows.length === 0 && <p className="text-muted-foreground">Nessuna dedica da mostrare.</p>}
+              {rows.map((o) => (
+                <div key={o.id} className="glass flex items-center gap-4 rounded-2xl p-4">
+                  <OrnamentIcon kind={o.kind as OrnamentKind} className="w-10 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display italic">“{o.dedica}”</p>
+                    <p className="text-xs text-muted-foreground">— {o.firma ?? "Anonimo"} · <span className="text-gold">{o.status}</span></p>
+                  </div>
+                  <div className="flex gap-2">
+                    {o.status !== "approved" && <button onClick={() => setStatus(o.id, "approved")} className="rounded-full bg-fir px-3 py-2 text-xs font-semibold text-snow">Approva</button>}
+                    {o.status !== "rejected" && <button onClick={() => setStatus(o.id, "rejected")} className="rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Rifiuta</button>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </Shell>
+  );
+}
+
+function AuthBox() {
+  const [mode, setMode] = useState<"in" | "up">("in");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const r = cred.safeParse({ email, password });
+    if (!r.success) { setMsg(r.error.issues[0]?.message ?? "Dati non validi"); return; }
+    const res = mode === "in"
+      ? await supabase.auth.signInWithPassword(r.data)
+      : await supabase.auth.signUp({ ...r.data, options: { emailRedirectTo: `${window.location.origin}/moderazione` } });
+    if (res.error) setMsg(res.error.message);
+    else if (mode === "up") setMsg("Controlla la tua email per confermare l'account. Il ruolo di moderatore va poi assegnato da un amministratore.");
+  };
+  return (
+    <form onSubmit={submit} className="glass mx-auto max-w-sm space-y-3 rounded-2xl p-5">
+      <p className="font-display text-xl">{mode === "in" ? "Accesso moderatori" : "Crea account"}</p>
+      <input type="email" autoComplete="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="glass w-full rounded-xl px-4 py-3 outline-none" />
+      <input type="password" autoComplete={mode === "in" ? "current-password" : "new-password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="glass w-full rounded-xl px-4 py-3 outline-none" />
+      {msg && <p className="text-sm text-gold">{msg}</p>}
+      <button className="w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">{mode === "in" ? "Accedi" : "Registrati"}</button>
+      <button type="button" onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="w-full text-xs underline">
+        {mode === "in" ? "Non hai un account? Registrati" : "Hai già un account? Accedi"}
+      </button>
+    </form>
   );
 }
