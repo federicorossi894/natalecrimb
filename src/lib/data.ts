@@ -106,7 +106,7 @@ export const PROJECTS: Project[] = [
 export const getProject = (id: string) => PROJECTS.find((p) => p.id === id);
 
 export type TreeOrnament = {
-  id: number;
+  id: number | string;
   kind: OrnamentKind;
   x: number; // %
   y: number; // %
