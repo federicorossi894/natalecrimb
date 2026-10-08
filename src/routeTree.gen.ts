@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AlberoRouteImport } from './routes/albero'
 import { Route as AlberoLiveRouteImport } from './routes/albero-live'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
+import { Route as GiochiRouteImport } from './routes/giochi'
+import { Route as ModerazioneRouteImport } from './routes/moderazione'
 import { Route as PiazzaRouteImport } from './routes/piazza'
 import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
@@ -36,6 +38,16 @@ const AlberoLiveRoute = AlberoLiveRouteImport.update({
 const BabboNataleRoute = BabboNataleRouteImport.update({
   id: '/babbo-natale',
   path: '/babbo-natale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiochiRoute = GiochiRouteImport.update({
+  id: '/giochi',
+  path: '/giochi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModerazioneRoute = ModerazioneRouteImport.update({
+  id: '/moderazione',
+  path: '/moderazione',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PiazzaRoute = PiazzaRouteImport.update({
@@ -64,6 +76,8 @@ export interface FileRoutesByFullPath {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/giochi': typeof GiochiRoute
+  '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -74,6 +88,8 @@ export interface FileRoutesByTo {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/giochi': typeof GiochiRoute
+  '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -85,6 +101,8 @@ export interface FileRoutesById {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/giochi': typeof GiochiRoute
+  '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/giochi'
+    | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
     | '/regali/$id'
@@ -107,6 +127,8 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/giochi'
+    | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
     | '/regali/$id'
@@ -117,6 +139,8 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/giochi'
+    | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
     | '/regali/$id'
@@ -128,6 +152,8 @@ export interface RootRouteChildren {
   AlberoRoute: typeof AlberoRoute
   AlberoLiveRoute: typeof AlberoLiveRoute
   BabboNataleRoute: typeof BabboNataleRoute
+  GiochiRoute: typeof GiochiRoute
+  ModerazioneRoute: typeof ModerazioneRoute
   PiazzaRoute: typeof PiazzaRoute
   PiccoliVolontariRoute: typeof PiccoliVolontariRoute
   RegaliIdRoute: typeof RegaliIdRoute
@@ -162,6 +188,20 @@ declare module '@tanstack/react-router' {
       path: '/babbo-natale'
       fullPath: '/babbo-natale'
       preLoaderRoute: typeof BabboNataleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/giochi': {
+      id: '/giochi'
+      path: '/giochi'
+      fullPath: '/giochi'
+      preLoaderRoute: typeof GiochiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moderazione': {
+      id: '/moderazione'
+      path: '/moderazione'
+      fullPath: '/moderazione'
+      preLoaderRoute: typeof ModerazioneRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/piazza': {
@@ -200,6 +240,8 @@ const rootRouteChildren: RootRouteChildren = {
   AlberoRoute: AlberoRoute,
   AlberoLiveRoute: AlberoLiveRoute,
   BabboNataleRoute: BabboNataleRoute,
+  GiochiRoute: GiochiRoute,
+  ModerazioneRoute: ModerazioneRoute,
   PiazzaRoute: PiazzaRoute,
   PiccoliVolontariRoute: PiccoliVolontariRoute,
   RegaliIdRoute: RegaliIdRoute,
