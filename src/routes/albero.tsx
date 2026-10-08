@@ -32,7 +32,7 @@ function Albero() {
           <Tv className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
           <div>
             <p className="font-semibold"><span className="text-gold">DEMO</span> · Questa è l'anteprima della modalità TV che verrà proiettata in Piazza San Paolo.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Nella versione definitiva del sito, da smartphone potrai ruotare l'albero, esplorare gli addobbi e leggere le dediche.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Qui sotto puoi già esplorare l'albero e leggere le dediche approvate. Dati demo salvati solo su questo dispositivo.</p>
           </div>
         </div>
         <h2 className="mt-8 font-display text-2xl">Esplora l'albero <span className="text-sm text-muted-foreground">· tocca un addobbo</span></h2>
