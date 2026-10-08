@@ -14,16 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      demo_ornaments: {
+        Row: {
+          client_id: string
+          created_at: string
+          dedica: string | null
+          firma: string | null
+          id: string
+          kind: string
+          publish_consent: boolean
+          status: string
+          x: number
+          y: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          dedica?: string | null
+          firma?: string | null
+          id?: string
+          kind: string
+          publish_consent?: boolean
+          status?: string
+          x: number
+          y: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          dedica?: string | null
+          firma?: string | null
+          id?: string
+          kind?: string
+          publish_consent?: boolean
+          status?: string
+          x?: number
+          y?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      hang_ornament: {
+        Args: {
+          _client: string
+          _consent: boolean
+          _dedica: string
+          _firma: string
+          _kind: string
+        }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_moderator: { Args: never; Returns: boolean }
+      my_ornaments: {
+        Args: { _client: string }
+        Returns: {
+          dedica: string
+          id: string
+          kind: string
+          publish_consent: boolean
+          status: string
+        }[]
+      }
+      public_tree: {
+        Args: never
+        Returns: {
+          created_at: string
+          dedica: string
+          firma: string
+          id: string
+          kind: string
+          x: number
+          y: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +248,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator"],
+    },
   },
 } as const
