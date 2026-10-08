@@ -3,10 +3,9 @@ import { Tree } from "./Tree";
 import { Snow } from "./Snow";
 import { FakeQr } from "./Qr";
 import { CriMark, OrnamentIcon } from "./Ornament";
-import { MOCK_TOTAL_GIFTS, TREE_ORNAMENTS, type TreeOrnament } from "@/lib/data";
+import { type TreeOrnament } from "@/lib/data";
+import { useTreeStore } from "@/lib/tree-store";
 
-const NEW_ONE: TreeOrnament = { id: 99, kind: "dae", x: 47, y: 52, dedica: "Il mio primo regalo per Monza.", firma: "Luca, 9 anni" };
-const DEDICATED = TREE_ORNAMENTS.filter((o) => o.dedica);
 
 type Phase = "idle" | "focus" | "flip" | "arrive" | "callout";
 
@@ -15,8 +14,9 @@ export function TreeTV() {
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [target, setTarget] = useState<TreeOrnament | null>(null);
-  const [ornaments, setOrnaments] = useState(TREE_ORNAMENTS);
-  const [count, setCount] = useState(MOCK_TOTAL_GIFTS);
+  const { publicOrnaments: ornaments, total: count } = useTreeStore();
+  const DEDICATED = ornaments.filter((o) => o.dedica);
+  const NEW_ONE = ornaments[ornaments.length - 1]!;
 
   useEffect(() => {
     const seq: { p: Phase; ms: number }[] = [
@@ -37,16 +37,11 @@ export function TreeTV() {
       setTarget(DEDICATED[n % DEDICATED.length] ?? null);
     }
     if (cur.p === "arrive") {
-      setOrnaments((o) => (o.some((x) => x.id === 99) ? o : [...o, NEW_ONE]));
       setTarget(NEW_ONE);
-      setCount((c) => c + 1);
-    }
-    if (cur.p === "idle" && step % seq.length === 0) {
-      setOrnaments(TREE_ORNAMENTS);
-      setCount(MOCK_TOTAL_GIFTS);
     }
     const t = setTimeout(() => setStep((s) => s + 1), cur.ms);
     return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   const focusId = phase === "focus" || phase === "flip" || phase === "arrive" ? target?.id : null;
@@ -70,7 +65,7 @@ export function TreeTV() {
 
       {/* tree */}
       <div className="absolute bottom-[2%] left-[6%] h-[86%] w-[50%]">
-        <Tree ornaments={ornaments} focusId={focusId} flippedId={phase === "flip" ? target?.id : null} arrivingId={phase === "arrive" ? 99 : null} />
+        <Tree ornaments={ornaments} focusId={focusId} flippedId={phase === "flip" ? target?.id : null} arrivingId={phase === "arrive" ? NEW_ONE.id : null} />
       </div>
 
       {/* right column */}
@@ -103,7 +98,7 @@ export function TreeTV() {
       {/* arrive banner */}
       {phase === "arrive" && (
         <div className="animate-rise absolute bottom-[4cqw] left-[8cqw] rounded-full bg-primary px-[2cqw] py-[0.8cqw] text-[1.3cqw] font-semibold text-primary-foreground shadow-deep">
-          ✨ Nuovo regalo appeso · “Regala un battito”
+          ✨ Ultimo addobbo appeso · demo
         </div>
       )}
 
