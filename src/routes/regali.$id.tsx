@@ -7,6 +7,7 @@ import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { Modal, DemoNotice } from "@/components/xmas/Modal";
 import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
 import { CRI, getProject, type Project } from "@/lib/data";
+import { addOrnament, dedicaSchema, type StoredOrnament } from "@/lib/tree-store";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
@@ -191,7 +192,7 @@ function Success({ p, onPick }: { p: Project; onPick: (s: Step) => void }) {
         <OrnamentIcon kind={p.ornament} className="animate-arrive relative left-1/2 top-1/2 w-28" />
       </div>
       <h1 className="animate-rise mt-8 font-display text-4xl leading-tight">🎁 Il tuo regalo è arrivato.<br /><span className="text-gold">Ora puoi regalarlo a qualcuno.</span></h1>
-      <p className="mt-3 text-sm text-muted-foreground">{p.ornamentName.charAt(0).toUpperCase() + p.ornamentName.slice(1)} è stato appeso all'Albero di Monza (demo).</p>
+      <p className="mt-3 text-sm text-muted-foreground">Simulazione DEMO: nessun importo addebitato, nessuna donazione reale registrata. Scegli come appendere {p.ornamentName}.</p>
       <div className="mt-8 space-y-3 text-left">
         {[
           { s: "mine" as Step, t: "È il mio regalo a Monza", d: "Appendilo all'albero, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
@@ -211,19 +212,33 @@ function Success({ p, onPick }: { p: Project; onPick: (s: Step) => void }) {
 
 function Mine({ p }: { p: Project }) {
   const [msg, setMsg] = useState("");
-  const [done, setDone] = useState(false);
+  const [name, setName] = useState("");
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState<StoredOrnament | null>(null);
+  const submit = () => {
+    const r = dedicaSchema.safeParse({ firma: name, dedica: msg });
+    if (!r.success) { setErr(r.error.issues[0]?.message ?? "Dati non validi"); return; }
+    setErr("");
+    setDone(addOrnament(p.ornament, r.data.firma ?? "", r.data.dedica ?? ""));
+  };
   return (
     <section className="mx-auto max-w-lg px-4 pt-6">
       <h1 className="font-display text-4xl">Il tuo addobbo</h1>
-      <p className="mt-2 text-muted-foreground">Lascia una dedica sul retro, oppure resta anonimo.</p>
-      <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Perché nessuno dovrebbe sentirsi solo a Natale." className="glass mt-5 w-full rounded-2xl p-4 outline-none focus:border-gold" />
-      <button onClick={() => setDone(true)} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Appendi all'Albero</button>
-      <Modal open={done} onClose={() => setDone(false)}>
-        <DemoNotice>Il tuo addobbo è appeso all'Albero di Monza.</DemoNotice>
+      <p className="mt-2 text-muted-foreground">Nome e dedica sono facoltativi: puoi restare anonimo.</p>
+      <Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} />
+      <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Dedica facoltativa · max 90 caratteri" className="glass mt-4 w-full rounded-2xl p-4 outline-none focus:border-gold" />
+      <p className="text-right text-[11px] text-muted-foreground">{msg.length}/90</p>
+      {err && <p className="mt-1 text-sm text-primary">{err}</p>}
+      <p className="mt-2 text-[11px] text-muted-foreground">Le dediche vengono verificate prima di comparire pubblicamente.</p>
+      <button onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Appendi all'Albero</button>
+      <Modal open={!!done} onClose={() => setDone(null)}>
+        <DemoNotice>Addobbo appeso all'albero demo (salvato solo su questo dispositivo).</DemoNotice>
         <OrnamentIcon kind={p.ornament} className="animate-floaty mx-auto mt-4 w-20" />
-        <p className="mt-3 text-center font-display italic">“{msg || "Un regalo anonimo per Monza ❤️"}”</p>
+        {done?.dedica && <p className="mt-3 text-center font-display italic">“{done.dedica}”</p>}
+        <p className="mt-2 text-center text-xs text-gold">
+          {done?.status === "approved" ? "Visibile subito sull'albero" : done?.status === "pending" ? "Dedica in moderazione: l'addobbo è visibile, il testo dopo l'approvazione" : "Dedica non pubblicabile: l'addobbo resta senza testo"}
+        </p>
         <Link to="/albero" className="mt-6 block rounded-full bg-primary py-3 text-center font-semibold text-primary-foreground">Guarda l'Albero</Link>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">Nella versione reale comparirà sull'albero e sullo schermo in piazza.</p>
       </Modal>
     </section>
   );
