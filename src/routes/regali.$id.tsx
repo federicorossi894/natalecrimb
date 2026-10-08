@@ -192,7 +192,7 @@ function Success({ p, onPick }: { p: Project; onPick: (s: Step) => void }) {
         <OrnamentIcon kind={p.ornament} className="animate-arrive relative left-1/2 top-1/2 w-28" />
       </div>
       <h1 className="animate-rise mt-8 font-display text-4xl leading-tight">🎁 Il tuo regalo è arrivato.<br /><span className="text-gold">Ora puoi regalarlo a qualcuno.</span></h1>
-      <p className="mt-3 text-sm text-muted-foreground">{p.ornamentName.charAt(0).toUpperCase() + p.ornamentName.slice(1)} è stato appeso all'Albero di Monza (demo).</p>
+      <p className="mt-3 text-sm text-muted-foreground">Simulazione DEMO: nessun importo addebitato, nessuna donazione reale registrata. Scegli come appendere {p.ornamentName}.</p>
       <div className="mt-8 space-y-3 text-left">
         {[
           { s: "mine" as Step, t: "È il mio regalo a Monza", d: "Appendilo all'albero, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
