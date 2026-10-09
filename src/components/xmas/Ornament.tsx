@@ -54,8 +54,8 @@ export function OrnamentIcon({ kind, className = "" }: { kind: OrnamentKind; cla
   );
 }
 
-export function CriMark({ className = "" }: { className?: string }) {
+export function CriMark({ className = "", src }: { className?: string; src?: string }) {
   return (
-    <span className={`inline-flex shrink-0 items-center justify-center border border-gold/40 text-center text-[7px] font-semibold leading-tight text-gold ${className}`} aria-label="Segnaposto marchio, non logo ufficiale">LOGO<br />DEMO</span>
+    src ? <img src={src} alt="Croce Rossa Italiana — Comitato di Monza" className={`cri-official-mark ${className}`} /> : null
   );
 }

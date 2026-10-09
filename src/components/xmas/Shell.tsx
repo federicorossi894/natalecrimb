@@ -32,7 +32,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <CriMark className="h-8 w-8 shrink-0" />
             <div className="min-w-0 leading-tight">
               <p className="truncate font-display text-[15px]">Il Natale che fa bene</p>
-              <p className="truncate text-[10px] uppercase tracking-[0.18em] text-gold">Croce Rossa · Monza</p>
+              <p className="text-[10px] text-gold">Croce Rossa Italiana · Comitato di Monza</p>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">

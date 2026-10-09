@@ -1,7 +1,8 @@
-# Redesign CRI Monza
-- [x] Shared 3D tree with deterministic growth/layout, mobile orbit/focus/find and accessible fallback.
-- [x] Autonomous TV scene, arrival animation, approved dedication cycle, real QR; no public TV links.
-- [x] Focused home/cartolina polish and explicit non-official logo placeholder.
-- [x] Browser render, touch emulation, selection/find, fallback, two-context Cloud arrival (20.2s), routing/layout tests; build OK.
-- [ ] Exact current-turn credit accounting unavailable: usage tool returns only monthly aggregate, not this turn.
-- Verification limits: no physical-phone performance benchmark or fresh authenticated moderation/approved-dedication-cycle test; existing authorization logic unchanged. Full-site polish deliberately limited to prioritize tree/TV.
+# Redesign visivo urgente CRI Monza
+- [x] Lush illustrated 3D tree, complete at small counts, progressive foliage/lights and matching TV.
+- [x] Large project-specific 3D ornaments, mobile dedication panel with X/outside/Back dismissal.
+- [x] Emotional tree copy and sober official-brand fallback; no invented logo.
+- [x] Browser screenshots/mobile panel X/outside/Back checks and 3 passing automatic tests; Cloud unchanged.
+- [x] Recorded project usage increased by 3.40 credits at last check; final-turn cost/cumulative original-campaign attribution cannot be certified. Home/gift-box redesign deferred under user's budget instruction.
+- [ ] Official CRI image awaits user PNG attachment in Lovable; ChatGPT Marchio.zip is not accessible here.
+- Limits: no physical-iPhone performance benchmark; no new authenticated moderation test because authorization/data layer unchanged.
