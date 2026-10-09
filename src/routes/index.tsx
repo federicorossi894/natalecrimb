@@ -6,6 +6,7 @@ import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS } from "@/lib/data";
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Questo Natale, scegli cosa regalare a Monza. Demo della campagna natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo." },
       { property: "og:title", content: "Il Natale che fa bene – Croce Rossa Monza" },
       { property: "og:description", content: "Scegli un regalo concreto per le persone che vivono a Monza." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
@@ -42,12 +45,12 @@ function Home() {
   return (
     <Shell>
       {opening && <GiftOpening onDone={() => nav({ to: "/regali" })} />}
-      <section className="relative isolate -mt-px min-h-[92svh] overflow-hidden">
+      <section className="relative isolate -mt-px min-h-[74svh] overflow-hidden">
         <img src={hero} alt="Piazza di Monza illuminata per Natale" width={1088} height={1440} className="absolute inset-0 -z-20 h-full w-full object-cover" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/30 to-background" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
         <Snow count={50} />
-        <div className="mx-auto flex min-h-[92svh] max-w-6xl flex-col justify-end px-4 pb-24 pt-20 sm:justify-center">
+        <div className="mx-auto flex min-h-[74svh] max-w-6xl flex-col justify-end px-5 pb-20 pt-16 sm:justify-center">
           <p className="animate-rise text-[11px] font-semibold uppercase tracking-[0.25em] text-gold">Croce Rossa Italiana – Comitato di Monza · Piazza San Paolo</p>
           <h1 className="animate-rise mt-4 max-w-2xl font-display text-[2.9rem] leading-[0.98] sm:text-7xl" style={{ animationDelay: "0.1s" }}>
             Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.
@@ -56,10 +59,10 @@ function Home() {
             Non un regalo simbolico. Un aiuto concreto alle persone che vivono qui.
           </p>
           <div className="animate-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.3s" }}>
-            <button onClick={() => setOpening(true)} className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.03]">
+            <Button onClick={() => setOpening(true)} className="group h-auto rounded-full px-7 py-4 text-base shadow-deep transition hover:scale-[1.03]">
               <Gift className="h-5 w-5" /> Scarta i regali
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </button>
+            </Button>
             <Link to="/albero" className="glass rounded-full px-5 py-4 text-sm font-medium">L'Albero di Monza</Link>
           </div>
         </div>

@@ -11,6 +11,8 @@ export const Route = createFileRoute("/piazza")({
       { name: "description", content: "Agenda della casetta Croce Rossa al Villaggio di Natale di Monza: mercatino, controlli, manovre salvavita." },
       { property: "og:title", content: "Oggi in Piazza San Paolo – Casetta CRI Monza" },
       { property: "og:description", content: "Cosa succede oggi alla casetta CRI del Villaggio di Natale." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Piazza,

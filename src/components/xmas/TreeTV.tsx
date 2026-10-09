@@ -1,120 +1,49 @@
-import { useEffect, useState } from "react";
-import { Tree } from "./Tree";
-import { Snow } from "./Snow";
-import { FakeQr } from "./Qr";
-import { CriMark, OrnamentIcon } from "./Ornament";
-import { type TreeOrnament } from "@/lib/data";
-import { useTreeStore } from "@/lib/tree-store";
-
-
-type Phase = "idle" | "focus" | "flip" | "arrive" | "callout";
-
-/** Autoplaying 16:9 TV composition. Sizes use container units. */
-export function TreeTV() {
-  const [step, setStep] = useState(0);
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [target, setTarget] = useState<TreeOrnament | null>(null);
-  const { publicOrnaments: ornaments, total: count } = useTreeStore();
-  const DEDICATED = ornaments.filter((o) => o.dedica);
-  const NEW_ONE = ornaments[ornaments.length - 1]!;
-
-  useEffect(() => {
-    const seq: { p: Phase; ms: number }[] = [
-      { p: "idle", ms: 3500 },
-      { p: "focus", ms: 1800 },
-      { p: "flip", ms: 4500 },
-      { p: "idle", ms: 2500 },
-      { p: "focus", ms: 1800 },
-      { p: "flip", ms: 4500 },
-      { p: "idle", ms: 2000 },
-      { p: "arrive", ms: 4500 },
-      { p: "callout", ms: 5000 },
-    ];
-    const cur = seq[step % seq.length]!;
-    setPhase(cur.p);
-    if (cur.p === "focus") {
-      const n = Math.floor(step / seq.length) * 2 + (step % seq.length === 1 ? 0 : 1);
-      setTarget(DEDICATED[n % DEDICATED.length] ?? null);
-    }
-    if (cur.p === "arrive") {
-      setTarget(NEW_ONE);
-    }
-    const t = setTimeout(() => setStep((s) => s + 1), cur.ms);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
-
-  const focusId = phase === "focus" || phase === "flip" || phase === "arrive" ? target?.id : null;
-
-  return (
-    <div className="relative aspect-video w-full overflow-hidden bg-background [container-type:inline-size]">
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 38% 40%, oklch(0.32 0.08 160), var(--background) 65%), radial-gradient(circle at 90% 90%, oklch(0.35 0.14 27 / 35%), transparent 50%)" }} />
-      <Snow count={70} />
-
-      {/* header */}
-      <div className="absolute left-[3cqw] top-[3cqw] flex items-center gap-[1cqw]">
-        <CriMark className="h-[3.6cqw] w-[3.6cqw]" />
-        <div className="leading-tight">
-          <p className="text-[1.1cqw] font-semibold uppercase tracking-[0.2em] text-gold">Croce Rossa Italiana · Monza</p>
-          <p className="font-display text-[2.2cqw]">L'Albero dei Regali di Monza</p>
-        </div>
-      </div>
-      <div className="absolute right-[3cqw] top-[3cqw] rounded-full border hairline-gold px-[1.2cqw] py-[0.5cqw] text-[0.9cqw] uppercase tracking-widest text-gold">
-        Anteprima demo · dati simulati
-      </div>
-
-      {/* tree */}
-      <div className="absolute bottom-[2%] left-[6%] h-[86%] w-[50%]">
-        <Tree ornaments={ornaments} focusId={focusId} flippedId={phase === "flip" ? target?.id : null} arrivingId={phase === "arrive" ? NEW_ONE.id : null} />
-      </div>
-
-      {/* right column */}
-      <div className="absolute right-[4cqw] top-1/2 flex w-[34cqw] -translate-y-1/2 flex-col gap-[1.6cqw]">
-        <div>
-          <p className="font-display text-[5.4cqw] leading-none text-glow">
-            <span className="text-gold">{count}</span>
-          </p>
-          <p className="mt-[0.6cqw] text-[1.5cqw] text-muted-foreground">regali appesi all'Albero di Monza <span className="text-[1cqw]">(demo)</span></p>
-        </div>
-        <div className="glass flex items-center gap-[1.6cqw] rounded-[1.4cqw] p-[1.4cqw]">
-          <FakeQr className="w-[11cqw] shrink-0 rounded-[0.6cqw]" />
-          <div>
-            <p className="font-display text-[1.8cqw] leading-tight">Scansiona e appendi anche tu un regalo all'Albero di Monza</p>
-            <p className="mt-[0.6cqw] text-[1.1cqw] text-gold">Scopri come fare il tuo regalo →</p>
-          </div>
-        </div>
-        <div className="flex gap-[1cqw]">
-          {(["dae", "calore", "prossimita", "cuore"] as const).map((k) => (
-            <div key={k} className="flex flex-1 flex-col items-center gap-[0.3cqw]">
-              <OrnamentIcon kind={k} className="w-[3.4cqw]" />
-              <span className="text-center text-[0.85cqw] text-muted-foreground">
-                {k === "dae" ? "Un battito" : k === "calore" ? "Calore" : k === "prossimita" ? "Prossimità" : "Dove serve"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* arrive banner */}
-      {phase === "arrive" && (
-        <div className="animate-rise absolute bottom-[4cqw] left-[8cqw] rounded-full bg-primary px-[2cqw] py-[0.8cqw] text-[1.3cqw] font-semibold text-primary-foreground shadow-deep">
-          ✨ Ultimo addobbo appeso · demo
-        </div>
-      )}
-
-      {/* callout */}
-      {phase === "callout" && (
-        <div className="animate-rise absolute inset-0 z-40 flex items-center justify-center bg-background/75 backdrop-blur-md">
-          <div className="max-w-[60cqw] text-center">
-            <p className="text-[4cqw]">🎄</p>
-            <p className="mt-[1cqw] font-display text-[4cqw] leading-tight">
-              <span className="text-gold">{count} regali</span> sono già appesi all'Albero di Monza.
-            </p>
-            <p className="mt-[1.4cqw] font-display text-[2.6cqw] italic text-muted-foreground">Il prossimo può essere il tuo.</p>
-            <p className="mt-[2cqw] text-[1cqw] uppercase tracking-widest text-gold">Casetta CRI · Piazza San Paolo · Dati demo</p>
-          </div>
-        </div>
-      )}
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { ClientOnly } from '@tanstack/react-router';
+import { useTreeStore } from '@/lib/tree-store';
+import type { TreeOrnament } from '@/lib/data';
+import { HomeQr } from './Qr';
+import { useReducedMotion } from './TreeExperience';
+const Scene=lazy(()=>import('./TreeScene'));
+export function TreeTV(){
+  const {addedOrnaments:ornaments,addedCount,error}=useTreeStore();
+  const [selected,setSelected]=useState<TreeOrnament|null>(null);
+  const [arriving,setArriving]=useState<string|number|null>(null);
+  const previous=useRef<Set<string|number>|null>(null);
+  const cursor=useRef(0);
+  const reduced=useReducedMotion();
+  useEffect(()=>{
+    const ids=new Set(ornaments.map(o=>o.id));const prev=previous.current;
+    if(prev){const next=ornaments.find(o=>!prev.has(o.id));if(next){setArriving(next.id);setSelected(next);}}
+    previous.current=ids;
+  },[ornaments]);
+  useEffect(()=>{if(!arriving)return;const t=setTimeout(()=>{setArriving(null);setSelected(null);},6500);return()=>clearTimeout(t);},[arriving]);
+  useEffect(()=>{
+    if(arriving||reduced)return;
+    const t=setInterval(()=>setSelected(current=>{if(current)return null;const publicDedications=ornaments.filter(o=>o.dedica);const next=publicDedications[cursor.current%publicDedications.length];cursor.current++;return next??null;}),9000);
+    return()=>clearInterval(t);
+  },[ornaments,arriving,reduced]);
+  return <div className="tv-scene">
+    <ClientOnly><Suspense fallback={null}><Scene ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} /></Suspense></ClientOnly>
+    <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
+      <p className="text-[0.9cqw] font-semibold uppercase text-gold">Croce Rossa Italiana · Comitato di Monza</p>
+      <h1 className="mt-[0.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
-  );
+    <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
+    <div className="tv-copy">
+      <p className="font-display text-[7cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</p>
+      <p className="mt-[0.8cqw] text-[1.4cqw] text-muted-foreground">regali appesi · DEMO</p>
+      <h2 className="tv-title mt-[2cqw] font-display">Il prossimo<br /><em className="text-gold">può essere il tuo.</em></h2>
+      <div className="mt-[2cqw] grid grid-cols-[40%_1fr] items-center gap-[1.2cqw]">
+        <HomeQr className="w-full" /><p className="text-[1.2cqw] leading-relaxed">Scansiona e appendi anche tu un regalo all’Albero di Monza.</p>
+      </div>
+      <p className="mt-[1.2cqw] text-[0.9cqw] text-muted-foreground">Casetta CRI · Piazza San Paolo</p>
+      {error&&<p className="mt-[1cqw] text-[0.9cqw] text-gold">Connessione in ripristino</p>}
+    </div>
+    {selected&&<div className="tv-dedication tree-tag animate-rise" aria-live="polite">
+      <p className="text-[0.9cqw] font-semibold uppercase text-primary">{arriving?'Un nuovo regalo accende l’albero · DEMO':'Una dedica per Monza · DEMO'}</p>
+      <p className="mt-[0.7cqw] font-display text-[1.7cqw] leading-snug">{selected.dedica?`“${selected.dedica}”`:'Un regalo anonimo per Monza.'}</p>
+      {selected.dedica&&<p className="mt-[0.7cqw] text-[1cqw] font-semibold">— {selected.firma??'Anonimo'}</p>}
+    </div>}
+  </div>;
 }

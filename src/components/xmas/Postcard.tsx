@@ -3,12 +3,13 @@ import { CriMark, OrnamentIcon } from "./Ornament";
 import { Snow } from "./Snow";
 import type { Project } from "@/lib/data";
 import heroImg from "@/assets/hero-piazza.jpg";
+import { Button } from '@/components/ui/button';
 
 export function Postcard({ project, to, from, msg }: { project: Project; to: string; from: string; msg: string }) {
   const [back, setBack] = useState(false);
   return (
     <div>
-      <div className="flip-card mx-auto aspect-[3/2] w-full max-w-lg cursor-pointer" onClick={() => setBack(!back)}>
+      <Button variant="ghost" aria-label="Gira la cartolina" aria-pressed={back} className="flip-card mx-auto block aspect-[3/2] h-auto w-full max-w-lg whitespace-normal p-0 text-left hover:bg-transparent" onClick={() => setBack(!back)}>
         <div className={`flip-inner relative h-full w-full ${back ? "is-flipped" : ""}`}>
           <div className="flip-face absolute inset-0 overflow-hidden rounded-2xl shadow-deep">
             <img src={heroImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -23,11 +24,11 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
               <OrnamentIcon kind={project.ornament} className="animate-floaty w-14 shrink-0" />
             </div>
           </div>
-          <div className="flip-face flip-back absolute inset-0 grid grid-cols-[1.3fr_1fr] gap-4 rounded-2xl bg-paper p-5 text-ink shadow-deep">
+          <div className="flip-face flip-back absolute inset-0 grid grid-cols-[1.3fr_1fr] gap-3 rounded-lg bg-paper p-3 text-ink shadow-deep sm:gap-4 sm:p-5">
             <div className="border-r border-ink/15 pr-4">
-              <p className="font-display text-base italic leading-snug sm:text-lg">“{msg || "Il tuo messaggio apparirà qui."}”</p>
+              <p className="font-display text-xs italic leading-snug sm:text-lg">“{msg || "Il tuo messaggio apparirà qui."}”</p>
               <p className="mt-3 text-sm font-semibold text-primary">— {from || "Un amico"}</p>
-              <p className="mt-4 text-[11px] leading-snug opacity-70">A tuo nome è stato fatto il regalo <strong>“{project.title}”</strong> per Croce Rossa Italiana – Comitato di Monza.</p>
+              <p className="mt-3 text-[10px] leading-snug opacity-70">Regalo DEMO <strong>“{project.title}”</strong> per Croce Rossa Monza. Nessuna donazione reale.</p>
             </div>
             <div className="flex flex-col justify-between">
               <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><CriMark className="h-9 w-9" /></div>
@@ -38,8 +39,8 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
             </div>
           </div>
         </div>
-      </div>
-      <p className="mt-3 text-center text-xs text-muted-foreground">Tocca la cartolina per girarla</p>
+      </Button>
+      <p className="mt-3 text-center text-xs text-muted-foreground">Cartolina DEMO · Croce Rossa Monza</p>
     </div>
   );
 }

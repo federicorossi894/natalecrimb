@@ -12,6 +12,8 @@ export const Route = createFileRoute("/babbo-natale")({
       { name: "description", content: "La sera del 24 dicembre i volontari CRI vestiti da Babbo Natale portano i regali a casa. Servizio in definizione." },
       { property: "og:title", content: "Prenota il tuo Babbo Natale 🎅 – CRI Monza" },
       { property: "og:description", content: "Una sorpresa a domicilio la sera della Vigilia. Servizio in definizione." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Babbo,

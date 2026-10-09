@@ -12,6 +12,8 @@ export const Route = createFileRoute("/piccoli-volontari")({
       { name: "description", content: "Un mini-quiz per i più piccoli: completa la missione e mostrala ai volontari della casetta." },
       { property: "og:title", content: "Piccoli volontari di Babbo Natale" },
       { property: "og:description", content: "Tre domande, una missione. Per i bambini che passano in Piazza San Paolo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Kids,

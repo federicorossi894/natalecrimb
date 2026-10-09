@@ -11,6 +11,8 @@ export const Route = createFileRoute("/regali/")({
       { name: "description", content: "Scegli quale regalo fare a Monza: calore, un battito, prossimità o dove serve di più." },
       { property: "og:title", content: "I regali per Monza – Croce Rossa Monza" },
       { property: "og:description", content: "Quattro regali concreti per le persone che vivono a Monza." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Regali,

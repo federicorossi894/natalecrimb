@@ -47,5 +47,5 @@ export function useTreeStore() {
     window.addEventListener(EVT, h);
     return () => { clearInterval(t); window.removeEventListener(EVT, h); };
   }, [sync]);
-  return { mine, error, publicOrnaments: [...TREE_ORNAMENTS, ...remote], total: MOCK_TOTAL_GIFTS + remote.length, refresh: sync };
+  return { mine, error, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: [...TREE_ORNAMENTS, ...remote], total: MOCK_TOTAL_GIFTS + remote.length, refresh: sync };
 }
