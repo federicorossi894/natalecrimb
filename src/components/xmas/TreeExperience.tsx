@@ -23,7 +23,7 @@ export function TreeExperience(){
         <div><p className="text-xs font-semibold uppercase text-gold">DEMO · Albero condiviso</p><p className="mt-1 font-display text-2xl">{addedCount} regali appesi</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{setSelected(null);setReset(s=>s+1);}}><RotateCcw /></Button>
       </div>
-      <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+      <div className="flex min-h-20 items-center justify-center gap-2 px-3">
         <Button variant="outline" size="icon" aria-label="Addobbo precedente" onClick={()=>step(-1)} disabled={!ornaments.length}><ChevronLeft /></Button>
         <Button onClick={find} className="h-10 shadow-deep"><LocateFixed />Trova il mio addobbo</Button>
         <Button variant="outline" size="icon" aria-label="Addobbo successivo" onClick={()=>step(1)} disabled={!ornaments.length}><ChevronRight /></Button>
