@@ -69,12 +69,12 @@
   --paper: oklch(0.97 0.02 85);
   --glow-gold: 0 0 30px oklch(0.83 0.12 80 / 45%);
   --shadow-deep: 0 30px 60px -20px oklch(0.05 0.02 165 / 70%);
-  --scene-night: #101c23;
-  --scene-fir: #245a42;
-  --scene-needle: #497a54;
+  --scene-night: #13272a;
+  --scene-fir: #155b3d;
+  --scene-needle: #398657;
   --scene-bark: #544739;
-  --scene-gold: #e9bc73;
-  --scene-red: #b92538;
+  --scene-gold: #ffe0a0;
+  --scene-red: #cf2943;
   --scene-snow: #f2f1e8;
   --scene-ground: #263c40;
   --scene-rim: #b9d8d9;
@@ -179,6 +179,10 @@
 .tree-stage canvas { touch-action: none; }
 .tree-tag { position: relative; background: var(--paper); color: var(--ink); border: 1px solid var(--gold); border-radius: 4px; padding: 22px; box-shadow: var(--shadow-deep); }
 .tree-tag::before { content: ""; position: absolute; width: 1px; height: 24px; background: var(--gold); top: -24px; left: 50%; }
+.dedication-scrim { background: color-mix(in oklab, var(--background) 25%, transparent); }
+.dedication-panel { max-height: 72svh; overflow-y: auto; padding: 26px; border-radius: 8px; }
+.dedication-close { box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 15%, transparent); }
+.cri-official-mark { width: auto; object-fit: contain; max-width: 100%; }
 .tv-scene { position: relative; aspect-ratio: 16/9; width: 100%; container-type: inline-size; overflow: hidden; background: var(--scene-night); }
 .tv-scene .tree-stage { position: absolute; inset: 15% 34% 0 0; height: 85%; min-height: 0; max-height: none; }
 .tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
