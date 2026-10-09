@@ -90,7 +90,7 @@ function CameraRig({height,selected,tv,reduced,resetKey}: {height:number;selecte
   const clock=useRef(0);
   const target=useMemo(()=>new THREE.Vector3(),[]);
   useEffect(()=>{
-    if(tv)return;
+    if(tv){if(!selected){camera.position.set(0,height*0.75,Math.max(5.8,height*2.15));camera.lookAt(0,height*0.45,0);}return;}
     const c=controls.current;if(!c)return;
     const p=selected ? ornamentAnchor(selected,height):[0,height*0.46,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);

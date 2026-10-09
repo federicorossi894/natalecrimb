@@ -180,7 +180,7 @@
 .tree-tag { position: relative; background: var(--paper); color: var(--ink); border: 1px solid var(--gold); border-radius: 4px; padding: 22px; box-shadow: var(--shadow-deep); }
 .tree-tag::before { content: ""; position: absolute; width: 1px; height: 24px; background: var(--gold); top: -24px; left: 50%; }
 .tv-scene { position: relative; aspect-ratio: 16/9; width: 100%; container-type: inline-size; overflow: hidden; background: var(--scene-night); }
-.tv-scene .tree-stage { position: absolute; inset: 0 34% 0 0; height: 100%; min-height: 0; max-height: none; }
+.tv-scene .tree-stage { position: absolute; inset: 15% 34% 0 0; height: 85%; min-height: 0; max-height: none; }
 .tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
 .tv-title { font-size: 3.6cqw; line-height: 1.05; }
 .tv-dedication { position: absolute; left: 5%; bottom: 5%; width: 39%; }

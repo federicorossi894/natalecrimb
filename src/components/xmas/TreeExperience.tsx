@@ -13,7 +13,7 @@ export function TreeExperience(){
   const [reset,setReset]=useState(0);
   const [notice,setNotice]=useState('');
   const reduced=useReducedMotion();
-  const pick=(o:TreeOrnament)=>{setSelected(o);setNotice('');const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-82,behavior:'instant'});};
+  const pick=(o:TreeOrnament)=>{setSelected(o);setNotice('');setTimeout(()=>{const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-82,behavior:'instant'});},80);};
   const find=()=>{const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));if(!own.length){setNotice('Non ci sono ancora tuoi addobbi visibili da questo dispositivo.');return;}const i=own.findIndex(o=>o.id===selected?.id);const next=own[(i+1)%own.length];if(next)pick(next);};
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
