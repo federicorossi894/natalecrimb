@@ -80,7 +80,7 @@ function Decorations({ ornaments, height, palette, selected, onPick, arrivingId,
     </instancedMesh>
     <instancedMesh ref={bulbs} args={[undefined,undefined,100]}><sphereGeometry args={[1,8,6]} /><meshBasicMaterial color={palette.gold} toneMapped={false} /></instancedMesh>
     <instancedMesh ref={caps} args={[undefined,undefined,Math.max(1,ornaments.length)]} count={ornaments.length}><cylinderGeometry args={[1,1,1,6]} /><meshStandardMaterial color={palette.gold} metalness={0.8} roughness={0.3} /></instancedMesh>
-    {selected && !tv && <Html position={ornamentAnchor(selected,height)} center distanceFactor={2.4} zIndexRange={[20,0]}><div className="tree-tag pointer-events-none w-52 text-center"><p className="text-[9px] font-semibold uppercase text-primary">Regalo DEMO</p><p className="mt-2 font-display text-sm">{selected.dedica?`“${selected.dedica}”`:'Un regalo per Monza.'}</p><p className="mt-2 text-[10px]">— {selected.firma??'Anonimo'}</p></div></Html>}
+    {selected && !tv && <Html position={ornamentAnchor(selected,height)} center distanceFactor={1.5} zIndexRange={[20,0]}><div className="tree-tag pointer-events-none w-48 text-center"><p className="text-[9px] font-semibold uppercase text-primary">Regalo DEMO</p><p className="mt-2 font-display text-sm">{selected.dedica?`“${selected.dedica}”`:'Un regalo per Monza.'}</p><p className="mt-2 text-[10px]">— {selected.firma??'Anonimo'}</p></div></Html>}
   </>;
 }
 function CameraRig({height,selected,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
