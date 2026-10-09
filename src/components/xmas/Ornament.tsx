@@ -56,10 +56,6 @@ export function OrnamentIcon({ kind, className = "" }: { kind: OrnamentKind; cla
 
 export function CriMark({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 40 40" className={className} aria-hidden>
-      <circle cx="20" cy="20" r="19" fill="var(--snow)" />
-      <rect x="15.5" y="7" width="9" height="26" fill="var(--primary)" />
-      <rect x="7" y="15.5" width="26" height="9" fill="var(--primary)" />
-    </svg>
+    <span className={`inline-flex shrink-0 items-center justify-center border border-gold/40 text-center text-[7px] font-semibold leading-tight text-gold ${className}`} aria-label="Segnaposto marchio, non logo ufficiale">LOGO<br />DEMO</span>
   );
 }
