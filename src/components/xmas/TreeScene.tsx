@@ -24,7 +24,7 @@ function Decorations(props:Props & {height:number;palette:Palette}) {
 }
 function CameraRig({height,selected,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
   const controls=useRef<OrbitControlsType>(null);
-  const { camera, gl }=useThree();
+  const { camera, gl, size }=useThree();
   const moving=useRef(false);
   const clock=useRef(0);
   const target=useMemo(()=>new THREE.Vector3(),[]);
@@ -33,9 +33,9 @@ function CameraRig({height,selected,tv,reduced,resetKey}: {height:number;selecte
     const c=controls.current;if(!c)return;
     const p=selected ? ornamentAnchor(selected,height):[0,height*0.46,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);
-    if(selected){const angle=Math.atan2(p[0]??0,p[2]??0);camera.position.set((p[0]??0)+Math.sin(angle)*2,(p[1]??0)+0.35,(p[2]??0)+Math.cos(angle)*2);}else camera.position.set(0,height*0.65,height*1.65);
+    if(selected){const angle=Math.atan2(p[0]??0,p[2]??0);camera.position.set((p[0]??0)+Math.sin(angle)*2,(p[1]??0)+0.35,(p[2]??0)+Math.cos(angle)*2);}else camera.position.set(0,height*0.65,height*(size.width/size.height<0.7?1.95:1.65));
     c.update();moving.current=false;
-  },[selected,resetKey,height,tv,camera]);
+  },[selected,resetKey,height,tv,camera,size.width,size.height]);
   useEffect(()=>{ const stop=()=>{moving.current=true;};gl.domElement.addEventListener('pointerdown',stop);return()=>gl.domElement.removeEventListener('pointerdown',stop);},[gl]);
   useFrame((_,delta)=>{
     if(!tv)return;

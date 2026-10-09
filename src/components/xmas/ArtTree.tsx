@@ -48,7 +48,7 @@ function foliage(height:number,count:number,p:ScenePalette) {
 }
 function enamel(kind:OrnamentKind,p:ScenePalette) {
   const parts:THREE.BufferGeometry[]=[];
-  const box=(w:number,h:number,d:number,x:number,y:number,z:number,c:string)=>{const g=new THREE.BoxGeometry(w,h,d);g.translate(x,y,z);parts.push(colored(g,c));};
+  const box=(w:number,h:number,d:number,x:number,y:number,z:number,c:string)=>{const s=new THREE.Shape(),r=Math.min(w,h)*0.16; s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:true,bevelSize:Math.min(r/3,d/5),bevelThickness:Math.min(r/3,d/5),bevelSegments:2,steps:1});g.translate(x,y,z-d/2);parts.push(colored(g,c));};
   const shape=(points:[number,number][],depth:number,c:string,z=0)=>{const s=new THREE.Shape();points.forEach(([x,y],i)=>i===0?s.moveTo(x,y):s.lineTo(x,y));s.closePath();const g=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSize:0.012,bevelThickness:0.01,bevelSegments:2,steps:1});g.translate(0,0,z);parts.push(colored(g,c));};
   const heart=(scale:number,c:string,z:number)=>{const s=new THREE.Shape();s.moveTo(0,-0.14);s.bezierCurveTo(-0.27,0.03,-0.17,0.24,0,0.10);s.bezierCurveTo(0.17,0.24,0.27,0.03,0,-0.14);const g=new THREE.ExtrudeGeometry(s,{depth:0.065,bevelEnabled:true,bevelSize:0.016,bevelThickness:0.015,bevelSegments:3,steps:1});g.scale(scale,scale,1);g.translate(0,0,z);parts.push(colored(g,c));};
   if(kind==='dae') {
@@ -81,7 +81,7 @@ function GiftInstances({kind,...props}:ArtProps & {kind:OrnamentKind}) {
     items.forEach((o,i)=>{const a=ornamentAnchor(o,props.height);const entering=o.id===props.arrivingId&&!props.reduced?Math.max(0,1-clock.current/2.4):0;
       dummy.position.set(a[0],a[1]+entering*props.height,a[2]+entering);
       dummy.rotation.set(0,Math.atan2(a[0],a[2]),o.id===props.selected?.id&&!props.reduced?Math.sin(clock.current*2)*0.04:0);
-      dummy.scale.setScalar((props.height*0.40)*(o.id===props.selected?.id?1.12:1));dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);
+      dummy.scale.setScalar((props.height*0.37/(1+Math.sqrt(Math.min(props.ornaments.length,100)/100)*0.7))*(o.id===props.selected?.id?1.12:1));dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);
     });m.instanceMatrix.needsUpdate=true;
   });
   return <instancedMesh ref={ref} args={[geometry,undefined,Math.max(1,items.length)]} count={items.length} frustumCulled={false} onClick={e=>{e.stopPropagation();if(e.delta>6)return;const o=items[e.instanceId??-1];if(o)props.onPick?.(o);}}><meshStandardMaterial vertexColors roughness={kind==='calore'?0.65:0.3} metalness={0.25} emissive={props.palette.gold} emissiveIntensity={0.055} /></instancedMesh>;
