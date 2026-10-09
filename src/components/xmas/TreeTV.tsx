@@ -11,6 +11,7 @@ export function TreeTV(){
   const [arriving,setArriving]=useState<string|number|null>(null);
   const previous=useRef<Set<string|number>|null>(null);
   const cursor=useRef(0);
+  const focused=useRef(false);
   const reduced=useReducedMotion();
   useEffect(()=>{
     const ids=new Set(ornaments.map(o=>o.id));const prev=previous.current;
@@ -20,7 +21,7 @@ export function TreeTV(){
   useEffect(()=>{if(!arriving)return;const t=setTimeout(()=>{setArriving(null);setSelected(null);},6500);return()=>clearTimeout(t);},[arriving]);
   useEffect(()=>{
     if(arriving||reduced)return;
-    const t=setInterval(()=>setSelected(current=>{if(current)return null;const publicDedications=ornaments.filter(o=>o.dedica);const next=publicDedications[cursor.current%publicDedications.length];cursor.current++;return next??null;}),9000);
+    const t=setInterval(()=>{if(focused.current){focused.current=false;setSelected(null);return;}const publicDedications=ornaments.filter(o=>o.dedica);const next=publicDedications[cursor.current%publicDedications.length];cursor.current++;focused.current=Boolean(next);setSelected(next??null);},9000);
     return()=>clearInterval(t);
   },[ornaments,arriving,reduced]);
   return <div className="tv-scene">
