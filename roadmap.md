@@ -4,5 +4,7 @@
 - [x] Emotional tree copy and sober official-brand fallback; no invented logo.
 - [x] Browser screenshots/mobile panel X/outside/Back checks and 3 passing automatic tests; Cloud unchanged.
 - [x] Recorded project usage increased by 3.40 credits at last check; final-turn cost/cumulative original-campaign attribution cannot be certified. Home/gift-box redesign deferred under user's budget instruction.
-- [ ] Official CRI image awaits user PNG attachment in Lovable; ChatGPT Marchio.zip is not accessible here.
+- [x] Official CRI marks (unaltered RGB, white on dark / red on light) in header, footer, postcard, email, kids page, TV.
+- [ ] Official territorial "Comitato di Monza" lockup file awaits Comitato (currently separate text, not composed into mark).
+- [ ] Restyle tree/ornaments, gift boxes/home, secondary pages (next phases, 20-credit cap).
 - Limits: no physical-iPhone performance benchmark; no new authenticated moderation test because authorization/data layer unchanged.

@@ -3,6 +3,7 @@ import { ClientOnly } from '@tanstack/react-router';
 import { useTreeStore } from '@/lib/tree-store';
 import type { TreeOrnament } from '@/lib/data';
 import { HomeQr } from './Qr';
+import { CriMark } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 const Scene=lazy(()=>import('./TreeScene'));
 export function TreeTV(){
@@ -27,8 +28,8 @@ export function TreeTV(){
   return <div className="tv-scene">
     <ClientOnly><Suspense fallback={null}><Scene ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} /></Suspense></ClientOnly>
     <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
-      <p className="text-[0.9cqw] font-semibold uppercase text-gold">Croce Rossa Italiana · Comitato di Monza</p>
-      <h1 className="mt-[0.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
+    <div className="flex items-center gap-[1cqw]"><CriMark className="h-[6cqw]" /><span className="border-l border-gold/40 pl-[1cqw] text-[1.1cqw] text-gold">Comitato di Monza</span></div>
+      <h1 className="mt-[0.4cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
     <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
     <div className="tv-copy">

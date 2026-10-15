@@ -15,7 +15,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
             <img src={heroImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
             <Snow count={25} />
-            <div className="absolute right-4 top-4"><CriMark className="h-9 w-9" /></div>
+            <div className="absolute right-4 top-4"><CriMark className="h-10" /></div>
             <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.25em] text-gold">Buon Natale da Monza</p>
@@ -31,7 +31,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
               <p className="mt-3 text-[10px] leading-snug opacity-70">Regalo DEMO <strong>“{project.title}”</strong> per Croce Rossa Monza. Nessuna donazione reale.</p>
             </div>
             <div className="flex flex-col justify-between">
-              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><CriMark className="h-9 w-9" /></div>
+              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><OrnamentIcon kind={project.ornament} className="w-9" /></div>
               <div className="space-y-3 text-sm">
                 <p className="border-b border-ink/30 pb-1 font-display">{to || "Destinatario"}</p>
                 <p className="border-b border-ink/30 pb-1 text-xs opacity-60">Monza · Natale 2026</p>
@@ -55,7 +55,7 @@ export function EmailPreview({ project, donor, to, msg }: { project: Project; do
       </div>
       <div className="relative overflow-hidden bg-fir-deep px-6 py-10 text-center text-snow">
         <Snow count={30} />
-        <CriMark className="mx-auto h-10 w-10" />
+        <CriMark className="mx-auto h-14" />
         <OrnamentIcon kind={project.ornament} className="animate-floaty mx-auto mt-6 w-20" />
         <p className="mt-4 font-display text-2xl leading-tight">C'è un regalo per te<br />sotto l'Albero di Monza</p>
       </div>

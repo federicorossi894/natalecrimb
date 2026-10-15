@@ -54,8 +54,12 @@ export function OrnamentIcon({ kind, className = "" }: { kind: OrnamentKind; cla
   );
 }
 
-export function CriMark({ className = "", src }: { className?: string; src?: string }) {
-  return (
-    src ? <img src={src} alt="Croce Rossa Italiana — Comitato di Monza" className={`cri-official-mark ${className}`} /> : null
-  );
+import bianco from "@/assets/cri-bianco-orizzontale.png.asset.json";
+import rosso from "@/assets/cri-rosso-orizzontale.png.asset.json";
+import verticale from "@/assets/cri-bianco-verticale.png.asset.json";
+
+/** Official CRI mark (unaltered RGB files from Marchio.zip; transparent margins = clear space). */
+export function CriMark({ className = "", variant = "white" }: { className?: string; variant?: "white" | "red" | "vertical" }) {
+  const src = variant === "red" ? rosso.url : variant === "vertical" ? verticale.url : bianco.url;
+  return <img src={src} alt="Croce Rossa Italiana" className={`cri-official-mark w-auto ${className}`} />;
 }
