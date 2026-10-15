@@ -3,6 +3,7 @@ import { ClientOnly } from '@tanstack/react-router';
 import { useTreeStore } from '@/lib/tree-store';
 import type { TreeOrnament } from '@/lib/data';
 import { HomeQr } from './Qr';
+import { CriMark } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 const Scene=lazy(()=>import('./TreeScene'));
 export function TreeTV(){
@@ -30,6 +31,7 @@ export function TreeTV(){
       <p className="text-[0.9cqw] font-semibold uppercase text-gold">Croce Rossa Italiana · Comitato di Monza</p>
       <h1 className="mt-[0.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
+    <div className="absolute left-[2.5%] top-[3%] z-10 flex items-center gap-[1cqw]"><CriMark className="h-[6cqw]" /><span className="border-l border-gold/40 pl-[1cqw] text-[1.1cqw] text-gold">Comitato di Monza</span></div>
     <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
     <div className="tv-copy">
       <p className="font-display text-[7cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</p>
