@@ -58,7 +58,7 @@ function Kids() {
           )}
           {i === Q.length && (
             <div className="animate-rise relative text-center">
-              <CriMark className="mx-auto mt-4 h-16 w-16" />
+              <CriMark variant="vertical" className="mx-auto mt-4 h-28" />
               <p className="mt-4 text-5xl">⭐</p>
               <p className="mt-3 font-display text-3xl text-gold">Missione completata!</p>
               <p className="mt-3 text-lg">Mostra questa schermata ai volontari della casetta.</p>

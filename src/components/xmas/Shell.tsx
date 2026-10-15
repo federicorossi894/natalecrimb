@@ -29,7 +29,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <CriMark className="h-8 w-8 shrink-0" />
+            <CriMark className="h-12 shrink-0 sm:h-14" />
             <div className="min-w-0 leading-tight">
               <p className="truncate font-display text-[15px]">Il Natale che fa bene</p>
               <p className="text-[10px] text-gold">Croce Rossa Italiana · Comitato di Monza</p>
@@ -67,7 +67,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <footer className="mt-24 border-t px-4 pb-28 pt-12">
         <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-3">
           <div className="flex items-start gap-3">
-            <CriMark className="h-10 w-10 shrink-0" />
+            <CriMark variant="vertical" className="h-28 shrink-0" />
             <div>
               <p className="font-display text-lg">Croce Rossa Italiana</p>
               <p className="text-sm text-muted-foreground">Comitato di Monza</p>
