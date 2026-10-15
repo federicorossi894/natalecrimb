@@ -31,7 +31,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
               <p className="mt-3 text-[10px] leading-snug opacity-70">Regalo DEMO <strong>“{project.title}”</strong> per Croce Rossa Monza. Nessuna donazione reale.</p>
             </div>
             <div className="flex flex-col justify-between">
-              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><CriMark variant="vertical" className="h-14" /></div>
+              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><OrnamentIcon kind={project.ornament} className="w-9" /></div>
               <div className="space-y-3 text-sm">
                 <p className="border-b border-ink/30 pb-1 font-display">{to || "Destinatario"}</p>
                 <p className="border-b border-ink/30 pb-1 text-xs opacity-60">Monza · Natale 2026</p>
@@ -55,7 +55,7 @@ export function EmailPreview({ project, donor, to, msg }: { project: Project; do
       </div>
       <div className="relative overflow-hidden bg-fir-deep px-6 py-10 text-center text-snow">
         <Snow count={30} />
-        <CriMark variant="red" className="mx-auto h-14" />
+        <CriMark className="mx-auto h-14" />
         <OrnamentIcon kind={project.ornament} className="animate-floaty mx-auto mt-6 w-20" />
         <p className="mt-4 font-display text-2xl leading-tight">C'è un regalo per te<br />sotto l'Albero di Monza</p>
       </div>

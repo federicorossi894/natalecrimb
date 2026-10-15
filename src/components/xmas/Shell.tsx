@@ -32,7 +32,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <CriMark className="h-12 shrink-0 sm:h-14" />
             <div className="min-w-0 leading-tight">
               <p className="truncate font-display text-[15px]">Il Natale che fa bene</p>
-              <p className="text-[10px] text-gold">Croce Rossa Italiana · Comitato di Monza</p>
+              <p className="text-[10px] text-gold">Comitato di Monza</p>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">
@@ -69,8 +69,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="flex items-start gap-3">
             <CriMark variant="vertical" className="h-28 shrink-0" />
             <div>
-              <p className="font-display text-lg">Croce Rossa Italiana</p>
-              <p className="text-sm text-muted-foreground">Comitato di Monza</p>
+              <p className="font-display text-lg">Comitato di Monza</p>
             </div>
           </div>
           <div className="text-sm text-muted-foreground">
