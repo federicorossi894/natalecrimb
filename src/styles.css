@@ -199,6 +199,9 @@
 .tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
 .tv-title { font-size: 3.6cqw; line-height: 1.05; }
 .tv-dedication { position: absolute; left: 5%; bottom: 5%; width: 39%; }
+.tv-events { padding: 1.6cqw 1.8cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 78%, transparent); border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); backdrop-filter: blur(8px); }
+.tv-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 80% at 35% 55%, transparent 55%, color-mix(in oklab, var(--scene-night) 70%, transparent)); }
+.tv-scene, .tv-scene * { cursor: none; }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
 @media (prefers-reduced-motion: reduce) {

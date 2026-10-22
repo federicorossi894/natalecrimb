@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
+import { EventsAdmin } from "@/components/xmas/EventsAdmin";
 import type { OrnamentKind } from "@/lib/data";
 
 export const Route = createFileRoute("/moderazione")({
@@ -53,7 +54,7 @@ function Mod() {
 
   return (
     <Shell>
-      <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche" />
+      <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche ed eventi" />
       <section className="mx-auto max-w-3xl px-4">
         {!ready ? null : !session ? <AuthBox /> : !isMod ? (
           <div className="glass rounded-2xl p-5 text-sm">
@@ -83,6 +84,7 @@ function Mod() {
                 </div>
               ))}
             </div>
+            <EventsAdmin />
           </>
         )}
       </section>
