@@ -23,28 +23,28 @@ function TreeStar({height,palette}:{height:number;palette:Palette}) {
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
 }
-function CameraRig({height,selected,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
+function CameraRig({height,selected,index,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;index:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
   const controls=useRef<OrbitControlsType>(null);
   const { camera, gl, size }=useThree();
   const moving=useRef(false);
   const clock=useRef(0);
   const target=useMemo(()=>new THREE.Vector3(),[]);
   useEffect(()=>{
-    if(tv){if(!selected){camera.position.set(0,height*0.75,height*1.72);camera.lookAt(0,height*0.45,0);}return;}
+    if(tv){if(!selected){camera.position.set(0,height*0.64,height*1.45);camera.lookAt(0,height*0.5,0);}return;}
     const c=controls.current;if(!c)return;
-    const p=selected ? ornamentAnchor(selected,height):[0,height*0.46,0];
+    const p=selected ? ornamentAnchor(selected,height,index):[0,height*0.5,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);
-    if(selected){const angle=Math.atan2(p[0]??0,p[2]??0);camera.position.set((p[0]??0)+Math.sin(angle)*2,(p[1]??0)+0.35,(p[2]??0)+Math.cos(angle)*2);}else camera.position.set(0,height*0.65,height*(size.width/size.height<0.7?1.95:1.65));
+    if(selected){const angle=Math.atan2(p[0]??0,p[2]??0);camera.position.set((p[0]??0)+Math.sin(angle)*2,(p[1]??0)+0.35,(p[2]??0)+Math.cos(angle)*2);}else camera.position.set(0,height*0.65,height*(size.width/size.height<0.7?2.1:1.65));
     c.update();moving.current=false;
-  },[selected,resetKey,height,tv,camera,size.width,size.height]);
+  },[selected,index,resetKey,height,tv,camera,size.width,size.height]);
   useEffect(()=>{ const stop=()=>{moving.current=true;};gl.domElement.addEventListener('pointerdown',stop);return()=>gl.domElement.removeEventListener('pointerdown',stop);},[gl]);
   useFrame((_,delta)=>{
     if(!tv)return;
     const dt=Math.min(delta,0.05);if(!reduced)clock.current+=dt;
-    const p=selected?ornamentAnchor(selected,height):[0,height*0.45,0];
+    const p=selected?ornamentAnchor(selected,height,index):[0,height*0.5,0];
     const a=selected?Math.atan2(p[0]??0,p[2]??0):clock.current*0.075;
-    const d=selected?2.5:height*1.72;
-    target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.6:1.1),(p[2]??0)+Math.cos(a)*d);
+    const d=selected?Math.max(1.6,height*0.62):height*1.45;
+    target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.25:height*0.14),(p[2]??0)+Math.cos(a)*d);
     camera.position.lerp(target,1-Math.exp(-1.5*dt));camera.lookAt(p[0]??0,p[1]??0,p[2]??0);
   });
   return tv?null:<OrbitControls ref={controls} makeDefault enablePan={false} enableDamping minDistance={1.5} maxDistance={10} minPolarAngle={0.22} maxPolarAngle={Math.PI*0.63} />;
@@ -81,7 +81,7 @@ export default function TreeScene(props:Props) {
       
       <Decorations {...props} height={h} palette={palette} />
       <TreeStar height={h} palette={palette} />
-      <CameraRig height={h} selected={props.selected} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} />
+      <CameraRig height={h} selected={props.selected} index={props.selected?props.ornaments.findIndex(o=>o.id===props.selected?.id):-1} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} />
     </Canvas></SceneBoundary>
   </div>;
 }

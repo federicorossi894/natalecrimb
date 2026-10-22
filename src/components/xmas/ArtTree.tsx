@@ -86,7 +86,7 @@ function glowTexture(){
 function buildCanopy(height:number,count:number,p:ScenePalette){
   const n=Math.min(count,200),T=7+Math.floor(n/25),S=96,RING=7;
   const pos:number[]=[],col:number[]=[],idx:number[]=[];
-  const deep=new THREE.Color(p.fir).multiplyScalar(0.5),mid=new THREE.Color(p.fir),tip=new THREE.Color(p.needle);
+  const deep=new THREE.Color(p.fir).multiplyScalar(0.22),mid=new THREE.Color(p.fir).multiplyScalar(0.55),tip=new THREE.Color(p.needle).multiplyScalar(0.62);
   const tufts:{pos:THREE.Vector3;dir:THREE.Vector3;s:number;c:THREE.Color}[]=[];
   const bulbs:THREE.Vector3[]=[];
   const perLobe=2+n/60;
@@ -146,9 +146,9 @@ function localParts(R:number){
     bauble:m([0,0,0],[R,R,R]),
     cap:m([0,R*0.97,0],[R*0.3,R*0.2,R*0.3]),
     ribbon:m([0,R*1.5,0],[R*0.1,R*0.95,R*0.025]),
-    bowL:m([-R*0.21,R*1.17,R*0.06],[R*0.27,R*0.12,R*0.08],0.5),
-    bowR:m([R*0.21,R*1.17,R*0.06],[R*0.27,R*0.12,R*0.08],-0.5),
-    knot:m([0,R*1.17,R*0.08],[R*0.1,R*0.1,R*0.1]),
+    bowL:m([-R*0.19,R*1.22,R*0.05],[R*0.2,R*0.09,R*0.05],0.45),
+    bowR:m([R*0.19,R*1.22,R*0.05],[R*0.2,R*0.09,R*0.05],-0.45),
+    knot:m([0,R*1.2,R*0.06],[R*0.075,R*0.075,R*0.075]),
     tag:m([R*1.05,-R*0.12,R*0.38],[R*0.95,R*0.6,R*0.03],0.14),
     string,
     hit:m([0,R*0.25,0],[R*1.7,R*1.7,R*1.7]),
@@ -174,8 +174,8 @@ function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:A
     ornaments.forEach((o,i)=>{const c=new THREE.Color(baubleStyle(o.kind,palette).ribbon);r.setColorAt(i,c);for(let j=0;j<3;j++)b.setColorAt(i*3+j,c);});
     if(r.instanceColor)r.instanceColor.needsUpdate=true;if(b.instanceColor)b.instanceColor.needsUpdate=true;
   },[ornaments,palette]);
-  const matrixFor=(o:TreeOrnament,t:number)=>{
-    const a=ornamentAnchor(o,height),len=Math.hypot(a[0],a[2])||1,theta=Math.atan2(a[0],a[2]);
+  const matrixFor=(o:TreeOrnament,index:number,t:number)=>{
+    const a=ornamentAnchor(o,height,index),len=Math.hypot(a[0],a[2])||1,theta=Math.atan2(a[0],a[2]);
     tmp.v.set(a[0]+a[0]/len*R*0.9,a[1],a[2]+a[2]/len*R*0.9);
     let scale=1,sway=0,spin=0;
     if(o.id===arrivingId&&!reduced){const k=Math.min(1,t/2.6),e=1-Math.pow(1-k,3);tmp.v.y+=(1-e)*height*0.7;tmp.v.x+=a[0]/len*(1-e)*R*5;tmp.v.z+=a[2]/len*(1-e)*R*5;spin=(1-e)*Math.PI*2;scale=0.45+0.55*e+Math.sin(k*Math.PI)*0.18;}
@@ -185,7 +185,7 @@ function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:A
     return tmp.m.clone();
   };
   const writeAll=(t:number)=>{
-    const mats=new Map<TreeOrnament['id'],THREE.Matrix4>();ornaments.forEach(o=>mats.set(o.id,matrixFor(o,t)));
+    const mats=new Map<TreeOrnament['id'],THREE.Matrix4>();ornaments.forEach((o,i)=>mats.set(o.id,matrixFor(o,i,t)));
     const put=(mesh:THREE.InstancedMesh|null|undefined,i:number,base:THREE.Matrix4,part:THREE.Matrix4)=>{if(!mesh)return;tmp.out.multiplyMatrices(base,part);mesh.setMatrixAt(i,tmp.out);};
     for(const k of KINDS){const mesh=baubleRefs.current[k];byKind[k].forEach((o,i)=>put(mesh,i,mats.get(o.id)!,local.bauble));if(mesh)mesh.instanceMatrix.needsUpdate=true;}
     ornaments.forEach((o,i)=>{const M=mats.get(o.id)!;put(cap.current,i,M,local.cap);put(ribbon.current,i,M,local.ribbon);put(bow.current,i*3,M,local.bowL);put(bow.current,i*3+1,M,local.bowR);put(bow.current,i*3+2,M,local.knot);put(hit.current,i,M,local.hit);});
@@ -220,7 +220,7 @@ function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:A
 function BaseGifts({height,count,palette}:{height:number;count:number;palette:ScenePalette}) {
   const box=useRef<THREE.InstancedMesh>(null),band=useRef<THREE.InstancedMesh>(null);
   const items=useMemo(()=>{const styles=[[palette.crimson,palette.ivory],[palette.forest,palette.gold],[palette.ivory,palette.burgundy],[palette.burgundy,palette.gold]] as const;
-    return Array.from({length:4+Math.min(6,Math.floor(count/20))},(_,i)=>{const a=i*2.4+0.6,r=height*(0.36+((i*0.37)%1)*0.13),s=height*(0.065+((i*0.61)%1)*0.04);return {x:Math.sin(a)*r,z:Math.cos(a)*r,s,rot:a*1.3,colors:styles[i%4]!};});},[height,count,palette]);
+    return Array.from({length:4+Math.min(6,Math.floor(count/20))},(_,i)=>{const a=i*2.4+0.6,r=height*(0.34+((i*0.37)%1)*0.11),s=height*(0.065+((i*0.61)%1)*0.04);return {x:Math.sin(a)*r,z:Math.cos(a)*r,s,rot:a*1.3,colors:styles[i%4]!};});},[height,count,palette]);
   useLayoutEffect(()=>{const b=box.current,r=band.current;if(!b||!r)return;const d=new THREE.Object3D();
     items.forEach((g,i)=>{d.position.set(g.x,0.085+g.s/2,g.z);d.rotation.set(0,g.rot,0);d.scale.set(g.s*1.15,g.s,g.s);d.updateMatrix();b.setMatrixAt(i,d.matrix);b.setColorAt(i,new THREE.Color(g.colors[0]));
       const rc=new THREE.Color(g.colors[1]);d.scale.set(g.s*1.17,g.s*1.02,g.s*0.16);d.updateMatrix();r.setMatrixAt(i*2,d.matrix);r.setColorAt(i*2,rc);d.scale.set(g.s*0.18,g.s*1.02,g.s*1.02);d.updateMatrix();r.setMatrixAt(i*2+1,d.matrix);r.setColorAt(i*2+1,rc);});
@@ -239,7 +239,7 @@ export function ArtTree(props:ArtProps) {
     <Canopy data={data} />
     <TreeLights bulbs={data.bulbs} height={height} palette={palette} reduced={reduced} />
     <mesh position={[0,height*0.07,0]} castShadow><cylinderGeometry args={[height*0.03,height*0.045,height*0.14,12]} /><meshStandardMaterial color={palette.bark} roughness={0.9} /></mesh>
-    <mesh position={[0,0.045,0]} receiveShadow><cylinderGeometry args={[height*0.55,height*0.58,0.08,64]} /><meshStandardMaterial color={palette.snow} metalness={0.1} roughness={0.7} /></mesh>
+    <mesh position={[0,0.045,0]} receiveShadow><cylinderGeometry args={[height*0.5,height*0.53,0.08,64]} /><meshStandardMaterial color={palette.snow} metalness={0.1} roughness={0.7} /></mesh>
     <BaseGifts height={height} count={ornaments.length} palette={palette} />
     <Baubles {...props} />
   </>;

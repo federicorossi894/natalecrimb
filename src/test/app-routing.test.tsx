@@ -28,8 +28,15 @@ describe('Shared tree layout',()=>{
   it('keeps each ornament anchor deterministic as the tree grows',()=>{
     const o={id:'stable-demo-id',kind:'cuore' as const,x:50,y:50};
     expect(ornamentAnchor(o,treeHeight(4))).toEqual(ornamentAnchor(o,treeHeight(4)));
-    const small=ornamentAnchor(o,2),large=ornamentAnchor(o,4);
+    const small=ornamentAnchor(o,2,3),large=ornamentAnchor(o,4,3);
     expect(small[1]/2).toBeCloseTo(large[1]/4);
+  });
+  it('spreads the first gifts apart instead of clustering them',()=>{
+    const o={id:'x',kind:'cuore' as const,x:50,y:50};
+    const pts=Array.from({length:6},(_,i)=>ornamentAnchor(o,2.2,i));
+    let min=Infinity;
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const a=pts[i]!,b=pts[j]!;min=Math.min(min,Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]));}
+    expect(min).toBeGreaterThan(0.25);
   });
 });
 
