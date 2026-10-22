@@ -3,7 +3,7 @@ import { createRouter, rootRouteId } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
-import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
+import { canopyTiers, ornamentAnchor, surfaceRadius, treeHeight, treeLayout, treeWidth } from "@/lib/tree-layout";
 import { eventSchema, romeToIso } from '@/lib/events';
 import { giftEmailSchema, deliveryLabel } from '@/lib/email-demo';
 
