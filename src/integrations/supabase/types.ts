@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      casetta_events: {
+        Row: {
+          confirmed: boolean
+          created_at: string
+          created_by: string | null
+          description: string
+          ends_at: string | null
+          id: string
+          starts_at: string
+          title: string
+          visible: boolean
+        }
+        Insert: {
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at?: string | null
+          id?: string
+          starts_at: string
+          title: string
+          visible?: boolean
+        }
+        Update: {
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at?: string | null
+          id?: string
+          starts_at?: string
+          title?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       demo_ornaments: {
         Row: {
           client_id: string

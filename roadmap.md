@@ -6,5 +6,8 @@
 - [x] Phase 1: post-donation two choices; per-project postcard, locally drawn share image, WhatsApp share, "Trova il mio addobbo", project CTA.
 - [ ] Phase 1 item 3: HTML email preview with "Invia ora" / "Sorprendilo a Natale" (25 Dec 00:05 Europe/Rome) — deferred (user: if cost uncertain do only 1 and 2). Existing preview date already set to 25 Dec 00:05.
 - [ ] Official "Comitato di Monza" territorial lockup file — awaits Comitato.
+- [x] Phase 2: stylised lush fir, painted project baubles with ribbons/tags, even ornament spread, growth to 200.
+- [x] Phase 2: TV director loop (panorama, dedication zoom, events card, arrivals), CTA, 24/7 safeguards.
+- [x] Phase 2: casetta_events Cloud table + moderator management; TV DEMO examples when empty.
 - [ ] Future phases: volunteer area / cash QR (separate), gift boxes/home polish, secondary pages.
-- Limits: no physical-iPhone test; native share sheet with image not testable headless (wa.me fallback verified).
+- Limits: no physical-iPhone/TV test; moderator approval + event creation not exercised (no moderator account yet); native share sheet with image not testable headless (wa.me fallback verified).

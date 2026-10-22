@@ -76,14 +76,18 @@
   --glow-gold: 0 0 30px oklch(0.83 0.12 80 / 45%);
   --shadow-deep: 0 30px 60px -20px oklch(0.05 0.02 165 / 70%);
   --scene-night: #13272a;
-  --scene-fir: #155b3d;
-  --scene-needle: #398657;
+  --scene-fir: #17633f;
+  --scene-needle: #4f9e62;
   --scene-bark: #544739;
   --scene-gold: #ffe0a0;
   --scene-red: #cf2943;
   --scene-snow: #f2f1e8;
   --scene-ground: #263c40;
   --scene-rim: #b9d8d9;
+  --scene-ivory: #f3e9d2;
+  --scene-burgundy: #6e1b2e;
+  --scene-forest: #1d5c3f;
+  --scene-crimson: #a8202f;
 }
 
 @layer base {
@@ -195,6 +199,9 @@
 .tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
 .tv-title { font-size: 3.6cqw; line-height: 1.05; }
 .tv-dedication { position: absolute; left: 5%; bottom: 5%; width: 39%; }
+.tv-events { padding: 1.6cqw 1.8cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 78%, transparent); border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); backdrop-filter: blur(8px); }
+.tv-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 80% at 35% 55%, transparent 55%, color-mix(in oklab, var(--scene-night) 70%, transparent)); }
+.tv-scene, .tv-scene * { cursor: none; }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
 @media (prefers-reduced-motion: reduce) {
