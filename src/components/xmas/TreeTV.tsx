@@ -42,7 +42,7 @@ export function TreeTV(){
     let timer:ReturnType<typeof setTimeout>;
     const run=()=>{
       const b=SEQUENCE[step.current%SEQUENCE.length]!;step.current++;
-      if(b==='dedica'){const pub=ornamentsRef.current.filter(o=>o.dedica);const next=pub.length?pub[cursor.current++%pub.length]:undefined;setSelected(next??null);setBeat(next?'dedica':'panorama');}
+      if(b==='dedica'){const all=ornamentsRef.current,pub=all.filter(o=>o.dedica),pool=pub.length?pub:all;const next=pool.length?pool[cursor.current++%pool.length]:undefined;setSelected(next??null);setBeat(next?'dedica':'panorama');}
       else{setSelected(null);setBeat(b);}
       timer=setTimeout(run,DURATION[b]);
     };
