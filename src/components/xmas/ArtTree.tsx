@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { TreeOrnament, OrnamentKind } from '@/lib/data';
-import { ornamentAnchor } from '@/lib/tree-layout';
+import { canopyTiers, treeLayout, type Placement } from '@/lib/tree-layout';
 
 export type ScenePalette = Record<'night'|'fir'|'needle'|'bark'|'gold'|'red'|'snow'|'ground'|'rim'|'ivory'|'burgundy'|'forest'|'crimson', string>;
 type ArtProps = { ornaments: TreeOrnament[]; height: number; palette: ScenePalette; selected: TreeOrnament|null; onPick?: ((o:TreeOrnament)=>void)|undefined; arrivingId?: string|number|null|undefined; reduced: boolean };
@@ -84,15 +84,14 @@ function glowTexture(){
 
 /** Stylised drooping fir: stacked scalloped skirts, bough-tip tufts and light strings draped on each tier. */
 function buildCanopy(height:number,count:number,p:ScenePalette){
-  const n=Math.min(count,200),T=7+Math.floor(n/25),S=96,RING=7;
+  const n=Math.min(count,200),tiers=canopyTiers(height,count),T=tiers.length,S=96,RING=7;
   const pos:number[]=[],col:number[]=[],idx:number[]=[];
   const deep=new THREE.Color(p.fir).multiplyScalar(0.22),mid=new THREE.Color(p.fir).multiplyScalar(0.46),tip=new THREE.Color(p.needle).multiplyScalar(0.55);
   const tufts:{pos:THREE.Vector3;dir:THREE.Vector3;s:number;c:THREE.Color}[]=[];
   const bulbs:THREE.Vector3[]=[];
   const perLobe=2+n/60;
   for(let k=0;k<T;k++){
-    const f=k/(T-1),yb=(0.08+Math.pow(f,0.92)*0.76)*height,th=height*(0.2-0.045*f);
-    const rl=height*(0.4*Math.pow(1-yb/height,1.05)+0.03),lobes=Math.max(6,Math.round(rl/height*40)),phase=k*0.77;
+    const f=k/(T-1),{yb,th,rl,lobes,phase}=tiers[k]!;
     const base=pos.length/3;
     const at=(a:number,t:number)=>{const lobe=Math.pow(Math.abs(Math.sin((a-phase)*lobes/2)),0.7);const r=rl*Math.pow(t,0.85)*(0.86+0.14*lobe);return {lobe,r,y:yb+th*(1-Math.pow(t,1.5))-th*0.16*lobe*Math.pow(t,3)};};
     for(let j=0;j<=RING;j++){const t=j/RING;for(let s=0;s<=S;s++){const a=phase+s/S*Math.PI*2,{lobe,r,y}=at(a,t);pos.push(Math.sin(a)*r,y,Math.cos(a)*r);const c=deep.clone().lerp(mid,Math.min(1,t*1.4)).lerp(tip,Math.pow(t,3)*(0.35+0.65*lobe)).multiplyScalar(0.9+0.2*f);col.push(c.r,c.g,c.b);}}
