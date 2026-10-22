@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
+import { eventSchema, romeToIso } from '@/lib/events';
 
 // Match routes without running loaders or rendering: loaders may need a server or
 // network the test run lacks, and jsdom never loads the stylesheets React waits on.
@@ -20,7 +21,9 @@ describe("App routing", () => {
 describe('Shared tree layout',()=>{
   it('grows from real demo counts with a bounded height',()=>{
     expect(treeHeight(4)).toBeLessThan(treeHeight(100));
-    expect(treeHeight(1000)).toBe(treeHeight(100));
+    expect(treeHeight(5)).toBeLessThan(treeHeight(50));
+    expect(treeHeight(50)).toBeLessThan(treeHeight(200));
+    expect(treeHeight(1000)).toBe(treeHeight(200));
   });
   it('keeps each ornament anchor deterministic as the tree grows',()=>{
     const o={id:'stable-demo-id',kind:'cuore' as const,x:50,y:50};
@@ -42,5 +45,15 @@ describe('Babbo Natale demo booking', () => {
   it('requires at least one child and the simulation acknowledgement', () => {
     expect(santaBookingSchema.safeParse({ ...valid, bambini: '0' }).success).toBe(false);
     expect(santaBookingSchema.safeParse({ ...valid, demo: false }).success).toBe(false);
+  });
+});
+
+describe('Casetta events', () => {
+  it('stores Monza wall-clock times in UTC (winter time is UTC+1)', () => {
+    expect(romeToIso('2026-12-24', '17:30')).toBe('2026-12-24T16:30:00.000Z');
+  });
+  it('rejects an event that ends before it starts', () => {
+    const r = eventSchema.safeParse({ title: 'Evento prova', description: '', date: '2026-12-20', start: '18:00', end: '17:00', confirmed: true, visible: true });
+    expect(r.success).toBe(false);
   });
 });

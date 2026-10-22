@@ -3,11 +3,12 @@ import { Environment, Lightformer, OrbitControls } from '@react-three/drei';
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { ArtTree } from './ArtTree';
+import { ArtTree, type ScenePalette } from './ArtTree';
 import type { TreeOrnament } from '@/lib/data';
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
 
-type Palette = Record<'night'|'fir'|'needle'|'bark'|'gold'|'red'|'snow'|'ground'|'rim', string>;
+type Palette = ScenePalette;
+const PALETTE_KEYS = ['night','fir','needle','bark','gold','red','snow','ground','rim','ivory','burgundy','forest','crimson'] as const;
 type Props = { ornaments: TreeOrnament[]; selected: TreeOrnament | null; onPick?: (o: TreeOrnament) => void; tv?: boolean; arrivingId?: string | number | null; resetKey?: number; reduced: boolean };
 
 class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -17,7 +18,7 @@ class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode
 }
 function TreeStar({height,palette}:{height:number;palette:Palette}) {
   const shape=useMemo(()=>{const s=new THREE.Shape();for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,r=i%2===0?0.18:0.078;const x=Math.cos(a)*r,y=Math.sin(a)*r;i===0?s.moveTo(x,y):s.lineTo(x,y);}s.closePath();return s;},[]);
-  return <group position={[0,height+0.08,0]}><mesh castShadow><extrudeGeometry args={[shape,{depth:0.045,bevelEnabled:true,bevelSize:0.018,bevelThickness:0.018,bevelSegments:2,steps:1}]} /><meshStandardMaterial color={palette.gold} emissive={palette.gold} emissiveIntensity={0.25} metalness={0.75} roughness={0.22} /></mesh><pointLight color={palette.gold} intensity={1.6} distance={1.5} /></group>;
+  return <group position={[0,height+0.06,0]} scale={0.85+height*0.12}><mesh castShadow><extrudeGeometry args={[shape,{depth:0.045,bevelEnabled:true,bevelSize:0.018,bevelThickness:0.018,bevelSegments:2,steps:1}]} /><meshStandardMaterial color={palette.gold} emissive={palette.gold} emissiveIntensity={0.25} metalness={0.75} roughness={0.22} /></mesh><pointLight color={palette.gold} intensity={1.6} distance={1.5} /></group>;
 }
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
@@ -62,7 +63,7 @@ export default function TreeScene(props:Props) {
   const [supported,setSupported]=useState(true);
   useEffect(()=>{
     const s=getComputedStyle(document.documentElement);const p={} as Palette;
-    for(const k of ['night','fir','needle','bark','gold','red','snow','ground','rim'] as const)p[k]=s.getPropertyValue(`--scene-${k}`).trim();setPalette(p);
+    for(const k of PALETTE_KEYS)p[k]=s.getPropertyValue(`--scene-${k}`).trim();setPalette(p);
     const c=document.createElement('canvas');setSupported(Boolean(c.getContext('webgl2')||c.getContext('webgl')));
   },[]);
   const fallback=<div className="flex h-full items-center justify-center px-6 text-center text-muted-foreground">Vista 3D non disponibile. Gli addobbi sono nell’elenco qui sotto.</div>;
@@ -70,7 +71,7 @@ export default function TreeScene(props:Props) {
   if(!palette)return <div className="tree-stage" aria-busy="true" />;
   const h=treeHeight(props.ornaments.length);
   return <div className="tree-stage" aria-label="Albero dei Regali tridimensionale" data-ornament-count={props.ornaments.length} data-tree-height={h.toFixed(2)}>
-    <SceneBoundary fallback={fallback}><Canvas shadows dpr={[1,1.5]} camera={{position:[0,2.7,5.2],fov:42}} gl={{antialias:true}} onCreated={({gl})=>{gl.domElement.addEventListener('webglcontextlost',()=>setSupported(false));}}>
+    <SceneBoundary fallback={fallback}><Canvas shadows dpr={[1,1.5]} camera={{position:[0,2.7,5.2],fov:42}} gl={{antialias:true}} onCreated={({gl})=>{gl.domElement.addEventListener('webglcontextlost',()=>{setSupported(false);if(props.tv)setTimeout(()=>window.location.reload(),8000);});}}>
       <color attach="background" args={[palette.night]} /><fog attach="fog" args={[palette.night,9,27]} />
       <ambientLight intensity={0.65} /><hemisphereLight args={[palette.rim,palette.ground,1.2]} />
       <directionalLight position={[3,6,5]} intensity={2.4} color={palette.snow} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />

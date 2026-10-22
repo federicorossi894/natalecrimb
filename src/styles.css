@@ -76,14 +76,18 @@
   --glow-gold: 0 0 30px oklch(0.83 0.12 80 / 45%);
   --shadow-deep: 0 30px 60px -20px oklch(0.05 0.02 165 / 70%);
   --scene-night: #13272a;
-  --scene-fir: #155b3d;
-  --scene-needle: #398657;
+  --scene-fir: #17633f;
+  --scene-needle: #4f9e62;
   --scene-bark: #544739;
   --scene-gold: #ffe0a0;
   --scene-red: #cf2943;
   --scene-snow: #f2f1e8;
   --scene-ground: #263c40;
   --scene-rim: #b9d8d9;
+  --scene-ivory: #f3e9d2;
+  --scene-burgundy: #6e1b2e;
+  --scene-forest: #1d5c3f;
+  --scene-crimson: #a8202f;
 }
 
 @layer base {
