@@ -18,21 +18,21 @@ export function canopyTiers(height: number, count: number): Tier[] {
   return tiers;
 }
 export const lobeAt = (t: Tier, a: number) => Math.pow(Math.abs(Math.sin((a - t.phase) * t.lobes / 2)), 0.7);
-/** Outer radius of the needle surface at height y and angle a (max over overlapping skirts, incl. bough tufts). */
+/** Outer radius of the needle surface at height y and angle a (max over overlapping skirts, to the bough tips). */
 export function surfaceRadius(tiers: Tier[], height: number, y: number, a: number) {
   let r = 0;
   for (const t of tiers) {
     const lobe = lobeAt(t, a), shape = 0.86 + 0.14 * lobe;
     if (y > t.yb + t.th) continue;
     if (y >= t.yb) r = Math.max(r, t.rl * Math.pow(Math.pow(1 - (y - t.yb) / t.th, 2 / 3), 0.85) * shape);
-    else if (y >= t.yb - t.th * 0.16 * lobe - height * 0.012) r = Math.max(r, t.rl * shape + height * 0.02 * lobe);
+    else if (y >= t.yb - t.th * 0.16 * lobe - height * 0.012) r = Math.max(r, t.rl * shape);
   }
   return r;
 }
 
 /* ---------- Ornament placement ---------- */
 /** Clearance ellipsoid in bauble radii: a bauble is ~2R wide (+ dedication tag on one side) and spans -R..+2R with cap/ribbon. */
-const GAP_H = 2.6, GAP_V = 3.2;
+const GAP_H = 2.7, GAP_V = 3.2;
 const LEVEL_LO = 0.12, LEVEL_HI = 0.83, TRIES = 72;
 const envelope = (level: number) => 0.4 * Math.pow(1 - level, 1.05) + 0.03;
 /** Bauble radius as a fraction of tree height for a tree holding `count` gifts: as large as possible, small enough to fit. */
@@ -76,6 +76,8 @@ function slotAt(i: number): Slot {
   return slots[i]!;
 }
 
+/** Baubles sink ~10% of their radius between the bough tips, as real ones do, instead of hovering in front. */
+const NESTLE = 0.9;
 const DISK: [number, number][] = [[0, 0], [-0.6, 0], [0.6, 0], [0, -0.6], [0, 0.6], [-0.85, 0], [0.85, 0], [-0.45, -0.45], [-0.45, 0.45], [0.45, -0.45], [0.45, 0.45]];
 export type Placement = { pos: [number, number, number]; theta: number; lean: number; R: number };
 const cache = new Map<string, Placement[]>();
@@ -90,7 +92,7 @@ export function treeLayout(count: number, height = treeHeight(count)): Placement
     const { level, angle } = slotAt(i), y = level * height, da = R / Math.max(0.2, sr(y, angle));
     // Sphere vs needles: at offset (dy, dt) the bauble reaches sqrt(1-dy²-dt²)·R inward; it rests on the outermost contact.
     let radial = 0;
-    for (const [dy, dt] of DISK) radial = Math.max(radial, sr(y + dy * R, angle + dt * da) + 0.98 * R * Math.sqrt(1 - dy * dy - dt * dt));
+    for (const [dy, dt] of DISK) radial = Math.max(radial, sr(y + dy * R, angle + dt * da) + NESTLE * R * Math.sqrt(1 - dy * dy - dt * dt));
     const hook = Math.max(sr(y + 1.4 * R, angle), sr(y + 1.95 * R, angle));
     radial = Math.max(radial, hook + 0.12 * R);
     // Lean the hanger back onto the bough above when the surface recedes, so the ribbon touches the needles.

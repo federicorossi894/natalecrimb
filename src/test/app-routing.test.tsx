@@ -41,7 +41,7 @@ describe('Shared tree layout',()=>{
   });
   it.each([4,30,100])('hangs %i baubles on the outer needles, never inside the branches',(n)=>{
     const h=treeHeight(n),tiers=canopyTiers(h,n);
-    for(const p of treeLayout(n)){const radial=Math.hypot(p.pos[0],p.pos[2]);expect(radial-p.R*0.97).toBeGreaterThanOrEqual(surfaceRadius(tiers,h,p.pos[1],p.theta));const sr=(y:number,a:number)=>surfaceRadius(tiers,h,y,a),da=p.R/Math.max(0.2,sr(p.pos[1],p.theta));
+    for(const p of treeLayout(n)){const radial=Math.hypot(p.pos[0],p.pos[2]);expect(radial-p.R*0.88).toBeGreaterThanOrEqual(surfaceRadius(tiers,h,p.pos[1],p.theta));const sr=(y:number,a:number)=>surfaceRadius(tiers,h,y,a),da=p.R/Math.max(0.2,sr(p.pos[1],p.theta));
       let rest=0;for(const dy of [-0.6,0,0.6])for(const dt of [-0.6,0,0.6])rest=Math.max(rest,sr(p.pos[1]+dy*p.R,p.theta+dt*da)+p.R*Math.sqrt(Math.max(0,1-dy*dy-dt*dt)));
       const hook=Math.max(sr(p.pos[1]+1.4*p.R,p.theta),sr(p.pos[1]+1.95*p.R,p.theta));
       // Its sphere touches the needles, or it hangs from the bough right above it: never floats in front.
