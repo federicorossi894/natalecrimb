@@ -150,41 +150,56 @@ function localParts(R:number){
     knot:m([0,R*1.2,R*0.06],[R*0.075,R*0.075,R*0.075]),
     tag:m([R*1.05,-R*0.12,R*0.38],[R*0.95,R*0.6,R*0.03],0.14),
     string,
-    hit:m([0,R*0.25,0],[R*1.7,R*1.7,R*1.7]),
+    hit:m([0,R*0.3,0],[R*1.3,R*1.3,R*1.3]),
   };
 }
 
+type Live={x:number;y:number;z:number;lean:number;theta:number};
 function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:ArtProps) {
-  const R=height*0.07/(1+Math.sqrt(Math.min(ornaments.length,200)/200)*0.55);
+  const layout=useMemo(()=>treeLayout(ornaments.length,height),[ornaments.length,height]);
   const textures=useMemo(()=>Object.fromEntries(KINDS.map(k=>[k,paintBauble(k,palette)])) as Record<OrnamentKind,THREE.Texture>,[palette]);
   const tagTex=useMemo(()=>paintTag(palette),[palette]);
   useEffect(()=>()=>{Object.values(textures).forEach(t=>t.dispose());tagTex.dispose();},[textures,tagTex]);
   const byKind=useMemo(()=>Object.fromEntries(KINDS.map(k=>[k,ornaments.filter(o=>o.kind===k)])) as Record<OrnamentKind,TreeOrnament[]>,[ornaments]);
   const tagged=useMemo(()=>ornaments.filter(o=>o.dedica),[ornaments]);
-  const local=useMemo(()=>localParts(R),[R]);
+  // Parts are built at unit radius; the live radius is applied per frame so growth eases instead of jumping.
+  const local=useMemo(()=>localParts(1),[]);
   const baubleRefs=useRef<Partial<Record<OrnamentKind,THREE.InstancedMesh|null>>>({});
   const cap=useRef<THREE.InstancedMesh>(null),ribbon=useRef<THREE.InstancedMesh>(null),bow=useRef<THREE.InstancedMesh>(null),tag=useRef<THREE.InstancedMesh>(null),string=useRef<THREE.InstancedMesh>(null),hit=useRef<THREE.InstancedMesh>(null);
   const clock=useRef(0),dirty=useRef(true),wasAnimating=useRef(false);
-  const tmp=useMemo(()=>({m:new THREE.Matrix4(),out:new THREE.Matrix4(),piv:new THREE.Matrix4(),rz:new THREE.Matrix4(),s:new THREE.Matrix4(),v:new THREE.Vector3()}),[]);
-  useEffect(()=>{dirty.current=true;},[ornaments,height,selected,arrivingId,R,local]);
+  const live=useRef(new Map<TreeOrnament['id'],Live>()),liveR=useRef(0);
+  const tmp=useMemo(()=>({m:new THREE.Matrix4(),out:new THREE.Matrix4(),piv:new THREE.Matrix4(),rz:new THREE.Matrix4(),rx:new THREE.Matrix4(),s:new THREE.Matrix4(),v:new THREE.Vector3()}),[]);
+  useEffect(()=>{dirty.current=true;},[ornaments,height,selected,arrivingId,layout]);
   useEffect(()=>{clock.current=0;},[arrivingId,selected?.id]);
   useLayoutEffect(()=>{
     const r=ribbon.current,b=bow.current;if(!r||!b)return;
     ornaments.forEach((o,i)=>{const c=new THREE.Color(baubleStyle(o.kind,palette).ribbon);r.setColorAt(i,c);for(let j=0;j<3;j++)b.setColorAt(i*3+j,c);});
     if(r.instanceColor)r.instanceColor.needsUpdate=true;if(b.instanceColor)b.instanceColor.needsUpdate=true;
   },[ornaments,palette]);
-  const matrixFor=(o:TreeOrnament,index:number,t:number)=>{
-    const a=ornamentAnchor(o,height,index),len=Math.hypot(a[0],a[2])||1,theta=Math.atan2(a[0],a[2]);
-    tmp.v.set(a[0]+a[0]/len*R*0.9,a[1],a[2]+a[2]/len*R*0.9);
+  /** Eases every bauble toward its layout slot; returns true while anything is still settling. */
+  const settle=(dt:number)=>{
+    const k=reduced?1:1-Math.exp(-4*dt),R=layout[0]?.R??0;let moving=false;
+    if(!liveR.current||reduced)liveR.current=R;else{liveR.current+=(R-liveR.current)*k;if(Math.abs(R-liveR.current)>1e-4)moving=true;}
+    const seen=new Set<TreeOrnament['id']>();
+    ornaments.forEach((o,i)=>{const p:Placement|undefined=layout[i];if(!p)return;seen.add(o.id);const c=live.current.get(o.id);
+      if(!c){live.current.set(o.id,{x:p.pos[0],y:p.pos[1],z:p.pos[2],lean:p.lean,theta:p.theta});return;}
+      c.x+=(p.pos[0]-c.x)*k;c.y+=(p.pos[1]-c.y)*k;c.z+=(p.pos[2]-c.z)*k;c.lean+=(p.lean-c.lean)*k;c.theta=p.theta;
+      if(Math.abs(p.pos[0]-c.x)+Math.abs(p.pos[1]-c.y)+Math.abs(p.pos[2]-c.z)>1e-4)moving=true;});
+    for(const id of live.current.keys())if(!seen.has(id))live.current.delete(id);
+    return moving;
+  };
+  const matrixFor=(o:TreeOrnament,t:number)=>{
+    const c=live.current.get(o.id),R=liveR.current;if(!c)return tmp.m.identity().clone();
+    const len=Math.hypot(c.x,c.z)||1;tmp.v.set(c.x,c.y,c.z);
     let scale=1,sway=0,spin=0;
-    if(o.id===arrivingId&&!reduced){const k=Math.min(1,t/2.6),e=1-Math.pow(1-k,3);tmp.v.y+=(1-e)*height*0.7;tmp.v.x+=a[0]/len*(1-e)*R*5;tmp.v.z+=a[2]/len*(1-e)*R*5;spin=(1-e)*Math.PI*2;scale=0.45+0.55*e+Math.sin(k*Math.PI)*0.18;}
+    if(o.id===arrivingId&&!reduced){const k=Math.min(1,t/2.6),e=1-Math.pow(1-k,3);tmp.v.y+=(1-e)*height*0.7;tmp.v.x+=c.x/len*(1-e)*R*5;tmp.v.z+=c.z/len*(1-e)*R*5;spin=(1-e)*Math.PI*2;scale=0.45+0.55*e+Math.sin(k*Math.PI)*0.18;}
     if(o.id===selected?.id){scale*=1.18;if(!reduced)sway=Math.sin(t*2.2)*0.07;}
-    tmp.m.makeRotationY(theta+spin).setPosition(tmp.v);
-    tmp.piv.makeTranslation(0,R*1.9,0);tmp.m.multiply(tmp.piv).multiply(tmp.rz.makeRotationZ(sway));tmp.piv.makeTranslation(0,-R*1.9,0);tmp.m.multiply(tmp.piv).multiply(tmp.s.makeScale(scale,scale,scale));
+    tmp.m.makeRotationY(c.theta+spin).setPosition(tmp.v).multiply(tmp.rx.makeRotationX(-c.lean)).multiply(tmp.s.makeScale(R,R,R));
+    tmp.piv.makeTranslation(0,1.9,0);tmp.m.multiply(tmp.piv).multiply(tmp.rz.makeRotationZ(sway));tmp.piv.makeTranslation(0,-1.9,0);tmp.m.multiply(tmp.piv).multiply(tmp.s.makeScale(scale,scale,scale));
     return tmp.m.clone();
   };
   const writeAll=(t:number)=>{
-    const mats=new Map<TreeOrnament['id'],THREE.Matrix4>();ornaments.forEach((o,i)=>mats.set(o.id,matrixFor(o,i,t)));
+    const mats=new Map<TreeOrnament['id'],THREE.Matrix4>();ornaments.forEach(o=>mats.set(o.id,matrixFor(o,t)));
     const put=(mesh:THREE.InstancedMesh|null|undefined,i:number,base:THREE.Matrix4,part:THREE.Matrix4)=>{if(!mesh)return;tmp.out.multiplyMatrices(base,part);mesh.setMatrixAt(i,tmp.out);};
     for(const k of KINDS){const mesh=baubleRefs.current[k];byKind[k].forEach((o,i)=>put(mesh,i,mats.get(o.id)!,local.bauble));if(mesh)mesh.instanceMatrix.needsUpdate=true;}
     ornaments.forEach((o,i)=>{const M=mats.get(o.id)!;put(cap.current,i,M,local.cap);put(ribbon.current,i,M,local.ribbon);put(bow.current,i*3,M,local.bowL);put(bow.current,i*3+1,M,local.bowR);put(bow.current,i*3+2,M,local.knot);put(hit.current,i,M,local.hit);});
@@ -192,8 +207,9 @@ function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:A
     for(const mesh of [cap.current,ribbon.current,bow.current,hit.current,tag.current,string.current])if(mesh){mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();}
   };
   useFrame((_,delta)=>{
-    clock.current+=Math.min(delta,0.05);
-    const animating=(arrivingId!=null&&!reduced&&clock.current<2.8)||(selected!=null&&!reduced);
+    const dt=Math.min(delta,0.05);clock.current+=dt;
+    const settling=settle(dt);
+    const animating=settling||(arrivingId!=null&&!reduced&&clock.current<2.8)||(selected!=null&&!reduced);
     if(!animating&&!dirty.current&&!wasAnimating.current)return;
     wasAnimating.current=animating;dirty.current=false;writeAll(clock.current);
   });
