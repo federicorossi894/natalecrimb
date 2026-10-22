@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { EventsAdmin } from "@/components/xmas/EventsAdmin";
+import { AuthBox } from "@/components/xmas/AuthBox";
 import type { OrnamentKind } from "@/lib/data";
 
 export const Route = createFileRoute("/moderazione")({
@@ -24,7 +24,6 @@ export const Route = createFileRoute("/moderazione")({
 });
 
 type Row = { id: string; kind: string; firma: string | null; dedica: string | null; status: string; publish_consent: boolean; created_at: string };
-const cred = z.object({ email: z.string().trim().email("Email non valida").max(255), password: z.string().min(8, "Almeno 8 caratteri").max(72) });
 
 function Mod() {
   const [session, setSession] = useState<Session | null>(null);
@@ -56,7 +55,7 @@ function Mod() {
     <Shell>
       <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche ed eventi" />
       <section className="mx-auto max-w-3xl px-4">
-        {!ready ? null : !session ? <AuthBox /> : !isMod ? (
+        {!ready ? null : !session ? <AuthBox title="Accesso moderatori" returnPath="/moderazione" roleName="moderatore" /> : !isMod ? (
           <div className="glass rounded-2xl p-5 text-sm">
             <p>Sei connesso come <b>{session.user.email}</b>, ma il tuo account non ha il ruolo di moderatore.</p>
             <p className="mt-2 text-muted-foreground">Chiedi a un amministratore di assegnarti il ruolo.</p>
@@ -89,34 +88,5 @@ function Mod() {
         )}
       </section>
     </Shell>
-  );
-}
-
-function AuthBox() {
-  const [mode, setMode] = useState<"in" | "up">("in");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const r = cred.safeParse({ email, password });
-    if (!r.success) { setMsg(r.error.issues[0]?.message ?? "Dati non validi"); return; }
-    const res = mode === "in"
-      ? await supabase.auth.signInWithPassword(r.data)
-      : await supabase.auth.signUp({ ...r.data, options: { emailRedirectTo: `${window.location.origin}/moderazione` } });
-    if (res.error) setMsg(res.error.message);
-    else if (mode === "up") setMsg("Controlla la tua email per confermare l'account. Il ruolo di moderatore va poi assegnato da un amministratore.");
-  };
-  return (
-    <form onSubmit={submit} className="glass mx-auto max-w-sm space-y-3 rounded-2xl p-5">
-      <p className="font-display text-xl">{mode === "in" ? "Accesso moderatori" : "Crea account"}</p>
-      <input type="email" autoComplete="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="glass w-full rounded-xl px-4 py-3 outline-none" />
-      <input type="password" autoComplete={mode === "in" ? "current-password" : "new-password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="glass w-full rounded-xl px-4 py-3 outline-none" />
-      {msg && <p className="text-sm text-gold">{msg}</p>}
-      <button className="w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground">{mode === "in" ? "Accedi" : "Registrati"}</button>
-      <button type="button" onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="w-full text-xs underline">
-        {mode === "in" ? "Non hai un account? Registrati" : "Hai già un account? Accedi"}
-      </button>
-    </form>
   );
 }
