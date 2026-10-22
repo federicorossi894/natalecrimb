@@ -80,12 +80,12 @@ function Volontari() {
 }
 
 type Lookup = { status: string; kind: string; amount_cents: number; firma: string | null; dedica: string | null; publish_consent: boolean; expires_at: string; confirmed_at: string | null; method: string | null };
-const RESULT_TEXT: Record<string, string> = {
+const RESULT_TEXT = {
   confirmed: "Regalo confermato: la pallina è stata appesa all'albero condiviso.",
   already_confirmed: "Questo QR era già stato confermato: nessuna pallina aggiunta, nessun doppio incasso.",
   expired: "Richiesta scaduta: chiedi al donatore di generare un nuovo QR.",
   not_found: "Codice non trovato. Controlla e riprova.",
-};
+} as const satisfies Record<string, string>;
 
 function ScanFlow() {
   const [camera, setCamera] = useState(false);
@@ -104,7 +104,7 @@ function ScanFlow() {
     setBusy(false);
     if (error) { setMsg(error.message); return; }
     const row = data?.[0];
-    if (!row) { setMsg(RESULT_TEXT.not_found ?? ""); return; }
+    if (!row) { setMsg(RESULT_TEXT.not_found); return; }
     setMsg(""); setReq(row);
   }, []);
   const onScan = useCallback((text: string) => { setCamera(false); setCode(formatCode(text)); void lookup(text); }, [lookup]);
@@ -159,7 +159,7 @@ function ScanFlow() {
           {req.status === "confirmed" && !result && <p className="mt-4 text-sm text-gold">{RESULT_TEXT.already_confirmed}</p>}
           {result && (
             <p role="status" className="mt-4 flex items-start gap-2 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-gold" />
-              <span>{RESULT_TEXT[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
+              <span>{(RESULT_TEXT as Record<string, string>)[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
           )}
         </div>
       )}
