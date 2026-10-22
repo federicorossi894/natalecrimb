@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
 import { eventSchema, romeToIso } from '@/lib/events';
+import { giftEmailSchema, deliveryLabel } from '@/lib/email-demo';
 
 // Match routes without running loaders or rendering: loaders may need a server or
 // network the test run lacks, and jsdom never loads the stylesheets React waits on.
@@ -62,5 +63,15 @@ describe('Casetta events', () => {
   it('rejects an event that ends before it starts', () => {
     const r = eventSchema.safeParse({ title: 'Evento prova', description: '', date: '2026-12-20', start: '18:00', end: '17:00', confirmed: true, visible: true });
     expect(r.success).toBe(false);
+  });
+});
+
+describe('Gift email demo', () => {
+  it('schedules the Christmas surprise for 25 December at 00:05 Italian time', () => {
+    expect(deliveryLabel('christmas')).toBe('25 dicembre · ore 00:05 (ora italiana)');
+  });
+  it('requires a valid recipient email', () => {
+    expect(giftEmailSchema.safeParse({ mode: 'now', donor: '', to: 'non-una-email', msg: '' }).success).toBe(false);
+    expect(giftEmailSchema.safeParse({ mode: 'now', donor: '', to: 'nome@esempio.it', msg: '' }).success).toBe(true);
   });
 });
