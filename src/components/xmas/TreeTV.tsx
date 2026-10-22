@@ -33,7 +33,8 @@ export function TreeTV(){
   useEffect(()=>{arrivingRef.current=arriving;},[arriving]);
   useEffect(()=>{
     const ids=new Set(ornaments.map(o=>o.id));const prev=previous.current;
-    if(prev){const next=ornaments.find(o=>!prev.has(o.id));if(next){setArriving(next.id);setSelected(next);setBeat('panorama');}}
+    // The first non-empty load is the existing tree, not an arrival (a genuine first gift 0→1 still animates).
+    if(prev&&!(prev.size===0&&ornaments.length>1)){const next=ornaments.find(o=>!prev.has(o.id));if(next){setArriving(next.id);setSelected(next);setBeat('panorama');}}
     previous.current=ids;
   },[ornaments]);
   useEffect(()=>{if(!arriving)return;const t=setTimeout(()=>{setArriving(null);setSelected(null);},ARRIVAL_MS);return()=>clearTimeout(t);},[arriving]);
