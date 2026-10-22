@@ -41,7 +41,11 @@ describe('Shared tree layout',()=>{
   });
   it.each([4,30,100])('hangs %i baubles on the outer needles, never inside the branches',(n)=>{
     const h=treeHeight(n),tiers=canopyTiers(h,n);
-    for(const p of treeLayout(n)){const radial=Math.hypot(p.pos[0],p.pos[2]);expect(radial-p.R*0.97).toBeGreaterThanOrEqual(surfaceRadius(tiers,h,p.pos[1],p.theta));expect(radial-p.R).toBeLessThan(surfaceRadius(tiers,h,p.pos[1],p.theta)+p.R*1.2+h*0.04);}
+    for(const p of treeLayout(n)){const radial=Math.hypot(p.pos[0],p.pos[2]);expect(radial-p.R*0.97).toBeGreaterThanOrEqual(surfaceRadius(tiers,h,p.pos[1],p.theta));const sr=(y:number,a:number)=>surfaceRadius(tiers,h,y,a),da=p.R/Math.max(0.2,sr(p.pos[1],p.theta));
+      let body=0;for(const dy of [-0.85,0,0.85])for(const d of [-da,0,da])body=Math.max(body,sr(p.pos[1]+dy*p.R,p.theta+d));
+      const hook=Math.max(sr(p.pos[1]+1.4*p.R,p.theta),sr(p.pos[1]+1.95*p.R,p.theta));
+      // Touches the needles with its body, or hangs from the bough right above it: never floats in front.
+      expect(Math.min(radial-p.R-body,radial-hook)).toBeLessThan(p.R*0.25);}
   });
   it('grows wider as well as taller with the gifts',()=>{
     expect(treeWidth(100)).toBeGreaterThan(treeWidth(4));
