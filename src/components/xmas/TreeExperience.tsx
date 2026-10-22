@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ClientOnly } from '@tanstack/react-router';
 import { LocateFixed, RotateCcw, ChevronLeft, ChevronRight, X, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,17 +7,19 @@ import type { TreeOrnament } from '@/lib/data';
 import { OrnamentIcon } from './Ornament';
 const Scene=lazy(()=>import('./TreeScene'));
 export function useReducedMotion(){const [reduced,setReduced]=useState(false);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(m.matches);update();m.addEventListener('change',update);return()=>m.removeEventListener('change',update);},[]);return reduced;}
-export function TreeExperience(){
+export function TreeExperience({autoFind=false}:{autoFind?:boolean}={}){
   const {addedOrnaments:ornaments,addedCount,mine,error}=useTreeStore();
   const [selected,setSelected]=useState<TreeOrnament|null>(null);
   const [reset,setReset]=useState(0);
   const [notice,setNotice]=useState('');
   const reduced=useReducedMotion();
+  const autoDone=useRef(false);
   useEffect(()=>{const pop=()=>setSelected(null);window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
   const close=()=>{setSelected(null);if(window.history.state?.treeDedication)window.history.back();};
   useEffect(()=>{if(!selected)return;const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){setSelected(null);if(window.history.state?.treeDedication)window.history.back();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[selected]);
   const pick=(o:TreeOrnament)=>{if(!selected)window.history.pushState({...window.history.state,treeDedication:true},'');setSelected(o);setNotice('');setTimeout(()=>{const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-82,behavior:'instant'});},80);};
   const find=()=>{const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));if(!own.length){setNotice('Non ci sono ancora tuoi addobbi visibili da questo dispositivo.');return;}const i=own.findIndex(o=>o.id===selected?.id);const next=own[(i+1)%own.length];if(next)pick(next);};
+  useEffect(()=>{if(!autoFind||autoDone.current||!mine.length||!ornaments.length)return;const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));const last=own[own.length-1];if(last){autoDone.current=true;pick(last);}},[autoFind,mine,ornaments]);
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">

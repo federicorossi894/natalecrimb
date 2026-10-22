@@ -7,6 +7,10 @@ export type Project = {
   ornament: OrnamentKind;
   ornamentName: string;
   tagline: string;
+  /** Default postcard sentence, used when the donor writes no dedication. */
+  postcardLine: string;
+  /** Gift palette as CSS custom-property names (background, ribbon, text). */
+  theme: { bg: string; ribbon: string; ink: string };
   story: string;
   doing: string[];
   amounts: { value: number; impact: string }[];
@@ -20,6 +24,8 @@ export const PROJECTS: Project[] = [
     ornament: "calore",
     ornamentName: "una sciarpa",
     tagline: "Una coperta, un tè caldo, qualcuno che si ferma.",
+    postcardLine: "Quest'anno il mio regalo per te scalda le notti di chi a Monza dorme fuori.",
+    theme: { bg: "--primary", ribbon: "--ivory", ink: "--snow" },
     story:
       "Nelle notti di dicembre, a Monza, c'è chi dorme fuori. Le nostre Unità di Strada passano a portare coperte, bevande calde e soprattutto tempo: un nome chiamato, una parola, un controllo sulla salute. A volte è l'unico incontro della giornata.",
     doing: [
@@ -42,6 +48,8 @@ export const PROJECTS: Project[] = [
     ornament: "dae",
     ornamentName: "un piccolo DAE",
     tagline: "Nei primi minuti, fa la differenza chi c'è.",
+    postcardLine: "Ti regalo un battito: perché a Monza ci sia sempre qualcuno pronto a salvare una vita.",
+    theme: { bg: "--fir-deep", ribbon: "--gold", ink: "--snow" },
     story:
       "Quando un cuore si ferma, ogni minuto conta. Prima che arrivi l'ambulanza servono due cose: un defibrillatore (DAE) vicino e una persona capace di usarlo. Con questo regalo aiuti Monza ad avere un nuovo DAE in un luogo pubblico.",
     doing: [
@@ -64,6 +72,8 @@ export const PROJECTS: Project[] = [
     ornament: "prossimita",
     ornamentName: "una mini unità mobile",
     tagline: "La salute che arriva dove serve.",
+    postcardLine: "Il mio regalo per te porta la salute nei quartieri di Monza, vicino a chi ne ha bisogno.",
+    theme: { bg: "--ivory", ribbon: "--burgundy", ink: "--ink" },
     story:
       "Non tutti riescono ad andare dal medico. L'Unità Mobile di Prossimità porta nei quartieri controlli di base, ascolto e orientamento: pressione, glicemia, una parola gentile, un consiglio su dove andare.",
     doing: [
@@ -86,6 +96,8 @@ export const PROJECTS: Project[] = [
     ornament: "cuore",
     ornamentName: "un cuore CRI",
     tagline: "Fidati di chi c'è, ogni giorno.",
+    postcardLine: "Ho scelto per te il regalo più semplice: esserci, dove a Monza serve di più.",
+    theme: { bg: "--burgundy", ribbon: "--gold", ink: "--snow" },
     story:
       "Emergenze, trasporti, sociale, formazione, giovani. I volontari di Croce Rossa Monza ci sono 365 giorni l'anno. Un regalo libero ci permette di intervenire subito dove il bisogno è più urgente.",
     doing: [

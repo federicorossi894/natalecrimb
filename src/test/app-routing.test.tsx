@@ -29,3 +29,18 @@ describe('Shared tree layout',()=>{
     expect(small[1]/2).toBeCloseTo(large[1]/4);
   });
 });
+
+import { SANTA_CONTRIBUTION_EUR, santaBookingSchema, emptySantaForm } from '@/lib/santa';
+describe('Babbo Natale demo booking', () => {
+  const valid = { ...emptySantaForm(), nome: 'Giulia', cognome: 'Rossi', email: 'giulia@esempio.it', telefono: '333 1234567', indirizzo: 'Via Italia 10', bambini: '2', fascia: 'Indifferente', demo: true };
+  it('proposes an indicative €30 contribution per family', () => {
+    expect(SANTA_CONTRIBUTION_EUR).toBe(30);
+  });
+  it('accepts an adult booking with optional child names and notes left empty', () => {
+    expect(santaBookingSchema.safeParse(valid).success).toBe(true);
+  });
+  it('requires at least one child and the simulation acknowledgement', () => {
+    expect(santaBookingSchema.safeParse({ ...valid, bambini: '0' }).success).toBe(false);
+    expect(santaBookingSchema.safeParse({ ...valid, demo: false }).success).toBe(false);
+  });
+});
