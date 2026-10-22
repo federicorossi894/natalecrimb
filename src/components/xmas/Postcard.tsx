@@ -3,7 +3,6 @@ import { CriMark, OrnamentIcon } from "./Ornament";
 import { Snow } from "./Snow";
 import type { Project } from "@/lib/data";
 import { projectUrl } from "@/lib/postcard-share";
-import { Button } from '@/components/ui/button';
 
 /** Gift-wrapped postcard themed per project (front) with handwritten-style back. */
 export function Postcard({ project, to, from, msg }: { project: Project; to: string; from: string; msg: string }) {
@@ -12,7 +11,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
   const ribbon = { background: `var(${t.ribbon})` };
   return (
     <div>
-      <Button variant="ghost" aria-label="Gira la cartolina" aria-pressed={back} className="flip-card mx-auto block aspect-[3/2] h-auto w-full max-w-lg whitespace-normal p-0 text-left hover:bg-transparent" onClick={() => setBack(!back)}>
+      <button type="button" aria-label="Gira la cartolina" aria-pressed={back} className="flip-card mx-auto block aspect-[3/2] w-full max-w-lg cursor-pointer rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setBack(!back)}>
         <div className={`flip-inner relative h-full w-full ${back ? "is-flipped" : ""}`}>
           <div className="flip-face absolute inset-0 overflow-hidden rounded-2xl shadow-deep" style={{ background: `radial-gradient(ellipse at 30% 20%, color-mix(in oklab, var(${t.bg}) 80%, var(--snow)), var(${t.bg}) 60%)`, color: `var(${t.ink})` }}>
             <Snow count={18} />
@@ -53,7 +52,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
             </div>
           </div>
         </div>
-      </Button>
+      </button>
       <p className="mt-3 text-center text-xs text-muted-foreground">Tocca per girarla · Cartolina DEMO</p>
     </div>
   );

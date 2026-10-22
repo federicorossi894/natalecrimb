@@ -6,7 +6,7 @@ export const projectUrl = (p: Project) => `${SITE_URL}/regali/${p.id}`;
 
 export function postcardText(p: Project, to: string, from: string, msg: string) {
   const dedica = msg.trim() || p.postcardLine;
-  return `🎄 ${to.trim() || "Per te"}, ho scelto un regalo per Monza a tuo nome: “${p.title}” con la Croce Rossa Italiana – Comitato di Monza.\n\n“${dedica}”${from.trim() ? `\n— ${from.trim()}` : ""}\n\nScopri il progetto: ${projectUrl(p)}\n(Cartolina DEMO: nessuna donazione reale)`;
+  return `Buon Natale, ${to.trim() || "a te"}! Ho scelto un regalo per Monza a tuo nome: “${p.title}” con la Croce Rossa Italiana – Comitato di Monza.\n\n“${dedica}”${from.trim() ? `\n— ${from.trim()}` : ""}\n\nScopri il progetto: ${projectUrl(p)}\n(Cartolina DEMO: nessuna donazione reale)`;
 }
 
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "gray";
