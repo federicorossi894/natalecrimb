@@ -1,55 +1,55 @@
 import type { OrnamentKind } from "@/lib/data";
 
-/** Simbolic tree ornaments, drawn as SVG baubles. Colors come from CSS tokens. */
+/** 2D twin of the 3D baubles: same four palettes and painted motifs. No CRI emblem is drawn. */
+const ICON: Record<OrnamentKind, { base: string; motif: string }> = {
+  calore: { base: "var(--scene-crimson)", motif: "var(--scene-ivory)" },
+  dae: { base: "var(--scene-forest)", motif: "var(--scene-red)" },
+  prossimita: { base: "var(--scene-ivory)", motif: "var(--scene-burgundy)" },
+  cuore: { base: "var(--scene-burgundy)", motif: "var(--scene-gold)" },
+};
 export function OrnamentIcon({ kind, className = "" }: { kind: OrnamentKind; className?: string }) {
+  const c = ICON[kind];
   return (
     <svg viewBox="0 0 64 72" className={className} aria-hidden>
       <defs>
-        <radialGradient id={`g-${kind}`} cx="35%" cy="35%" r="70%">
-          <stop offset="0%" stopColor="var(--snow)" stopOpacity="0.9" />
-          <stop offset="35%" stopColor={kind === "dae" ? "var(--fir)" : kind === "prossimita" ? "var(--gold)" : "var(--primary)"} />
-          <stop offset="100%" stopColor={kind === "dae" ? "var(--fir-deep)" : kind === "prossimita" ? "oklch(0.55 0.1 70)" : "oklch(0.38 0.16 27)"} />
+        <radialGradient id={`g-${kind}`} cx="38%" cy="34%" r="72%">
+          <stop offset="0%" stopColor="var(--scene-ivory)" stopOpacity="0.55" />
+          <stop offset="30%" stopColor={c.base} />
+          <stop offset="100%" stopColor={c.base} stopOpacity="0.75" />
         </radialGradient>
       </defs>
-      <line x1="32" y1="0" x2="32" y2="8" stroke="var(--gold)" strokeWidth="1.5" />
-      <rect x="27" y="6" width="10" height="6" rx="1.5" fill="var(--gold)" />
-      <circle cx="32" cy="42" r="28" fill={`url(#g-${kind})`} stroke="var(--gold)" strokeOpacity="0.6" />
-      <g transform="translate(32 42)" fill="var(--snow)">
-        {kind === "cuore" && (
-          <>
-            <path d="M0 13 C-14 3 -14 -9 -6 -10 C-3 -10 -1 -8 0 -6 C1 -8 3 -10 6 -10 C14 -9 14 3 0 13Z" />
-            <rect x="-2" y="-6" width="4" height="12" fill="var(--primary)" />
-            <rect x="-6" y="-2" width="12" height="4" fill="var(--primary)" />
-          </>
-        )}
+      <line x1="32" y1="0" x2="32" y2="8" stroke="var(--scene-gold)" strokeWidth="1.5" />
+      <rect x="27" y="6" width="10" height="6" rx="1.5" fill="var(--scene-gold)" />
+      <circle cx="32" cy="42" r="28" fill="var(--scene-night)" />
+      <circle cx="32" cy="42" r="28" fill={`url(#g-${kind})`} stroke="var(--scene-gold)" strokeWidth="1.5" />
+      <circle cx="32" cy="42" r="19" fill="none" stroke="var(--scene-gold)" strokeOpacity="0.7" />
+      <g transform="translate(32 42)">
+        {kind === "cuore" && <path d="M0 12 C-15 2 -14 -10 -6 -10 C-3 -10 -1 -8 0 -6 C1 -8 3 -10 6 -10 C14 -10 15 2 0 12Z" fill={c.motif} />}
         {kind === "dae" && (
           <>
-            <rect x="-12" y="-11" width="24" height="22" rx="4" />
-            <path d="M0 6 C-8 0 -8 -6 -4 -7 C-2 -7 -1 -6 0 -4 C1 -6 2 -7 4 -7 C8 -6 8 0 0 6Z" fill="var(--fir)" />
-            <path d="M1 -6 L-2 0 L1 0 L-1 5 L4 -1 L1 -1 L3 -6Z" fill="var(--gold)" />
+            <rect x="-11" y="-10" width="22" height="20" rx="3.5" fill={c.motif} stroke="var(--scene-ivory)" strokeWidth="1.2" />
+            <path d="M0 6 C-8 0 -8 -6 -4 -7 C-2 -7 -1 -6 0 -4 C1 -6 2 -7 4 -7 C8 -6 8 0 0 6Z" fill="var(--scene-ivory)" />
+            <path d="M1 -6 L-2 0 L1 0 L-1 5 L4 -1 L1 -1 L3 -6Z" fill="var(--scene-gold)" />
           </>
         )}
         {kind === "calore" && (
-          <>
-            <path d="M-13 -8 Q0 -14 13 -8 L13 -2 Q0 -8 -13 -2Z" />
-            <path d="M4 -4 L10 -4 L9 12 L4 12Z" />
-            <path d="M4 12 L4 15 M6 12 L6 15 M8 12 L8 15" stroke="var(--snow)" strokeWidth="1" />
-            <path d="M-13 -5 Q0 -11 13 -5" stroke="var(--primary)" strokeWidth="1.5" fill="none" />
-          </>
+          <g fill={c.motif}>
+            <path d="M-12 -8 Q0 4 12 -8 L12 -3 Q0 9 -12 -3Z" />
+            <path d="M3 -1 L9 -1 L8 13 L3 13Z" />
+            <path d="M-4 0 L1 0 L0 11 L-4 11Z" />
+          </g>
         )}
         {kind === "prossimita" && (
           <>
-            <path d="M-15 6 L-15 -6 Q-15 -9 -12 -9 L6 -9 L13 -1 L15 1 L15 6Z" />
-            <rect x="-11" y="-6" width="7" height="5" fill="var(--fir-deep)" />
-            <rect x="5" y="-6" width="5" height="4" fill="var(--fir-deep)" />
-            <rect x="-2" y="-6" width="2" height="6" fill="var(--primary)" />
-            <rect x="-4" y="-4" width="6" height="2" fill="var(--primary)" />
-            <circle cx="-8" cy="7" r="3" fill="var(--ink)" />
-            <circle cx="9" cy="7" r="3" fill="var(--ink)" />
+            <path d="M-15 6 L-15 -6 Q-15 -9 -12 -9 L6 -9 L12 -2 L15 0 L15 6Z" fill={c.motif} />
+            <rect x="-12" y="-6" width="7" height="5" rx="1" fill="var(--scene-ivory)" />
+            <rect x="-3" y="-6" width="7" height="5" rx="1" fill="var(--scene-ivory)" />
+            <rect x="-15" y="1" width="30" height="1.6" fill="var(--scene-gold)" />
+            <circle cx="-8" cy="7" r="3" fill="var(--scene-night)" />
+            <circle cx="9" cy="7" r="3" fill="var(--scene-night)" />
           </>
         )}
       </g>
-      <ellipse cx="22" cy="28" rx="6" ry="3.5" fill="var(--snow)" opacity="0.35" transform="rotate(-30 22 28)" />
     </svg>
   );
 }
