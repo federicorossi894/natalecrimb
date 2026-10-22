@@ -3,7 +3,7 @@ import type { TreeOrnament } from './data';
 /** Grows from a complete small fir (few gifts) to a spectacular tree at 200 demo gifts. */
 export function treeHeight(count: number) { return 1.8 + 2.8 * Math.sqrt(clampCount(count) / 200); }
 /** Canopy gets proportionally wider (fuller silhouette) as gifts accumulate. */
-export function treeWidth(count: number) { return 1 + 0.18 * Math.sqrt(clampCount(count) / 200); }
+export function treeWidth(count: number) { return 1 + 0.25 * Math.sqrt(clampCount(count) / 200); }
 function clampCount(count: number) { return Math.min(200, Math.max(0, count)); }
 
 /* ---------- Canopy profile shared by the mesh builder and the ornament placement ---------- */
