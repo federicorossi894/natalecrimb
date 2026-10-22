@@ -86,7 +86,7 @@ function glowTexture(){
 function buildCanopy(height:number,count:number,p:ScenePalette){
   const n=Math.min(count,200),T=7+Math.floor(n/25),S=96,RING=7;
   const pos:number[]=[],col:number[]=[],idx:number[]=[];
-  const deep=new THREE.Color(p.fir).multiplyScalar(0.22),mid=new THREE.Color(p.fir).multiplyScalar(0.55),tip=new THREE.Color(p.needle).multiplyScalar(0.62);
+  const deep=new THREE.Color(p.fir).multiplyScalar(0.22),mid=new THREE.Color(p.fir).multiplyScalar(0.46),tip=new THREE.Color(p.needle).multiplyScalar(0.55);
   const tufts:{pos:THREE.Vector3;dir:THREE.Vector3;s:number;c:THREE.Color}[]=[];
   const bulbs:THREE.Vector3[]=[];
   const perLobe=2+n/60;
