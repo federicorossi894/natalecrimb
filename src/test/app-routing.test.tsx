@@ -3,7 +3,7 @@ import { createRouter, rootRouteId } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
-import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
+import { canopyTiers, ornamentAnchor, surfaceRadius, treeHeight, treeLayout, treeWidth } from "@/lib/tree-layout";
 import { eventSchema, romeToIso } from '@/lib/events';
 import { giftEmailSchema, deliveryLabel } from '@/lib/email-demo';
 
@@ -26,18 +26,29 @@ describe('Shared tree layout',()=>{
     expect(treeHeight(50)).toBeLessThan(treeHeight(200));
     expect(treeHeight(1000)).toBe(treeHeight(200));
   });
-  it('keeps each ornament anchor deterministic as the tree grows',()=>{
+  it('keeps every existing gift on the same spot of the tree when a new one arrives',()=>{
+    const a=treeLayout(30),b=treeLayout(31),ha=treeHeight(30),hb=treeHeight(31);
+    a.forEach((p,i)=>{const q=b[i]!;expect(q.theta).toBe(p.theta);expect(q.pos[1]/hb).toBeCloseTo(p.pos[1]/ha,6);});
     const o={id:'stable-demo-id',kind:'cuore' as const,x:50,y:50};
-    expect(ornamentAnchor(o,treeHeight(4))).toEqual(ornamentAnchor(o,treeHeight(4)));
-    const small=ornamentAnchor(o,2,3),large=ornamentAnchor(o,4,3);
-    expect(small[1]/2).toBeCloseTo(large[1]/4);
+    expect(ornamentAnchor(o,treeHeight(16),3,16)).toEqual(treeLayout(16)[3]!.pos);
   });
-  it('spreads the first gifts apart instead of clustering them',()=>{
-    const o={id:'x',kind:'cuore' as const,x:50,y:50};
-    const pts=Array.from({length:6},(_,i)=>ornamentAnchor(o,2.2,i));
-    let min=Infinity;
-    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const a=pts[i]!,b=pts[j]!;min=Math.min(min,Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]));}
-    expect(min).toBeGreaterThan(0.25);
+  it.each([4,16,30,60,100,200])('never lets %i baubles (with cap and ribbon) touch each other',(n)=>{
+    const L=treeLayout(n);let worst=Infinity;
+    for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const p=L[i]!,q=L[j]!,R=p.R;
+      // 3D: horizontal clearance for two ~2R wide baubles, vertical for the -R..+2R hanger span.
+      worst=Math.min(worst,Math.hypot(Math.hypot(p.pos[0]-q.pos[0],p.pos[2]-q.pos[2])/(2.2*R),(p.pos[1]-q.pos[1])/(3*R)));}
+    expect(worst).toBeGreaterThanOrEqual(1);
+  });
+  it.each([4,30,100])('hangs %i baubles on the outer needles, never inside the branches',(n)=>{
+    const h=treeHeight(n),tiers=canopyTiers(h,n);
+    for(const p of treeLayout(n)){const radial=Math.hypot(p.pos[0],p.pos[2]);expect(radial-p.R*0.88).toBeGreaterThanOrEqual(surfaceRadius(tiers,h,p.pos[1],p.theta));const sr=(y:number,a:number)=>surfaceRadius(tiers,h,y,a),da=p.R/Math.max(0.2,sr(p.pos[1],p.theta));
+      let rest=0;for(const dy of [-0.6,0,0.6])for(const dt of [-0.6,0,0.6])rest=Math.max(rest,sr(p.pos[1]+dy*p.R,p.theta+dt*da)+p.R*Math.sqrt(Math.max(0,1-dy*dy-dt*dt)));
+      const hook=Math.max(sr(p.pos[1]+1.4*p.R,p.theta),sr(p.pos[1]+1.95*p.R,p.theta));
+      // Its sphere touches the needles, or it hangs from the bough right above it: never floats in front.
+      expect(Math.min(radial-rest,radial-hook)).toBeLessThan(p.R*0.3);}
+  });
+  it('grows wider as well as taller with the gifts',()=>{
+    expect(treeWidth(100)).toBeGreaterThan(treeWidth(4));
   });
 });
 

@@ -9,5 +9,6 @@
 - [x] Phase 2: stylised lush fir, painted project baubles with ribbons/tags, even ornament spread, growth to 200.
 - [x] Phase 2: TV director loop (panorama, dedication zoom, events card, arrivals), CTA, 24/7 safeguards.
 - [x] Phase 2: casetta_events Cloud table + moderator management; TV DEMO examples when empty.
+- [x] Fix: bauble placement — no rows/overlaps, rest on needles, stable slots, tree widens with gifts (tested 4–200).
 - [ ] Future phases: volunteer area / cash QR (separate), gift boxes/home polish, secondary pages.
 - Limits: no physical-iPhone/TV test; moderator approval + event creation not exercised (no moderator account yet); native share sheet with image not testable headless (wa.me fallback verified).
