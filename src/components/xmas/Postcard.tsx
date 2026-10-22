@@ -3,6 +3,7 @@ import { CriMark, OrnamentIcon } from "./Ornament";
 import { Snow } from "./Snow";
 import type { Project } from "@/lib/data";
 import { projectUrl } from "@/lib/postcard-share";
+import { EMAIL_SENDER, deliveryLabel, type EmailMode } from "@/lib/email-demo";
 
 /** Gift-wrapped postcard themed per project (front) with handwritten-style back. */
 export function Postcard({ project, to, from, msg }: { project: Project; to: string; from: string; msg: string }) {
@@ -58,19 +59,20 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
   );
 }
 
-export function EmailPreview({ project, donor, to, msg }: { project: Project; donor: string; to: string; msg: string }) {
+export function EmailPreview({ project, donor, to, msg, mode = "christmas" }: { project: Project; donor: string; to: string; msg: string; mode?: EmailMode }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-paper text-ink shadow-deep">
       <div className="border-b border-ink/10 bg-paper px-4 py-3 text-xs">
-        <p><span className="opacity-60">Da:</span> Croce Rossa Monza &lt;natale@crimonza.org&gt; <span className="opacity-50">(demo)</span></p>
+        <p><span className="opacity-60">Da:</span> Croce Rossa Monza &lt;{EMAIL_SENDER}&gt; <span className="opacity-50">(demo)</span></p>
         <p><span className="opacity-60">A:</span> {to || "destinatario"}</p>
+        <p><span className="opacity-60">Consegna:</span> {deliveryLabel(mode)}</p>
         <p className="mt-1 font-semibold">🎄 {donor || "Qualcuno"} ti ha lasciato qualcosa sotto l'albero di Monza</p>
       </div>
       <div className="relative overflow-hidden bg-fir-deep px-6 py-10 text-center text-snow">
         <Snow count={30} />
         <CriMark className="mx-auto h-14" />
         <OrnamentIcon kind={project.ornament} className="animate-floaty mx-auto mt-6 w-20" />
-        <p className="mt-4 font-display text-2xl leading-tight">C'è un regalo per te<br />sotto l'Albero di Monza</p>
+        <p className="mt-4 font-display text-2xl leading-tight">{mode === "christmas" ? <>Buon Natale!<br />C'è un regalo per te sotto l'Albero di Monza</> : <>C'è un regalo per te<br />sotto l'Albero di Monza</>}</p>
       </div>
       <div className="px-6 py-6 text-sm leading-relaxed">
         <p>Ciao,</p>

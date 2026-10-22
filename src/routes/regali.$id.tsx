@@ -10,6 +10,7 @@ import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { postcardText, renderPostcardImage } from "@/lib/postcard-share";
+import { CHRISTMAS_DELIVERY, confirmationText, deliveryLabel, giftEmailSchema, type EmailMode } from "@/lib/email-demo";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
@@ -373,37 +374,61 @@ function Dedica({ p, onDetail, onEmail }: { p: Project; onDetail: () => void; on
 }
 
 function Sorpresa({ p }: { p: Project }) {
+  const [mode, setMode] = useState<EmailMode>("christmas");
   const [donor, setDonor] = useState("");
   const [to, setTo] = useState("");
   const [msg, setMsg] = useState("");
-  const [ok, setOk] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState<EmailMode | null>(null);
+  const confirm = () => {
+    const r = giftEmailSchema.safeParse({ mode, donor, to, msg });
+    if (!r.success) { setError(r.error.issues[0]?.message ?? "Dati non validi"); return; }
+    setError("");
+    setDone(r.data.mode);
+    // Nothing is kept: the recipient address is cleared right after the simulated confirmation.
+    setTo(""); setMsg("");
+  };
+  const modes: { id: EmailMode; t: string; d: string; i: React.ReactNode }[] = [
+    { id: "now", t: "Invia ora", d: "Arriva subito al destinatario", i: <Send className="h-5 w-5" /> },
+    { id: "christmas", t: "Sorprendilo a Natale", d: CHRISTMAS_DELIVERY, i: <CalendarClock className="h-5 w-5" /> },
+  ];
   return (
     <section className="mx-auto max-w-5xl px-4 pt-6">
-      <h1 className="font-display text-4xl">Fagli una sorpresa a Natale</h1>
-      <p className="mt-2 text-muted-foreground">Un'email che arriva proprio la notte di Natale.</p>
+      <h1 className="font-display text-4xl">Regalalo via email</h1>
+      <p className="mt-2 text-muted-foreground">Scegli se farlo arrivare subito o proprio la notte di Natale.</p>
       <div className="mt-6 grid gap-8 md:grid-cols-2">
         <div className="space-y-4">
-          <Field label="Il tuo nome" placeholder="Federico" value={donor} onChange={(e) => setDonor(e.target.value)} />
-          <Field label="Email destinatario" type="email" placeholder="nome@esempio.it" value={to} onChange={(e) => setTo(e.target.value)} />
+          <div role="radiogroup" aria-label="Quando inviare l'email" className="grid grid-cols-2 gap-3">
+            {modes.map((m) => (
+              <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)} className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition ${mode === m.id ? "border-gold bg-secondary" : "glass"}`}>
+                <span className={mode === m.id ? "text-gold" : "text-muted-foreground"}>{m.i}</span>
+                <span className="font-display text-lg leading-tight">{m.t}</span>
+                <span className="text-xs text-muted-foreground">{m.d}</span>
+              </button>
+            ))}
+          </div>
+          <Field label="Il tuo nome (facoltativo)" placeholder="Federico" maxLength={40} value={donor} onChange={(e) => setDonor(e.target.value)} />
+          <Field label="Email destinatario" type="email" autoComplete="off" placeholder="nome@esempio.it" maxLength={255} value={to} onChange={(e) => setTo(e.target.value)} />
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Dedica</span>
-            <textarea rows={3} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Buon Natale! Quest'anno ho pensato a un regalo diverso." className="glass mt-1.5 w-full rounded-2xl p-4 outline-none focus:border-gold" />
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Dedica (facoltativa)</span>
+            <textarea rows={3} maxLength={90} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Buon Natale! Quest'anno ho pensato a un regalo diverso." className="glass mt-1.5 w-full rounded-2xl p-4 outline-none focus:border-gold" />
           </label>
           <div className="glass flex items-center gap-3 rounded-2xl p-4">
             <CalendarClock className="h-6 w-6 text-gold" />
-            <div><p className="text-xs uppercase tracking-widest text-muted-foreground">Consegna programmata · demo</p><p className="font-display text-lg">25 dicembre · ore 00:05 (ora italiana)</p></div>
+            <div><p className="text-xs uppercase tracking-widest text-muted-foreground">Consegna · demo</p><p className="font-display text-lg">{deliveryLabel(mode)}</p></div>
           </div>
-          <button onClick={() => setOk(true)} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Programma sorpresa</button>
-          <p className="text-center text-[11px] text-muted-foreground">Demo: nessuna email verrà inviata.</p>
+          {error && <p role="alert" className="text-sm text-gold">{error}</p>}
+          <button onClick={confirm} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">{mode === "now" ? "Invia ora" : "Programma sorpresa"}</button>
+          <p className="text-center text-[11px] text-muted-foreground">Demo: nessuna email verrà inviata o programmata, nessun indirizzo viene salvato.</p>
         </div>
         <div>
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-gold">Anteprima email</p>
-          <EmailPreview project={p} donor={donor} to={to} msg={msg} />
+          <EmailPreview project={p} donor={donor} to={to} msg={msg} mode={mode} />
         </div>
       </div>
-      <Modal open={ok} onClose={() => setOk(false)}>
-        <DemoNotice>Sorpresa simulata per il 25 dicembre alle 00:05. 🎄</DemoNotice>
-        <p className="mt-3 text-center text-sm text-muted-foreground">Questa è una simulazione: nessuna email è stata programmata né inviata.</p>
+      <Modal open={done !== null} onClose={() => setDone(null)}>
+        <DemoNotice>{done ? confirmationText(done) : ""} 🎄</DemoNotice>
+        <p className="mt-3 text-center text-sm text-muted-foreground">Questa è una simulazione: nessuna email è stata inviata né programmata, e l'indirizzo non è stato salvato.</p>
       </Modal>
     </section>
   );
