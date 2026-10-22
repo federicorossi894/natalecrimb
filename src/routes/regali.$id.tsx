@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { ArrowLeft, Check, CreditCard, ExternalLink, CalendarClock, Download, Heart, LocateFixed, Mail, MessageCircle, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Banknote, Check, CreditCard, ExternalLink, CalendarClock, Download, Heart, LocateFixed, Mail, MessageCircle, Send, Sparkles } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
@@ -9,6 +9,8 @@ import { Modal, DemoNotice } from "@/components/xmas/Modal";
 import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
+import { QRCodeSVG } from "qrcode.react";
+import { amountSchema, cashRequestStatus, createCashRequest, euro, formatCode, type CashStatus, type PaymentChoice } from "@/lib/cash";
 import { postcardText, renderPostcardImage } from "@/lib/postcard-share";
 import { CHRISTMAS_DELIVERY, confirmationText, deliveryLabel, giftEmailSchema, type EmailMode } from "@/lib/email-demo";
 
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/regali/$id")({
   component: Detail,
 });
 
-type Step = "detail" | "checkout" | "success" | "dedica" | "sorpresa" | "mine";
+type Step = "detail" | "checkout" | "cash" | "success" | "dedica" | "sorpresa" | "mine";
 
 function Detail() {
   const { id } = Route.useLoaderData();
@@ -47,12 +49,13 @@ function Detail() {
   return (
     <Shell>
       <div className="mx-auto max-w-3xl px-4 pt-6">
-        <button onClick={() => (step === "detail" ? history.back() : go(step === "checkout" ? "detail" : step === "success" ? "checkout" : "success"))} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <button onClick={() => (step === "detail" ? history.back() : go(step === "checkout" ? "detail" : step === "success" || step === "cash" ? "checkout" : "success"))} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro
         </button>
       </div>
       {step === "detail" && <DetailView p={p} amount={amount} setAmount={setAmount} onGo={() => go("checkout")} />}
-      {step === "checkout" && <Checkout p={p} amount={amount} setAmount={setAmount} onConfirm={() => go("success")} />}
+      {step === "checkout" && <Checkout p={p} amount={amount} setAmount={setAmount} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />}
+      {step === "cash" && <CashFlow p={p} amount={amount} />}
       {step === "success" && <Success p={p} onPick={go} />}
       {step === "mine" && <Mine p={p} />}
       {step === "dedica" && <Dedica p={p} onDetail={() => go("detail")} onEmail={() => go("sorpresa")} />}
@@ -146,13 +149,12 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
   );
 }
 
-function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: number; setAmount: (n: number) => void; onConfirm: () => void }) {
-  const [method, setMethod] = useState("card");
-  const methods = [
-    { id: "card", label: "Carta", icon: <CreditCard className="h-5 w-5" /> },
-    { id: "paypal", label: "PayPal", icon: <span className="font-bold italic">P</span> },
-    { id: "apple", label: "Apple Pay", icon: <span className="font-semibold"></span> },
-    { id: "google", label: "Google Pay", icon: <span className="font-bold">G</span> },
+function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: number; setAmount: (n: number) => void; onConfirm: (m: PaymentChoice) => void }) {
+  const [method, setMethod] = useState<PaymentChoice>("sumup");
+  const methods: { id: PaymentChoice; label: string; sub: string; icon: React.ReactNode }[] = [
+    { id: "sumup", label: "SumUp online", sub: "Carta · simulatore", icon: <CreditCard className="h-5 w-5" /> },
+    { id: "paypal", label: "PayPal online", sub: "Simulatore", icon: <span className="font-bold italic">P</span> },
+    { id: "cash", label: "Contanti alla casetta", sub: "Piazza San Paolo", icon: <Banknote className="h-5 w-5" /> },
   ];
   return (
     <section className="animate-rise mx-auto max-w-lg px-4 pt-6">
@@ -167,23 +169,119 @@ function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: num
         <p className="font-display text-2xl text-gold">€{amount}</p>
       </div>
       <div className="mt-6"><Amounts p={p} amount={amount} setAmount={setAmount} /></div>
-      <p className="mt-6 text-sm font-semibold">Metodo di pagamento</p>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <p className="mt-6 text-sm font-semibold">Come vuoi donare</p>
+      <div role="radiogroup" aria-label="Metodo di donazione" className="mt-3 grid gap-2">
         {methods.map((m) => (
-          <button key={m.id} onClick={() => setMethod(m.id)} className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-sm transition ${method === m.id ? "border-gold bg-secondary" : "glass"}`}>
-            {m.icon} {m.label}
+          <button key={m.id} type="button" role="radio" aria-checked={method === m.id} onClick={() => setMethod(m.id)} className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-left text-sm transition ${method === m.id ? "border-gold bg-secondary" : "glass"}`}>
+            {m.icon}<span><span className="block font-semibold">{m.label}</span><span className="text-xs text-muted-foreground">{m.sub}</span></span>
             {method === m.id && <Check className="ml-auto h-4 w-4 text-gold" />}
           </button>
         ))}
       </div>
-      {method === "card" && (
-        <div className="mt-4 space-y-2 opacity-70">
-          <div className="glass rounded-xl px-4 py-3 text-sm text-muted-foreground">•••• •••• •••• 4242 <span className="float-right text-[10px]">DEMO</span></div>
-          <div className="grid grid-cols-2 gap-2"><div className="glass rounded-xl px-4 py-3 text-sm text-muted-foreground">12/28</div><div className="glass rounded-xl px-4 py-3 text-sm text-muted-foreground">•••</div></div>
+      {method !== "cash" ? (
+        <div className="mt-4 rounded-2xl border border-dashed hairline-gold p-4 text-sm" data-testid="online-simulator">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Simulatore {method === "sumup" ? "SumUp" : "PayPal"} · DEMO</p>
+          <p className="mt-1 text-muted-foreground">Nessun collegamento a {method === "sumup" ? "SumUp" : "PayPal"}: non viene aperto alcun pagamento, nessun dato di carta o conto viene richiesto o verificato.</p>
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-dashed hairline-gold p-4 text-sm">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti · DEMO</p>
+          <p className="mt-1 text-muted-foreground">Prepari il tuo addobbo e ricevi un QR con l'importo. Alla casetta in Piazza San Paolo un volontario lo scansiona: solo allora la pallina compare sull'albero.</p>
         </div>
       )}
-      <button onClick={onConfirm} className="mt-8 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">Conferma regalo</button>
-      <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato viene raccolto.</p>
+      <button onClick={() => onConfirm(method)} className="mt-8 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
+        {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento ${method === "sumup" ? "SumUp" : "PayPal"}`}
+      </button>
+      <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato di pagamento viene raccolto.</p>
+    </section>
+  );
+}
+
+const CASH_KEY = "cri-cash-pending";
+type Pending = { code: string; amount_cents: number; expires_at: string; kind: string };
+function CashFlow({ p, amount }: { p: Project; amount: number }) {
+  const [name, setName] = useState("");
+  const [msg, setMsg] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const [status, setStatus] = useState<CashStatus>("pending");
+  useEffect(() => {
+    try { const s = JSON.parse(sessionStorage.getItem(CASH_KEY) ?? "null") as Pending | null; if (s && s.kind === p.ornament && new Date(s.expires_at) > new Date()) setPending(s); } catch { /* ignore */ }
+  }, [p.ornament]);
+  useEffect(() => {
+    if (!pending || status === "confirmed") return;
+    let on = true;
+    const check = () => cashRequestStatus(pending.code).then((s) => { if (on) setStatus(s); if (s !== "pending") sessionStorage.removeItem(CASH_KEY); }).catch(() => undefined);
+    void check();
+    const t = setInterval(check, 5000);
+    return () => { on = false; clearInterval(t); };
+  }, [pending, status]);
+  const submit = async () => {
+    const a = amountSchema.safeParse(amount);
+    if (!a.success) { setErr(a.error.issues[0]?.message ?? "Importo non valido"); return; }
+    const r = dedicaSchema.safeParse({ firma: name, dedica: msg, consent });
+    if (!r.success) { setErr(r.error.issues[0]?.message ?? "Dati non validi"); return; }
+    setErr(""); setBusy(true);
+    try {
+      const row = await createCashRequest(p.ornament, a.data, r.data.firma, r.data.dedica, r.data.consent);
+      const next = { code: row.code, amount_cents: row.amount_cents, expires_at: row.expires_at, kind: p.ornament };
+      sessionStorage.setItem(CASH_KEY, JSON.stringify(next));
+      setStatus("pending"); setPending(next); window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) { setErr(e instanceof Error ? e.message : "Errore, riprova"); }
+    finally { setBusy(false); }
+  };
+
+  if (pending) return (
+    <section className="animate-rise mx-auto max-w-lg px-4 pt-6 text-center">
+      <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti alla casetta · DEMO</span>
+      {status === "confirmed" ? (
+        <>
+          <OrnamentIcon kind={p.ornament} className="animate-arrive mx-auto mt-8 w-24" />
+          <h1 className="mt-6 font-display text-4xl leading-tight">Grazie! <span className="text-gold">La tua pallina è sull'albero.</span></h1>
+          <p className="mt-3 text-sm text-muted-foreground">Un volontario ha confermato il regalo (passaggio simulato, nessun incasso reale).</p>
+          <Link to="/albero" search={{ trova: 1 }} className="mt-6 flex items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-primary-foreground"><LocateFixed className="h-4 w-4" /> Trova il mio addobbo</Link>
+        </>
+      ) : status === "expired" || status === "not_found" ? (
+        <>
+          <h1 className="mt-6 font-display text-3xl">QR scaduto</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Nessuna pallina è stata appesa. Puoi prepararne uno nuovo.</p>
+          <button onClick={() => { setPending(null); setStatus("pending"); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Prepara un nuovo QR</button>
+        </>
+      ) : (
+        <>
+          <h1 className="mt-5 font-display text-3xl leading-tight">Rivolgiti ai volontari <span className="text-gold">della casetta</span></h1>
+          <p className="mt-2 text-sm text-muted-foreground">Mostra questo QR in Piazza San Paolo. La pallina comparirà sull'albero solo dopo la conferma del volontario.</p>
+          <div className="mx-auto mt-6 w-full max-w-xs rounded-3xl bg-paper p-5 text-ink shadow-deep">
+            <QRCodeSVG value={pending.code} className="h-auto w-full" bgColor="transparent" fgColor="currentColor" level="M" aria-label="QR monouso per la casetta" />
+            <p className="mt-4 text-xs uppercase tracking-widest">Importo da versare · demo</p>
+            <p className="font-display text-5xl" data-testid="cash-amount">{euro(pending.amount_cents)}</p>
+            <p className="mt-2 font-mono text-sm tracking-wider" data-testid="cash-code">{formatCode(pending.code)}</p>
+            <p className="mt-1 text-[11px]">{p.title} · valido fino alle {new Date(pending.expires_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</p>
+          </div>
+          <p role="status" className="mt-4 text-xs text-gold">In attesa del volontario… questa pagina si aggiorna da sola.</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">Il QR contiene solo un codice monouso, nessun dato personale. Demo: nessun pagamento reale.</p>
+        </>
+      )}
+    </section>
+  );
+
+  return (
+    <section className="mx-auto max-w-lg px-4 pt-6">
+      <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti alla casetta · DEMO</span>
+      <h1 className="mt-4 font-display text-4xl">Prepara il tuo addobbo</h1>
+      <p className="mt-2 text-muted-foreground">{p.title} · <span className="text-gold">€{amount}</span>. Nome e dedica sono facoltativi.</p>
+      <Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} />
+      <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Dedica facoltativa · max 90 caratteri" className="glass mt-4 w-full rounded-2xl p-4 outline-none focus:border-gold" />
+      <p className="text-right text-[11px] text-muted-foreground">{msg.length}/90</p>
+      <label className="mt-3 flex items-start gap-3 text-sm">
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
+        <span>Acconsento a pubblicare firma e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore. <span className="text-muted-foreground">Senza consenso, nome e dedica non vengono salvati.</span></span>
+      </label>
+      {err && <p role="alert" className="mt-2 text-sm text-primary">{err}</p>}
+      <button disabled={busy} onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">{busy ? "Preparo il QR…" : "Genera il QR per la casetta"}</button>
+      <p className="mt-2 text-center text-[11px] text-muted-foreground">Fino alla conferma del volontario nessuna pallina viene appesa e il contatore non cambia.</p>
     </section>
   );
 }

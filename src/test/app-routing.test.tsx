@@ -86,3 +86,24 @@ describe('Gift email demo', () => {
     expect(giftEmailSchema.safeParse({ mode: 'now', donor: '', to: 'nome@esempio.it', msg: '' }).success).toBe(true);
   });
 });
+
+import { amountSchema, formatCode, isCompleteCode, manualOrnamentSchema, normalizeCode } from '@/lib/cash';
+describe('Cash at the casetta (demo)', () => {
+  it('reads a typed code the same as the scanned one (dashes, lowercase, O/I/L)', () => {
+    expect(normalizeCode('k7qm-2xpa 9dtr-4hwo')).toBe('K7QM2XPA9DTR4HW0');
+    expect(formatCode('K7QM2XPA9DTR4HW0')).toBe('K7QM-2XPA-9DTR-4HW0');
+    expect(isCompleteCode('K7QM-2XPA-9DTR-4HW0')).toBe(true);
+    expect(isCompleteCode('K7QM-2XPA')).toBe(false);
+  });
+  it('accepts amounts from 1 to 1000 euro only', () => {
+    expect(amountSchema.safeParse(1).success).toBe(true);
+    expect(amountSchema.safeParse(1000).success).toBe(true);
+    expect(amountSchema.safeParse(0).success).toBe(false);
+    expect(amountSchema.safeParse(1001).success).toBe(false);
+  });
+  it('requires the volunteer to acknowledge the simulated payment', () => {
+    const base = { kind: 'dae', amount: '20', method: 'cash', firma: '', dedica: '', consent: false };
+    expect(manualOrnamentSchema.safeParse({ ...base, simulated: true }).success).toBe(true);
+    expect(manualOrnamentSchema.safeParse({ ...base, simulated: false }).success).toBe(false);
+  });
+});
