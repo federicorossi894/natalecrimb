@@ -50,38 +50,101 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_requests: {
+        Row: {
+          amount_cents: number
+          client_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          dedica: string | null
+          expires_at: string
+          firma: string | null
+          id: string
+          kind: string
+          method: string | null
+          ornament_id: string | null
+          publish_consent: boolean
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          amount_cents: number
+          client_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          dedica?: string | null
+          expires_at: string
+          firma?: string | null
+          id?: string
+          kind: string
+          method?: string | null
+          ornament_id?: string | null
+          publish_consent?: boolean
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          amount_cents?: number
+          client_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          dedica?: string | null
+          expires_at?: string
+          firma?: string | null
+          id?: string
+          kind?: string
+          method?: string | null
+          ornament_id?: string | null
+          publish_consent?: boolean
+          status?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
       demo_ornaments: {
         Row: {
+          added_by: string | null
+          amount_cents: number | null
           client_id: string
           created_at: string
           dedica: string | null
           firma: string | null
           id: string
           kind: string
+          payment_method: string | null
           publish_consent: boolean
           status: string
           x: number
           y: number
         }
         Insert: {
+          added_by?: string | null
+          amount_cents?: number | null
           client_id: string
           created_at?: string
           dedica?: string | null
           firma?: string | null
           id?: string
           kind: string
+          payment_method?: string | null
           publish_consent?: boolean
           status?: string
           x: number
           y: number
         }
         Update: {
+          added_by?: string | null
+          amount_cents?: number | null
           client_id?: string
           created_at?: string
           dedica?: string | null
           firma?: string | null
           id?: string
           kind?: string
+          payment_method?: string | null
           publish_consent?: boolean
           status?: string
           x?: number
@@ -112,6 +175,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cash_code_hash: { Args: { _code: string }; Returns: string }
+      cash_request_lookup: {
+        Args: { _code: string }
+        Returns: {
+          amount_cents: number
+          confirmed_at: string
+          dedica: string
+          expires_at: string
+          firma: string
+          kind: string
+          method: string
+          publish_consent: boolean
+          status: string
+        }[]
+      }
+      cash_request_status: { Args: { _code: string }; Returns: string }
+      confirm_cash_request: {
+        Args: { _code: string; _method: string }
+        Returns: {
+          ornament_id: string
+          ornament_status: string
+          result: string
+        }[]
+      }
+      create_cash_request: {
+        Args: {
+          _amount_cents: number
+          _client: string
+          _consent: boolean
+          _dedica: string
+          _firma: string
+          _kind: string
+        }
+        Returns: {
+          amount_cents: number
+          code: string
+          expires_at: string
+        }[]
+      }
       hang_ornament: {
         Args: {
           _client: string
@@ -133,6 +235,7 @@ export type Database = {
         Returns: boolean
       }
       is_moderator: { Args: never; Returns: boolean }
+      is_volunteer: { Args: never; Returns: boolean }
       my_ornaments: {
         Args: { _client: string }
         Returns: {
@@ -143,6 +246,7 @@ export type Database = {
           status: string
         }[]
       }
+      ornament_text_status: { Args: { d: string; f: string }; Returns: string }
       public_tree: {
         Args: never
         Returns: {
@@ -153,6 +257,20 @@ export type Database = {
           kind: string
           x: number
           y: number
+        }[]
+      }
+      volunteer_add_ornament: {
+        Args: {
+          _amount_cents: number
+          _consent: boolean
+          _dedica: string
+          _firma: string
+          _kind: string
+          _method: string
+        }
+        Returns: {
+          id: string
+          status: string
         }[]
       }
     }
