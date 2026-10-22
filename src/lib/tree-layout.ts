@@ -25,7 +25,7 @@ export function surfaceRadius(tiers: Tier[], height: number, y: number, a: numbe
     const lobe = lobeAt(t, a), shape = 0.86 + 0.14 * lobe;
     if (y > t.yb + t.th) continue;
     if (y >= t.yb) r = Math.max(r, t.rl * Math.pow(Math.pow(1 - (y - t.yb) / t.th, 2 / 3), 0.85) * shape);
-    else if (y >= t.yb - t.th * 0.16 * lobe - height * 0.03) r = Math.max(r, t.rl * shape + height * 0.035 * lobe);
+    else if (y >= t.yb - t.th * 0.16 * lobe - height * 0.012) r = Math.max(r, t.rl * shape + height * 0.02 * lobe);
   }
   return r;
 }
