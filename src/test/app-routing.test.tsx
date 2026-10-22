@@ -107,3 +107,19 @@ describe('Cash at the casetta (demo)', () => {
     expect(manualOrnamentSchema.safeParse({ ...base, simulated: false }).success).toBe(false);
   });
 });
+
+import { createDemoDesk, DEMO_CODE } from '@/lib/volunteer-demo';
+describe('Volunteer presentation mode', () => {
+  it('confirms the example QR once; a second scan adds nothing', async () => {
+    const log: unknown[] = []; const desk = createDemoDesk((e) => log.push(e));
+    expect((await desk.lookup('d3m0-cr1m-0nza-2025'))?.amount_cents).toBe(2000);
+    expect((await desk.confirm(DEMO_CODE, 'cash')).result).toBe('confirmed');
+    expect((await desk.confirm(DEMO_CODE, 'pos_manual')).result).toBe('already_confirmed');
+    expect(log).toHaveLength(1);
+  });
+  it('drops name and dedication without consent', async () => {
+    const log: { firma: string | null }[] = []; const desk = createDemoDesk((e) => log.push(e));
+    expect((await desk.add({ kind: 'cuore', amount_cents: 500, method: 'cash', firma: 'Mario', dedica: 'Ciao', consent: false })).status).toBe('approved');
+    expect(log[0]?.firma).toBeNull();
+  });
+});
