@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Camera, CheckCircle2, Keyboard, PlusCircle, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Keyboard, PlusCircle, Presentation, RotateCcw, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { AuthBox } from "@/components/xmas/AuthBox";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS, type OrnamentKind } from "@/lib/data";
+import { QRCodeSVG } from "qrcode.react";
+import { createDemoDesk, DEMO_CODE, type DemoEntry, type DeskApi, type DeskLookup } from "@/lib/volunteer-demo";
 import { DESK_METHOD_LABEL, euro, formatCode, isCompleteCode, manualOrnamentSchema, normalizeCode, projectForKind, type DeskMethod } from "@/lib/cash";
 
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
@@ -46,7 +48,15 @@ function Volontari() {
     <Shell>
       <PageHead kicker="DEMO · Area riservata" title="Casetta CRI · volontari" />
       <section className="mx-auto max-w-lg px-4 pb-16">
-        {!ready ? null : !session ? <AuthBox title="Accesso volontari" returnPath="/volontari" roleName="volontario" /> : allowed === null ? null : !allowed ? (
+        {!ready ? null : !session ? (
+          <>
+            <DemoMode />
+            <div className="mt-10 border-t pt-8">
+              <p className="mb-3 text-center text-xs text-muted-foreground">Operazioni reali sull'albero condiviso: solo per volontari abilitati</p>
+              <AuthBox title="Accesso volontari" returnPath="/volontari" roleName="volontario" />
+            </div>
+          </>
+        ) : allowed === null ? null : !allowed ? (
           <div className="glass rounded-2xl p-5 text-sm">
             <p>Sei connesso come <b>{session.user.email}</b>, ma il tuo account non ha ancora il ruolo di volontario.</p>
             <p className="mt-2 text-muted-foreground">Chiedi a un amministratore del Comitato di abilitarti.</p>
@@ -70,8 +80,8 @@ function Volontari() {
               </div>
             )}
             {view !== "home" && <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">← Torna alla dashboard</button>}
-            {view === "scan" && <ScanFlow />}
-            {view === "manual" && <ManualFlow />}
+            {view === "scan" && <ScanFlow api={realApi} />}
+            {view === "manual" && <ManualFlow api={realApi} />}
           </>
         )}
       </section>
@@ -79,7 +89,25 @@ function Volontari() {
   );
 }
 
-type Lookup = { status: string; kind: string; amount_cents: number; firma: string | null; dedica: string | null; publish_consent: boolean; expires_at: string; confirmed_at: string | null; method: string | null };
+type Lookup = DeskLookup;
+const realApi: DeskApi = {
+  async lookup(code) {
+    const { data, error } = await supabase.rpc("cash_request_lookup", { _code: normalizeCode(code) });
+    if (error) throw new Error(error.message);
+    return data?.[0] ?? null;
+  },
+  async confirm(code, method) {
+    const { data, error } = await supabase.rpc("confirm_cash_request", { _code: normalizeCode(code), _method: method });
+    if (error) throw new Error(error.message);
+    const r = data?.[0];
+    return { result: r?.result ?? "not_found", ornament_status: r?.ornament_status ?? null };
+  },
+  async add(i) {
+    const { data, error } = await supabase.rpc("volunteer_add_ornament", { _kind: i.kind, _amount_cents: i.amount_cents, _method: i.method, _firma: i.consent ? i.firma : "", _dedica: i.consent ? i.dedica : "", _consent: i.consent });
+    if (error) throw new Error(error.message);
+    return { status: data?.[0]?.status ?? "pending" };
+  },
+};
 const RESULT_TEXT = {
   confirmed: "Regalo confermato: la pallina è stata appesa all'albero condiviso.",
   already_confirmed: "Questo QR era già stato confermato: nessuna pallina aggiunta, nessun doppio incasso.",
@@ -87,7 +115,7 @@ const RESULT_TEXT = {
   not_found: "Codice non trovato. Controlla e riprova.",
 } as const satisfies Record<string, string>;
 
-function ScanFlow() {
+function ScanFlow({ api, demo = false, onScanDemo }: { api: DeskApi; demo?: boolean; onScanDemo?: () => string }) {
   const [camera, setCamera] = useState(false);
   const [code, setCode] = useState("");
   const [req, setReq] = useState<Lookup | null>(null);
@@ -100,21 +128,20 @@ function ScanFlow() {
     setResult(null); setReq(null);
     if (!isCompleteCode(raw)) { setMsg("Il codice ha 16 caratteri (lettere e numeri)."); return; }
     setBusy(true);
-    const { data, error } = await supabase.rpc("cash_request_lookup", { _code: normalizeCode(raw) });
-    setBusy(false);
-    if (error) { setMsg(error.message); return; }
-    const row = data?.[0];
-    if (!row) { setMsg(RESULT_TEXT.not_found); return; }
-    setMsg(""); setReq(row);
-  }, []);
+    try {
+      const row = await api.lookup(raw);
+      if (!row) { setMsg(RESULT_TEXT.not_found); return; }
+      setMsg(""); setReq(row);
+    } catch (e) { setMsg(e instanceof Error ? e.message : "Errore"); }
+    finally { setBusy(false); }
+  }, [api]);
   const onScan = useCallback((text: string) => { setCamera(false); setCode(formatCode(text)); void lookup(text); }, [lookup]);
   const confirm = async () => {
     setBusy(true);
-    const { data, error } = await supabase.rpc("confirm_cash_request", { _code: normalizeCode(code), _method: method });
+    let r: { result: string; ornament_status: string | null };
+    try { r = await api.confirm(code, method); } catch (e) { setMsg(e instanceof Error ? e.message : "Errore"); setBusy(false); return; }
     setBusy(false);
-    if (error) { setMsg(error.message); return; }
-    const r = data?.[0];
-    setResult(r ? { result: r.result, ornament_status: r.ornament_status } : null);
+    setResult(r);
     if (r?.result === "confirmed" || r?.result === "already_confirmed") setReq((q) => (q ? { ...q, status: "confirmed" } : q));
   };
   const p = req ? projectForKind(req.kind) : undefined;
@@ -125,6 +152,9 @@ function ScanFlow() {
         <ClientOnly><Suspense fallback={<div className="glass aspect-square rounded-3xl" />}><QrScanner onCode={onScan} /></Suspense></ClientOnly>
       ) : (
         <button onClick={() => { setCamera(true); setReq(null); setResult(null); }} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-primary-foreground"><Camera className="h-5 w-5" /> Apri la fotocamera</button>
+      )}
+      {demo && onScanDemo && (
+        <button type="button" onClick={() => onScan(onScanDemo())} className="glass flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><ScanLine className="h-4 w-4 text-gold" /> Simula scansione del QR di esempio</button>
       )}
       <form onSubmit={(e) => { e.preventDefault(); setCamera(false); void lookup(code); }} className="glass rounded-2xl p-4">
         <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" htmlFor="cash-code"><Keyboard className="mr-1 inline h-4 w-4" /> Oppure inserisci il codice</label>
@@ -159,7 +189,7 @@ function ScanFlow() {
           {req.status === "confirmed" && !result && <p className="mt-4 text-sm text-gold">{RESULT_TEXT.already_confirmed}</p>}
           {result && (
             <p role="status" className="mt-4 flex items-start gap-2 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-gold" />
-              <span>{(RESULT_TEXT as Record<string, string>)[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
+              <span>{demo && result.result === "confirmed" ? "Presentazione: regalo confermato in simulazione. Nessuna pallina sull'albero vero, nessun incasso." : (RESULT_TEXT as Record<string, string>)[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
           )}
         </div>
       )}
@@ -167,7 +197,7 @@ function ScanFlow() {
   );
 }
 
-function ManualFlow() {
+function ManualFlow({ api, demo = false }: { api: DeskApi; demo?: boolean }) {
   const [kind, setKind] = useState<OrnamentKind>("cuore");
   const [amount, setAmount] = useState("10");
   const [method, setMethod] = useState<DeskMethod>("cash");
@@ -182,18 +212,17 @@ function ManualFlow() {
     const r = manualOrnamentSchema.safeParse({ kind, amount, method, firma, dedica, consent, simulated });
     if (!r.success) { setMsg(r.error.issues[0]?.message ?? "Dati non validi"); return; }
     setBusy(true);
-    const { data, error } = await supabase.rpc("volunteer_add_ornament", {
-      _kind: r.data.kind, _amount_cents: r.data.amount * 100, _method: r.data.method,
-      _firma: r.data.consent ? r.data.firma : "", _dedica: r.data.consent ? r.data.dedica : "", _consent: r.data.consent,
-    });
+    let st: string;
+    try { st = (await api.add({ kind: r.data.kind, amount_cents: r.data.amount * 100, method: r.data.method, firma: r.data.firma, dedica: r.data.dedica, consent: r.data.consent })).status; }
+    catch (e) { setMsg(e instanceof Error ? e.message : "Errore"); setBusy(false); return; }
     setBusy(false);
-    if (error) { setMsg(error.message); return; }
-    const st = data?.[0]?.status;
-    setMsg(`Pallina appesa all'albero condiviso (${euro(r.data.amount * 100)}, ${DESK_METHOD_LABEL[r.data.method].toLowerCase()} · simulato).${st === "pending" ? " La dedica attende la moderazione." : st === "rejected" ? " La dedica non è pubblicabile: la pallina resta senza testo." : ""}`);
+    setMsg(`${demo ? "Presentazione: pallina simulata, nessun dato salvato" : "Pallina appesa all'albero condiviso"} (${euro(r.data.amount * 100)}, ${DESK_METHOD_LABEL[r.data.method].toLowerCase()} · simulato).${st === "pending" ? " La dedica attende la moderazione." : st === "rejected" ? " La dedica non è pubblicabile: la pallina resta senza testo." : ""}`);
     setFirma(""); setDedica(""); setConsent(false); setSimulated(false);
   };
+  const fillExample = () => { setKind("calore"); setAmount("25"); setMethod("pos_manual"); setFirma("Famiglia Rossi"); setDedica("Una coperta calda per chi vive in strada"); setConsent(true); setSimulated(true); setMsg(""); };
   return (
     <form onSubmit={submit} className="mt-4 space-y-4">
+      {demo && <button type="button" onClick={fillExample} className="glass w-full rounded-full py-3 text-sm font-semibold">Compila con dati di esempio</button>}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Progetto</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
@@ -222,5 +251,57 @@ function ManualFlow() {
       {msg && <p role="status" className="text-sm text-gold">{msg}</p>}
       <button disabled={busy} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">Conferma e appendi la pallina</button>
     </form>
+  );
+}
+
+/** Public presentation mode: same flows, in-memory sandbox (src/lib/volunteer-demo.ts), no Cloud calls. */
+function DemoMode() {
+  const [log, setLog] = useState<DemoEntry[]>([]);
+  const [run, setRun] = useState(0);
+  const [view, setView] = useState<"home" | "scan" | "manual">("home");
+  const [example, setExample] = useState(DEMO_CODE);
+  const api = useMemo(() => createDemoDesk((e) => setLog((l) => [e, ...l])), [run]);
+  const total = log.reduce((t, e) => t + e.amount_cents, 0);
+  return (
+    <div data-testid="demo-mode">
+      <div className="rounded-3xl border-2 border-dashed hairline-gold p-5">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold"><Presentation className="h-4 w-4" /> Modalità presentazione · DEMO</p>
+        <p className="mt-2 text-sm text-muted-foreground">Prova l'area volontari senza account. Tutto avviene solo in questa pagina: nessun dato salvato, nessuna pallina sull'albero vero, nessun incasso.</p>
+      </div>
+      {view === "home" ? (
+        <div className="mt-5 grid gap-3">
+          <button onClick={() => setView("scan")} className="flex items-center gap-4 rounded-3xl bg-primary p-6 text-left text-primary-foreground shadow-deep">
+            <ScanLine className="h-9 w-9 shrink-0" /><span><span className="block font-display text-2xl">Scansiona QR</span><span className="text-sm opacity-90">Prova con il QR di esempio</span></span>
+          </button>
+          <button onClick={() => setView("manual")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left">
+            <PlusCircle className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Inserisci pallina manualmente</span><span className="text-sm text-muted-foreground">Dati di esempio già pronti</span></span>
+          </button>
+        </div>
+      ) : <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">← Torna alla dashboard demo</button>}
+      {view === "scan" && (
+        <>
+          <div className="mt-4 flex items-center gap-4 rounded-3xl bg-paper p-4 text-ink">
+            <QRCodeSVG value={example} className="h-24 w-24 shrink-0" bgColor="transparent" fgColor="currentColor" aria-label="QR di esempio" />
+            <div className="min-w-0 text-sm"><p className="text-[10px] font-semibold uppercase tracking-widest">QR di esempio · telefono del donatore</p><p className="mt-1 font-mono tracking-wider" data-testid="demo-code">{formatCode(example)}</p>
+              <button type="button" onClick={() => setExample(api.newRequest())} className="mt-2 text-xs underline">Genera un'altra richiesta di esempio</button></div>
+          </div>
+          <ScanFlow key={`${run}-${example}`} api={api} demo onScanDemo={() => example} />
+        </>
+      )}
+      {view === "manual" && <ManualFlow key={run} api={api} demo />}
+      <div className="glass mt-6 rounded-3xl p-5" data-testid="demo-summary">
+        <div className="flex items-center justify-between">
+          <p className="font-display text-xl">Riepilogo demo</p>
+          <button onClick={() => { setLog([]); setExample(DEMO_CODE); setRun((r) => r + 1); }} className="inline-flex items-center gap-1 text-xs underline"><RotateCcw className="h-3 w-3" /> Azzera</button>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">{log.length} palline simulate · totale simulato {euro(total)}</p>
+        <ul className="mt-3 space-y-2">
+          {log.map((e, i) => (
+            <li key={i} className="flex items-center gap-3 text-sm"><OrnamentIcon kind={e.kind as OrnamentKind} className="w-7 shrink-0" />
+              <span className="min-w-0 flex-1">{projectForKind(e.kind)?.title} · {euro(e.amount_cents)} · {e.source === "qr" ? "da QR" : "manuale"} · {DESK_METHOD_LABEL[e.method].toLowerCase()}{e.status === "pending" ? " · dedica in moderazione" : ""}</span></li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
