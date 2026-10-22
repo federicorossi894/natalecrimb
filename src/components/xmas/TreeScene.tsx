@@ -23,7 +23,7 @@ function TreeStar({height,palette}:{height:number;palette:Palette}) {
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
 }
-function CameraRig({height,selected,index,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;index:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
+function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
   const controls=useRef<OrbitControlsType>(null);
   const { camera, gl, size }=useThree();
   const moving=useRef(false);
@@ -32,16 +32,16 @@ function CameraRig({height,selected,index,tv,reduced,resetKey}: {height:number;s
   useEffect(()=>{
     if(tv){if(!selected){camera.position.set(0,height*0.64,height*1.62);camera.lookAt(0,height*0.5,0);}return;}
     const c=controls.current;if(!c)return;
-    const p=selected ? ornamentAnchor(selected,height,index):[0,height*0.5,0];
+    const p=selected ? ornamentAnchor(selected,height,index,count):[0,height*0.5,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);
     if(selected){const angle=Math.atan2(p[0]??0,p[2]??0);camera.position.set((p[0]??0)+Math.sin(angle)*2,(p[1]??0)+0.35,(p[2]??0)+Math.cos(angle)*2);}else camera.position.set(0,height*0.65,height*(size.width/size.height<0.7?2.1:1.65));
     c.update();moving.current=false;
-  },[selected,index,resetKey,height,tv,camera,size.width,size.height]);
+  },[selected,index,count,resetKey,height,tv,camera,size.width,size.height]);
   useEffect(()=>{ const stop=()=>{moving.current=true;};gl.domElement.addEventListener('pointerdown',stop);return()=>gl.domElement.removeEventListener('pointerdown',stop);},[gl]);
   useFrame((_,delta)=>{
     if(!tv)return;
     const dt=Math.min(delta,0.05);if(!reduced)clock.current+=dt;
-    const p=selected?ornamentAnchor(selected,height,index):[0,height*0.5,0];
+    const p=selected?ornamentAnchor(selected,height,index,count):[0,height*0.5,0];
     const a=selected?Math.atan2(p[0]??0,p[2]??0):clock.current*0.075;
     const d=selected?Math.max(1.6,height*0.62):height*1.62;
     target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.25:height*0.14),(p[2]??0)+Math.cos(a)*d);
@@ -81,7 +81,7 @@ export default function TreeScene(props:Props) {
       
       <Decorations {...props} height={h} palette={palette} />
       <TreeStar height={h} palette={palette} />
-      <CameraRig height={h} selected={props.selected} index={props.selected?props.ornaments.findIndex(o=>o.id===props.selected?.id):-1} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} />
+      <CameraRig height={h} selected={props.selected} index={props.selected?props.ornaments.findIndex(o=>o.id===props.selected?.id):-1} count={props.ornaments.length} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} />
     </Canvas></SceneBoundary>
   </div>;
 }
