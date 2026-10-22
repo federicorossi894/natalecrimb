@@ -37,7 +37,7 @@ export default function QrScanner({ onCode }: { onCode: (text: string) => void }
     return () => { alive = false; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
   }, [onCode]);
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-night">
+    <div className="relative overflow-hidden rounded-3xl bg-fir-deep">
       {error ? <p role="alert" className="p-6 text-center text-sm text-gold">{error}</p> : <>
         <video ref={video} playsInline muted className="aspect-square w-full object-cover" aria-label="Inquadratura fotocamera" />
         <div className="pointer-events-none absolute inset-[18%] rounded-2xl border-2 border-gold/80" />
