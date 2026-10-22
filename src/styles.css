@@ -38,6 +38,8 @@
   --color-snow: var(--snow);
   --color-ink: var(--ink);
   --color-paper: var(--paper);
+  --color-ivory: var(--ivory);
+  --color-burgundy: var(--burgundy);
 }
 
 :root {
@@ -67,6 +69,10 @@
   --snow: oklch(0.99 0.005 85);
   --ink: oklch(0.22 0.03 30);
   --paper: oklch(0.97 0.02 85);
+  --ivory: oklch(0.94 0.035 85);
+  --burgundy: oklch(0.36 0.12 15);
+  --brick: oklch(0.46 0.13 32);
+  --skin: oklch(0.84 0.06 55);
   --glow-gold: 0 0 30px oklch(0.83 0.12 80 / 45%);
   --shadow-deep: 0 30px 60px -20px oklch(0.05 0.02 165 / 70%);
   --scene-night: #13272a;
@@ -183,6 +189,7 @@
 .dedication-panel { max-height: 72svh; overflow-y: auto; padding: 26px; border-radius: 8px; }
 .dedication-close { box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 15%, transparent); }
 .cri-official-mark { width: auto; object-fit: contain; max-width: 100%; }
+.santa-stage { background: radial-gradient(ellipse at 70% 0%, color-mix(in oklab, var(--gold) 14%, transparent), transparent 55%), linear-gradient(180deg, var(--scene-night), var(--fir-deep) 85%); }
 .tv-scene { position: relative; aspect-ratio: 16/9; width: 100%; container-type: inline-size; overflow: hidden; background: var(--scene-night); }
 .tv-scene .tree-stage { position: absolute; inset: 15% 34% 0 0; height: 85%; min-height: 0; max-height: none; }
 .tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
