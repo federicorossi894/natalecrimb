@@ -76,6 +76,7 @@ function slotAt(i: number): Slot {
   return slots[i]!;
 }
 
+const DISK: [number, number][] = [[0, 0], [-0.6, 0], [0.6, 0], [0, -0.6], [0, 0.6], [-0.85, 0], [0.85, 0], [-0.45, -0.45], [-0.45, 0.45], [0.45, -0.45], [0.45, 0.45]];
 export type Placement = { pos: [number, number, number]; theta: number; lean: number; R: number };
 const cache = new Map<string, Placement[]>();
 /** World placement of every gift for a tree holding `count` gifts: hung on the outer needles, never inside them. */
@@ -87,10 +88,11 @@ export function treeLayout(count: number, height = treeHeight(count)): Placement
   const sr = (y: number, a: number) => surfaceRadius(tiers, height, y, a);
   for (let i = 0; i < count; i++) {
     const { level, angle } = slotAt(i), y = level * height, da = R / Math.max(0.2, sr(y, angle));
-    let body = 0;
-    for (const dy of [-0.85, 0, 0.85]) for (const d of [-da, 0, da]) body = Math.max(body, sr(y + dy * R, angle + d));
+    // Sphere vs needles: at offset (dy, dt) the bauble reaches sqrt(1-dy²-dt²)·R inward; it rests on the outermost contact.
+    let radial = 0;
+    for (const [dy, dt] of DISK) radial = Math.max(radial, sr(y + dy * R, angle + dt * da) + 0.98 * R * Math.sqrt(1 - dy * dy - dt * dt));
     const hook = Math.max(sr(y + 1.4 * R, angle), sr(y + 1.95 * R, angle));
-    const radial = Math.max(body + 0.98 * R, hook + 0.12 * R);
+    radial = Math.max(radial, hook + 0.12 * R);
     // Lean the hanger back onto the bough above when the surface recedes, so the ribbon touches the needles.
     const lean = Math.min(0.36, Math.max(0, Math.atan2(radial - hook - 0.12 * R, 1.95 * R)));
     out.push({ pos: [Math.sin(angle) * radial, y, Math.cos(angle) * radial], theta: angle, lean, R });
