@@ -189,7 +189,7 @@ function ScanFlow({ api, demo = false, onScanDemo }: { api: DeskApi; demo?: bool
           {req.status === "confirmed" && !result && <p className="mt-4 text-sm text-gold">{RESULT_TEXT.already_confirmed}</p>}
           {result && (
             <p role="status" className="mt-4 flex items-start gap-2 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-gold" />
-              <span>{(RESULT_TEXT as Record<string, string>)[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
+              <span>{demo && result.result === "confirmed" ? "Presentazione: regalo confermato in simulazione. Nessuna pallina sull'albero vero, nessun incasso." : (RESULT_TEXT as Record<string, string>)[result.result] ?? result.result}{result.result === "confirmed" && result.ornament_status === "pending" ? " La dedica attende la moderazione." : ""}</span></p>
           )}
         </div>
       )}
