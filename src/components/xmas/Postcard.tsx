@@ -2,36 +2,50 @@ import { useState } from "react";
 import { CriMark, OrnamentIcon } from "./Ornament";
 import { Snow } from "./Snow";
 import type { Project } from "@/lib/data";
-import heroImg from "@/assets/hero-piazza.jpg";
+import { projectUrl } from "@/lib/postcard-share";
 import { Button } from '@/components/ui/button';
 
+/** Gift-wrapped postcard themed per project (front) with handwritten-style back. */
 export function Postcard({ project, to, from, msg }: { project: Project; to: string; from: string; msg: string }) {
   const [back, setBack] = useState(false);
+  const t = project.theme;
+  const ribbon = { background: `var(${t.ribbon})` };
   return (
     <div>
       <Button variant="ghost" aria-label="Gira la cartolina" aria-pressed={back} className="flip-card mx-auto block aspect-[3/2] h-auto w-full max-w-lg whitespace-normal p-0 text-left hover:bg-transparent" onClick={() => setBack(!back)}>
         <div className={`flip-inner relative h-full w-full ${back ? "is-flipped" : ""}`}>
-          <div className="flip-face absolute inset-0 overflow-hidden rounded-2xl shadow-deep">
-            <img src={heroImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-            <Snow count={25} />
-            <div className="absolute right-4 top-4"><CriMark className="h-10" /></div>
-            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-gold">Buon Natale da Monza</p>
-                <p className="font-display text-2xl leading-tight sm:text-3xl">Per te, {to || "…"},<br />un regalo che fa bene.</p>
-              </div>
-              <OrnamentIcon kind={project.ornament} className="animate-floaty w-14 shrink-0" />
+          <div className="flip-face absolute inset-0 overflow-hidden rounded-2xl shadow-deep" style={{ background: `radial-gradient(ellipse at 30% 20%, color-mix(in oklab, var(${t.bg}) 80%, var(--snow)), var(${t.bg}) 60%)`, color: `var(${t.ink})` }}>
+            <Snow count={18} />
+            <div className="absolute inset-y-0 right-[22%] w-[7%] shadow-deep" style={ribbon} />
+            <div className="absolute inset-x-0 top-[24%] h-[7%] shadow-deep" style={ribbon} />
+            <svg viewBox="0 0 100 60" className="absolute right-[13.5%] top-[16.5%] w-[24%] drop-shadow-lg" aria-hidden>
+              <path d="M50 30 C30 0 4 8 12 28 C18 44 40 38 50 30Z" fill={`var(${t.ribbon})`} />
+              <path d="M50 30 C70 0 96 8 88 28 C82 44 60 38 50 30Z" fill={`var(${t.ribbon})`} />
+              <path d="M50 30 L37 58 M50 30 L63 58" stroke={`var(${t.ribbon})`} strokeWidth="7" />
+              <circle cx="50" cy="30" r="8" fill={`var(${t.ribbon})`} stroke="var(--ink)" strokeOpacity="0.2" />
+            </svg>
+            <div className="absolute left-[5%] top-[6%] max-w-[64%]">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.25em] opacity-80 sm:text-[11px]">Il Natale che fa bene</p>
+            </div>
+            <div className="absolute left-[5%] top-[36%] max-w-[64%]">
+              <p className="font-display text-xl leading-tight sm:text-3xl">Per te, {to || "…"}</p>
+              <p className="mt-1 font-display text-base italic opacity-90 sm:text-xl">{project.title}</p>
+            </div>
+            <OrnamentIcon kind={project.ornament} className="animate-floaty absolute right-[20.5%] top-[46%] w-[10%]" />
+            <div className="absolute bottom-[5%] left-[4%] right-[4%] flex items-center justify-between gap-3 rounded-lg bg-paper px-3 py-2 text-ink">
+              <CriMark variant="red" className="h-7 sm:h-9" />
+              <span className="text-right text-[9px] font-semibold uppercase leading-tight tracking-widest opacity-70 sm:text-[10px]">Comitato di Monza<br />Cartolina DEMO</span>
             </div>
           </div>
           <div className="flip-face flip-back absolute inset-0 grid grid-cols-[1.3fr_1fr] gap-3 rounded-lg bg-paper p-3 text-ink shadow-deep sm:gap-4 sm:p-5">
             <div className="border-r border-ink/15 pr-4">
-              <p className="font-display text-xs italic leading-snug sm:text-lg">“{msg || "Il tuo messaggio apparirà qui."}”</p>
+              <p className="font-display text-xs italic leading-snug sm:text-lg">“{msg || project.postcardLine}”</p>
               <p className="mt-3 text-sm font-semibold text-primary">— {from || "Un amico"}</p>
-              <p className="mt-3 text-[10px] leading-snug opacity-70">Regalo DEMO <strong>“{project.title}”</strong> per Croce Rossa Monza. Nessuna donazione reale.</p>
+              <p className="mt-3 text-[10px] leading-snug opacity-70">Regalo DEMO <strong>“{project.title}”</strong> per Croce Rossa Italiana – Comitato di Monza. Nessuna donazione reale.</p>
+              <p className="mt-1 break-all text-[9px] opacity-60">{projectUrl(project).replace("https://", "")}</p>
             </div>
             <div className="flex flex-col justify-between">
-              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed border-primary/60"><OrnamentIcon kind={project.ornament} className="w-9" /></div>
+              <div className="ml-auto flex h-16 w-14 items-center justify-center border-2 border-dashed" style={{ borderColor: `var(${t.bg})` }}><OrnamentIcon kind={project.ornament} className="w-9" /></div>
               <div className="space-y-3 text-sm">
                 <p className="border-b border-ink/30 pb-1 font-display">{to || "Destinatario"}</p>
                 <p className="border-b border-ink/30 pb-1 text-xs opacity-60">Monza · Natale 2026</p>
@@ -40,7 +54,7 @@ export function Postcard({ project, to, from, msg }: { project: Project; to: str
           </div>
         </div>
       </Button>
-      <p className="mt-3 text-center text-xs text-muted-foreground">Cartolina DEMO · Croce Rossa Monza</p>
+      <p className="mt-3 text-center text-xs text-muted-foreground">Tocca per girarla · Cartolina DEMO</p>
     </div>
   );
 }

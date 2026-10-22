@@ -5,6 +5,7 @@ import hero from "@/assets/hero-piazza.jpg";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
+import { SantaChimneySection } from "@/components/xmas/SantaChimney";
 import { PROJECTS } from "@/lib/data";
 import { Button } from '@/components/ui/button';
 
@@ -92,14 +93,16 @@ function Home() {
             <p className="mt-3 text-muted-foreground">Mercatino solidale, panettoni e biscotti, controlli di pressione e glicemia, dimostrazioni di manovre salvavita.</p>
             <Link to="/piazza" className="mt-6 inline-flex items-center gap-2 font-semibold text-gold">Cosa succede oggi <ArrowRight className="h-4 w-4" /></Link>
           </div>
-          <Link to="/babbo-natale" className="relative rounded-3xl bg-primary p-6 text-primary-foreground">
-            <p className="text-xs uppercase tracking-widest opacity-80">Area grandi 🤫</p>
-            <p className="mt-2 font-display text-3xl">Prenota il tuo Babbo Natale 🎅</p>
-            <p className="mt-2 text-sm opacity-90">La sera del 24 dicembre, una sorpresa che arriva a casa. Servizio in definizione.</p>
+          <Link to="/albero" className="relative rounded-3xl bg-primary p-6 text-primary-foreground">
+            <p className="text-xs uppercase tracking-widest opacity-80">Il cuore della campagna</p>
+            <p className="mt-2 font-display text-3xl">Fai crescere l'Albero di Monza</p>
+            <p className="mt-2 text-sm opacity-90">Ogni regalo aggiunge una luce, un ramo, una storia.</p>
             <ArrowRight className="mt-6 h-5 w-5" />
           </Link>
         </div>
       </section>
+
+      <SantaChimneySection />
     </Shell>
   );
 }
