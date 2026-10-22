@@ -41,7 +41,7 @@ export function baubleRatio(count: number) {
   const legible = 0.07 / (1 + Math.sqrt(Math.min(n, 200) / 200) * 0.55);
   // Usable outer area (units of height²) between the placement levels; random sequential packing saturates near 55%.
   const area = Math.PI * w * (envelope(LEVEL_LO) + envelope(LEVEL_HI)) * Math.hypot(LEVEL_HI - LEVEL_LO, w * (envelope(LEVEL_LO) - envelope(LEVEL_HI)));
-  const fit = Math.sqrt((0.46 * area) / (n * GAP_H * GAP_V * (Math.PI / 4) * 1.15));
+  const fit = Math.sqrt((0.43 * area) / (n * GAP_H * GAP_V * (Math.PI / 4) * 1.15));
   return Math.min(legible, fit);
 }
 type Slot = { level: number; angle: number };
