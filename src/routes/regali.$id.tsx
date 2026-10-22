@@ -10,6 +10,7 @@ import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { postcardText, renderPostcardImage } from "@/lib/postcard-share";
+import { CHRISTMAS_DELIVERY, confirmationText, deliveryLabel, giftEmailSchema, type EmailMode } from "@/lib/email-demo";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
