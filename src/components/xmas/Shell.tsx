@@ -31,13 +31,11 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
       <DemoBanner />
       <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[72px]">
-          <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
-            <CriMark className="h-10 shrink-0 sm:h-12" />
-            <span aria-hidden className="h-8 w-px shrink-0 bg-border" />
-            <span className="min-w-0 leading-tight">
-              <span className="block truncate font-display text-[15px] sm:text-base">Il Natale <em className="text-gold">che fa bene</em></span>
-              <span className="block truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Comitato di Monza</span>
-            </span>
+          <Link to="/" className="flex min-w-0 items-center gap-4" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
+            <CriLockup className="h-11 shrink-0 sm:h-12" />
+            {/* Campaign title kept apart from the institutional mark (clear space + divider). */}
+            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block" />
+            <span className="hidden min-w-0 font-display text-base leading-tight sm:block">Il Natale <em className="text-gold">che fa bene</em></span>
           </Link>
           <nav className="hidden items-center gap-1 xl:flex">
             {NAV.slice(1).map((n) => (
