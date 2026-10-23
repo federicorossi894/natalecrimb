@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Camera, CheckCircle2, Gift, Keyboard, Mail, PlusCircle, Presentation, RotateCcw, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Gift, Keyboard, Mail, PenLine, PlusCircle, Presentation, RotateCcw, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { AuthBox } from "@/components/xmas/AuthBox";
@@ -11,6 +11,8 @@ import { PROJECTS, type OrnamentKind } from "@/lib/data";
 import { EmailStudio } from "@/components/xmas/PostDonation";
 import { QRCodeSVG } from "qrcode.react";
 import { createDemoDesk, DEMO_CODE, type DemoEntry, type DeskApi, type DeskLookup } from "@/lib/volunteer-demo";
+import { WishTokenDesk } from "@/components/xmas/WishWall";
+import { createDemoWishApi, createWishToken, realWishApi } from "@/lib/wishes";
 import { DESK_METHOD_LABEL, euro, formatCode, isCompleteCode, manualOrnamentSchema, normalizeCode, projectForKind, type DeskMethod } from "@/lib/cash";
 
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
@@ -34,7 +36,7 @@ function Volontari() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [view, setView] = useState<"home" | "scan" | "manual">("home");
+  const [view, setView] = useState<"home" | "scan" | "manual" | "wish">("home");
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
@@ -78,11 +80,15 @@ function Volontari() {
                 <button onClick={() => setView("manual")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left">
                   <PlusCircle className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Inserisci pallina manualmente</span><span className="text-sm text-muted-foreground">Per chi dona alla casetta senza telefono</span></span>
                 </button>
+                <button onClick={() => setView("wish")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left" data-testid="desk-wish">
+                  <PenLine className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Acquisto alla casetta</span><span className="text-sm text-muted-foreground">QR monouso per un augurio sul Muro</span></span>
+                </button>
               </div>
             )}
             {view !== "home" && <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">← Torna alla dashboard</button>}
             {view === "scan" && <ScanFlow api={realApi} />}
             {view === "manual" && <ManualFlow api={realApi} />}
+            {view === "wish" && <WishTokenDesk create={createWishToken} api={realWishApi} />}
           </>
         )}
       </section>
@@ -288,7 +294,8 @@ function DeskAfter({ kind, firma, dedica, id, text, demo, onEnd }: { kind: Ornam
 function DemoMode() {
   const [log, setLog] = useState<DemoEntry[]>([]);
   const [run, setRun] = useState(0);
-  const [view, setView] = useState<"home" | "scan" | "manual">("home");
+  const [view, setView] = useState<"home" | "scan" | "manual" | "wish">("home");
+  const wishApi = useMemo(() => createDemoWishApi(), [run]);
   const [example, setExample] = useState(DEMO_CODE);
   const api = useMemo(() => createDemoDesk((e) => setLog((l) => [e, ...l])), [run]);
   const total = log.reduce((t, e) => t + e.amount_cents, 0);
@@ -306,6 +313,9 @@ function DemoMode() {
           <button onClick={() => setView("manual")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left">
             <PlusCircle className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Inserisci pallina manualmente</span><span className="text-sm text-muted-foreground">Dati di esempio già pronti</span></span>
           </button>
+          <button onClick={() => setView("wish")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left" data-testid="demo-wish">
+            <PenLine className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Acquisto alla casetta</span><span className="text-sm text-muted-foreground">QR di esempio per un augurio</span></span>
+          </button>
         </div>
       ) : <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">← Torna alla dashboard demo</button>}
       {view === "scan" && (
@@ -319,6 +329,7 @@ function DemoMode() {
         </>
       )}
       {view === "manual" && <ManualFlow key={run} api={api} demo />}
+      {view === "wish" && <WishTokenDesk key={run} create={async () => wishApi.newCode()} api={wishApi} demo />}
       <div className="glass mt-6 rounded-3xl p-5" data-testid="demo-summary">
         <div className="flex items-center justify-between">
           <p className="font-display text-xl">Riepilogo demo</p>
