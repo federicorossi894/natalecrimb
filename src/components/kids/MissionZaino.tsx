@@ -67,6 +67,7 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
     setDrag(null); setOver(false);
     if (!d || !d.moved) return; // a tap: handled by onClick (select)
     skipClick.current = true;
+    window.setTimeout(() => { skipClick.current = false; }, 0); // some browsers send no click after a drag
     const it = PACK_ITEMS.find((i) => i.id === d.id)!;
     const home = centerOf(tiles.current[d.id]);
     if (overBag(e.clientX, e.clientY)) {
@@ -110,12 +111,14 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
         <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_380px] lg:items-start">
           <div className="sticky top-16 z-20 sm:top-[72px] -mx-4 border-b border-border bg-background/95 px-4 pb-3 pt-1 backdrop-blur lg:order-2 lg:top-24 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
             <button ref={bag} type="button" onClick={onBag} aria-label={sel ? `Metti nello zaino: ${PACK_ITEMS.find((i) => i.id === sel)?.name}` : "Zaino della missione"}
-              className={`relative mx-auto block w-full max-w-[118px] rounded-[2rem] p-1.5 transition sm:max-w-[200px] lg:max-w-[320px] ${sel || drag ? "bg-gold/15 ring-2 ring-gold" : ""}`} data-testid="backpack">
+              className={`relative mx-auto block w-full max-w-[118px] rounded-[2rem] p-1.5 transition duration-200 sm:max-w-[200px] lg:max-w-[320px] ${over ? "scale-110 bg-gold/30 ring-4 ring-gold" : sel || drag?.moved ? "bg-gold/15 ring-2 ring-gold" : ""}`} data-testid="backpack" data-over={over || undefined}>
               <div key={`${bump}-${shake}`} className={bump || shake ? (shake && fb?.tone === "kind" ? "kid-shake" : "kid-bump") : ""}><Backpack packed={packed} className="w-full" /></div>
             </button>
-            <p className="mt-1 text-center text-sm font-semibold lg:mt-2" aria-live="polite"><span className="text-gold">{packed.length}</span> di {NEEDED_ITEMS.length} oggetti utili nello zaino</p>
+            {drag?.moved
+              ? <p className="mt-1 text-center text-sm font-semibold text-gold lg:mt-2">{over ? "Lascia andare: dentro!" : "Portalo qui, nello zaino"}</p>
+              : <p className="mt-1 text-center text-sm font-semibold lg:mt-2" aria-live="polite"><span className="text-gold">{packed.length}</span> di {NEEDED_ITEMS.length} oggetti utili nello zaino</p>}
             {/* Phones: the bag stays pinned with a short feedback line, so items can be dragged up to it while scrolling. */}
-            {fb && <p role="status" aria-live="polite" className={`mt-1 text-center text-sm leading-snug lg:hidden ${fb.tone === "great" ? "text-gold" : ""}`}>{fb.text}</p>}
+            {fb && <div role="status" aria-live="polite" className="mt-1 lg:hidden"><HelperLine tone={fb.tone}>{fb.text}</HelperLine></div>}
             {fb && <div className="mt-3 hidden lg:block"><Bubble tone={fb.tone}>{fb.text}</Bubble></div>}
             {complete && (
               <div className="mt-2 text-center lg:mt-3">
@@ -125,12 +128,16 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
             )}
           </div>
           <div className="lg:order-1">
+            <div className="mb-3 flex items-center gap-3 rounded-3xl bg-secondary px-4 py-3" data-testid="drag-hint">
+              <span aria-hidden className="kid-drag-hint flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold text-ink"><Hand className="h-6 w-6" /></span>
+              <p className="leading-tight"><strong className="block font-display text-xl">{DRAG_HINT}</strong><span className="text-sm text-muted-foreground">{TAP_HINT}</span></p>
+            </div>
             <ul className="grid grid-cols-3 gap-2.5 sm:gap-3" aria-label="Oggetti da scegliere">
               {PACK_ITEMS.map((it) => {
                 const isHome = home.includes(it.id), isIn = packed.includes(it.id), isSel = sel === it.id, isDrag = drag?.id === it.id && drag.moved;
                 return (
                   <li key={it.id}>
-                    <button type="button" onPointerDown={(e) => onDown(e, it.id)} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDrag(null)} onClick={() => onItemClick(it.id)}
+                    <button type="button" ref={(el) => { tiles.current[it.id] = el; }} onPointerDown={(e) => onDown(e, it.id)} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => { setDrag(null); setOver(false); }} onClick={() => onItemClick(it.id)}
                       aria-pressed={isSel} aria-disabled={isIn || isHome} aria-label={`${it.name}${isIn ? ", nello zaino" : isHome ? ", resta a casa" : ""}`}
                       style={{ touchAction: "none" }}
                       className={`relative flex w-full flex-col items-center rounded-3xl border p-2 pb-3 text-center transition select-none ${isSel ? "border-gold bg-secondary ring-2 ring-gold" : "glass"} ${isIn || isHome ? "opacity-35" : "active:scale-95"} ${isDrag ? "opacity-30" : ""}`}>
@@ -142,13 +149,19 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
                 );
               })}
             </ul>
-            <p className="mt-2 text-center text-xs text-muted-foreground">Trascina gli oggetti nello zaino, oppure tocca un oggetto e poi lo zaino.</p>
           </div>
         </div>
       </section>
+      {/* The picture follows the finger / mouse while dragging. */}
       {drag?.moved && (
-        <div className="pointer-events-none fixed z-50 h-24 w-24 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl" style={{ left: drag.x, top: drag.y }} aria-hidden>
-          <ItemIcon id={drag.id} className="h-full w-full" />
+        <div className="pointer-events-none fixed z-50 h-24 w-24 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl" style={{ left: drag.x, top: drag.y }} aria-hidden data-testid="drag-ghost">
+          <ItemIcon id={drag.id} className={`h-full w-full transition-transform ${over ? "scale-110 rotate-0" : "-rotate-6 scale-105"}`} />
+        </div>
+      )}
+      {flight && (
+        <div className="pointer-events-none fixed z-50 h-24 w-24 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl" aria-hidden data-testid="drag-flight"
+          style={{ left: flight.go ? flight.tx : flight.x, top: flight.go ? flight.ty : flight.y, transform: `translate(-50%,-50%) scale(${flight.go ? (flight.into ? 0.25 : 0.7) : 1})`, opacity: flight.go && flight.into ? 0.2 : 1, transition: `left ${FLIGHT_MS}ms cubic-bezier(.3,.7,.2,1), top ${FLIGHT_MS}ms cubic-bezier(.3,.7,.2,1), transform ${FLIGHT_MS}ms ease, opacity ${FLIGHT_MS}ms ease` }}>
+          <ItemIcon id={flight.id} className="h-full w-full" />
         </div>
       )}
     </>

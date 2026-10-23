@@ -253,3 +253,7 @@
 
 /* Illustrated tree (no WebGL): night sky with a warm halo behind the fir. */
 .tree-illustrated-sky { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 38%, color-mix(in oklab, var(--gold) 16%, transparent), transparent 62%), linear-gradient(180deg, var(--scene-night), color-mix(in oklab, var(--scene-night) 78%, var(--fir-deep))); }
+
+/* Backpack game: a gentle nudge showing the drag gesture (still under reduced motion). */
+@keyframes kid-drag-hint { 0%,100% { transform: translate(0,0); } 50% { transform: translate(6px,-8px); } }
+.kid-drag-hint { animation: kid-drag-hint 1.6s ease-in-out infinite; }
