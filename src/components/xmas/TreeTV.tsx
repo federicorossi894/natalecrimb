@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
 import { useCasettaEvents, formatEventWhen } from '@/lib/events';
-import { PROJECTS, TREE_UNTIL, getProject, type TreeOrnament } from '@/lib/data';
+import { PROJECTS, TREE_UNTIL, type TreeOrnament } from '@/lib/data';
 import { TvQr } from './Qr';
 import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
@@ -213,4 +213,3 @@ export function TreeTV() {
   );
 }
 
-export { getProject };
