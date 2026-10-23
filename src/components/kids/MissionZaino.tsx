@@ -134,7 +134,7 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
             </div>
             <ul className="grid grid-cols-3 gap-2.5 sm:gap-3" aria-label="Oggetti da scegliere">
               {PACK_ITEMS.map((it) => {
-                const isHome = home.includes(it.id), isIn = packed.includes(it.id), isSel = sel === it.id, isDrag = drag?.id === it.id && drag.moved;
+                const isHome = home.includes(it.id), isIn = packed.includes(it.id), isSel = sel === it.id, isDrag = (drag?.id === it.id && drag.moved) || flight?.id === it.id;
                 return (
                   <li key={it.id}>
                     <button type="button" ref={(el) => { tiles.current[it.id] = el; }} onPointerDown={(e) => onDown(e, it.id)} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => { setDrag(null); setOver(false); }} onClick={() => onItemClick(it.id)}
