@@ -38,6 +38,7 @@
   --color-snow: var(--snow);
   --color-ink: var(--ink);
   --color-paper: var(--paper);
+  --color-photo-stage: var(--photo-stage);
   --color-ivory: var(--ivory);
   --color-burgundy: var(--burgundy);
 }
@@ -69,6 +70,8 @@
   --snow: oklch(0.99 0.005 85);
   --ink: oklch(0.22 0.03 30);
   --paper: oklch(0.97 0.02 85);
+  /* Pure white so official product shots (white backdrop) sit seamlessly, uncropped. */
+  --photo-stage: oklch(1 0 0);
   --ivory: oklch(0.94 0.035 85);
   --burgundy: oklch(0.36 0.12 15);
   --brick: oklch(0.46 0.13 32);
