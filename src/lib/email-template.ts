@@ -13,12 +13,15 @@ export function lockupHtml(src: string, height = 84) {
   const g = LOCKUP.horizontal, t = lockupText("horizontal"), k = height / g.h;
   const width = Math.round(g.w * k);
   const font = +(t.fontSize * k).toFixed(1);
-  // Text line box: centred on the wordmark, its baseline pulled up into the mark's transparent safety margin.
+  // Text line box centred on the wordmark; its cap top sits one x-height under "Croce Rossa Italiana", inside the
+  // mark's transparent safety margin. Arial at line-height 1: cap top is ~0.13em below the top of the line box.
   const shift = Math.round(2 * (t.x * k - width / 2));
-  const lift = Math.round((g.h - t.baseline) * k + font * 0.22);
+  const capTop = (t.baseline - 0.716 * t.fontSize) * k;
+  const lineTop = capTop - 0.13 * font;
+  const lift = Math.round(height - lineTop);
   return `<div style="width:${width}px"><img src="${src}" alt="Croce Rossa Italiana" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;border:0">`
     + `<div style="margin:-${lift}px 0 0 ${shift}px;font:400 ${font}px/1 Arial,Helvetica,sans-serif;color:#FFFFFF;text-align:center;height:${Math.ceil(font)}px">${TERRITORIAL_LABEL}</div>`
-    + `<div style="height:${Math.max(0, lift - Math.ceil(font))}px;line-height:0;font-size:0">&nbsp;</div></div>`;
+    + `<div style="height:${Math.max(0, Math.round(height - lineTop - Math.ceil(font)))}px;line-height:0;font-size:0">&nbsp;</div></div>`;
 }
 
 export type GiftEmail = {
