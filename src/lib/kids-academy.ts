@@ -20,8 +20,8 @@ export const HELPERS: { id: HelperId; name: string }[] = [
 
 /** Short openers each guide says before the feedback: warm, playful, never judging. */
 export const HELPER_VOICE: Record<HelperId, { great: string[]; kind: string[] }> = {
-  stella: { great: ["Che luce, aiutante!", "Brilli più di me!", "Evviva, ci sei riuscito insieme a me!"], kind: ["Ci penso con te…", "Nessun problema, riproviamo!", "Ogni stella ci prova più volte!"] },
-  pupazzo: { great: ["Mi si scalda il cuore di neve!", "Che bella scelta, evviva!", "Fantastico, salto di gioia!"], kind: ["Brrr… proviamo un'altra idea?", "Tranquillo, anche io sbaglio strada sulla neve!", "Pensiamoci insieme, piano piano."] },
+  stella: { great: ["Che luce, aiutante!", "Brilli più di me!", "Evviva, ce l'hai fatta!"], kind: ["Ci penso con te…", "Nessun problema, riproviamo!", "Ogni stella ci prova più volte!"] },
+  pupazzo: { great: ["Mi si scalda il cuore di neve!", "Che bella scelta, evviva!", "Fantastico, salto di gioia!"], kind: ["Brrr… proviamo un'altra idea?", "Niente paura, anche io sbaglio strada sulla neve!", "Pensiamoci insieme, piano piano."] },
   lanterna: { great: ["Hai acceso una luce!", "Che bagliore, ottima idea!", "Ecco, ora si vede la strada!"], kind: ["Illuminiamo un'altra idea.", "Facciamo un po' più di luce insieme…", "Nessuna fretta: guardiamo meglio."] },
   pettirosso: { great: ["Cip cip, che bella scelta!", "Cip! Volo di gioia!", "Che bello, cip cip!"], kind: ["Cip… proviamo un'altra strada?", "Cip! Ci riproviamo insieme.", "Un piccolo volo e riproviamo!"] },
 };

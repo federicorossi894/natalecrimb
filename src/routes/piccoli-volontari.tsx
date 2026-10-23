@@ -58,7 +58,8 @@ function Academy() {
   else if (missione === "battito") body = <MissionBattito {...common} onComplete={() => complete("battito")} />;
   else if (missione === "diploma" && ready && canOpenDiploma(state)) body = <DiplomaView state={state} update={update} onExit={() => go()} />;
   else body = <Hub state={state} update={update} go={go} />;
-  return <Shell hidePiazzaPill={!!missione}><div className="pb-28">{body}</div></Shell>;
+  // The guide picked in the hub speaks the feedback in every mission (device-only choice, no personal data).
+  return <Shell hidePiazzaPill={!!missione}><HelperProvider helper={state.helper ?? "stella"}><div className="pb-28">{body}</div></HelperProvider></Shell>;
 }
 
 function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["state"]; update: ReturnType<typeof useAcademy>["update"]; go: (v?: View) => void }) {

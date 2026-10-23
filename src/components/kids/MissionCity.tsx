@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, CircleOff, EyeOff, Footprints, Gamepad2, HandHeart, Home, Lightbulb, Megaphone, MoveUp, Phone, ThumbsUp, Users } from "lucide-react";
+import { ArrowRight, CircleOff, EyeOff, Footprints, Gamepad2, HandHeart, Home, Megaphone, MoveUp, Phone, Users } from "lucide-react";
 import cold from "@/assets/kids/scene-cold.jpg";
 import fall from "@/assets/kids/scene-fall.jpg";
 import lost from "@/assets/kids/scene-lost.jpg";
@@ -88,18 +88,7 @@ export function MissionCity({ sound, setSound, onExit, onComplete, onDiploma }: 
                 state={right === i ? "right" : wrong.includes(i) ? "wrong" : "idle"} />
             ))}
           </div>
-          {fb && (
-            <div className="mt-4" data-testid="city-feedback">
-              <Bubble tone={right !== null ? "great" : "kind"}>
-                <span className="flex items-start gap-3">
-                  <span aria-hidden className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${right !== null ? "kid-stamp bg-gold text-ink" : "kid-shake bg-secondary text-gold"}`}>
-                    {right !== null ? <ThumbsUp className="h-6 w-6" /> : <Lightbulb className="h-6 w-6" />}
-                  </span>
-                  <span><strong className="block font-display text-lg">{right !== null ? "Ottima scelta!" : "Proviamo un'altra idea"}</strong>{fb}</span>
-                </span>
-              </Bubble>
-            </div>
-          )}
+          {fb && <div className="mt-4" data-testid="city-feedback"><Bubble tone={right !== null ? "great" : "kind"}>{fb}</Bubble></div>}
           {right !== null && <PrimaryButton onClick={next} className="mt-5 w-full sm:w-auto">Avanti <ArrowRight className="h-5 w-5" /></PrimaryButton>}
         </div>
       </section>
