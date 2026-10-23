@@ -26,7 +26,7 @@ export const Route = createFileRoute("/regali/$id")({
         { title: t },
         { name: "description", content: p?.intro ?? "" },
         { property: "og:title", content: t },
-        { property: "og:description", content: p?.tagline ?? "" },
+        { property: "og:description", content: p?.opening ?? "" },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
