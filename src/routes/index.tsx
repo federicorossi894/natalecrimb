@@ -4,7 +4,6 @@ import { ArrowRight, Gift } from "lucide-react";
 import hero from "@/assets/hero-piazza.jpg";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
-import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { GiftBox } from "@/components/xmas/GiftBox";
 import { useUnwrap } from "@/hooks/use-unwrap";
 import { SantaChimneySection } from "@/components/xmas/SantaChimney";
