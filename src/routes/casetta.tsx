@@ -54,7 +54,7 @@ function StringLights() {
             style={{ left: `${b.x}%`, top: `${(b.y / 40) * 70}px`, ["--bulb" as string]: b.c, ["--d" as string]: b.d }} />
         ))}
       </div>
-      <button type="button" onClick={() => setLit(!lit)} aria-pressed={lit} className="absolute right-4 top-20 z-10 inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs" data-testid="lights-toggle">
+      <button type="button" onClick={() => setLit(!lit)} aria-pressed={lit} className="absolute right-4 top-[4.4rem] z-10 inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs" data-testid="lights-toggle">
         {lit ? <LightbulbOff className="h-3.5 w-3.5" /> : <Lightbulb className="h-3.5 w-3.5 text-gold" />}{lit ? "Spegni le luci" : "Accendi le luci"}
       </button>
     </>
@@ -99,7 +99,7 @@ function Casetta() {
       <section className="relative isolate overflow-hidden">
         <Snow count={28} className="opacity-70" />
         <StringLights />
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-24 sm:pt-28 md:grid-cols-[1.15fr_0.85fr]">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-28 sm:pt-32 md:grid-cols-[1.15fr_0.85fr]">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">La casetta di Natale · Sapori e regali solidali</p>
             <h1 className="mt-3 font-display text-4xl leading-[1.05] sm:text-6xl">
