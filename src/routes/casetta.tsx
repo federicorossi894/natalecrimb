@@ -79,12 +79,12 @@ function ProductCard({ p }: { p: (typeof CASETTA_PRODUCTS)[number] }) {
   const [swing, setSwing] = useState(false);
   return (
     <li className={cn("product-card glass relative flex flex-col rounded-3xl p-3", swing && "is-swing")} onPointerDown={() => { setSwing(true); setTimeout(() => setSwing(false), 700); }}>
-      <div className="relative">
-        <CasettaPhoto slot={p.photo} label={p.name} />
-        <span className="price-tag"><span data-testid="casetta-price">{formatEuro(p.price)}</span></span>
-      </div>
-      <div className="flex flex-1 flex-col px-2 pb-2 pt-4">
-        <h3 className="font-display text-xl leading-tight">{p.name}</h3>
+      <CasettaPhoto slot={p.photo} label={p.name} />
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="pt-3 font-display text-xl leading-tight">{p.name}</h3>
+          <span className="price-tag"><span data-testid="casetta-price">{formatEuro(p.price)}</span></span>
+        </div>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{p.format}</p>
         <p className="mt-3 text-sm text-foreground/85">{p.blurb}</p>
         <p className="mt-auto pt-4 text-[11px] font-semibold uppercase tracking-widest text-gold">Solo alla casetta</p>

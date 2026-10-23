@@ -385,8 +385,8 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .casetta-sign-rope { width: 40px; height: 16px; border: 2px solid var(--twine); border-bottom: 0; border-radius: 40px 40px 0 0; }
 @keyframes sign-sway { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
 @keyframes sign-swing { 0% { transform: rotate(0); } 20% { transform: rotate(12deg); } 45% { transform: rotate(-8deg); } 70% { transform: rotate(4deg); } 100% { transform: rotate(0); } }
-.price-tag { position: absolute; right: 14px; top: 10px; z-index: 2; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; transition: transform .7s cubic-bezier(.2,1.5,.4,1); }
-.price-tag::before { content: ""; width: 1px; height: 16px; background: var(--burgundy); }
+.price-tag { position: relative; flex-shrink: 0; margin-right: 4px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; transition: transform .7s cubic-bezier(.2,1.5,.4,1); }
+.price-tag::before { content: ""; width: 1px; height: 12px; background: var(--gold); }
 .price-tag > span { position: relative; padding: .35rem .75rem .35rem .95rem; border-radius: 4px 10px 10px 4px; background: var(--paper); color: var(--burgundy); font-family: var(--font-display); font-size: 1.35rem; line-height: 1; box-shadow: 0 6px 12px -6px color-mix(in oklab, var(--ink) 75%, transparent); border: 1px solid color-mix(in oklab, var(--gold) 70%, transparent); }
 .price-tag > span::before { content: ""; position: absolute; left: 5px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 99px; background: var(--burgundy); }
 .product-card { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s; }
