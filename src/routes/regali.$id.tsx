@@ -218,7 +218,7 @@ function Choices({ onPick, cash = false }: { onPick: (s: Step) => void; cash?: b
   const items = [
     { s: "mine" as Step, t: "È il mio regalo a Monza", d: cash ? "Concludi qui: il tuo addobbo è già sull'albero" : "Appendi il tuo addobbo, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
     { s: "dedica" as Step, t: "Regalalo a una persona", d: "Cartolina da condividere su WhatsApp", i: <MessageCircle className="h-5 w-5" /> },
-    { s: "sorpresa" as Step, t: "Mandalo via email", d: "Subito o la mattina di Natale", i: <Mail className="h-5 w-5" /> },
+    { s: "sorpresa" as Step, t: "Mandalo via email", d: "Subito o allo scoccare di Natale", i: <Mail className="h-5 w-5" /> },
   ];
   return (
     <div className="mt-8 space-y-3 text-left">
@@ -464,7 +464,7 @@ function Sorpresa({ p, hung, hang }: { p: Project; hung: Hung | null; hang: Hang
         project={p}
         ornamentId={hung?.id ?? null}
         title="Regalalo via email"
-        subtitle="Scegli se farlo arrivare subito o la mattina di Natale."
+        subtitle="Scegli se farlo arrivare subito o allo scoccare della mezzanotte di Natale (25 dicembre, 00:05)."
         consentSlot={!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche il tuo nome e la dedica sull'albero, dopo la verifica di un moderatore." />}
         onConfirm={async ({ donor, msg }) => {
           // The email preview stays available even if the tree is busy; the link then points to the Albero.
