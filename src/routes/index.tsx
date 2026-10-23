@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, Gift } from "lucide-react";
 import hero from "@/assets/hero-piazza.jpg";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
+import { GiftBox } from "@/components/xmas/GiftBox";
+import { useUnwrap } from "@/hooks/use-unwrap";
 import { SantaChimneySection } from "@/components/xmas/SantaChimney";
 import { PROJECTS } from "@/lib/data";
 import { Button } from '@/components/ui/button';
@@ -24,18 +26,14 @@ export const Route = createFileRoute("/")({
 });
 
 function GiftOpening({ onDone }: { onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const a = setTimeout(() => setOpen(true), 250), b = setTimeout(onDone, 1250);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [onDone]);
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/90 backdrop-blur-md" onAnimationEnd={(e) => e.animationName === "box-pop" && onDone()}>
-      <div className="relative h-44 w-44" style={{ animation: "box-pop 1.5s cubic-bezier(.2,.8,.2,1) forwards" }}>
-        <div className="absolute inset-0 rounded-full bg-gold/30" style={{ animation: "burst 1.2s 0.6s ease-out both" }} />
-        <div className="absolute bottom-0 left-[10%] h-[62%] w-[80%] rounded-md bg-primary shadow-deep">
-          <div className="absolute inset-y-0 left-1/2 w-[14%] -translate-x-1/2 bg-gold" />
-        </div>
-        <div className="absolute left-[4%] top-[24%] h-[18%] w-[92%] rounded-md bg-primary shadow-deep" style={{ animation: "lid-open 1s 0.45s ease-in forwards", filter: "brightness(1.1)" }}>
-          <div className="absolute inset-y-0 left-1/2 w-[14%] -translate-x-1/2 bg-gold" />
-          <div className="absolute -top-6 left-1/2 h-8 w-16 -translate-x-1/2 rounded-full border-[6px] border-gold" />
-        </div>
-      </div>
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/90 backdrop-blur-md">
+      <GiftBox project={PROJECTS[0]!} open={open} className="animate-rise w-56" />
     </div>
   );
 }
@@ -43,9 +41,11 @@ function GiftOpening({ onDone }: { onDone: () => void }) {
 function Home() {
   const [opening, setOpening] = useState(false);
   const nav = useNavigate();
+  const { opening: unwrapping, unwrap } = useUnwrap();
+  const toGifts = useCallback(() => nav({ to: "/regali" }), [nav]);
   return (
     <Shell>
-      {opening && <GiftOpening onDone={() => nav({ to: "/regali" })} />}
+      {opening && <GiftOpening onDone={toGifts} />}
       <section className="relative isolate -mt-px min-h-[74svh] overflow-hidden">
         <img src={hero} alt="Piazza di Monza illuminata per Natale" width={1088} height={1440} className="absolute inset-0 -z-20 h-full w-full object-cover" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/30 to-background" />
@@ -72,17 +72,27 @@ function Home() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Quattro regali, una città</p>
         <h2 className="mt-3 max-w-xl font-display text-3xl sm:text-5xl">Ogni regalo diventa un addobbo sull'Albero di Monza.</h2>
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {PROJECTS.map((p, i) => (
-            <Link key={p.id} to="/regali/$id" params={{ id: p.id }} className={`glass group relative overflow-hidden rounded-3xl p-5 transition hover:-translate-y-1 ${i % 2 ? "lg:mt-10" : ""}`}>
-              <OrnamentIcon kind={p.ornament} className="animate-floaty h-20 w-20" />
-              <p className="mt-4 text-[11px] uppercase tracking-widest text-muted-foreground">{p.kicker}</p>
-              <p className="mt-1 font-display text-2xl">{p.title}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{p.tagline}</p>
-              <ArrowRight className="mt-4 h-5 w-5 text-gold transition group-hover:translate-x-1" />
+        <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:gap-x-10 lg:grid-cols-4">
+          {PROJECTS.map((p) => (
+            <Link key={p.id} to="/regali/$id" params={{ id: p.id }} onClick={unwrap(p.id)} className="gift-trigger group rounded-3xl text-center outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`Apri il regalo ${p.title}`}>
+              <GiftBox project={p} open={unwrapping === p.id} className="mx-auto w-full max-w-[210px]" />
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-gold">{p.kicker}</p>
+              <p className="mt-1 font-display text-xl leading-tight sm:text-2xl">{p.title}</p>
             </Link>
           ))}
         </div>
+        <ol className="mt-14 grid gap-3 sm:grid-cols-3">
+          {[
+            { n: "1", t: "Scegli un regalo", d: "Quattro progetti di Croce Rossa Monza." },
+            { n: "2", t: "Dona in pochi tocchi", d: "Bastano 5 €. Online o alla casetta." },
+            { n: "3", t: "Accendi l'Albero di Monza", d: "Il tuo regalo diventa un addobbo. Puoi dedicarlo a chi vuoi." },
+          ].map((s) => (
+            <li key={s.n} className="glass flex items-start gap-4 rounded-2xl p-5">
+              <span className="font-display text-4xl leading-none text-gold">{s.n}</span>
+              <span><span className="block font-display text-lg">{s.t}</span><span className="text-sm text-muted-foreground">{s.d}</span></span>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className="mx-auto max-w-6xl px-4">
