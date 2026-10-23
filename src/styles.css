@@ -88,6 +88,12 @@
   --scene-burgundy: #6e1b2e;
   --scene-forest: #1d5c3f;
   --scene-crimson: #a8202f;
+  --kid-sky: #6fa9cc;
+  --kid-sky-deep: #3f7ea6;
+  --kid-sun: #f2b84b;
+  --kid-pink: #ef9bb2;
+  --kid-steel: #9aa6b1;
+  --kid-leaf: #4fa36b;
 }
 
 @layer base {
@@ -232,3 +238,15 @@
 
 /* PNG export: capture the final frame of entrance/float animations. */
 .is-exporting, .is-exporting * { animation: none !important; transition: none !important; }
+
+/* Kids' academy */
+@keyframes kid-bump { 0%,100% { transform: scale(1); } 35% { transform: scale(1.06, .95); } 70% { transform: scale(.98, 1.03); } }
+@keyframes kid-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@keyframes kid-glow { 0% { opacity: 0; } 40% { opacity: 1; } 100% { opacity: .85; } }
+@keyframes kid-drift { from { transform: scale(1.02); } to { transform: scale(1.08) translate(-1%, -1%); } }
+@keyframes kid-stamp { 0% { transform: rotate(-14deg) scale(1.8); opacity: 0; } 100% { transform: rotate(-14deg) scale(1); opacity: 1; } }
+.kid-bump { animation: kid-bump .55s ease-out; }
+.kid-shake { animation: kid-shake .4s ease-in-out; }
+.kid-glow { animation: kid-glow 1.2s ease-out both; }
+.kid-drift { animation: kid-drift 18s ease-in-out infinite alternate; }
+.kid-stamp { animation: kid-stamp .5s cubic-bezier(.2,.8,.2,1) both; }

@@ -125,3 +125,38 @@ describe('Volunteer presentation mode', () => {
     expect(log[0]?.firma).toBeNull();
   });
 });
+
+import { EMPTY_ACADEMY, canOpenDiploma, claimSurprise, completeMission, diplomaCode, isPackComplete, liveBpm, parseAcademy, zoneOf } from '@/lib/kids-academy';
+describe('Kids academy', () => {
+  const bytes = new Uint8Array([1, 2, 3, 4, 5, 6]);
+  const now = new Date('2026-12-20T10:00:00Z');
+  it('unlocks the diploma after one completed mission', () => {
+    expect(canOpenDiploma(EMPTY_ACADEMY)).toBe(false);
+    expect(canOpenDiploma(completeMission(EMPTY_ACADEMY, 'zaino', now, bytes))).toBe(true);
+  });
+  it('issues the diploma code once: replaying missions never creates a new one', () => {
+    const a = completeMission(EMPTY_ACADEMY, 'citta', now, bytes);
+    const b = completeMission(a, 'battito', now, new Uint8Array([9, 9, 9, 9, 9, 9]));
+    const c = completeMission(b, 'citta', now, new Uint8Array([7, 7, 7, 7, 7, 7]));
+    expect(c.diploma?.code).toBe(a.diploma?.code);
+    expect(c.done).toEqual(['citta', 'battito']);
+    expect(diplomaCode(bytes)).toMatch(/^[2-9A-HJKMNP-Z]{3}-[2-9A-HJKMNP-Z]{3}$/);
+  });
+  it('gives one surprise per diploma, kept after a reload', () => {
+    const claimed = claimSurprise(completeMission(EMPTY_ACADEMY, 'citta', now, bytes), now);
+    const again = claimSurprise(claimed, new Date('2026-12-21T10:00:00Z'));
+    expect(again.diploma?.claimedAt).toBe(now.toISOString());
+    expect(parseAcademy(JSON.stringify(again)).diploma?.claimedAt).toBe(now.toISOString());
+  });
+  it('treats 100–120 beats per minute as the right rhythm', () => {
+    expect(zoneOf(99)).toBe('slow');
+    expect(zoneOf(100)).toBe('good');
+    expect(zoneOf(120)).toBe('good');
+    expect(zoneOf(121)).toBe('fast');
+    expect(liveBpm([0, 545, 1090, 1636, 2181])).toBe(110);
+  });
+  it('needs torch, gloves, water, hat and scarf, charged phone in the backpack', () => {
+    expect(isPackComplete(['torcia', 'guanti', 'acqua', 'berretto'])).toBe(false);
+    expect(isPackComplete(['torcia', 'guanti', 'acqua', 'berretto', 'telefono'])).toBe(true);
+  });
+});
