@@ -18,7 +18,8 @@ export function downloadBlob(blob: Blob, name: string) {
 export async function exportNode(node: HTMLElement | null, name: string) {
   if (!node) return;
   const { toBlob } = await import("html-to-image");
-  const blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
+  // No cacheBust: it appends ?timestamp to blob: image URLs (the postcard), which then fail to load.
+  const blob = await toBlob(node, { pixelRatio: 2 });
   if (blob) downloadBlob(blob, name);
 }
 
