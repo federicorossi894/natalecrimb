@@ -123,7 +123,7 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{p.kicker}</p>
                 <h1 className="mt-1 font-display text-4xl leading-none sm:text-6xl">{p.title}</h1>
-                <p className="mt-3 font-display text-lg italic text-foreground/85 sm:text-xl">{p.tagline}</p>
+                <p className="mt-3 font-display text-lg italic leading-snug text-foreground/90 sm:text-2xl">{p.opening}</p>
               </div>
             </div>
           </header>
@@ -147,6 +147,12 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
             <p>{p.story}</p>
             <ul className="mt-3 space-y-1.5">{p.doing.map((d) => <li key={d} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{d}</li>)}</ul>
           </More>
+          {p.officialLink && (
+            <a href={p.officialLink.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border hairline-gold bg-card/60 px-5 py-4 font-semibold transition hover:text-gold" data-testid="official-link">
+              <span>{p.officialLink.label}<span className="mt-0.5 block text-xs font-normal text-muted-foreground">Sul sito ufficiale di Croce Rossa Monza</span></span>
+              <ExternalLink className="h-5 w-5 shrink-0 text-gold" />
+            </a>
+          )}
           <More title="Come aiuta il tuo regalo"><p>{p.helps}</p></More>
           <More title="Donazione o acquisto?">
             <p>Il tuo è un regalo a Croce Rossa Italiana – Comitato di Monza: sostiene il progetto nel suo insieme. L'addobbo sull'albero è il simbolo del tuo gesto, non un oggetto comprato.</p>
