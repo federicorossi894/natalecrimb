@@ -12,7 +12,7 @@ export const INVITE_LINE = `Il tuo addobbo si vede sull'albero digitale, sullo s
 export function postcardText(p: Project, to: string, from: string, msg: string, ornamentId?: string | null) {
   const dedica = msg.trim() || p.postcardLine;
   const firma = from.trim() ? `\n— ${from.trim()}` : "";
-  const link = ornamentId ? `Il tuo addobbo è appeso all'Albero di Monza: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
+  const link = ornamentId ? `Il tuo addobbo è sull'Albero di Monza digitale: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
   return `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo fatto a tuo nome un regalo per Monza con la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}\n\n(Cartolina DEMO: nessuna donazione reale)`;
 }
 

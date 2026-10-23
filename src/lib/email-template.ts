@@ -124,7 +124,7 @@ ${envelope}
   </td></tr>
   <tr><td class="px" style="background:${C.burgundy};padding:26px 40px;color:${C.snow}">
     <p style="margin:0;font:700 11px/1 Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:${C.gold}">Ti aspettiamo in piazza</p>
-    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">L'Albero di Monza è in Piazza San Paolo fino al ${TREE_UNTIL}. Alla casetta di Croce Rossa trovi i volontari.</p>
+    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta di Croce Rossa in Piazza San Paolo, fino al ${TREE_UNTIL}. Lì trovi anche i volontari.</p>
   </td></tr>
   <tr><td class="px" style="padding:22px 40px 26px;font:12px/1.6 Arial,sans-serif;color:${C.ink}">
     <p style="margin:0;font-weight:700">Croce Rossa Italiana – Comitato di Monza</p>
