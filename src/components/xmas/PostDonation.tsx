@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, CheckCheck, Copy, Download, ExternalLink, Home, LocateFixed, MapPin, MessageCircle, Printer, Send, X } from "lucide-react";
 import { OrnamentIcon } from "./Ornament";
-import { Modal, DemoNotice } from "./Modal";
+import { DemoNotice } from "./Modal";
 import { TREE_UNTIL, type Project } from "@/lib/data";
 import { INVITE_LINE, postcardText, renderPostcardImage } from "@/lib/postcard-share";
 import { CHRISTMAS_DELIVERY, MODE_LABEL, confirmationText, giftEmailSchema, type EmailAudience, type EmailMode } from "@/lib/email-demo";
