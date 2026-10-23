@@ -98,9 +98,11 @@ function Home() {
 
       <section className="mx-auto max-w-6xl px-4">
         <div className="glass grid gap-6 overflow-hidden rounded-[2rem] p-6 sm:grid-cols-2 sm:p-10">
-          <div className="flex items-start gap-5">
+          <div className="flex flex-col items-start gap-5 lg:flex-row">
             {/* Official poster appears here only once the original file is attached; nothing is drawn in its place. */}
-            <CasettaPoster placeholder={false} className="w-28 shrink-0 sm:w-36" />
+            <Link to="/casetta" className="w-44 shrink-0 lg:w-36" aria-label="La casetta di Natale · Sapori e regali solidali">
+              <CasettaPoster placeholder={false} />
+            </Link>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">La casetta di Natale · dal {CASETTA.from} al {CASETTA.until}</p>
               <h3 className="mt-3 font-display text-3xl">Vieni a trovarci alla casetta in Piazza San Paolo.</h3>
