@@ -4,7 +4,7 @@ import { useTreeStore } from '@/lib/tree-store';
 import { useCasettaEvents, formatEventWhen, EXAMPLE_EVENTS } from '@/lib/events';
 import type { TreeOrnament } from '@/lib/data';
 import { HomeQr } from './Qr';
-import { CriMark } from './Ornament';
+import { CriLockup } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
 
@@ -64,7 +64,7 @@ export function TreeTV(){
     <TreeStage ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} />
     <div className="tv-vignette" aria-hidden />
     <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
-      <div className="flex items-center gap-[1cqw]"><CriMark className="h-[6cqw]" /><span className="border-l border-gold/40 pl-[1cqw] text-[1.1cqw] text-gold">Comitato di Monza</span></div>
+      <CriLockup className="h-[6.5cqw]" />
       <h1 className="mt-[0.4cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
     <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>

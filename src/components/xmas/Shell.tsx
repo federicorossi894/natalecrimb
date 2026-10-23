@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X, MapPin, Facebook, Instagram, Youtube, Linkedin, Gift } from "lucide-react";
-import { CriMark } from "./Ornament";
+import { CriLockup } from "./Ornament";
 import { CRI, TREE_UNTIL } from "@/lib/data";
 
 const SOCIAL_ICON = { Facebook, Instagram, YouTube: Youtube, LinkedIn: Linkedin } as const;
@@ -53,6 +53,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
         </div>
         {open && (
           <nav className="animate-rise border-t px-4 pb-4 xl:hidden">
+            <p className="pt-3 font-display text-base text-muted-foreground sm:hidden">Il Natale <em className="text-gold">che fa bene</em></p>
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="block border-b py-3.5 font-display text-xl last:border-0" activeOptions={{ exact: true }} activeProps={{ className: "text-gold" }}>
                 {n.label}
@@ -73,8 +74,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
 
       <footer className="mt-24 border-t px-4 pb-28 pt-14">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 text-center">
-          <CriMark variant="vertical" className="h-24" />
-          <p className="mt-2 text-xs uppercase tracking-[0.3em] text-foreground/80">Croce Rossa Italiana – Comitato di Monza</p>
+          <CriLockup layout="vertical" className="h-32" />
           <p className="font-display text-xl">Il Natale <em className="text-gold">che fa bene</em></p>
           <p className="text-sm text-muted-foreground">Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</p>
           <a href={CRI.site} target="_blank" rel="noreferrer" className="text-sm text-gold underline-offset-4 hover:underline">crimonza.org</a>
