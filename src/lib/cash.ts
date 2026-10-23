@@ -24,7 +24,25 @@ export const formatCode = (raw: string) => normalizeCode(raw).replace(/(.{4})(?=
 export const euro = (cents: number) => new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(cents / 100);
 export const projectForKind = (kind: string) => PROJECTS.find((p) => p.ornament === kind);
 
-export const amountSchema = z.coerce.number({ message: "Importo non valido" }).int("Solo euro interi").min(1, "Minimo 1 €").max(1000, "Massimo 1000 €");
+/** Same bounds are enforced again by the backend (hang_ornament, create_cash_request, volunteer_add_ornament). */
+export const MIN_GIFT_EURO = 5;
+export const MAX_GIFT_EURO = 1000;
+/** Whole euros from 5 to 1000. Accepts numbers or typed text ("10", "10,00"); rejects 0, negatives, NaN, text and cents. */
+export const amountSchema = z.preprocess(
+  (v) => {
+    if (typeof v === "string") {
+      const s = v.trim().replace(",", ".");
+      if (!s) return undefined;
+      return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : Number.NaN;
+    }
+    return v;
+  },
+  z.number({ required_error: "Scrivi un importo in euro", invalid_type_error: "Scrivi un importo in euro, solo cifre" })
+    .finite("Scrivi un importo in euro, solo cifre")
+    .int("Solo euro interi, senza centesimi")
+    .min(MIN_GIFT_EURO, `L'importo minimo è ${MIN_GIFT_EURO} €`)
+    .max(MAX_GIFT_EURO, `L'importo massimo è ${MAX_GIFT_EURO} €`),
+);
 
 export const manualOrnamentSchema = z.object({
   kind: z.enum(["dae", "calore", "prossimita", "cuore"]),

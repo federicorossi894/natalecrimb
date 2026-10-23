@@ -225,6 +225,7 @@ export type Database = {
       }
       hang_ornament: {
         Args: {
+          _amount_cents: number
           _client: string
           _consent: boolean
           _dedica: string

@@ -46,7 +46,7 @@ function Volontari() {
   }, [session]);
 
   return (
-    <Shell>
+    <Shell hidePiazzaPill>
       <PageHead kicker="DEMO · Area riservata" title="Casetta CRI · volontari" />
       <section className="mx-auto max-w-lg px-4 pb-16">
         {!ready ? null : !session ? (

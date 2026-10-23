@@ -60,7 +60,7 @@ function Babbo() {
     field(k, label, <input name={k} value={form[k]} onChange={(e) => set(k, e.target.value)} aria-invalid={!!errors[k]} autoComplete="off" className={inp} {...props} />);
 
   return (
-    <Shell>
+    <Shell hidePiazzaPill>
       <div className="mx-auto max-w-6xl px-4 pt-6">
         <div className="rounded-2xl bg-gold px-4 py-3 text-sm font-semibold text-accent-foreground">🤫 Area grandi: meglio non far leggere questa pagina ai bambini.</div>
       </div>
@@ -98,7 +98,7 @@ function Babbo() {
             <p className="mt-1 font-display text-4xl">€{SANTA_CONTRIBUTION_EUR} <span className="text-lg">a famiglia</span></p>
             <p className="mt-1 text-sm font-semibold text-gold">{SANTA_CONTRIBUTION_NOTE}</p>
           </div>
-          <p className="max-w-sm text-xs text-foreground/75">Nota per il Comitato: proposta basata su servizi analoghi ({SANTA_REFERENCES.map((r) => `${r.who} €${r.eur}`).join(", ")}). Nessun importo viene richiesto in questa demo.</p>
+          <p className="max-w-sm text-xs text-foreground/75">Contributo indicativo, da confermare dal Comitato. Nessun importo viene richiesto in questa demo.</p>
         </div>
       </section>
 

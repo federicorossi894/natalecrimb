@@ -67,7 +67,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
       <main>{children}</main>
 
       {!hidePiazzaPill && (
-      <Link to="/piazza" className="glass-strong fixed bottom-4 left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs shadow-deep transition hover:scale-[1.02] sm:text-sm">
+      <Link to="/piazza" className="glass-strong fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs shadow-deep transition hover:scale-[1.02] sm:text-sm">
         <MapPin className="h-4 w-4 shrink-0 text-primary" />
         <span className="truncate"><strong>Casetta CRI · Piazza San Paolo</strong> <span className="text-gold">· Scopri cosa succede oggi</span></span>
       </Link>

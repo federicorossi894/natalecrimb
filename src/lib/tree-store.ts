@@ -22,8 +22,8 @@ export function clientId() {
 const EVT = "cri-demo-tree";
 export const POLL_MS = 15000;
 
-export async function addOrnament(kind: OrnamentKind, firma: string, dedica: string, consent: boolean) {
-  const { data, error } = await supabase.rpc("hang_ornament", { _kind: kind, _firma: firma, _dedica: dedica, _consent: consent, _client: clientId() });
+export async function addOrnament(kind: OrnamentKind, amountEuro: number, firma: string, dedica: string, consent: boolean) {
+  const { data, error } = await supabase.rpc("hang_ornament", { _kind: kind, _amount_cents: Math.round(amountEuro * 100), _firma: firma, _dedica: dedica, _consent: consent, _client: clientId() });
   if (error) throw new Error(error.message);
   window.dispatchEvent(new Event(EVT));
   return data?.[0] ?? null;
