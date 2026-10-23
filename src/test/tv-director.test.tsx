@@ -7,9 +7,14 @@ describe("casetta TV director", () => {
     expect(tvSequence(true)).toContain("dedica");
   });
 
+  it("shows the wishes scene only when an approved wish exists", () => {
+    expect(tvSequence(false, false)).not.toContain("auguri");
+    expect(tvSequence(true, true)).toContain("auguri");
+  });
+
   it("keeps the silent loop between 60 and 90 seconds", () => {
-    for (const has of [false, true]) {
-      const total = tvSequence(has).reduce((s, b) => s + TV_DURATION[b], 0);
+    for (const [has, wishes] of [[false, false], [true, false], [false, true], [true, true]] as const) {
+      const total = tvSequence(has, wishes).reduce((s, b) => s + TV_DURATION[b], 0);
       expect(total).toBeGreaterThanOrEqual(60000);
       expect(total).toBeLessThanOrEqual(90000);
     }

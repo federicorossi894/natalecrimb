@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AlberoRouteImport } from './routes/albero'
 import { Route as AlberoLiveRouteImport } from './routes/albero-live'
+import { Route as AuguriRouteImport } from './routes/auguri'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
+import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
 import { Route as GiochiRouteImport } from './routes/giochi'
 import { Route as ModerazioneRouteImport } from './routes/moderazione'
@@ -20,6 +22,7 @@ import { Route as PiazzaRouteImport } from './routes/piazza'
 import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
 import { Route as PresentazioneRouteImport } from './routes/presentazione'
 import { Route as VolontariRouteImport } from './routes/volontari'
+import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
 
@@ -38,9 +41,19 @@ const AlberoLiveRoute = AlberoLiveRouteImport.update({
   path: '/albero-live',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuguriRoute = AuguriRouteImport.update({
+  id: '/auguri',
+  path: '/auguri',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BabboNataleRoute = BabboNataleRouteImport.update({
   id: '/babbo-natale',
   path: '/babbo-natale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CasettaRoute = CasettaRouteImport.update({
@@ -78,6 +91,11 @@ const VolontariRoute = VolontariRouteImport.update({
   path: '/volontari',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AugurioCodeRoute = AugurioCodeRouteImport.update({
+  id: '/augurio/$code',
+  path: '/augurio/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegaliIndexRoute = RegaliIndexRouteImport.update({
   id: '/regali/',
   path: '/regali/',
@@ -93,7 +111,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
+  '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
@@ -101,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
+  '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
 }
@@ -108,7 +129,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
+  '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
@@ -116,6 +139,7 @@ export interface FileRoutesByTo {
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
+  '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
 }
@@ -124,7 +148,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
+  '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
@@ -132,6 +158,7 @@ export interface FileRoutesById {
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
+  '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
 }
@@ -141,7 +168,9 @@ export interface FileRouteTypes {
     | '/'
     | '/albero'
     | '/albero-live'
+    | '/auguri'
     | '/babbo-natale'
+    | '/calendario'
     | '/casetta'
     | '/giochi'
     | '/moderazione'
@@ -149,6 +178,7 @@ export interface FileRouteTypes {
     | '/piccoli-volontari'
     | '/presentazione'
     | '/volontari'
+    | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
   fileRoutesByTo: FileRoutesByTo
@@ -156,7 +186,9 @@ export interface FileRouteTypes {
     | '/'
     | '/albero'
     | '/albero-live'
+    | '/auguri'
     | '/babbo-natale'
+    | '/calendario'
     | '/casetta'
     | '/giochi'
     | '/moderazione'
@@ -164,6 +196,7 @@ export interface FileRouteTypes {
     | '/piccoli-volontari'
     | '/presentazione'
     | '/volontari'
+    | '/augurio/$code'
     | '/regali/$id'
     | '/regali'
   id:
@@ -171,7 +204,9 @@ export interface FileRouteTypes {
     | '/'
     | '/albero'
     | '/albero-live'
+    | '/auguri'
     | '/babbo-natale'
+    | '/calendario'
     | '/casetta'
     | '/giochi'
     | '/moderazione'
@@ -179,6 +214,7 @@ export interface FileRouteTypes {
     | '/piccoli-volontari'
     | '/presentazione'
     | '/volontari'
+    | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
   fileRoutesById: FileRoutesById
@@ -187,7 +223,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlberoRoute: typeof AlberoRoute
   AlberoLiveRoute: typeof AlberoLiveRoute
+  AuguriRoute: typeof AuguriRoute
   BabboNataleRoute: typeof BabboNataleRoute
+  CalendarioRoute: typeof CalendarioRoute
   CasettaRoute: typeof CasettaRoute
   GiochiRoute: typeof GiochiRoute
   ModerazioneRoute: typeof ModerazioneRoute
@@ -195,6 +233,7 @@ export interface RootRouteChildren {
   PiccoliVolontariRoute: typeof PiccoliVolontariRoute
   PresentazioneRoute: typeof PresentazioneRoute
   VolontariRoute: typeof VolontariRoute
+  AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
 }
@@ -222,11 +261,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlberoLiveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auguri': {
+      id: '/auguri'
+      path: '/auguri'
+      fullPath: '/auguri'
+      preLoaderRoute: typeof AuguriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/babbo-natale': {
       id: '/babbo-natale'
       path: '/babbo-natale'
       fullPath: '/babbo-natale'
       preLoaderRoute: typeof BabboNataleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/casetta': {
@@ -278,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VolontariRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/augurio/$code': {
+      id: '/augurio/$code'
+      path: '/augurio/$code'
+      fullPath: '/augurio/$code'
+      preLoaderRoute: typeof AugurioCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/regali/': {
       id: '/regali/'
       path: '/regali'
@@ -299,7 +359,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlberoRoute: AlberoRoute,
   AlberoLiveRoute: AlberoLiveRoute,
+  AuguriRoute: AuguriRoute,
   BabboNataleRoute: BabboNataleRoute,
+  CalendarioRoute: CalendarioRoute,
   CasettaRoute: CasettaRoute,
   GiochiRoute: GiochiRoute,
   ModerazioneRoute: ModerazioneRoute,
@@ -307,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   PiccoliVolontariRoute: PiccoliVolontariRoute,
   PresentazioneRoute: PresentazioneRoute,
   VolontariRoute: VolontariRoute,
+  AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
 }

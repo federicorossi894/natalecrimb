@@ -50,6 +50,13 @@
       "when": 1792756840134,
       "tag": "0006_restore_cash_request_min_5",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792789156380,
+      "tag": "0007_kindness_calendar_and_wishes",
+      "breakpoints": true
     }
   ]
 }

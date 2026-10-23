@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { EventsAdmin } from "@/components/xmas/EventsAdmin";
+import { WishesAdmin } from "@/components/xmas/WishesAdmin";
+import { KindnessAdmin } from "@/components/xmas/KindnessAdmin";
 import { AuthBox } from "@/components/xmas/AuthBox";
 import type { OrnamentKind } from "@/lib/data";
 import { SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES } from "@/lib/santa";
@@ -54,7 +56,7 @@ function Mod() {
 
   return (
     <Shell hidePiazzaPill>
-      <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche ed eventi" />
+      <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche, auguri ed eventi" />
       <section className="mx-auto max-w-3xl px-4">
         {!ready ? null : !session ? <AuthBox title="Accesso moderatori" returnPath="/moderazione" roleName="moderatore" /> : !isMod ? (
           <div className="glass rounded-2xl p-5 text-sm">
@@ -84,6 +86,8 @@ function Mod() {
                 </div>
               ))}
             </div>
+            <WishesAdmin />
+            <KindnessAdmin />
             <EventsAdmin />
             {/* Internal benchmark for the Comitato: removed from the public Santa page, kept here for staff only. */}
             <div className="glass mt-8 rounded-2xl p-5 text-sm" data-testid="santa-internal-note">
