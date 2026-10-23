@@ -38,22 +38,22 @@ export function Shell({ children }: { children: ReactNode }) {
               <span className="block truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Comitato di Monza</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden items-center gap-1 xl:flex">
             {NAV.slice(1).map((n) => (
-              <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground" activeProps={{ className: "bg-secondary !text-foreground" }}>
+              <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground" activeProps={{ className: "bg-secondary !text-foreground" }}>
                 {n.label}
               </Link>
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-1">
             <Link to="/regali" className="hidden items-center gap-1.5 rounded-full border hairline-gold px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-gold transition hover:bg-gold hover:text-accent-foreground sm:inline-flex"><Gift className="h-4 w-4" /> Regala</Link>
-            <button className="rounded-full p-2 lg:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
+            <button className="rounded-full p-2 xl:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
               {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
         {open && (
-          <nav className="animate-rise border-t px-4 pb-4 lg:hidden">
+          <nav className="animate-rise border-t px-4 pb-4 xl:hidden">
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="block border-b py-3.5 font-display text-xl last:border-0" activeOptions={{ exact: true }} activeProps={{ className: "text-gold" }}>
                 {n.label}

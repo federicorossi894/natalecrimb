@@ -26,7 +26,7 @@ export const Route = createFileRoute("/regali/$id")({
         { title: t },
         { name: "description", content: p?.intro ?? "" },
         { property: "og:title", content: t },
-        { property: "og:description", content: p?.tagline ?? "" },
+        { property: "og:description", content: p?.opening ?? "" },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
@@ -123,7 +123,7 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{p.kicker}</p>
                 <h1 className="mt-1 font-display text-4xl leading-none sm:text-6xl">{p.title}</h1>
-                <p className="mt-3 font-display text-lg italic text-foreground/85 sm:text-xl">{p.tagline}</p>
+                <p className="mt-3 font-display text-lg italic leading-snug text-foreground/90 sm:text-2xl">{p.opening}</p>
               </div>
             </div>
           </header>
@@ -147,6 +147,12 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
             <p>{p.story}</p>
             <ul className="mt-3 space-y-1.5">{p.doing.map((d) => <li key={d} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{d}</li>)}</ul>
           </More>
+          {p.officialLink && (
+            <a href={p.officialLink.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border hairline-gold bg-card/60 px-5 py-4 font-semibold transition hover:text-gold" data-testid="official-link">
+              <span>{p.officialLink.label}<span className="mt-0.5 block text-xs font-normal text-muted-foreground">Sul sito ufficiale di Croce Rossa Monza</span></span>
+              <ExternalLink className="h-5 w-5 shrink-0 text-gold" />
+            </a>
+          )}
           <More title="Come aiuta il tuo regalo"><p>{p.helps}</p></More>
           <More title="Donazione o acquisto?">
             <p>Il tuo è un regalo a Croce Rossa Italiana – Comitato di Monza: sostiene il progetto nel suo insieme. L'addobbo sull'albero è il simbolo del tuo gesto, non un oggetto comprato.</p>
@@ -218,7 +224,7 @@ function Choices({ onPick, cash = false }: { onPick: (s: Step) => void; cash?: b
   const items = [
     { s: "mine" as Step, t: "È il mio regalo a Monza", d: cash ? "Concludi qui: il tuo addobbo è già sull'albero" : "Appendi il tuo addobbo, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
     { s: "dedica" as Step, t: "Regalalo a una persona", d: "Cartolina da condividere su WhatsApp", i: <MessageCircle className="h-5 w-5" /> },
-    { s: "sorpresa" as Step, t: "Mandalo via email", d: "Subito o la mattina di Natale", i: <Mail className="h-5 w-5" /> },
+    { s: "sorpresa" as Step, t: "Mandalo via email", d: "Subito o allo scoccare di Natale", i: <Mail className="h-5 w-5" /> },
   ];
   return (
     <div className="mt-8 space-y-3 text-left">
@@ -462,9 +468,9 @@ function Sorpresa({ p, hung, hang }: { p: Project; hung: Hung | null; hang: Hang
     <section className="mx-auto max-w-6xl px-4 pt-6">
       <EmailStudio
         project={p}
-        ornamentId={hung?.id}
+        ornamentId={hung?.id ?? null}
         title="Regalalo via email"
-        subtitle="Scegli se farlo arrivare subito o la mattina di Natale."
+        subtitle="Scegli se farlo arrivare subito o allo scoccare della mezzanotte di Natale (25 dicembre, 00:05)."
         consentSlot={!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche il tuo nome e la dedica sull'albero, dopo la verifica di un moderatore." />}
         onConfirm={async ({ donor, msg }) => {
           // The email preview stays available even if the tree is busy; the link then points to the Albero.

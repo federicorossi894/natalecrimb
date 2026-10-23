@@ -18,8 +18,17 @@ export function downloadBlob(blob: Blob, name: string) {
 export async function exportNode(node: HTMLElement | null, name: string) {
   if (!node) return;
   const { toBlob } = await import("html-to-image");
-  const blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
-  if (blob) downloadBlob(blob, name);
+  // Freeze entrance/float animations so the capture shows the final frame, not the invisible first one.
+  node.classList.add("is-exporting");
+  try {
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    // No cacheBust: it appends ?timestamp to blob: image URLs (the postcard), which then fail to load.
+    // margin 0: centred previews (mx-auto) would otherwise be shifted inside the exported image.
+    const blob = await toBlob(node, { pixelRatio: 2, width: node.offsetWidth, height: node.offsetHeight, style: { margin: "0" } });
+    if (blob) downloadBlob(blob, name);
+  } finally {
+    node.classList.remove("is-exporting");
+  }
 }
 
 /** Invitation shown at the end of every post-donation path. */

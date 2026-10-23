@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 import { canopyTiers, ornamentAnchor, surfaceRadius, treeHeight, treeLayout, treeWidth } from "@/lib/tree-layout";
 import { eventSchema, romeToIso } from '@/lib/events';
-import { giftEmailSchema, deliveryLabel } from '@/lib/email-demo';
+import { giftEmailSchema, deliveryLabel, CHRISTMAS_DELIVERY_ISO } from '@/lib/email-demo';
 
 // Match routes without running loaders or rendering: loaders may need a server or
 // network the test run lacks, and jsdom never loads the stylesheets React waits on.
@@ -80,6 +80,8 @@ describe('Casetta events', () => {
 describe('Gift email demo', () => {
   it('schedules the Christmas surprise for 25 December at 00:05 Italian time', () => {
     expect(deliveryLabel('christmas')).toBe('25 dicembre · ore 00:05 (ora italiana)');
+    // 00:05 in Rome (winter time, UTC+1) is 23:05 UTC on 24 December.
+    expect(CHRISTMAS_DELIVERY_ISO).toBe('2026-12-24T23:05:00.000Z');
   });
   it('requires a valid recipient email', () => {
     expect(giftEmailSchema.safeParse({ mode: 'now', donor: '', to: 'non-una-email', msg: '' }).success).toBe(false);
