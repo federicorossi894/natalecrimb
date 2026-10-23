@@ -37,12 +37,13 @@
 - [ ] Pandoro photo — awaits the original from the user (placeholder shown)
 
 ## Tre nuove esperienze (23/10)
-- [ ] Calendario della Gentilezza: /calendario, 24 sportelli 1–24 dic, sblocco con data Europe/Rome del server, testi modificabili dai moderatori
-- [ ] TV: cerimonia apertura sportello alle 10:00 Rome una volta al giorno, poi messaggio compatto fisso; anteprima prima del 1/12, chiusura dopo il 24/12
-- [ ] Casetta delle meraviglie: /casetta più ricca e interattiva (stesse foto/locandina/prezzi, solo in presenza)
-- [ ] Muro degli auguri: /auguri con bigliettini su legno e mollette, solo approvati + esempi DEMO etichettati
-- [ ] Volontari: "Acquisto alla casetta" → QR/link monouso (7 giorni) per un augurio; demo in memoria
-- [ ] Pagina /augurio scrittura (180 car., soprannome facoltativo, consenso obbligatorio) + recupero stato
-- [ ] Moderazione auguri solo moderatori/admin (approva/rifiuta/nascondi, segnali automatici)
-- [ ] TV scena occasionale auguri approvati
-- [ ] Test: calendario date/fuso/TV reload, token doppio uso/scadenza, permessi, mobile, nessuna regressione
+- [x] Calendario della Gentilezza: /calendario, 24 sportelli 1–24 dic, sblocco con data Europe/Rome del server, testi modificabili dai moderatori
+- [x] TV: cerimonia apertura sportello alle 10:00 Rome una volta al giorno, poi messaggio compatto fisso; anteprima prima del 1/12, chiusura dopo il 24/12
+- [x] Casetta delle meraviglie: /casetta più ricca e interattiva (stesse foto/locandina/prezzi, solo in presenza)
+- [x] Muro degli auguri: /auguri con bigliettini su legno e mollette, solo approvati + esempi DEMO etichettati
+- [x] Volontari: "Acquisto alla casetta" → QR/link monouso (7 giorni) per un augurio; demo in memoria
+- [x] Pagina /augurio scrittura (180 car., soprannome facoltativo, consenso obbligatorio) + recupero stato
+- [x] Moderazione auguri solo moderatori/admin (approva/rifiuta/nascondi, segnali automatici)
+- [x] TV scena auguri approvati
+- [ ] Prova reale con account volontario/moderatore (QR augurio, doppio uso, scadenza, approvazione) — awaits a volunteer/moderator account usable for testing
+- [ ] Calendar texts: 24 draft gentle missions written by the agent — await staff review in /moderazione
