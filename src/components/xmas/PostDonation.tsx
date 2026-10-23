@@ -139,7 +139,7 @@ export function EmailFrame({ html, title = "Anteprima email" }: { html: string; 
   const ref = useRef<HTMLIFrameElement>(null);
   const [h, setH] = useState(900);
   const fit = () => { const d = ref.current?.contentDocument; if (d?.body) setH(Math.max(600, d.documentElement.scrollHeight)); };
-  return <iframe ref={ref} title={title} srcDoc={html} onLoad={fit} sandbox="allow-same-origin allow-popups allow-modals" className="w-full rounded-2xl border hairline-gold bg-ivory" style={{ height: h }} data-testid="email-frame" />;
+  return <iframe ref={ref} title={title} srcDoc={html} onLoad={fit} sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" className="w-full rounded-2xl border hairline-gold bg-ivory" style={{ height: h }} data-testid="email-frame" />;
 }
 
 export function emailActions(html: string, name: string) {

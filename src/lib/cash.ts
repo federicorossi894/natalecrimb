@@ -52,3 +52,33 @@ export async function cashRequestStatus(code: string): Promise<CashStatus> {
   if (error) throw new Error(error.message);
   return (data as CashStatus) ?? "not_found";
 }
+
+export type CashResult = { status: CashStatus; kind: string | null; amount_cents: number | null; ornament_id: string | null };
+/** Owner of the one-time code (the donor's phone) learns which ornament was hung, to open the postcard step. */
+export async function cashRequestResult(code: string): Promise<CashResult> {
+  const { data, error } = await supabase.rpc("cash_request_result", { _code: code });
+  if (error) throw new Error(error.message);
+  const r = data?.[0];
+  if (!r) return { status: "not_found", kind: null, amount_cents: null, ornament_id: null };
+  return { status: r.status as CashStatus, kind: r.kind, amount_cents: r.amount_cents, ornament_id: r.ornament_id };
+}
+
+/**
+ * The donor's pending cash gift lives only on their device (localStorage), so they can close the page, pay at the
+ * casetta and come back later to send the postcard — without repeating the gift.
+ */
+export type StoredCashGift = { code: string; amount_cents: number; expires_at: string; kind: string; project: string; confirmed?: boolean; ornament_id?: string | null };
+const CASH_KEY = "cri-cash-gift";
+const KEEP_CONFIRMED_MS = 30 * 24 * 3600_000;
+export function loadCashGift(): StoredCashGift | null {
+  try {
+    const s = JSON.parse(localStorage.getItem(CASH_KEY) ?? "null") as StoredCashGift | null;
+    if (!s?.code) return null;
+    const exp = new Date(s.expires_at).getTime();
+    if (!s.confirmed && exp < Date.now()) { localStorage.removeItem(CASH_KEY); return null; }
+    if (s.confirmed && exp + KEEP_CONFIRMED_MS < Date.now()) { localStorage.removeItem(CASH_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+export const saveCashGift = (g: StoredCashGift) => localStorage.setItem(CASH_KEY, JSON.stringify(g));
+export const clearCashGift = () => localStorage.removeItem(CASH_KEY);
