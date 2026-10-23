@@ -123,13 +123,13 @@ export function TreeTV() {
           <section className={`tv-card ${on('invito')}`} data-scene="invito">
             <p className="tv-kicker">Il Natale che fa bene</p>
             <h2 className="tv-headline font-display">La prossima pallina potrebbe essere <em className="text-gold">la tua!</em></h2>
-            <p className="tv-lead">Scegli un regalo per Monza. Anche con 5 €. Appendilo all’Albero digitale.</p>
+            <p className="tv-lead">Scegli un regalo per Monza. Anche con 5 €. Appendilo all’Albero digitale.</p>
           </section>
 
           <section className={`tv-card ${on('passi')}`} data-scene="passi">
             <p className="tv-kicker">Come partecipare</p>
             <ol className="mt-[1.6cqw] space-y-[1.5cqw]">
-              {['Inquadra il QR qui sotto con il telefono', 'Scegli un regalo per Monza, anche con 5 €', 'La tua pallina si accende su questo albero'].map((t, i) => (
+              {['Inquadra il QR qui sotto con il telefono', 'Scegli un regalo per Monza, anche con 5 €', 'La tua pallina si accende su questo albero'].map((t, i) => (
                 <li key={t} className="flex items-center gap-[1.4cqw]">
                   <span className="tv-step font-display">{i + 1}</span>
                   <span className="text-[2cqw] leading-snug">{t}</span>
@@ -204,7 +204,7 @@ export function TreeTV() {
         <div className="tv-qr-block">
           <TvQr className="w-[15.5cqw] shrink-0" />
           <div>
-            <p className="font-display text-[2.3cqw] leading-tight">Inquadra e scegli il tuo regalo</p>
+            <p className="font-display text-[2.2cqw] leading-tight">Inquadra e scegli il tuo regalo</p>
             <p className="mt-[1cqw] text-[1.6cqw] leading-snug">Oppure chiedi ai volontari alla casetta</p>
           </div>
         </div>
