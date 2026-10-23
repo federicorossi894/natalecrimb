@@ -22,3 +22,4 @@
 - Tree rendering goes through TreeStage: WebGL is detected before the 3D chunk loads, and missing WebGL, scene errors or context loss fall back to the illustrated Tree with the same shared ornaments, so no browser shows an empty stage.
 - Gift amounts are validated by one shared schema (cash.ts amountSchema) and again inside every security-definer RPC that records a gift, so UI bypasses cannot store invalid amounts.
 - Post-action confirmations are inline (no full-screen overlays) and the router shows a pending view plus reloads on chunk-load failure, so the previous page never stays on screen under a new URL.
+- Kids' mission feedback is rendered only through Kit Bubble/HelperLine inside HelperProvider, so the guide picked in the hub (device-local, no personal data) speaks every hint consistently across missions.
