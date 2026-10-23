@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, CheckCheck, Copy, Download, ExternalLink, Home, LocateFixed, MapPin, MessageCircle, Printer, Send } from "lucide-react";
+import { CalendarClock, CheckCheck, Copy, Download, ExternalLink, Home, LocateFixed, MapPin, MessageCircle, Printer, Send, X } from "lucide-react";
 import { OrnamentIcon } from "./Ornament";
-import { Modal, DemoNotice } from "./Modal";
+import { DemoNotice } from "./Modal";
 import { TREE_UNTIL, type Project } from "@/lib/data";
 import { INVITE_LINE, postcardText, renderPostcardImage } from "@/lib/postcard-share";
 import { CHRISTMAS_DELIVERY, MODE_LABEL, confirmationText, giftEmailSchema, type EmailAudience, type EmailMode } from "@/lib/email-demo";
@@ -36,7 +36,7 @@ export function PiazzaInvite() {
   return (
     <div className="mt-6 flex items-start gap-3 rounded-2xl border hairline-gold p-4 text-left">
       <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
-      <p className="text-sm"><strong className="font-display text-base">Vieni a trovare il tuo addobbo.</strong><br /><span className="text-muted-foreground">L'Albero di Monza è in Piazza San Paolo fino al {TREE_UNTIL}.</span></p>
+      <p className="text-sm"><strong className="font-display text-base">Vieni a vedere il tuo addobbo.</strong><br /><span className="text-muted-foreground">È sull'albero digitale, sullo schermo della casetta CRI in Piazza San Paolo, fino al {TREE_UNTIL}. Non è un oggetto fisico: è il segno luminoso del tuo dono.</span></p>
     </div>
   );
 }
@@ -106,11 +106,11 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   }, [project, to, from, msg, ornamentId]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Cartolina CRI Monza · demo", text }); setNote("Scegli WhatsApp dal menu di condivisione."); return; }
+      try { await navigator.share({ files: [file], title: "Cartolina CRI Monza · demo", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
       catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-    setNote("Si apre WhatsApp con il messaggio e il link. Puoi allegare la cartolina scaricata.");
+    setNote("Si apre WhatsApp con il messaggio già scritto: scegli tu il contatto e premi invio. La cartolina va allegata a parte, dopo averla scaricata.");
   };
   const copy = async () => { try { await navigator.clipboard.writeText(text); setNote("Messaggio copiato."); } catch { setNote("Copia non disponibile su questo dispositivo."); } };
   return (
@@ -127,7 +127,8 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </figure>
       </div>
       <div className="mx-auto mt-6 max-w-lg space-y-2">
-        <button onClick={share} className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Condividi su WhatsApp</button>
+        <button onClick={share} aria-describedby="wa-how" className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Apri WhatsApp con il messaggio</button>
+        <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Non invia nulla da solo: apre WhatsApp con il testo e il link già scritti, scegli tu a chi mandarlo. L'immagine della cartolina va scaricata e allegata a parte.</p>
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-50"><Download className="h-4 w-4" /> Scarica cartolina</button>
           <button onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`)} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Download className="h-4 w-4" /> Scarica anteprima</button>
@@ -260,6 +261,7 @@ export function EmailStudio({ project, audience = "recipient", ornamentId, defau
             {busy ? "Un attimo…" : audience === "donor" ? "Invia cartolina al donatore (demo)" : effMode === "now" ? "Invia ora (demo)" : "Invia a Natale (demo)"}
           </button>
           <p className="text-center text-[11px] text-muted-foreground">Demo: nessuna email viene inviata o programmata, nessun indirizzo viene salvato.</p>
+          {done && <SentNotice key={done} text={audience === "donor" ? "Invio simulato: la cartolina partirebbe ora verso il donatore." : confirmationText(done)} onClose={() => setDone(null)} />}
         </div>
         <div>
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gold">Anteprima email · {emailSubject({ audience, donor, toName })}</p>
@@ -267,11 +269,23 @@ export function EmailStudio({ project, audience = "recipient", ornamentId, defau
           {html && <EmailExportBar html={html} name={`email-cri-monza-${project.id}.html`} />}
         </div>
       </div>
-      <Modal open={done !== null} onClose={() => setDone(null)}>
-        <DemoNotice>{done ? (audience === "donor" ? "Invio simulato: la cartolina partirebbe ora verso il donatore." : confirmationText(done)) : ""} 🎄</DemoNotice>
-        <p className="mt-3 text-center text-sm text-muted-foreground">Simulazione: nessuna email inviata né programmata, l'indirizzo non è stato salvato.</p>
-        <p className="mt-3 text-center text-xs text-gold">{INVITE_LINE}</p>
-      </Modal>
+    </div>
+  );
+}
+
+/**
+ * Inline (non-blocking) confirmation of the simulated send. It replaced a full-screen overlay that swallowed the
+ * first tap on header links and "back to dashboard" buttons, leaving the email form on screen.
+ */
+function SentNotice({ text, onClose }: { text: string; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => { ref.current?.scrollIntoView({ block: "center", behavior: "smooth" }); ref.current?.focus(); }, []);
+  return (
+    <div ref={ref} tabIndex={-1} role="status" className="relative rounded-3xl border hairline-gold bg-secondary p-5 text-center outline-none" data-testid="email-sent">
+      <button type="button" onClick={onClose} aria-label="Chiudi conferma" className="absolute right-2 top-2 rounded-full p-2 text-muted-foreground hover:bg-background/40"><X className="h-4 w-4" /></button>
+      <DemoNotice>{text} 🎄</DemoNotice>
+      <p className="mt-3 text-sm text-muted-foreground">Simulazione: nessuna email inviata né programmata, l'indirizzo non è stato salvato.</p>
+      <p className="mt-3 text-xs text-gold">{INVITE_LINE}</p>
     </div>
   );
 }

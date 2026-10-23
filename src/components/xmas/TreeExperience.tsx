@@ -1,11 +1,10 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ClientOnly } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 import { LocateFixed, RotateCcw, ChevronLeft, ChevronRight, X, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTreeStore } from '@/lib/tree-store';
 import type { TreeOrnament } from '@/lib/data';
 import { OrnamentIcon } from './Ornament';
-const Scene=lazy(()=>import('./TreeScene'));
+import { TreeStage } from './TreeStage';
 export function useReducedMotion(){const [reduced,setReduced]=useState(false);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(m.matches);update();m.addEventListener('change',update);return()=>m.removeEventListener('change',update);},[]);return reduced;}
 export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focusId?:string}={}){
   const {addedOrnaments:ornaments,addedCount,mine,error}=useTreeStore();
@@ -26,7 +25,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">
-      <ClientOnly fallback={<div className="tree-stage" />}><Suspense fallback={<div className="tree-stage flex items-center justify-center text-gold">L’albero si accende…</div>}><Scene ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} /></Suspense></ClientOnly>
+      <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} />
       <div className="pointer-events-none absolute inset-x-0 top-5 flex items-start justify-between gap-4 px-5">
         <div><p className="text-xs font-semibold uppercase text-gold">DEMO · Albero condiviso</p><p className="mt-1 font-display text-2xl">{addedCount} regali appesi</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{close();setReset(s=>s+1);}}><RotateCcw /></Button>

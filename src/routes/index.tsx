@@ -56,7 +56,7 @@ function Home() {
             Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.
           </h1>
           <p className="animate-rise mt-5 max-w-md text-lg text-foreground/85" style={{ animationDelay: "0.2s" }}>
-            Non un regalo simbolico. Un aiuto concreto alle persone che vivono qui.
+            Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi.
           </p>
           <div className="animate-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.3s" }}>
             <Button onClick={() => setOpening(true)} className="group h-auto rounded-full px-7 py-4 text-base shadow-deep transition hover:scale-[1.03]">

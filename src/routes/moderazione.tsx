@@ -7,6 +7,7 @@ import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { EventsAdmin } from "@/components/xmas/EventsAdmin";
 import { AuthBox } from "@/components/xmas/AuthBox";
 import type { OrnamentKind } from "@/lib/data";
+import { SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES } from "@/lib/santa";
 
 export const Route = createFileRoute("/moderazione")({
   head: () => ({
@@ -52,7 +53,7 @@ function Mod() {
   };
 
   return (
-    <Shell>
+    <Shell hidePiazzaPill>
       <PageHead kicker="DEMO · Area riservata" title="Moderazione dediche ed eventi" />
       <section className="mx-auto max-w-3xl px-4">
         {!ready ? null : !session ? <AuthBox title="Accesso moderatori" returnPath="/moderazione" roleName="moderatore" /> : !isMod ? (
@@ -84,6 +85,12 @@ function Mod() {
               ))}
             </div>
             <EventsAdmin />
+            {/* Internal benchmark for the Comitato: removed from the public Santa page, kept here for staff only. */}
+            <div className="glass mt-8 rounded-2xl p-5 text-sm" data-testid="santa-internal-note">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Nota interna · Babbo Natale</p>
+              <p className="mt-2">Contributo proposto €{SANTA_CONTRIBUTION_EUR} a famiglia ({SANTA_CONTRIBUTION_NOTE}). Riferimenti di servizi analoghi: {SANTA_REFERENCES.map((r) => `${r.who} €${r.eur}`).join(", ")}.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Visibile solo ai moderatori, non sulla pagina pubblica.</p>
+            </div>
           </>
         )}
       </section>

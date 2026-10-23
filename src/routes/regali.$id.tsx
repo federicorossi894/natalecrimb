@@ -10,7 +10,7 @@ import { CityThanks, EmailStudio, PostcardStudio } from "@/components/xmas/PostD
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { QRCodeSVG } from "qrcode.react";
-import { amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
+import { MAX_GIFT_EURO, MIN_GIFT_EURO, amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
@@ -43,15 +43,20 @@ function Detail() {
   const { id } = Route.useLoaderData();
   const p = getProject(id)!;
   const [step, setStep] = useState<Step>("detail");
-  const [amount, setAmount] = useState(5);
+  const [preset, setPreset] = useState(5);
+  const [custom, setCustom] = useState("");
   const [hung, setHung] = useState<Hung | null>(null);
+  // A typed amount is used only when it passes the shared rule (whole euros, 5–1000); otherwise checkout stays closed.
+  const parsed = custom ? amountSchema.safeParse(custom) : amountSchema.safeParse(preset);
+  const amount = parsed.success ? parsed.data : 0;
+  const amountError = parsed.success ? "" : parsed.error.issues[0]?.message ?? "Importo non valido";
   const go = (s: Step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
   // A cash gift prepared on this phone for this project: resume it (QR or post-confirmation choices).
   useEffect(() => { const g = loadCashGift(); if (g && g.project === p.id) setStep("cash"); }, [p.id]);
   const hang = async (firma: string, dedica: string, consent: boolean): Promise<Hung> => {
     if (hung) return hung;
     try {
-      const res = await addOrnament(p.ornament, firma, dedica, consent);
+      const res = await addOrnament(p.ornament, amount, firma, dedica, consent);
       const h: Hung = { id: res?.id ?? null, status: res?.status ?? "pending", via: "online" };
       setHung(h); return h;
     } catch (e) {
@@ -65,16 +70,19 @@ function Detail() {
     if (step === "success" || step === "cash") return go(hung?.via === "cash" ? "cash" : "checkout");
     go(hung?.via === "cash" ? "cash" : "success");
   };
+  const toCheckout = () => { if (parsed.success) go("checkout"); };
 
   return (
-    <Shell>
+    <Shell hidePiazzaPill>
       <div className="mx-auto max-w-6xl px-4 pt-6">
         <button onClick={back} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro
         </button>
       </div>
-      {step === "detail" && <DetailView p={p} amount={amount} setAmount={setAmount} onGo={() => go("checkout")} />}
-      {step === "checkout" && <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />}
+      {step === "detail" && <DetailView p={p} preset={preset} setPreset={(v) => { setPreset(v); setCustom(""); }} custom={custom} setCustom={setCustom} amount={amount} error={amountError} onGo={toCheckout} />}
+      {step === "checkout" && (parsed.success
+        ? <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />
+        : <InvalidAmount error={amountError} onEdit={() => go("detail")} />)}
       {step === "cash" && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
       {step === "success" && <Success p={p} onPick={go} />}
       {step === "mine" && <Mine p={p} hung={hung} hang={hang} />}
@@ -84,18 +92,29 @@ function Detail() {
   );
 }
 
-function Amounts({ p, amount, setAmount }: { p: Project; amount: number; setAmount: (n: number) => void }) {
-  const [custom, setCustom] = useState("");
+function InvalidAmount({ error, onEdit }: { error: string; onEdit: () => void }) {
+  return (
+    <section className="mx-auto max-w-lg px-4 pt-6 text-center">
+      <p role="alert" className="font-display text-2xl">{error}</p>
+      <button onClick={onEdit} className="mt-4 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">Cambia importo</button>
+    </section>
+  );
+}
+
+function Amounts({ p, preset, setPreset, custom, setCustom, error }: { p: Project; preset: number; setPreset: (n: number) => void; custom: string; setCustom: (s: string) => void; error: string }) {
   return (
     <div>
       <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Importo della donazione">
         {p.amounts.map((v) => (
-          <button key={v} type="button" role="radio" aria-checked={amount === v && !custom} onClick={() => { setAmount(v); setCustom(""); }} className={`rounded-2xl border py-3.5 font-display text-xl transition ${amount === v && !custom ? "border-gold bg-gold text-accent-foreground shadow-deep" : "glass"}`}>
+          <button key={v} type="button" role="radio" aria-checked={preset === v && !custom} onClick={() => setPreset(v)} className={`rounded-2xl border py-3.5 font-display text-xl transition ${preset === v && !custom ? "border-gold bg-gold text-accent-foreground shadow-deep" : "glass"}`}>
             {v} €
           </button>
         ))}
-        <input inputMode="numeric" aria-label="Altro importo in euro" placeholder="Altro" value={custom} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 4); setCustom(v); if (v) setAmount(Number(v)); }} className={`w-full rounded-2xl border bg-transparent text-center text-sm outline-none ${custom ? "border-gold" : "glass"}`} />
+        <input inputMode="numeric" aria-label={`Altro importo in euro, minimo ${MIN_GIFT_EURO} €`} aria-invalid={Boolean(custom && error)} aria-describedby="amount-help" placeholder="Altro" maxLength={7} value={custom} onChange={(e) => setCustom(e.target.value)} className={`w-full rounded-2xl border bg-transparent text-center text-sm outline-none ${custom && error ? "border-primary" : custom ? "border-gold" : "glass"}`} data-testid="custom-amount" />
       </div>
+      {custom && error
+        ? <p id="amount-help" role="alert" className="mt-2 text-sm font-semibold text-primary" data-testid="amount-error">{error}</p>
+        : <p id="amount-help" className="mt-2 text-xs text-muted-foreground">Altro importo: euro interi, da {MIN_GIFT_EURO} a {MAX_GIFT_EURO} €.</p>}
     </div>
   );
 }
@@ -111,7 +130,7 @@ function More({ title, children, open = false }: { title: string; children: Reac
   );
 }
 
-function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number; setAmount: (n: number) => void; onGo: () => void }) {
+function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, onGo }: { p: Project; preset: number; setPreset: (n: number) => void; custom: string; setCustom: (s: string) => void; amount: number; error: string; onGo: () => void }) {
   return (
     <article className="mx-auto max-w-6xl px-4 pb-10">
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-10">
@@ -133,9 +152,9 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
         <section className="glass-strong rounded-3xl p-5 shadow-deep lg:sticky lg:top-24 lg:row-span-2" data-testid="quick-donate">
           <p className="font-display text-2xl">Fai questo regalo</p>
           <p className="mb-4 mt-1 text-sm text-muted-foreground">Bastano 5 €. Scegli e conferma: due tocchi.</p>
-          <Amounts p={p} amount={amount} setAmount={setAmount} />
-          <button onClick={onGo} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01]">
-            Dona {amount} €
+          <Amounts p={p} preset={preset} setPreset={setPreset} custom={custom} setCustom={setCustom} error={error} />
+          <button onClick={onGo} disabled={Boolean(error)} aria-describedby={error ? "amount-help" : undefined} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
+            {error ? "Scegli un importo valido" : `Dona ${amount} €`}
           </button>
           <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</p>
           <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>
@@ -143,7 +162,7 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Vuoi saperne di più?</p>
-          <More title="Cosa fa Croce Rossa Monza">
+          <More title={p.doingTitle ?? "Cosa fa Croce Rossa Monza"}>
             <p>{p.story}</p>
             <ul className="mt-3 space-y-1.5">{p.doing.map((d) => <li key={d} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{d}</li>)}</ul>
           </More>

@@ -18,12 +18,15 @@ export function Tree({
   flippedId,
   arrivingId,
   onPick,
+  size = 9,
 }: {
   ornaments: TreeOrnament[];
   focusId?: number | string | null | undefined;
   flippedId?: number | string | null | undefined;
   arrivingId?: number | string | null | undefined;
   onPick?: (o: TreeOrnament) => void;
+  /** Ornament width in % of the tree. */
+  size?: number;
 }) {
   const tiers = [
     { top: 10, h: 30, w: 38 },
@@ -104,8 +107,9 @@ export function Tree({
               onClick={() => onPick?.(o)}
               tabIndex={onPick ? 0 : -1}
               aria-label={o.dedica ? `Addobbo con dedica` : "Addobbo"}
-              className={`flip-card absolute w-[9%] -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ${arriving ? "animate-arrive" : ""}`}
+              className={`flip-card absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ${arriving ? "animate-arrive" : ""}`}
               style={{
+                width: `${size}%`,
                 left: `${o.x}%`,
                 top: `${o.y}%`,
                 transform: `translate(-50%,-50%) translateZ(${focus ? 120 : 25}px) scale(${focus ? 2.3 : 1})`,

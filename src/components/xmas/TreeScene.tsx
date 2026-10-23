@@ -6,6 +6,7 @@ import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
 import { ArtTree, type ScenePalette } from './ArtTree';
 import type { TreeOrnament } from '@/lib/data';
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
+import { IllustratedTree } from './TreeStage';
 
 type Palette = ScenePalette;
 const PALETTE_KEYS = ['night','fir','needle','bark','gold','red','snow','ground','rim','ivory','burgundy','forest','crimson'] as const;
@@ -66,8 +67,9 @@ export default function TreeScene(props:Props) {
     for(const k of PALETTE_KEYS)p[k]=s.getPropertyValue(`--scene-${k}`).trim();setPalette(p);
     const c=document.createElement('canvas');setSupported(Boolean(c.getContext('webgl2')||c.getContext('webgl')));
   },[]);
-  const fallback=<div className="flex h-full items-center justify-center px-6 text-center text-muted-foreground">Vista 3D non disponibile. Gli addobbi sono nell’elenco qui sotto.</div>;
-  if(!supported)return <div className="tree-stage">{fallback}</div>;
+  // Same illustrated tree as browsers without WebGL: used if the scene throws or the GPU context is lost.
+  const fallback=<IllustratedTree ornaments={props.ornaments} selected={props.selected} {...(props.onPick?{onPick:props.onPick}:{})} {...(props.tv?{tv:true}:{})} arrivingId={props.arrivingId??null} />;
+  if(!supported)return fallback;
   if(!palette)return <div className="tree-stage" aria-busy="true" />;
   const h=treeHeight(props.ornaments.length);
   return <div className="tree-stage" aria-label="Albero dei Regali tridimensionale" data-ornament-count={props.ornaments.length} data-tree-height={h.toFixed(2)}>

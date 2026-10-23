@@ -54,7 +54,7 @@ function Presentazione() {
   const mail = getProject(EXAMPLE.email.project)!;
   const cityRef = useRef<HTMLDivElement>(null);
   return (
-    <Shell>
+    <Shell hidePiazzaPill>
       <header className="mx-auto max-w-6xl px-4 pb-6 pt-8">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Per la presentazione · DEMO</p>
         <h1 className="mt-2 font-display text-4xl leading-tight sm:text-6xl">Dopo il regalo: <em className="text-gold">tre momenti</em></h1>

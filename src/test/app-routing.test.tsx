@@ -97,16 +97,50 @@ describe('Cash at the casetta (demo)', () => {
     expect(isCompleteCode('K7QM-2XPA-9DTR-4HW0')).toBe(true);
     expect(isCompleteCode('K7QM-2XPA')).toBe(false);
   });
-  it('accepts amounts from 1 to 1000 euro only', () => {
-    expect(amountSchema.safeParse(1).success).toBe(true);
+  it('minimum gift is 5 €: 5 and 1000 pass, 4 and 1001 fail', () => {
+    expect(amountSchema.safeParse(5).success).toBe(true);
+    expect(amountSchema.safeParse('5').success).toBe(true);
     expect(amountSchema.safeParse(1000).success).toBe(true);
-    expect(amountSchema.safeParse(0).success).toBe(false);
+    expect(amountSchema.safeParse(4).success).toBe(false);
+    expect(amountSchema.safeParse('4').success).toBe(false);
     expect(amountSchema.safeParse(1001).success).toBe(false);
+  });
+  it('rejects 0, negatives, NaN, text, empty input and cents', () => {
+    for (const bad of [0, '0', -5, '-5', Number.NaN, 'abc', '5€', '', '   ', '10,50', '7.5', Infinity]) {
+      expect(amountSchema.safeParse(bad).success, String(bad)).toBe(false);
+    }
+    expect(amountSchema.safeParse('10,00').success).toBe(true);
+  });
+  it('explains the 5 € minimum in the error message', () => {
+    const r = amountSchema.safeParse('3');
+    expect(r.success).toBe(false);
+    expect(r.success ? '' : r.error.issues[0]?.message).toContain('5 €');
   });
   it('requires the volunteer to acknowledge the simulated payment', () => {
     const base = { kind: 'dae', amount: '20', method: 'cash', firma: '', dedica: '', consent: false };
     expect(manualOrnamentSchema.safeParse({ ...base, simulated: true }).success).toBe(true);
     expect(manualOrnamentSchema.safeParse({ ...base, simulated: false }).success).toBe(false);
+  });
+  it('volunteer manual entry also refuses less than 5 €', () => {
+    const base = { kind: 'dae', method: 'cash', firma: '', dedica: '', consent: false, simulated: true };
+    expect(manualOrnamentSchema.safeParse({ ...base, amount: '0' }).success).toBe(false);
+    expect(manualOrnamentSchema.safeParse({ ...base, amount: '4' }).success).toBe(false);
+    expect(manualOrnamentSchema.safeParse({ ...base, amount: '5' }).success).toBe(true);
+  });
+});
+
+import { LOCKUP, lockupText } from '@/lib/cri-lockup';
+describe('CRI territorial indication (manual §1.3)', () => {
+  const wordFont = (l: 'horizontal' | 'vertical') => (LOCKUP[l].wordBaseline - LOCKUP[l].wordCapTop) / 0.716;
+  it('horizontal mark: "Comitato di Monza" is 20% smaller than "Croce Rossa Italiana"', () => {
+    expect(lockupText('horizontal').fontSize / wordFont('horizontal')).toBeCloseTo(0.8, 5);
+  });
+  it('vertical mark: 30% smaller', () => {
+    expect(lockupText('vertical').fontSize / wordFont('vertical')).toBeCloseTo(0.7, 5);
+  });
+  it('is centred under the words, not under the whole mark', () => {
+    expect(lockupText('horizontal').x).toBe(902);
+    expect(lockupText('horizontal').x).not.toBe(LOCKUP.horizontal.w / 2);
   });
 });
 

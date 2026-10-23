@@ -23,6 +23,8 @@ export type Project = {
   helps: string;
   /** Optional official page about the project (verified on crimonza.org). */
   officialLink?: { label: string; url: string };
+  /** Title of the "what we do" box; projects not yet operating use a neutral title. */
+  doingTitle?: string;
   amounts: number[];
 };
 
@@ -67,18 +69,19 @@ export const PROJECTS: Project[] = [
   {
     id: "prossimita",
     title: "Regala prossimità",
-    kicker: "Unità Mobile di Prossimità",
+    kicker: "Progetto · Unità Mobile di Prossimità",
     ornament: "prossimita",
     ornamentName: "una mini unità mobile",
     tagline: "Fare noi il primo passo.",
     opening: "A volte, per aiutare davvero qualcuno, bisogna essere noi a fare il primo passo.",
-    intro: "Il tuo regalo sostiene l'Unità Mobile di Prossimità che Croce Rossa Monza sta realizzando per portare salute e ascolto vicino alle persone più fragili.",
+    intro: "Il tuo regalo sostiene il progetto dell'Unità Mobile di Prossimità: un mezzo che Croce Rossa Monza intende acquistare e allestire per andare incontro alle persone più fragili.",
     postcardLine: "Il mio regalo per te fa il primo passo verso chi, a Monza, fatica a raggiungere i servizi.",
     theme: { bg: "--ivory", ribbon: "--burgundy", ink: "--ink" },
     story:
-      "Non tutti riescono a raggiungere un ambulatorio o a orientarsi tra i servizi: per età, fragilità, solitudine o difficoltà di accesso. Per questo Croce Rossa Monza sta realizzando un'Unità Mobile di Prossimità, un presidio sanitario mobile pensato per muoversi a Monza e nei Comuni del Comitato invece di aspettare che siano le persone ad arrivare. Le sue attività si adatteranno ai bisogni del territorio, insieme a istituzioni, professionisti sanitari e realtà del Terzo Settore.",
-    doing: ["Prevenzione e promozione della salute, come gli screening", "Attenzione ad anziani e persone fragili", "Educazione sanitaria e ascolto", "Orientamento verso i servizi sanitari del territorio"],
-    helps: "Il tuo contributo sostiene la realizzazione dell'Unità Mobile nel suo insieme. È una donazione, non l'acquisto di una prestazione.",
+      "Non tutti riescono a raggiungere un ambulatorio o a orientarsi tra i servizi: per età, fragilità, solitudine o difficoltà di accesso. Per questo Croce Rossa Monza ha avviato il progetto di un'Unità Mobile di Prossimità: un mezzo che il Comitato intende acquistare e allestire per muoversi a Monza e nei Comuni del Comitato, invece di aspettare che siano le persone ad arrivare. Attività e collaborazioni, con istituzioni, professionisti sanitari e realtà del Terzo Settore, sono ancora da definire.",
+    doingTitle: "Il progetto",
+    doing: ["Acquisto e allestimento del mezzo", "Attività da definire in base ai bisogni del territorio", "Collaborazioni da definire con istituzioni e realtà locali", "Obiettivo: avvicinarsi ad anziani e persone fragili"],
+    helps: "Il tuo contributo sostiene il progetto nel suo insieme, a partire dall'acquisto e dall'allestimento del mezzo. È una donazione, non l'acquisto di una prestazione.",
     officialLink: { label: "Scopri l’Unità Mobile di Prossimità", url: "https://umpcrimb.lovable.app" },
     amounts: AMOUNTS,
   },

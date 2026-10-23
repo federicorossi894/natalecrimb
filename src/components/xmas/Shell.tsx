@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X, MapPin, Facebook, Instagram, Youtube, Linkedin, Gift } from "lucide-react";
-import { CriMark } from "./Ornament";
+import { CriLockup } from "./Ornament";
 import { CRI, TREE_UNTIL } from "@/lib/data";
 
 const SOCIAL_ICON = { Facebook, Instagram, YouTube: Youtube, LinkedIn: Linkedin } as const;
@@ -31,13 +31,11 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
       <DemoBanner />
       <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[72px]">
-          <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
-            <CriMark className="h-10 shrink-0 sm:h-12" />
-            <span aria-hidden className="h-8 w-px shrink-0 bg-border" />
-            <span className="min-w-0 leading-tight">
-              <span className="block truncate font-display text-[15px] sm:text-base">Il Natale <em className="text-gold">che fa bene</em></span>
-              <span className="block truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Comitato di Monza</span>
-            </span>
+          <Link to="/" className="flex min-w-0 items-center gap-4" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
+            <CriLockup className="h-11 shrink-0 sm:h-12" />
+            {/* Campaign title kept apart from the institutional mark (clear space + divider). */}
+            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block" />
+            <span className="hidden min-w-0 font-display text-base leading-tight sm:block">Il Natale <em className="text-gold">che fa bene</em></span>
           </Link>
           <nav className="hidden items-center gap-1 xl:flex">
             {NAV.slice(1).map((n) => (
@@ -55,6 +53,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
         </div>
         {open && (
           <nav className="animate-rise border-t px-4 pb-4 xl:hidden">
+            <p className="pt-3 font-display text-base text-muted-foreground sm:hidden">Il Natale <em className="text-gold">che fa bene</em></p>
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="block border-b py-3.5 font-display text-xl last:border-0" activeOptions={{ exact: true }} activeProps={{ className: "text-gold" }}>
                 {n.label}
@@ -67,7 +66,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
       <main>{children}</main>
 
       {!hidePiazzaPill && (
-      <Link to="/piazza" className="glass-strong fixed bottom-4 left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs shadow-deep transition hover:scale-[1.02] sm:text-sm">
+      <Link to="/piazza" className="glass-strong fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs shadow-deep transition hover:scale-[1.02] sm:text-sm">
         <MapPin className="h-4 w-4 shrink-0 text-primary" />
         <span className="truncate"><strong>Casetta CRI · Piazza San Paolo</strong> <span className="text-gold">· Scopri cosa succede oggi</span></span>
       </Link>
@@ -75,8 +74,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
 
       <footer className="mt-24 border-t px-4 pb-28 pt-14">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 text-center">
-          <CriMark variant="vertical" className="h-24" />
-          <p className="mt-2 text-xs uppercase tracking-[0.3em] text-foreground/80">Croce Rossa Italiana – Comitato di Monza</p>
+          <CriLockup layout="vertical" className="h-32" />
           <p className="font-display text-xl">Il Natale <em className="text-gold">che fa bene</em></p>
           <p className="text-sm text-muted-foreground">Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</p>
           <a href={CRI.site} target="_blank" rel="noreferrer" className="text-sm text-gold underline-offset-4 hover:underline">crimonza.org</a>

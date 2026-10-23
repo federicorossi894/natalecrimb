@@ -1,13 +1,12 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ClientOnly } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
 import { useCasettaEvents, formatEventWhen, EXAMPLE_EVENTS } from '@/lib/events';
 import type { TreeOrnament } from '@/lib/data';
 import { HomeQr } from './Qr';
-import { CriMark } from './Ornament';
+import { CriLockup } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
-const Scene=lazy(()=>import('./TreeScene'));
+import { TreeStage } from './TreeStage';
 
 type Beat='panorama'|'dedica'|'eventi';
 const SEQUENCE:Beat[]=['panorama','dedica','panorama','eventi'];
@@ -62,11 +61,11 @@ export function TreeTV(){
   },[]);
   const showDedication=selected&&(beat==='dedica'||arriving);
   return <div className="tv-scene" data-beat={arriving?'arrivo':beat}>
-    <ClientOnly><Suspense fallback={null}><Scene ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} /></Suspense></ClientOnly>
+    <TreeStage ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} />
     <div className="tv-vignette" aria-hidden />
     <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
-      <div className="flex items-center gap-[1cqw]"><CriMark className="h-[6cqw]" /><span className="border-l border-gold/40 pl-[1cqw] text-[1.1cqw] text-gold">Comitato di Monza</span></div>
-      <h1 className="mt-[0.4cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
+      <CriLockup className="h-[6.5cqw]" />
+      <h1 className="mt-[1.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
     <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
     <div className="tv-copy">

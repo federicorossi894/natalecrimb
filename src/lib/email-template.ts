@@ -3,6 +3,26 @@ import { CRI, TREE_UNTIL } from "./data";
 import { EMAIL_SENDER, deliveryLabel, type EmailAudience, type EmailMode } from "./email-demo";
 import { baubleDataUrl, cssHex, ornamentUrl, projectUrl } from "./postcard-share";
 import biancoLogo from "@/assets/cri-bianco-orizzontale.png.asset.json";
+import { LOCKUP, TERRITORIAL_LABEL, lockupText } from "./cri-lockup";
+
+/**
+ * Email-safe lockup: the unaltered official mark, then "Comitato di Monza" in Arial Regular, white, centred under
+ * "Croce Rossa Italiana" (CRI manual §1.3). Geometry from src/lib/cri-lockup.ts scaled to the rendered height.
+ */
+export function lockupHtml(src: string, height = 84) {
+  const g = LOCKUP.horizontal, t = lockupText("horizontal"), k = height / g.h;
+  const width = Math.round(g.w * k);
+  const font = +(t.fontSize * k).toFixed(1);
+  // Text line box centred on the wordmark; its cap top sits one x-height under "Croce Rossa Italiana", inside the
+  // mark's transparent safety margin. Arial at line-height 1: cap top is ~0.13em below the top of the line box.
+  const shift = Math.round(2 * (t.x * k - width / 2));
+  const capTop = (t.baseline - 0.716 * t.fontSize) * k;
+  const lineTop = capTop - 0.13 * font;
+  const lift = Math.round(height - lineTop);
+  return `<div style="width:${width}px"><img src="${src}" alt="Croce Rossa Italiana" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;border:0">`
+    + `<div style="margin:-${lift}px 0 0 ${shift}px;font:400 ${font}px/1 Arial,Helvetica,sans-serif;color:#FFFFFF;text-align:center;height:${Math.ceil(font)}px">${TERRITORIAL_LABEL}</div>`
+    + `<div style="height:${Math.max(0, Math.round(height - lineTop - Math.ceil(font)))}px;line-height:0;font-size:0">&nbsp;</div></div>`;
+}
 
 export type GiftEmail = {
   project: Project;
@@ -76,8 +96,7 @@ ${envelope}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.paper};border-radius:20px;overflow:hidden;box-shadow:0 18px 40px -18px rgba(0,0,0,.35)">
   <tr><td class="px" style="background:${C.fir};padding:22px 36px">
     <table role="presentation" width="100%"><tr>
-      <td><img src="${origin}${biancoLogo.url}" alt="Croce Rossa Italiana" height="46" style="display:block;height:46px;width:auto;border:0"></td>
-      <td align="right" style="font:600 12px/1.3 Arial,sans-serif;color:${C.snow};letter-spacing:1px;text-transform:uppercase">Comitato di Monza</td>
+      <td>${lockupHtml(origin + biancoLogo.url)}</td>
     </tr></table>
   </td></tr>
   <tr><td class="px" align="center" style="background:${C.fir};padding:6px 36px 42px;color:${C.snow}">
@@ -108,7 +127,7 @@ ${envelope}
   </td></tr>
   <tr><td class="px" style="background:${C.burgundy};padding:26px 40px;color:${C.snow}">
     <p style="margin:0;font:700 11px/1 Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:${C.gold}">Ti aspettiamo in piazza</p>
-    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">L'Albero di Monza è in Piazza San Paolo fino al ${TREE_UNTIL}. Alla casetta di Croce Rossa trovi i volontari.</p>
+    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta di Croce Rossa in Piazza San Paolo, fino al ${TREE_UNTIL}. Lì trovi anche i volontari.</p>
   </td></tr>
   <tr><td class="px" style="padding:22px 40px 26px;font:12px/1.6 Arial,sans-serif;color:${C.ink}">
     <p style="margin:0;font-weight:700">Croce Rossa Italiana – Comitato di Monza</p>

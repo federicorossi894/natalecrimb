@@ -81,7 +81,7 @@ export function EmailPreview({ project, donor, to, msg, mode = "christmas" }: { 
         <div className="mt-6 text-center">
           <span className="inline-block rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">Scopri il tuo regalo</span>
         </div>
-        <p className="mt-6 text-center text-[11px] opacity-60">Il tuo addobbo è appeso all'Albero di Monza · Piazza San Paolo<br />Anteprima demo · nessuna email viene inviata</p>
+        <p className="mt-6 text-center text-[11px] opacity-60">Il tuo addobbo è sull'albero digitale · schermo della casetta CRI, Piazza San Paolo<br />Anteprima demo · nessuna email viene inviata</p>
       </div>
     </div>
   );

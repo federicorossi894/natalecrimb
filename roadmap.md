@@ -13,17 +13,17 @@
 - [x] Phase 3: SumUp/PayPal simulators, cash QR at the casetta, /volontari (scan + manual entry) with roles.
 - [ ] Assign volunteer role to real accounts — awaits the Comitato's volunteer sign-ups.
 - [x] Refined demo for 27 Oct: 2.5D gift boxes, €5 quick path, project copy rewrite, official Unità Mobile link, email modes (Christmas = 25 Dec 00:05 Europe/Rome), cash donor postcard recovery, /presentazione (3 fictitious cases, PNG/HTML export).
-- [ ] Publish — awaits the user's explicit go-ahead.
+- [ ] Publish — awaits the user's explicit go-ahead (published site still calls the old gift function; online gifts there fail until republished).
 - Limits: no physical-iPhone/TV test; moderator approval + event creation not exercised (no moderator account yet); native share sheet with image not testable headless (wa.me fallback verified).
 ## Audit 23/10 stabilisation (P0/P1)
-- [ ] P0 SPA nav: email/postcard form stays visible after clicking a link (regali → /albero; /volontari back to dashboard)
-- [ ] P0 WebGL fallback: illustrated tree + shared count + QR on /albero and /albero-live
-- [ ] P1 custom amount: block 0/neg/NaN/<5 € client + server
-- [ ] P1 brand header/email territorial composition
-- [ ] P1 home donation wording
-- [ ] P1 Prossimità copy as project to be realised
-- [ ] P1 hide floating casetta pill on operative screens
-- [ ] P1 WhatsApp clarity + "albero digitale su schermo"
-- [ ] P1 Santa: remove other-organisation price comparison
-- [ ] P1 Kids mission 1 choices + 112 wording
-- [ ] Test matrix 390 / 768 portrait+landscape / desktop
+- [x] P0 SPA nav: email/postcard form stays visible after clicking a link (regali → /albero; /volontari back to dashboard)
+- [x] P0 WebGL fallback: illustrated tree + shared count + QR on /albero and /albero-live
+- [x] P1 custom amount: block 0/neg/NaN/<5 € client + server
+- [x] P1 brand header/email territorial composition
+- [x] P1 home donation wording
+- [x] P1 Prossimità copy as project to be realised
+- [x] P1 hide floating casetta pill on operative screens
+- [x] P1 WhatsApp clarity + "albero digitale su schermo"
+- [x] P1 Santa: remove other-organisation price comparison
+- [x] P1 Kids mission 1 choices + 112 wording
+- [x] Test matrix 390 / 768 portrait+landscape / desktop
