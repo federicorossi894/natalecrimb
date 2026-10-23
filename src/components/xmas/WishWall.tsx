@@ -150,7 +150,7 @@ export function WishWriter({ code, api, demo = false, onDone }: { code: string; 
         <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-gold" />Ogni augurio viene letto dallo staff prima di comparire sul muro e sullo schermo della casetta. Non lo usiamo per altri scopi.</li>
       </ul>
       <label className="flex items-start gap-3 text-sm">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[var(--gold)]" />
+        <input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); setErr(""); }} className="mt-1 h-5 w-5 shrink-0 accent-[var(--gold)]" />
         <span>Acconsento a pubblicare questo augurio e il soprannome sul Muro degli auguri del sito e sullo schermo della casetta, dopo la lettura dello staff.</span>
       </label>
       {err && <p role="alert" className="text-sm text-gold">{err}</p>}
