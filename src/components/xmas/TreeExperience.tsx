@@ -7,7 +7,7 @@ import type { TreeOrnament } from '@/lib/data';
 import { OrnamentIcon } from './Ornament';
 const Scene=lazy(()=>import('./TreeScene'));
 export function useReducedMotion(){const [reduced,setReduced]=useState(false);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(m.matches);update();m.addEventListener('change',update);return()=>m.removeEventListener('change',update);},[]);return reduced;}
-export function TreeExperience({autoFind=false}:{autoFind?:boolean}={}){
+export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focusId?:string}={}){
   const {addedOrnaments:ornaments,addedCount,mine,error}=useTreeStore();
   const [selected,setSelected]=useState<TreeOrnament|null>(null);
   const [reset,setReset]=useState(0);
@@ -20,6 +20,9 @@ export function TreeExperience({autoFind=false}:{autoFind?:boolean}={}){
   const pick=(o:TreeOrnament)=>{if(!selected)window.history.pushState({...window.history.state,treeDedication:true},'');setSelected(o);setNotice('');setTimeout(()=>{const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-82,behavior:'instant'});},80);};
   const find=()=>{const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));if(!own.length){setNotice('Non ci sono ancora tuoi addobbi visibili da questo dispositivo.');return;}const i=own.findIndex(o=>o.id===selected?.id);const next=own[(i+1)%own.length];if(next)pick(next);};
   useEffect(()=>{if(!autoFind||autoDone.current||!mine.length||!ornaments.length)return;const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));const last=own[own.length-1];if(last){autoDone.current=true;pick(last);}},[autoFind,mine,ornaments]);
+  // Stable deep link (/albero?addobbo=<id>) from postcards and emails: focus that ornament once it is loaded.
+  const focusDone=useRef(false);
+  useEffect(()=>{if(!focusId||focusDone.current)return;if(error){setNotice('Albero momentaneamente non raggiungibile: riproviamo tra poco.');return;}if(!ornaments.length)return;const o=ornaments.find(x=>String(x.id)===focusId);focusDone.current=true;if(o)pick(o);else setNotice('Questo addobbo non è (ancora) visibile sull’albero. Riprova tra qualche istante.');},[focusId,ornaments,error]);
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">

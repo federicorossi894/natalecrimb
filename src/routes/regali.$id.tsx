@@ -467,8 +467,8 @@ function Sorpresa({ p, hung, hang }: { p: Project; hung: Hung | null; hang: Hang
         subtitle="Scegli se farlo arrivare subito o la mattina di Natale."
         consentSlot={!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche il tuo nome e la dedica sull'albero, dopo la verifica di un moderatore." />}
         onConfirm={async ({ donor, msg }) => {
+          // The email preview stays available even if the tree is busy; the link then points to the Albero.
           const h = await hang(consent ? donor : "", consent ? msg : "", consent);
-          if (h.error) throw new Error(h.error);
           return h.id;
         }}
       />
