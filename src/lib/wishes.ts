@@ -125,14 +125,17 @@ export function usePublicWishes(refreshMs = 60_000) {
 
 /** Deterministic "hand-pinned" look per note: same tilt and paper for everyone, no randomness at render. */
 export function noteLook(id: string) {
-  let h = 2166136261;
-  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
-  const u = (k: number) => (((h >>> (k * 5)) & 1023) / 1023);
+  const hash = (salt: number) => {
+    let h = 2166136261 ^ salt;
+    for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    return (h >>> 0) / 4294967295;
+  };
   return {
-    rotate: Math.round((u(0) * 10 - 5) * 10) / 10,
-    lift: Math.round(u(1) * 14),
-    paper: (["ivory", "kraft", "snow", "blush"] as const)[Math.floor(u(2) * 4) % 4]!,
-    pin: Math.round((u(3) * 16 - 8) * 10) / 10,
+    rotate: Math.round((hash(1) * 9 - 4.5) * 10) / 10,
+    lift: Math.round(hash(2) * 12),
+    paper: (["ivory", "kraft", "snow", "blush"] as const)[Math.min(3, Math.floor(hash(3) * 4))]!,
+    pin: Math.round((hash(4) * 14 - 7) * 10) / 10,
   };
 }
 

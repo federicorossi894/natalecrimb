@@ -303,8 +303,7 @@
   background: repeating-linear-gradient(180deg, transparent 0 21px, var(--twine) 21px 23px, color-mix(in oklab, var(--wood-dark) 55%, transparent) 23px 24px, transparent 24px var(--row)); }
 @media (min-width: 640px) { .wish-grid { --row: 236px; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); } }
 .wish-cell { position: relative; display: flex; justify-content: center; padding-top: 16px; }
-.wish-cell:nth-child(odd) { z-index: 1; }
-.wish-cell .wish-note { width: 112%; max-width: 236px; margin: 0 -6%; max-height: calc(var(--row) - 26px); overflow: hidden; animation: wish-hang .8s cubic-bezier(.2,1.2,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
+.wish-cell .wish-note { width: 105%; max-width: 236px; margin: 0 -2.5%; max-height: calc(var(--row) - 26px); overflow: hidden; animation: wish-hang .8s cubic-bezier(.2,1.2,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
 .wish-note { position: relative; display: block; text-align: left; color: var(--ink); padding: 1.55rem 1rem .85rem; border-radius: 2px 3px 2px 5px;
   transform: translateY(var(--lift, 0px)) rotate(var(--tilt, 0deg)); transform-origin: 50% 0;
   box-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 10%, transparent), 0 12px 18px -9px color-mix(in oklab, var(--ink) 70%, transparent);

@@ -37,8 +37,8 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
           <Link to="/" className="flex min-w-0 items-center gap-4" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
             <CriLockup className="h-11 shrink-0 sm:h-12" />
             {/* Campaign title kept apart from the institutional mark (clear space + divider). */}
-            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block" />
-            <span className="hidden min-w-0 font-display text-base leading-tight sm:block">Il Natale <em className="text-gold">che fa bene</em></span>
+            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block xl:hidden 2xl:block" />
+            <span className="hidden min-w-0 font-display text-base leading-tight sm:block xl:hidden 2xl:block">Il Natale <em className="text-gold">che fa bene</em></span>
           </Link>
           <nav className="hidden items-center gap-1 xl:flex">
             {NAV.slice(1).map((n) => (
