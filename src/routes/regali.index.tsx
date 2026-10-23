@@ -1,10 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Banknote } from "lucide-react";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { GiftBox } from "@/components/xmas/GiftBox";
-import { useReducedMotion } from "@/components/xmas/TreeExperience";
+import { useUnwrap } from "@/hooks/use-unwrap";
 import { PROJECTS, getProject } from "@/lib/data";
 import { loadCashGift, type StoredCashGift } from "@/lib/cash";
 
@@ -21,21 +21,6 @@ export const Route = createFileRoute("/regali/")({
   }),
   component: Regali,
 });
-
-/** Opens the tapped box, then goes to its project. */
-export function useUnwrap() {
-  const nav = useNavigate();
-  const reduced = useReducedMotion();
-  const [opening, setOpening] = useState<string | null>(null);
-  const unwrap = (id: string) => (e: React.MouseEvent) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || reduced) return;
-    e.preventDefault();
-    if (opening) return;
-    setOpening(id);
-    setTimeout(() => nav({ to: "/regali/$id", params: { id } }), 950);
-  };
-  return { opening, unwrap };
-}
 
 function Regali() {
   const { opening, unwrap } = useUnwrap();
