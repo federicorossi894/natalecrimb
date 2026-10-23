@@ -32,5 +32,6 @@
 
 ## Casetta di Natale (Sapori e regali solidali)
 - [x] /casetta showcase (no checkout): 4 confirmed products/prices, 21 nov–6 gen, sale only at the casetta, CTA to Piazza San Paolo; nav + home link; TV casetta scene dates
-- [ ] Official poster "Mercatini di Natale" — awaits the original file from the user (slot ready on /casetta, home, TV)
-- [ ] Product photos: cioccolatini, panettone carta, panettone latta — await the originals; pandoro has no photo (placeholder)
+- [x] Official poster "Mercatini di Natale" on /casetta, home and TV casetta scene
+- [x] Product photos: cioccolatini, panettone carta, panettone latta
+- [ ] Pandoro photo — awaits the original from the user (placeholder shown)
