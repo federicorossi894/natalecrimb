@@ -190,6 +190,15 @@ export type Database = {
           status: string
         }[]
       }
+      cash_request_result: {
+        Args: { _code: string }
+        Returns: {
+          amount_cents: number
+          kind: string
+          ornament_id: string
+          status: string
+        }[]
+      }
       cash_request_status: { Args: { _code: string }; Returns: string }
       confirm_cash_request: {
         Args: { _code: string; _method: string }
