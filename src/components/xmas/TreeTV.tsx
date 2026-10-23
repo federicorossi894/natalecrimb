@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
 import { useCasettaEvents, formatEventWhen } from '@/lib/events';
-import { PROJECTS, TREE_UNTIL, type TreeOrnament } from '@/lib/data';
+import { PROJECTS, type TreeOrnament } from '@/lib/data';
+import { CASETTA } from '@/lib/casetta';
+import { CasettaPoster } from './CasettaMedia';
 import { TvQr } from './Qr';
 import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
@@ -154,10 +156,16 @@ export function TreeTV() {
           </section>
 
           <section className={`tv-card ${on('casetta')}`} data-scene="casetta" data-testid="tv-events">
-            <p className="tv-kicker flex items-center gap-[0.6cqw]"><MapPin className="h-[1.4cqw] w-[1.4cqw]" />Casetta Croce Rossa</p>
-            <h2 className="mt-[0.8cqw] font-display text-[3.3cqw] leading-[1.05]">Ti aspettiamo in Piazza San Paolo</h2>
-            <p className="mt-[0.9cqw] text-[1.6cqw] text-gold">Villaggio di Natale · fino al {TREE_UNTIL}</p>
-            <p className="tv-lead">Vieni a conoscere i progetti e i volontari di Croce Rossa Monza.</p>
+            <div className="flex items-start gap-[1.6cqw]">
+              <div className="min-w-0 flex-1">
+                <p className="tv-kicker flex items-center gap-[0.6cqw]"><MapPin className="h-[1.4cqw] w-[1.4cqw]" />Casetta Croce Rossa</p>
+                <h2 className="mt-[0.8cqw] font-display text-[3.3cqw] leading-[1.05]">Ti aspettiamo in Piazza San Paolo</h2>
+                <p className="mt-[0.9cqw] text-[1.6cqw] text-gold">Dal {CASETTA.from} al {CASETTA.until}</p>
+                <p className="tv-lead">Vieni a conoscere i progetti e i volontari di Croce Rossa Monza.</p>
+              </div>
+              {/* Official poster, inside the panel only: never over the tree or the QR. Absent until the file is supplied. */}
+              <CasettaPoster placeholder={false} className="w-[9.5cqw] shrink-0 rounded-[0.6cqw]" />
+            </div>
             {events.length > 0 && (
               <div className="mt-[1.4cqw]">
                 <p className="flex items-center gap-[0.6cqw] text-[1.25cqw] font-semibold uppercase tracking-wide text-gold"><CalendarDays className="h-[1.3cqw] w-[1.3cqw]" />Prossimi appuntamenti</p>

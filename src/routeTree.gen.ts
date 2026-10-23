@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AlberoRouteImport } from './routes/albero'
 import { Route as AlberoLiveRouteImport } from './routes/albero-live'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
+import { Route as CasettaRouteImport } from './routes/casetta'
 import { Route as GiochiRouteImport } from './routes/giochi'
 import { Route as ModerazioneRouteImport } from './routes/moderazione'
 import { Route as PiazzaRouteImport } from './routes/piazza'
@@ -40,6 +41,11 @@ const AlberoLiveRoute = AlberoLiveRouteImport.update({
 const BabboNataleRoute = BabboNataleRouteImport.update({
   id: '/babbo-natale',
   path: '/babbo-natale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CasettaRoute = CasettaRouteImport.update({
+  id: '/casetta',
+  path: '/casetta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiochiRoute = GiochiRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/albero': typeof AlberoRoute
   '/albero-live': typeof AlberoLiveRoute
   '/babbo-natale': typeof BabboNataleRoute
+  '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/casetta'
     | '/giochi'
     | '/moderazione'
     | '/piazza'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/casetta'
     | '/giochi'
     | '/moderazione'
     | '/piazza'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/albero'
     | '/albero-live'
     | '/babbo-natale'
+    | '/casetta'
     | '/giochi'
     | '/moderazione'
     | '/piazza'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AlberoRoute: typeof AlberoRoute
   AlberoLiveRoute: typeof AlberoLiveRoute
   BabboNataleRoute: typeof BabboNataleRoute
+  CasettaRoute: typeof CasettaRoute
   GiochiRoute: typeof GiochiRoute
   ModerazioneRoute: typeof ModerazioneRoute
   PiazzaRoute: typeof PiazzaRoute
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/babbo-natale'
       fullPath: '/babbo-natale'
       preLoaderRoute: typeof BabboNataleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/casetta': {
+      id: '/casetta'
+      path: '/casetta'
+      fullPath: '/casetta'
+      preLoaderRoute: typeof CasettaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/giochi': {
@@ -280,6 +300,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlberoRoute: AlberoRoute,
   AlberoLiveRoute: AlberoLiveRoute,
   BabboNataleRoute: BabboNataleRoute,
+  CasettaRoute: CasettaRoute,
   GiochiRoute: GiochiRoute,
   ModerazioneRoute: ModerazioneRoute,
   PiazzaRoute: PiazzaRoute,
