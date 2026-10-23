@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarDays, MapPin, Store } from "lucide-react";
+import { ArrowRight, CalendarDays, Heart, MapPin, Store, Users } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { CasettaPhoto, CasettaPoster } from "@/components/xmas/CasettaMedia";
 import { CASETTA, CASETTA_PRODUCTS, formatEuro } from "@/lib/casetta";
@@ -54,7 +54,28 @@ function Casetta() {
         </div>
       </section>
 
+      {/* Storytelling inspired by CRI national Christmas pages; no supplier, ingredient or use-of-funds claims. */}
       <section className="mx-auto max-w-6xl px-4 pt-10">
+        <div className="glass rounded-[2rem] p-6 sm:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Più di un dolce</p>
+          <h2 className="mt-2 max-w-2xl font-display text-3xl sm:text-4xl">Una vetrina solidale nel cuore di Monza.</h2>
+          <ul className="mt-8 grid gap-6 sm:grid-cols-3">
+            {[
+              { icon: Heart, t: "Un gesto di dolcezza", d: "Scegliere un panettone o una latta di cioccolatini alla casetta è un modo semplice per portare in tavola la festa e, insieme, un pensiero di solidarietà." },
+              { icon: Users, t: "Un incontro", d: "La casetta non è un negozio: è un piccolo presidio di Croce Rossa in piazza, dove fermarsi, fare due chiacchiere con i volontari e scoprire cosa fanno ogni giorno a Monza." },
+              { icon: Store, t: "Solo in Piazza San Paolo", d: `Dal ${CASETTA.from} al ${CASETTA.until}, esclusivamente alla casetta. Nessun acquisto né prenotazione online.` },
+            ].map(({ icon: I, t, d }) => (
+              <li key={t}>
+                <I className="h-6 w-6 text-gold" aria-hidden />
+                <h3 className="mt-3 font-display text-xl">{t}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{d}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pt-14">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Da portare a casa</p>
@@ -85,7 +106,7 @@ function Casetta() {
           <div>
             <h2 className="font-display text-2xl sm:text-3xl">Ti aspettiamo in Piazza San Paolo</h2>
             <p className="mt-2 max-w-xl text-muted-foreground">
-              Dal {CASETTA.from} al {CASETTA.until}. Qui non si acquista e non si prenota: panettoni, pandori e cioccolatini si scelgono di persona alla casetta, insieme a cioccolato, tisane e regali.
+              Dal {CASETTA.from} al {CASETTA.until}, i dolci delle feste si trovano esclusivamente alla casetta di Croce Rossa Italiana – Comitato di Monza. Sul sito non si acquista e non si prenota: si sceglie di persona, insieme a cioccolato, tisane e regali, e intanto si conoscono i volontari.
             </p>
           </div>
           <VisitCta />
