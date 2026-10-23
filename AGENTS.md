@@ -23,3 +23,4 @@
 - Gift amounts are validated by one shared schema (cash.ts amountSchema) and again inside every security-definer RPC that records a gift, so UI bypasses cannot store invalid amounts.
 - Post-action confirmations are inline (no full-screen overlays) and the router shows a pending view plus reloads on chunk-load failure, so the previous page never stays on screen under a new URL.
 - Kids' mission feedback is rendered only through Kit Bubble/HelperLine inside HelperProvider, so the guide picked in the hub (device-local, no personal data) speaks every hint consistently across missions.
+- Casetta poster and product photos are nullable slots in src/lib/casetta.ts (CASETTA_MEDIA); CasettaPoster/CasettaPhoto show the official file untouched when a slot is filled, a sober placeholder on /casetta otherwise, and nothing on home/TV, so originals are never recreated and filling a slot updates every surface.

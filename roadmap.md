@@ -29,3 +29,8 @@
 - [x] Test matrix 390 / 768 portrait+landscape / desktop
 
 - [x] TV restyle /albero-live: tree left, warm right panel, big QR to public site, small DEMO counter, silent 60–90 s loop (invito, 3 passi, attività, casetta/eventi reali, dedica pubblica), arrival card; 1080p/768p/4K + WebGL off checked.
+
+## Casetta di Natale (Sapori e regali solidali)
+- [x] /casetta showcase (no checkout): 4 confirmed products/prices, 21 nov–6 gen, sale only at the casetta, CTA to Piazza San Paolo; nav + home link; TV casetta scene dates
+- [ ] Official poster "Mercatini di Natale" — awaits the original file from the user (slot ready on /casetta, home, TV)
+- [ ] Product photos: cioccolatini, panettone carta, panettone latta — await the originals; pandoro has no photo (placeholder)
