@@ -1,3 +1,4 @@
+import { CRI_RED, LOCKUP, TERRITORIAL_LABEL, lockupText, type LockupLayout } from "@/lib/cri-lockup";
 import type { OrnamentKind } from "@/lib/data";
 
 /** 2D twin of the 3D baubles: same four palettes and painted motifs. No CRI emblem is drawn. */
@@ -62,4 +63,21 @@ import verticale from "@/assets/cri-bianco-verticale.png.asset.json";
 export function CriMark({ className = "", variant = "white" }: { className?: string; variant?: "white" | "red" | "vertical" }) {
   const src = variant === "red" ? rosso.url : variant === "vertical" ? verticale.url : bianco.url;
   return <img src={src} alt="Croce Rossa Italiana" className={`cri-official-mark w-auto ${className}`} />;
+}
+
+/**
+ * Official CRI mark (image left untouched) + territorial indication "Comitato di Monza" composed per the CRI
+ * manual §1.3 (see src/lib/cri-lockup.ts). Use this wherever the Comitato signs; the campaign title stays separate.
+ */
+export function CriLockup({ className = "", variant = "white", layout = "horizontal" }: { className?: string; variant?: "white" | "red"; layout?: LockupLayout }) {
+  const g = LOCKUP[layout];
+  const t = lockupText(layout);
+  const src = layout === "vertical" ? verticale.url : variant === "red" ? rosso.url : bianco.url;
+  const fill = variant === "red" && layout === "horizontal" ? CRI_RED : "#FFFFFF";
+  return (
+    <svg viewBox={g.view.join(" ")} role="img" aria-label={`Croce Rossa Italiana – ${TERRITORIAL_LABEL}`} className={`cri-official-mark w-auto ${className}`} data-testid="cri-lockup">
+      <image href={src} x={0} y={0} width={g.w} height={g.h} />
+      <text x={t.x} y={t.baseline} textAnchor="middle" fontFamily="Arial, Helvetica, sans-serif" fontWeight={400} fontSize={t.fontSize} fill={fill}>{TERRITORIAL_LABEL}</text>
+    </svg>
+  );
 }
