@@ -101,7 +101,7 @@ ${envelope}
     </table>
     <p style="margin:30px 0 6px;font:italic 24px/1.4 Georgia,serif;text-align:center">“${msg}”</p>
     <p style="margin:0 0 28px;font:700 15px/1.4 Arial,sans-serif;text-align:center;color:${C.red}">— ${donor || (e.audience === "donor" ? "Croce Rossa Monza" : "Un amico")}</p>
-    <table role="presentation" align="center" cellpadding="0" cellspacing="0"><tr><td style="border-radius:999px;background:${C.red}">
+    <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto"><tr><td style="border-radius:999px;background:${C.red}">
       <a href="${link}" style="display:inline-block;padding:15px 30px;font:700 15px/1 Arial,sans-serif;color:${C.snow};text-decoration:none">Guarda l'addobbo sull'albero</a>
     </td></tr></table>
     <p style="margin:14px 0 30px;text-align:center;font:13px/1.4 Arial,sans-serif"><a href="${projectUrl(p)}" style="color:${C.ink}">Scopri il progetto “${esc(p.title)}”</a></p>
