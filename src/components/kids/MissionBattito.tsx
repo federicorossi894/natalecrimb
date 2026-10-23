@@ -63,7 +63,7 @@ export function MissionBattito({ sound, setSound, onExit, onComplete, onDiploma 
   const top = <MissionTop n={3} title="Missione Battito" step={step} steps={STEPS} sound={sound} setSound={setSound} onExit={onExit} />;
 
   if (done) return <>{top}<MissionDone mission="battito" title="Hai un cuore da soccorritore!" onDiploma={onDiploma} onExit={onExit} onRetry={restart}
-    lessons={["Se qualcuno è a terra e non risponde, è un'emergenza.", "Si chiama forte un adulto e si fa chiamare il 112: dove siamo e cosa è successo.", "Il DAE si indica e si fa portare: lo usano i grandi, guidati dal 112.", "Il massaggio cardiaco vero si impara solo a un corso, con istruttori e manichini."]}
+    lessons={["Se qualcuno è a terra e non risponde, è un'emergenza.", "Si chiama forte un adulto e si fa chiamare il 112: dove siamo e cosa è successo.", "Il DAE si indica e si fa portare: lo usano i grandi, guidati dal 112.", "Anche chi non ha fatto un corso può aiutare: l'operatore del 112 spiega al telefono cosa fare.", "Mai esercitarsi su una persona: il massaggio vero si impara a un corso, con istruttori e manichini."]}
     extra={<a href={CRI.corsi} target="_blank" rel="noopener noreferrer" className="mx-auto mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border hairline-gold px-4 text-sm font-semibold text-gold">Per i genitori: i corsi di Croce Rossa Monza <ExternalLink className="h-4 w-4" /></a>} /></>;
 
   if (step === 3) return <>{top}<RhythmIntro onStart={next} /></>;
@@ -103,13 +103,13 @@ function SafetyNote() {
   return (
     <div className="flex gap-3 rounded-3xl border hairline-gold bg-card p-4 text-left text-sm leading-relaxed" data-testid="cpr-disclaimer">
       <Info className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
-      <p><strong>È un gioco di ritmo, non una lezione di massaggio cardiaco.</strong> Non provarlo mai su una persona o su un amico. Il massaggio vero si impara a un corso con istruttori e manichini: quando sarai più grande potrai farlo anche con Croce Rossa.</p>
+      <p><strong>È un gioco di ritmo, non una lezione di massaggio cardiaco.</strong> Non provarlo mai su una persona o su un amico. In un'emergenza vera, anche chi non è addestrato può aiutare seguendo le istruzioni dell'operatore del 112 al telefono. Il massaggio vero si impara a un corso con istruttori e manichini: quando sarai più grande potrai farlo anche con Croce Rossa.</p>
     </div>
   );
 }
 
 function RhythmIntro({ onStart }: { onStart: () => void }) {
-  const text = `Mentre arriva l'ambulanza, gli adulti che hanno fatto un corso aiutano il cuore con un ritmo preciso: tra ${BPM_MIN} e ${BPM_MAX} colpi al minuto, un po' più veloce di una camminata svelta. Alleniamo il ritmo sul cuore magico!`;
+  const text = `Mentre arriva l'ambulanza, gli adulti aiutano il cuore con un ritmo preciso, anche se non hanno fatto un corso: l'operatore del 112 spiega al telefono cosa fare, passo passo. Il ritmo è tra ${BPM_MIN} e ${BPM_MAX} colpi al minuto, un po' più veloce di una camminata svelta. Alleniamo il ritmo sul cuore magico!`;
   return (
     <section className="animate-rise mx-auto max-w-2xl px-4 pt-6 text-center" data-testid="rhythm-intro">
       <MagicHeart beat={0} glow="idle" className="mx-auto w-44" />
