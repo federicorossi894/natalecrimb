@@ -41,7 +41,7 @@ export function IllustratedTree({ ornaments, selected, onPick, tv = false, arriv
     <div className="tree-stage tree-illustrated" data-testid="tree-fallback" data-ornament-count={ornaments.length} aria-label="Albero dei Regali illustrato">
       <div className="tree-illustrated-sky" aria-hidden />
       <div className="absolute inset-x-0 bottom-0 top-[6%] mx-auto aspect-[3/4] max-w-full" style={{ maxHeight: tv ? "100%" : "94%" }}>
-        <Tree ornaments={shown} focusId={selected?.id ?? null} arrivingId={arrivingId ?? null} onPick={onPick} size={fallbackOrnamentSize(shown.length)} />
+        <Tree ornaments={shown} focusId={selected?.id ?? null} arrivingId={arrivingId ?? null} {...(onPick ? { onPick } : {})} size={fallbackOrnamentSize(shown.length)} />
       </div>
       {!tv && (
         <p className="absolute inset-x-0 bottom-3 px-4 text-center text-[11px] text-muted-foreground">

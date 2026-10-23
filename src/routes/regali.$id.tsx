@@ -10,7 +10,7 @@ import { CityThanks, EmailStudio, PostcardStudio } from "@/components/xmas/PostD
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { QRCodeSVG } from "qrcode.react";
-import { amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
+import { MAX_GIFT_EURO, MIN_GIFT_EURO, amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
