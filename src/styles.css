@@ -353,7 +353,7 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 /* TV: compact daily card + once-a-day opening ceremony over the tree (QR and brand stay untouched). */
 .tv-kindness { position: absolute; left: 3cqw; top: 14.2cqw; width: 20cqw; padding: 1cqw 1.3cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 80%, transparent); border: 1px solid color-mix(in oklab, var(--scene-gold) 32%, transparent); backdrop-filter: blur(6px); animation: tv-kind-in 1.2s ease both; }
 @keyframes tv-kind-in { from { opacity: 0; transform: translateY(1cqw); } }
-.tv-advent { position: absolute; left: 14cqw; top: 9cqw; width: 33cqw; perspective: 120cqw; z-index: 5; pointer-events: none; animation: tv-advent-life 16s ease both; }
+.tv-advent { position: absolute; left: 15cqw; top: 13.5cqw; width: 32cqw; perspective: 120cqw; z-index: 5; pointer-events: none; animation: tv-advent-life 16s ease both; }
 .tv-advent-frame { position: relative; aspect-ratio: 4/3.1; border-radius: 1.2cqw; background: linear-gradient(160deg, var(--scene-gold), color-mix(in oklab, var(--scene-gold) 55%, var(--scene-bark)));
   box-shadow: 0 0 6cqw color-mix(in oklab, var(--scene-gold) 50%, transparent), 0 2cqw 4cqw -1cqw color-mix(in oklab, var(--scene-night) 85%, transparent); }
 .tv-advent-inside { position: absolute; inset: 1cqw; border-radius: .8cqw; background: var(--scene-ivory); color: var(--ink); padding: 2.2cqw; display: flex; flex-direction: column; justify-content: center; }
