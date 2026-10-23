@@ -12,5 +12,6 @@
 - [x] Fix: bauble placement — no rows/overlaps, rest on needles, stable slots, tree widens with gifts (tested 4–200).
 - [x] Phase 3: SumUp/PayPal simulators, cash QR at the casetta, /volontari (scan + manual entry) with roles.
 - [ ] Assign volunteer role to real accounts — awaits the Comitato's volunteer sign-ups.
-- [ ] Future phases: gift boxes/home polish, secondary pages.
+- [x] Refined demo for 27 Oct: 2.5D gift boxes, €5 quick path, project copy rewrite, official Unità Mobile link, email modes (Christmas = 25 Dec 00:05 Europe/Rome), cash donor postcard recovery, /presentazione (3 fictitious cases, PNG/HTML export).
+- [ ] Publish — awaits the user's explicit go-ahead.
 - Limits: no physical-iPhone/TV test; moderator approval + event creation not exercised (no moderator account yet); native share sheet with image not testable headless (wa.me fallback verified).
