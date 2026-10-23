@@ -27,3 +27,5 @@
 - [x] P1 Santa: remove other-organisation price comparison
 - [x] P1 Kids mission 1 choices + 112 wording
 - [x] Test matrix 390 / 768 portrait+landscape / desktop
+
+- [x] TV restyle /albero-live: tree left, warm right panel, big QR to public site, small DEMO counter, silent 60–90 s loop (invito, 3 passi, attività, casetta/eventi reali, dedica pubblica), arrival card; 1080p/768p/4K + WebGL off checked.

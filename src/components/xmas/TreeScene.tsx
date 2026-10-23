@@ -24,6 +24,7 @@ function TreeStar({height,palette}:{height:number;palette:Palette}) {
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
 }
+const TV_PANORAMA=1.95;
 function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
   const controls=useRef<OrbitControlsType>(null);
   const { camera, gl, size }=useThree();
@@ -31,7 +32,7 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:nu
   const clock=useRef(0);
   const target=useMemo(()=>new THREE.Vector3(),[]);
   useEffect(()=>{
-    if(tv){if(!selected){camera.position.set(0,height*0.64,height*1.62);camera.lookAt(0,height*0.5,0);}return;}
+    if(tv){if(!selected){camera.position.set(0,height*0.67,height*TV_PANORAMA);camera.lookAt(0,height*0.53,0);}return;}
     const c=controls.current;if(!c)return;
     const p=selected ? ornamentAnchor(selected,height,index,count):[0,height*0.5,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);
@@ -42,10 +43,11 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:nu
   useFrame((_,delta)=>{
     if(!tv)return;
     const dt=Math.min(delta,0.05);if(!reduced)clock.current+=dt;
-    const p=selected?ornamentAnchor(selected,height,index,count):[0,height*0.5,0];
+    const p=selected?ornamentAnchor(selected,height,index,count):[0,height*0.53,0];
     const a=selected?Math.atan2(p[0]??0,p[2]??0):clock.current*0.075;
-    const d=selected?Math.max(1.6,height*0.62):height*1.62;
-    target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.25:height*0.14),(p[2]??0)+Math.cos(a)*d);
+    // TV framing: whole tree with breathing room in the left two-thirds; a focused bauble keeps some of the tree around it.
+    const d=selected?Math.max(4,height*0.95):height*TV_PANORAMA;
+    target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.45:height*0.14),(p[2]??0)+Math.cos(a)*d);
     camera.position.lerp(target,1-Math.exp(-1.5*dt));camera.lookAt(p[0]??0,p[1]??0,p[2]??0);
   });
   return tv?null:<OrbitControls ref={controls} makeDefault enablePan={false} enableDamping minDistance={1.5} maxDistance={10} minPolarAngle={0.22} maxPolarAngle={Math.PI*0.63} />;

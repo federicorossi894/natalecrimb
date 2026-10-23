@@ -200,13 +200,39 @@
 .dedication-close { box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 15%, transparent); }
 .cri-official-mark { width: auto; object-fit: contain; max-width: 100%; }
 .santa-stage { background: radial-gradient(ellipse at 70% 0%, color-mix(in oklab, var(--gold) 14%, transparent), transparent 55%), linear-gradient(180deg, var(--scene-night), var(--fir-deep) 85%); }
-.tv-scene { position: relative; aspect-ratio: 16/9; width: 100%; container-type: inline-size; overflow: hidden; background: var(--scene-night); }
-.tv-scene .tree-stage { position: absolute; inset: 15% 34% 0 0; height: 85%; min-height: 0; max-height: none; }
-.tv-copy { position: absolute; right: 4%; top: 25%; width: 29%; }
-.tv-title { font-size: 3.6cqw; line-height: 1.05; }
-.tv-dedication { position: absolute; left: 5%; bottom: 5%; width: 39%; }
-.tv-events { padding: 1.6cqw 1.8cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 78%, transparent); border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); backdrop-filter: blur(8px); }
-.tv-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 80% at 35% 55%, transparent 55%, color-mix(in oklab, var(--scene-night) 70%, transparent)); }
+/* Casetta TV (16:9, sized in container units so 1366x768, 1080p and 4K keep the same composition). */
+.tv-scene { position: relative; aspect-ratio: 16/9; width: 100%; container-type: inline-size; overflow: hidden; background: var(--scene-night); color: var(--snow); }
+.tv-tree { position: absolute; inset: 0 37% 0 5%; }
+.tv-scene .tree-stage { position: absolute; inset: 0; height: 100%; min-height: 0; max-height: none; }
+.tv-vignette { position: absolute; inset: 0 40% 0 0; pointer-events: none; background: radial-gradient(ellipse 75% 85% at 50% 58%, transparent 55%, color-mix(in oklab, var(--scene-night) 75%, transparent)), linear-gradient(180deg, color-mix(in oklab, var(--scene-night) 70%, transparent), transparent 22%); }
+.tv-brand { position: absolute; left: 3cqw; top: 2.6cqw; pointer-events: none; }
+.tv-counter { position: absolute; left: 3cqw; bottom: 2.4cqw; display: flex; align-items: baseline; gap: 0.8cqw; padding: 0.8cqw 1.4cqw; border-radius: 999px; background: color-mix(in oklab, var(--scene-night) 72%, transparent); border: 1px solid color-mix(in oklab, var(--scene-gold) 30%, transparent); backdrop-filter: blur(6px); }
+.tv-demo-tag { font-size: 1.05cqw; text-transform: uppercase; letter-spacing: .08em; color: color-mix(in oklab, var(--snow) 70%, transparent); }
+.tv-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 43%; display: flex; flex-direction: column; padding: 2.6cqw 3cqw 2.6cqw 4.2cqw;
+  background: radial-gradient(ellipse 80% 45% at 60% 30%, color-mix(in oklab, var(--scene-gold) 16%, transparent), transparent 70%), linear-gradient(90deg, transparent, color-mix(in oklab, var(--scene-burgundy) 72%, var(--scene-night)) 9%, color-mix(in oklab, var(--scene-burgundy) 55%, var(--scene-night))); }
+.tv-panel::after { content: ""; position: absolute; left: 3.2cqw; top: 6%; bottom: 6%; width: 1px; background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--scene-gold) 55%, transparent), transparent); }
+.tv-demo-badge { font-size: 1.05cqw; letter-spacing: .06em; text-transform: uppercase; padding: 0.35cqw 0.9cqw; border: 1px solid color-mix(in oklab, var(--scene-gold) 40%, transparent); color: color-mix(in oklab, var(--scene-gold) 85%, transparent); border-radius: 999px; }
+.tv-dot { width: 0.7cqw; height: 0.7cqw; border-radius: 999px; background: color-mix(in oklab, var(--snow) 30%, transparent); transition: background .6s, width .6s; }
+.tv-dot.is-on { width: 2cqw; background: var(--scene-gold); }
+.tv-scenes { position: relative; flex: 1; margin: 1.8cqw 0 1.6cqw; }
+.tv-card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; opacity: 0; transform: translateY(1.2cqw); filter: blur(4px); transition: opacity 1.1s ease, transform 1.4s cubic-bezier(.2,.8,.2,1), filter 1.1s ease; pointer-events: none; }
+.tv-card.is-active { opacity: 1; transform: none; filter: none; transition-delay: .35s; }
+.tv-kicker { font-size: 1.4cqw; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--scene-gold); }
+.tv-headline { margin-top: 1cqw; font-size: 4.3cqw; line-height: 1.02; letter-spacing: -0.01em; }
+.tv-lead { margin-top: 1.4cqw; font-size: 1.85cqw; line-height: 1.4; color: color-mix(in oklab, var(--snow) 90%, transparent); }
+.tv-step { display: grid; place-items: center; flex-shrink: 0; width: 3.6cqw; height: 3.6cqw; border-radius: 999px; font-size: 1.9cqw; color: var(--scene-night); background: var(--scene-gold); box-shadow: 0 0 1.6cqw color-mix(in oklab, var(--scene-gold) 45%, transparent); }
+.tv-tag { position: relative; background: var(--paper); color: var(--ink); border-radius: 0.5cqw; padding: 1.8cqw 2cqw; border: 1px solid var(--gold); box-shadow: var(--shadow-deep); }
+.tv-tag::before { content: ""; position: absolute; left: 2.4cqw; top: -1.6cqw; width: 1px; height: 1.6cqw; background: var(--scene-gold); }
+.tv-qr-block { position: relative; display: flex; align-items: center; gap: 2cqw; padding: 1.2cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 45%, transparent); border: 1px solid color-mix(in oklab, var(--scene-gold) 35%, transparent); }
+.tv-qr { padding: 0; border-radius: 0.5cqw; overflow: hidden; box-shadow: 0 0 2.4cqw color-mix(in oklab, var(--scene-gold) 30%, transparent); }
+.tv-twinkles i { position: absolute; width: 0.45cqw; height: 0.45cqw; border-radius: 999px; background: var(--scene-gold); box-shadow: 0 0 1cqw var(--scene-gold); animation: twinkle 3.2s ease-in-out infinite; }
+.tv-twinkles i:nth-child(1) { top: 7%; left: 38%; } .tv-twinkles i:nth-child(2) { top: 15%; right: 9%; animation-delay: .8s; }
+.tv-twinkles i:nth-child(3) { top: 46%; right: 5%; animation-delay: 1.6s; } .tv-twinkles i:nth-child(4) { top: 64%; left: 20%; animation-delay: 2.2s; }
+.tv-twinkles i:nth-child(5) { top: 30%; left: 12%; animation-delay: 1.1s; }
+.tv-arrival-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--scene-gold) 55%, transparent), transparent 50%); mix-blend-mode: screen; animation: tv-arrive-pulse 2.4s ease-out 3 both; }
+.tv-arrival-icon { animation: tv-arrive-pop 1.4s cubic-bezier(.2,1.3,.4,1) both; filter: drop-shadow(0 0 1.4cqw color-mix(in oklab, var(--scene-gold) 60%, transparent)); }
+@keyframes tv-arrive-pulse { 0% { opacity: 0; transform: scale(.6); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes tv-arrive-pop { 0% { opacity: 0; transform: translateY(-3cqw) scale(.4) rotate(-12deg); } 70% { opacity: 1; transform: translateY(0) scale(1.08) rotate(4deg); } 100% { transform: none; } }
 .tv-scene, .tv-scene * { cursor: none; }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
