@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { CityThanks, EmailExportBar, PostcardStudio, exportNode } from "@/components/xmas/PostDonation";
@@ -82,8 +82,12 @@ function EmailCase({ project }: { project: Project }) {
   const [audience, setAudience] = useState<EmailAudience>("recipient");
   const ref = useRef<HTMLDivElement>(null);
   const e = EXAMPLE.email;
-  const html = useMemo(() => giftEmailHtml({ project, audience, mode, donor: e.donor, toName: e.toName, toEmail: audience === "donor" ? "giulia@esempio.it" : e.to, msg: e.msg, ornamentId: e.ornamentId, envelope: true }), [project, audience, mode, e]);
-  const body = useMemo(() => html.match(/<body[^>]*>([\s\S]*)<\/body>/)?.[1] ?? "", [html]);
+  // Built after hydration only: the bauble image and absolute logo URL need the browser (canvas, origin).
+  const [html, setHtml] = useState("");
+  useEffect(() => {
+    setHtml(giftEmailHtml({ project, audience, mode, donor: e.donor, toName: e.toName, toEmail: audience === "donor" ? "giulia@esempio.it" : e.to, msg: e.msg, ornamentId: e.ornamentId, envelope: true }));
+  }, [project, audience, mode, e]);
+  const body = html.match(/<body[^>]*>([\s\S]*)<\/body>/)?.[1] ?? "";
   const pill = (on: boolean) => `rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-primary text-primary-foreground" : "glass"}`;
   return (
     <Case n={3} title="L'email regalo" sub="Una lettera, diversa dalla cartolina: subito oppure allo scoccare di Natale. Anche la versione di ringraziamento per chi dona." onExport={() => void exportNode(ref.current, `caso-3-email-${audience}-${mode}.png`)}>
@@ -93,9 +97,9 @@ function EmailCase({ project }: { project: Project }) {
         <button className={pill(audience === "donor")} onClick={() => setAudience("donor")}>Grazie al donatore</button>
       </div>
       <div className="overflow-x-auto rounded-2xl">
-        <div ref={ref} className="mx-auto w-fit" data-testid="email-inline" dangerouslySetInnerHTML={{ __html: body }} />
+        {body ? <div ref={ref} className="mx-auto w-fit" data-testid="email-inline" dangerouslySetInnerHTML={{ __html: body }} /> : <div className="glass mx-auto h-[900px] max-w-[648px] animate-pulse rounded-2xl" />}
       </div>
-      <div className="mx-auto max-w-md"><EmailExportBar html={html} name={`caso-3-email-${audience}-${mode}.html`} /></div>
+      {html && <div className="mx-auto max-w-md"><EmailExportBar html={html} name={`caso-3-email-${audience}-${mode}.html`} /></div>}
       <p className="mt-2 text-center text-[11px] text-muted-foreground">Email dimostrativa: nessun invio, nessuna programmazione, nessun indirizzo salvato.</p>
     </Case>
   );
