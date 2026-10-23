@@ -17,6 +17,7 @@ import { Route as GiochiRouteImport } from './routes/giochi'
 import { Route as ModerazioneRouteImport } from './routes/moderazione'
 import { Route as PiazzaRouteImport } from './routes/piazza'
 import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
+import { Route as PresentazioneRouteImport } from './routes/presentazione'
 import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
@@ -61,6 +62,11 @@ const PiccoliVolontariRoute = PiccoliVolontariRouteImport.update({
   path: '/piccoli-volontari',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresentazioneRoute = PresentazioneRouteImport.update({
+  id: '/presentazione',
+  path: '/presentazione',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VolontariRoute = VolontariRouteImport.update({
   id: '/volontari',
   path: '/volontari',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/moderazione': typeof ModerazioneRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
+  '/presentazione': typeof PresentazioneRoute
   '/volontari': typeof VolontariRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
+    | '/presentazione'
     | '/volontari'
     | '/regali/$id'
     | '/regali/'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
+    | '/presentazione'
     | '/volontari'
     | '/regali/$id'
     | '/regali'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/moderazione'
     | '/piazza'
     | '/piccoli-volontari'
+    | '/presentazione'
     | '/volontari'
     | '/regali/$id'
     | '/regali/'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   ModerazioneRoute: typeof ModerazioneRoute
   PiazzaRoute: typeof PiazzaRoute
   PiccoliVolontariRoute: typeof PiccoliVolontariRoute
+  PresentazioneRoute: typeof PresentazioneRoute
   VolontariRoute: typeof VolontariRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PiccoliVolontariRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/presentazione': {
+      id: '/presentazione'
+      path: '/presentazione'
+      fullPath: '/presentazione'
+      preLoaderRoute: typeof PresentazioneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/volontari': {
       id: '/volontari'
       path: '/volontari'
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   ModerazioneRoute: ModerazioneRoute,
   PiazzaRoute: PiazzaRoute,
   PiccoliVolontariRoute: PiccoliVolontariRoute,
+  PresentazioneRoute: PresentazioneRoute,
   VolontariRoute: VolontariRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
