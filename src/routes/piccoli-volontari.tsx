@@ -6,7 +6,7 @@ import { Snow } from "@/components/xmas/Snow";
 import hero from "@/assets/kids/academy-hero.jpg";
 import cold from "@/assets/kids/scene-cold.jpg";
 import battito from "@/assets/kids/scene-battito.jpg";
-import { useAcademy } from "@/components/kids/Kit";
+import { HelperProvider, useAcademy } from "@/components/kids/Kit";
 import { Backpack, HelperBadge, Medal } from "@/components/kids/KidsArt";
 import { MissionCity } from "@/components/kids/MissionCity";
 import { MissionZaino } from "@/components/kids/MissionZaino";
