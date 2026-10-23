@@ -81,8 +81,8 @@ function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["stat
 
       <section className="mx-auto max-w-6xl px-4 pt-8">
         <h2 className="font-display text-2xl">Scegli il tuo aiutante</h2>
-        <p className="text-sm text-muted-foreground">Comparirà sul tuo diploma. Non serve scrivere il nome.</p>
-        <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Aiutante del diploma">
+        <p className="text-sm text-muted-foreground">Ti darà consigli durante le missioni e comparirà sul tuo diploma. Non serve scrivere il nome.</p>
+        <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Il tuo aiutante">
           {HELPERS.map((h) => {
             const on = (state.helper ?? "stella") === h.id;
             return (
