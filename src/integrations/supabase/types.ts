@@ -152,6 +152,30 @@ export type Database = {
         }
         Relationships: []
       }
+      kindness_doors: {
+        Row: {
+          day: number
+          message: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          day: number
+          message: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          day?: number
+          message?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -167,6 +191,80 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      wish_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          token_hash: string
+          used_at: string | null
+          wish_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          token_hash: string
+          used_at?: string | null
+          wish_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          token_hash?: string
+          used_at?: string | null
+          wish_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wish_tokens_wish_id_fkey"
+            columns: ["wish_id"]
+            isOneToOne: false
+            referencedRelation: "wishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishes: {
+        Row: {
+          auto_flags: string[]
+          body: string
+          created_at: string
+          id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          nickname: string | null
+          publish_consent: boolean
+          status: string
+        }
+        Insert: {
+          auto_flags?: string[]
+          body: string
+          created_at?: string
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          nickname?: string | null
+          publish_consent: boolean
+          status?: string
+        }
+        Update: {
+          auto_flags?: string[]
+          body?: string
+          created_at?: string
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          nickname?: string | null
+          publish_consent?: boolean
+          status?: string
         }
         Relationships: []
       }
@@ -223,6 +321,13 @@ export type Database = {
           expires_at: string
         }[]
       }
+      create_wish_token: {
+        Args: never
+        Returns: {
+          code: string
+          expires_at: string
+        }[]
+      }
       hang_ornament: {
         Args: {
           _amount_cents: number
@@ -246,6 +351,17 @@ export type Database = {
       }
       is_moderator: { Args: never; Returns: boolean }
       is_volunteer: { Args: never; Returns: boolean }
+      kindness_calendar: {
+        Args: never
+        Returns: {
+          day: number
+          message: string
+          server_now: string
+          title: string
+        }[]
+      }
+      kindness_unlocked_day: { Args: { _at: string }; Returns: number }
+      moderate_wish: { Args: { _id: string; _status: string }; Returns: string }
       my_ornaments: {
         Args: { _client: string }
         Returns: {
@@ -269,6 +385,27 @@ export type Database = {
           y: number
         }[]
       }
+      public_wishes: {
+        Args: never
+        Returns: {
+          approved_at: string
+          body: string
+          id: string
+          nickname: string
+        }[]
+      }
+      submit_wish: {
+        Args: {
+          _body: string
+          _code: string
+          _consent: boolean
+          _nickname: string
+        }
+        Returns: {
+          result: string
+          wish_status: string
+        }[]
+      }
       volunteer_add_ornament: {
         Args: {
           _amount_cents: number
@@ -281,6 +418,17 @@ export type Database = {
         Returns: {
           id: string
           status: string
+        }[]
+      }
+      wish_flags: { Args: { _body: string; _nick: string }; Returns: string[] }
+      wish_lookup: {
+        Args: { _code: string }
+        Returns: {
+          body: string
+          expires_at: string
+          nickname: string
+          state: string
+          wish_status: string
         }[]
       }
     }
