@@ -3,6 +3,23 @@ import { CRI, TREE_UNTIL } from "./data";
 import { EMAIL_SENDER, deliveryLabel, type EmailAudience, type EmailMode } from "./email-demo";
 import { baubleDataUrl, cssHex, ornamentUrl, projectUrl } from "./postcard-share";
 import biancoLogo from "@/assets/cri-bianco-orizzontale.png.asset.json";
+import { LOCKUP, TERRITORIAL_LABEL, lockupText } from "./cri-lockup";
+
+/**
+ * Email-safe lockup: the unaltered official mark, then "Comitato di Monza" in Arial Regular, white, centred under
+ * "Croce Rossa Italiana" (CRI manual §1.3). Geometry from src/lib/cri-lockup.ts scaled to the rendered height.
+ */
+export function lockupHtml(src: string, height = 84) {
+  const g = LOCKUP.horizontal, t = lockupText("horizontal"), k = height / g.h;
+  const width = Math.round(g.w * k);
+  const font = +(t.fontSize * k).toFixed(1);
+  // Text line box: centred on the wordmark, its baseline pulled up into the mark's transparent safety margin.
+  const shift = Math.round(2 * (t.x * k - width / 2));
+  const lift = Math.round((g.h - t.baseline) * k + font * 0.22);
+  return `<div style="width:${width}px"><img src="${src}" alt="Croce Rossa Italiana" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;border:0">`
+    + `<div style="margin:-${lift}px 0 0 ${shift}px;font:400 ${font}px/1 Arial,Helvetica,sans-serif;color:#FFFFFF;text-align:center;height:${Math.ceil(font)}px">${TERRITORIAL_LABEL}</div>`
+    + `<div style="height:${Math.max(0, lift - Math.ceil(font))}px;line-height:0;font-size:0">&nbsp;</div></div>`;
+}
 
 export type GiftEmail = {
   project: Project;
@@ -76,8 +93,7 @@ ${envelope}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.paper};border-radius:20px;overflow:hidden;box-shadow:0 18px 40px -18px rgba(0,0,0,.35)">
   <tr><td class="px" style="background:${C.fir};padding:22px 36px">
     <table role="presentation" width="100%"><tr>
-      <td><img src="${origin}${biancoLogo.url}" alt="Croce Rossa Italiana" height="46" style="display:block;height:46px;width:auto;border:0"></td>
-      <td align="right" style="font:600 12px/1.3 Arial,sans-serif;color:${C.snow};letter-spacing:1px;text-transform:uppercase">Comitato di Monza</td>
+      <td>${lockupHtml(origin + biancoLogo.url)}</td>
     </tr></table>
   </td></tr>
   <tr><td class="px" align="center" style="background:${C.fir};padding:6px 36px 42px;color:${C.snow}">

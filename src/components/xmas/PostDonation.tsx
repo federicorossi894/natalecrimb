@@ -36,7 +36,7 @@ export function PiazzaInvite() {
   return (
     <div className="mt-6 flex items-start gap-3 rounded-2xl border hairline-gold p-4 text-left">
       <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
-      <p className="text-sm"><strong className="font-display text-base">Vieni a trovare il tuo addobbo.</strong><br /><span className="text-muted-foreground">L'Albero di Monza è in Piazza San Paolo fino al {TREE_UNTIL}.</span></p>
+      <p className="text-sm"><strong className="font-display text-base">Vieni a vedere il tuo addobbo.</strong><br /><span className="text-muted-foreground">È sull'albero digitale, sullo schermo della casetta CRI in Piazza San Paolo, fino al {TREE_UNTIL}. Non è un oggetto fisico: è il segno luminoso del tuo dono.</span></p>
     </div>
   );
 }
@@ -106,11 +106,11 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   }, [project, to, from, msg, ornamentId]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Cartolina CRI Monza · demo", text }); setNote("Scegli WhatsApp dal menu di condivisione."); return; }
+      try { await navigator.share({ files: [file], title: "Cartolina CRI Monza · demo", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
       catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-    setNote("Si apre WhatsApp con il messaggio e il link. Puoi allegare la cartolina scaricata.");
+    setNote("Si apre WhatsApp con il messaggio già scritto: scegli tu il contatto e premi invio. La cartolina va allegata a parte, dopo averla scaricata.");
   };
   const copy = async () => { try { await navigator.clipboard.writeText(text); setNote("Messaggio copiato."); } catch { setNote("Copia non disponibile su questo dispositivo."); } };
   return (
@@ -127,7 +127,8 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </figure>
       </div>
       <div className="mx-auto mt-6 max-w-lg space-y-2">
-        <button onClick={share} className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Condividi su WhatsApp</button>
+        <button onClick={share} aria-describedby="wa-how" className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Apri WhatsApp con il messaggio</button>
+        <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Non invia nulla da solo: apre WhatsApp con il testo e il link già scritti, scegli tu a chi mandarlo. L'immagine della cartolina va scaricata e allegata a parte.</p>
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-50"><Download className="h-4 w-4" /> Scarica cartolina</button>
           <button onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`)} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Download className="h-4 w-4" /> Scarica anteprima</button>

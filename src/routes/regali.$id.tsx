@@ -162,7 +162,7 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Vuoi saperne di più?</p>
-          <More title="Cosa fa Croce Rossa Monza">
+          <More title={p.doingTitle ?? "Cosa fa Croce Rossa Monza"}>
             <p>{p.story}</p>
             <ul className="mt-3 space-y-1.5">{p.doing.map((d) => <li key={d} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{d}</li>)}</ul>
           </More>
