@@ -271,7 +271,7 @@ function DeskAfter({ kind, firma, dedica, id, text, demo, onEnd }: { kind: Ornam
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">E adesso?</p>
           <button onClick={onEnd} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><CheckCircle2 className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Termina</span><span className="text-xs text-muted-foreground">Torna al modulo per il prossimo donatore</span></span></button>
           <button onClick={() => setMode("donor")} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><Mail className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Invia la cartolina al donatore</span><span className="text-xs text-muted-foreground">Email simulata con il link al suo addobbo</span></span></button>
-          <button onClick={() => setMode("recipient")} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><Gift className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Regalalo a un destinatario</span><span className="text-xs text-muted-foreground">Email simulata, subito o il 25 dicembre alle 08:00</span></span></button>
+          <button onClick={() => setMode("recipient")} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><Gift className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Regalalo a un destinatario</span><span className="text-xs text-muted-foreground">Email simulata, subito o il 25 dicembre alle 00:05</span></span></button>
         </div>
       ) : (
         <>

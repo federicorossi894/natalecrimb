@@ -462,7 +462,7 @@ function Sorpresa({ p, hung, hang }: { p: Project; hung: Hung | null; hang: Hang
     <section className="mx-auto max-w-6xl px-4 pt-6">
       <EmailStudio
         project={p}
-        ornamentId={hung?.id}
+        ornamentId={hung?.id ?? null}
         title="Regalalo via email"
         subtitle="Scegli se farlo arrivare subito o la mattina di Natale."
         consentSlot={!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche il tuo nome e la dedica sull'albero, dopo la verifica di un moderatore." />}

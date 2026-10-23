@@ -4,9 +4,9 @@ import { z } from "zod";
 export type EmailMode = "now" | "christmas";
 export type EmailAudience = "recipient" | "donor";
 export const EMAIL_SENDER = "natale@crimonza.org";
-/** Christmas surprise: 25 December, 08:00 Europe/Rome. */
-export const CHRISTMAS_DELIVERY = "25 dicembre · ore 08:00 (ora italiana)";
-export const CHRISTMAS_DELIVERY_ISO = "2026-12-25T07:00:00.000Z";
+/** Christmas surprise: 25 December, 00:05 Europe/Rome. */
+export const CHRISTMAS_DELIVERY = "25 dicembre · ore 00:05 (ora italiana)";
+export const CHRISTMAS_DELIVERY_ISO = "2026-12-24T23:05:00.000Z";
 
 export const MODE_LABEL: Record<EmailMode, string> = { now: "Invia ora", christmas: "Invia a Natale" };
 
@@ -25,5 +25,5 @@ export function deliveryLabel(mode: EmailMode) {
 export function confirmationText(mode: EmailMode) {
   return mode === "now"
     ? "Invio simulato: nella versione reale l'email partirebbe adesso."
-    : "Invio simulato per il 25 dicembre alle 08:00 (ora italiana).";
+    : "Invio simulato per il 25 dicembre alle 00:05 (ora italiana).";
 }
