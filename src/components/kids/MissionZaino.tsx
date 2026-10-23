@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Home, Snowflake } from "lucide-react";
+import { ArrowRight, Hand, Home, Snowflake } from "lucide-react";
 import { NEEDED_ITEMS, PACK_ITEMS, isPackComplete, type PackItemId } from "@/lib/kids-academy";
 import { Backpack, ItemIcon } from "./KidsArt";
-import { Bubble, ListenButton, MissionTop, PrimaryButton, useChimes } from "./Kit";
+import { Bubble, HelperLine, ListenButton, MissionTop, PrimaryButton, useChimes } from "./Kit";
 import { MissionDone } from "./MissionDone";
 
 const INTRO = "Domani nevica tanto! Con i grandi andrai a portare un saluto ai vicini anziani. Prepara lo zaino: mettici dentro solo quello che serve davvero.";
 type Drag = { id: PackItemId; x: number; y: number; sx: number; sy: number; moved: boolean };
+/** The dragged picture finishing its trip: into the bag (useful item) or back to its tile (wrong item / missed drop). */
+type Flight = { id: PackItemId; x: number; y: number; tx: number; ty: number; into: boolean; go: boolean };
+const FLIGHT_MS = 380;
+export const DRAG_HINT = "Trascina gli oggetti utili dentro lo zaino!";
+export const TAP_HINT = "Oppure: tocca l’oggetto e poi lo zaino.";
 
 export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }: { sound: boolean; setSound: (v: boolean) => void; onExit: () => void; onComplete: () => void; onDiploma: () => void }) {
   const [packed, setPacked] = useState<PackItemId[]>([]);
@@ -16,6 +21,9 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
   const [bump, setBump] = useState(0);
   const [shake, setShake] = useState(0);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [over, setOver] = useState(false);
+  const [flight, setFlight] = useState<Flight | null>(null);
+  const tiles = useRef<Partial<Record<PackItemId, HTMLButtonElement | null>>>({});
   const [done, setDone] = useState(false);
   const bag = useRef<HTMLButtonElement>(null);
   const skipClick = useRef(false);
@@ -31,21 +39,43 @@ export function MissionZaino({ sound, setSound, onExit, onComplete, onDiploma }:
   };
   const used = (id: PackItemId) => packed.includes(id) || home.includes(id);
 
+  const overBag = (x: number, y: number) => {
+    const r = bag.current?.getBoundingClientRect();
+    return !!r && x > r.left - 24 && x < r.right + 24 && y > r.top - 24 && y < r.bottom + 24;
+  };
+  /** Animate the picture to (tx,ty); `after` runs when it lands. Skipped with reduced motion. */
+  const fly = (id: PackItemId, x: number, y: number, tx: number, ty: number, into: boolean, after: () => void) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { after(); return; }
+    setFlight({ id, x, y, tx, ty, into, go: false });
+    requestAnimationFrame(() => requestAnimationFrame(() => setFlight((f) => (f ? { ...f, go: true } : f))));
+    window.setTimeout(() => { setFlight(null); after(); }, FLIGHT_MS);
+  };
+  const centerOf = (el: Element | null | undefined) => { const r = el?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: 0, y: 0 }; };
+
   const onDown = (e: React.PointerEvent, id: PackItemId) => {
-    if (used(id) || e.button > 0) return;
+    if (used(id) || flight || e.button > 0) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setDrag({ id, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false });
   };
   const onMove = (e: React.PointerEvent) => {
+    if (!drag) return;
     setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY, moved: d.moved || Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 10 } : d));
+    setOver(overBag(e.clientX, e.clientY));
   };
   const onUp = (e: React.PointerEvent) => {
     const d = drag;
-    setDrag(null);
+    setDrag(null); setOver(false);
     if (!d || !d.moved) return; // a tap: handled by onClick (select)
     skipClick.current = true;
-    const r = bag.current?.getBoundingClientRect();
-    if (r && e.clientX > r.left - 24 && e.clientX < r.right + 24 && e.clientY > r.top - 24 && e.clientY < r.bottom + 24) drop(d.id);
+    const it = PACK_ITEMS.find((i) => i.id === d.id)!;
+    const home = centerOf(tiles.current[d.id]);
+    if (overBag(e.clientX, e.clientY)) {
+      if (it.needed) { const c = centerOf(bag.current); fly(d.id, e.clientX, e.clientY, c.x, c.y, true, () => drop(d.id)); }
+      else { setShake((s) => s + 1); chime("soft"); fly(d.id, e.clientX, e.clientY, home.x, home.y, false, () => drop(d.id)); }
+    } else {
+      // Missed the bag: the picture simply goes back, no penalty.
+      fly(d.id, e.clientX, e.clientY, home.x, home.y, false, () => setFb({ tone: "kind", text: "Quasi! Portalo fin dentro lo zaino, poi lascia andare il dito." }));
+    }
   };
   const onItemClick = (id: PackItemId) => {
     if (skipClick.current) { skipClick.current = false; return; }
