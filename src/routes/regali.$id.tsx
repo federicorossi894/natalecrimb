@@ -1,18 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
-import { ArrowLeft, Banknote, Check, CreditCard, ExternalLink, CalendarClock, Download, Heart, LocateFixed, Mail, MessageCircle, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Banknote, Check, ChevronDown, CreditCard, ExternalLink, Gift, Heart, LocateFixed, Mail, MessageCircle, RotateCcw } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
-import { Modal, DemoNotice } from "@/components/xmas/Modal";
-import { Postcard, EmailPreview } from "@/components/xmas/Postcard";
+import { GiftBox } from "@/components/xmas/GiftBox";
+import { CityThanks, EmailStudio, PostcardStudio } from "@/components/xmas/PostDonation";
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { QRCodeSVG } from "qrcode.react";
-import { amountSchema, cashRequestStatus, createCashRequest, euro, formatCode, type CashStatus, type PaymentChoice } from "@/lib/cash";
-import { postcardText, renderPostcardImage } from "@/lib/postcard-share";
-import { CHRISTMAS_DELIVERY, confirmationText, deliveryLabel, giftEmailSchema, type EmailMode } from "@/lib/email-demo";
+import { amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/$id")({
   loader: ({ params }) => {
@@ -26,7 +24,7 @@ export const Route = createFileRoute("/regali/$id")({
     return {
       meta: [
         { title: t },
-        { name: "description", content: p?.tagline ?? "" },
+        { name: "description", content: p?.intro ?? "" },
         { property: "og:title", content: t },
         { property: "og:description", content: p?.tagline ?? "" },
         { property: "og:type", content: "website" },
@@ -38,120 +36,140 @@ export const Route = createFileRoute("/regali/$id")({
 });
 
 type Step = "detail" | "checkout" | "cash" | "success" | "dedica" | "sorpresa" | "mine";
+/** The ornament hung for this gift (online: on the first post-donation choice; cash: by the volunteer). */
+type Hung = { id: string | null; status: string; via: "online" | "cash"; error?: string };
 
 function Detail() {
   const { id } = Route.useLoaderData();
   const p = getProject(id)!;
   const [step, setStep] = useState<Step>("detail");
-  const [amount, setAmount] = useState(p.amounts[1]?.value ?? 10);
+  const [amount, setAmount] = useState(5);
+  const [hung, setHung] = useState<Hung | null>(null);
   const go = (s: Step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  // A cash gift prepared on this phone for this project: resume it (QR or post-confirmation choices).
+  useEffect(() => { const g = loadCashGift(); if (g && g.project === p.id) setStep("cash"); }, [p.id]);
+  const hang = async (firma: string, dedica: string, consent: boolean): Promise<Hung> => {
+    if (hung) return hung;
+    try {
+      const res = await addOrnament(p.ornament, firma, dedica, consent);
+      const h: Hung = { id: res?.id ?? null, status: res?.status ?? "pending", via: "online" };
+      setHung(h); return h;
+    } catch (e) {
+      const h: Hung = { id: null, status: "none", via: "online", error: e instanceof Error ? e.message : "Addobbo non appeso" };
+      setHung(h); return h;
+    }
+  };
+  const back = () => {
+    if (step === "detail") return history.back();
+    if (step === "checkout") return go("detail");
+    if (step === "success" || step === "cash") return go(hung?.via === "cash" ? "cash" : "checkout");
+    go(hung?.via === "cash" ? "cash" : "success");
+  };
 
   return (
     <Shell>
-      <div className="mx-auto max-w-3xl px-4 pt-6">
-        <button onClick={() => (step === "detail" ? history.back() : go(step === "checkout" ? "detail" : step === "success" || step === "cash" ? "checkout" : "success"))} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <div className="mx-auto max-w-6xl px-4 pt-6">
+        <button onClick={back} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro
         </button>
       </div>
       {step === "detail" && <DetailView p={p} amount={amount} setAmount={setAmount} onGo={() => go("checkout")} />}
-      {step === "checkout" && <Checkout p={p} amount={amount} setAmount={setAmount} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />}
-      {step === "cash" && <CashFlow p={p} amount={amount} />}
+      {step === "checkout" && <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />}
+      {step === "cash" && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
       {step === "success" && <Success p={p} onPick={go} />}
-      {step === "mine" && <Mine p={p} />}
-      {step === "dedica" && <Dedica p={p} onDetail={() => go("detail")} onEmail={() => go("sorpresa")} />}
-      {step === "sorpresa" && <Sorpresa p={p} />}
+      {step === "mine" && <Mine p={p} hung={hung} hang={hang} />}
+      {step === "dedica" && <Dedica p={p} hung={hung} hang={hang} onEmail={() => go("sorpresa")} />}
+      {step === "sorpresa" && <Sorpresa p={p} hung={hung} hang={hang} />}
     </Shell>
   );
 }
 
 function Amounts({ p, amount, setAmount }: { p: Project; amount: number; setAmount: (n: number) => void }) {
   const [custom, setCustom] = useState("");
-  const sel = p.amounts.find((a) => a.value === amount);
   return (
     <div>
-      <div className="grid grid-cols-5 gap-2">
-        {p.amounts.map((a) => (
-          <button key={a.value} onClick={() => { setAmount(a.value); setCustom(""); }} className={`rounded-2xl border py-3 font-display text-lg transition ${amount === a.value && !custom ? "border-gold bg-gold text-accent-foreground" : "glass"}`}>
-            €{a.value}
+      <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Importo della donazione">
+        {p.amounts.map((v) => (
+          <button key={v} type="button" role="radio" aria-checked={amount === v && !custom} onClick={() => { setAmount(v); setCustom(""); }} className={`rounded-2xl border py-3.5 font-display text-xl transition ${amount === v && !custom ? "border-gold bg-gold text-accent-foreground shadow-deep" : "glass"}`}>
+            {v} €
           </button>
         ))}
-        <input inputMode="numeric" placeholder="Altro" value={custom} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); setCustom(v); if (v) setAmount(Number(v)); }} className={`w-full rounded-2xl border bg-transparent text-center text-sm outline-none ${custom ? "border-gold" : "glass"}`} />
+        <input inputMode="numeric" aria-label="Altro importo in euro" placeholder="Altro" value={custom} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 4); setCustom(v); if (v) setAmount(Number(v)); }} className={`w-full rounded-2xl border bg-transparent text-center text-sm outline-none ${custom ? "border-gold" : "glass"}`} />
       </div>
-      <p className="mt-3 min-h-5 text-sm text-gold">{sel && !custom ? `→ ${sel.impact}` : custom ? `→ €${custom}: grazie, ogni euro conta` : ""}</p>
-      <p className="text-[11px] text-muted-foreground">Esempi di impatto indicativi · demo</p>
     </div>
+  );
+}
+
+function More({ title, children, open = false }: { title: string; children: ReactNode; open?: boolean }) {
+  return (
+    <details open={open} className="glass group rounded-2xl px-5 py-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-display text-lg">
+        {title}<ChevronDown className="h-5 w-5 shrink-0 text-gold transition group-open:rotate-180" />
+      </summary>
+      <div className="mt-3 text-sm leading-relaxed text-foreground/85">{children}</div>
+    </details>
   );
 }
 
 function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number; setAmount: (n: number) => void; onGo: () => void }) {
   return (
-    <article className="mx-auto max-w-3xl px-4">
-      <header className="relative mt-4 overflow-hidden rounded-[2rem] bg-fir-deep p-6 sm:p-10">
-        <Snow count={25} />
-        <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-primary/30 blur-3xl" />
-        <OrnamentIcon kind={p.ornament} className="animate-floaty relative w-24 sm:w-28" />
-        <p className="relative mt-6 text-xs font-semibold uppercase tracking-[0.25em] text-gold">{p.kicker}</p>
-        <h1 className="relative mt-2 font-display text-5xl leading-none sm:text-6xl">{p.title}</h1>
-        <p className="relative mt-4 font-display text-xl italic text-foreground/85">{p.tagline}</p>
-      </header>
-
-      <p className="mt-8 text-lg leading-relaxed text-foreground/90">{p.story}</p>
-
-      {p.id === "battito" && (
-        <div className="glass mt-8 rounded-3xl p-5">
-          <div className="flex items-baseline justify-between">
-            <p className="font-display text-xl">Verso un nuovo DAE per Monza</p>
-            <span className="text-[10px] uppercase tracking-widest text-gold">Demo</span>
-          </div>
-          <div className="mt-4 h-3 overflow-hidden rounded-full bg-secondary">
-            <div className="shimmer-gold h-full rounded-full" style={{ width: "64%" }} />
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">€1.920 di €3.000 · 64% · valori di esempio</p>
+    <article className="mx-auto max-w-6xl px-4 pb-10">
+      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-10">
+        <div>
+          <header className="relative overflow-hidden rounded-[2rem] bg-fir-deep p-6 sm:p-8">
+            <Snow count={20} />
+            <div className="relative flex items-center gap-5 sm:gap-8">
+              <GiftBox project={p} open className="w-28 shrink-0 sm:w-40" />
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{p.kicker}</p>
+                <h1 className="mt-1 font-display text-4xl leading-none sm:text-6xl">{p.title}</h1>
+                <p className="mt-3 font-display text-lg italic text-foreground/85 sm:text-xl">{p.tagline}</p>
+              </div>
+            </div>
+          </header>
+          <p className="mt-6 text-lg leading-relaxed">{p.intro}</p>
         </div>
-      )}
 
-      <section className="mt-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Guarda cosa facciamo</p>
-        <ul className="mt-4 space-y-2">
-          {p.doing.map((d, i) => (
-            <li key={d} className="glass flex items-center gap-4 rounded-2xl px-4 py-3.5">
-              <span className="font-display text-2xl text-gold">{String(i + 1).padStart(2, "0")}</span>
-              <span>{d}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {p.id === "battito" && (
-        <section className="mt-10 rounded-3xl border-2 border-primary/60 p-6">
-          <Heart className="h-7 w-7 text-primary" />
-          <h3 className="mt-3 font-display text-2xl">Un DAE senza persone che sappiano usarlo non basta.</h3>
-          <p className="mt-2 text-muted-foreground">Impara anche tu: bastano poche ore per diventare la persona che fa la differenza.</p>
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {[[CRI.blsd, "Corso BLSD"], [CRI.primoSoccorso, "Corso di primo soccorso"], [CRI.corsi, "Tutti i corsi CRI Monza"]].map(([h, l]) => (
-              <a key={h} href={h} target="_blank" rel="noreferrer" className="glass inline-flex items-center justify-between gap-2 rounded-full px-5 py-3 text-sm font-semibold hover:text-gold">
-                {l} <ExternalLink className="h-4 w-4" />
-              </a>
-            ))}
-          </div>
+        <section className="glass-strong rounded-3xl p-5 shadow-deep lg:sticky lg:top-24 lg:row-span-2" data-testid="quick-donate">
+          <p className="font-display text-2xl">Fai questo regalo</p>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">Bastano 5 €. Scegli e conferma: due tocchi.</p>
+          <Amounts p={p} amount={amount} setAmount={setAmount} />
+          <button onClick={onGo} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01]">
+            Dona {amount} €
+          </button>
+          <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</p>
+          <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>
         </section>
-      )}
 
-      <section className="glass-strong mt-10 rounded-3xl p-5 shadow-deep">
-        <p className="mb-3 font-display text-xl">Scegli il tuo regalo</p>
-        <Amounts p={p} amount={amount} setAmount={setAmount} />
-        <button onClick={onGo} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground transition hover:scale-[1.01]">
-          Fai questo regalo · €{amount}
-        </button>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato</p>
-      </section>
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Vuoi saperne di più?</p>
+          <More title="Cosa fa Croce Rossa Monza">
+            <p>{p.story}</p>
+            <ul className="mt-3 space-y-1.5">{p.doing.map((d) => <li key={d} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{d}</li>)}</ul>
+          </More>
+          <More title="Come aiuta il tuo regalo"><p>{p.helps}</p></More>
+          <More title="Donazione o acquisto?">
+            <p>Il tuo è un regalo a Croce Rossa Italiana – Comitato di Monza: sostiene il progetto nel suo insieme. L'addobbo sull'albero è il simbolo del tuo gesto, non un oggetto comprato.</p>
+          </More>
+          {p.id === "battito" && (
+            <More title="Impara anche tu le manovre salvavita">
+              <p>Un DAE serve se qualcuno sa usarlo. Croce Rossa Monza organizza corsi aperti a tutti.</p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {[[CRI.blsd, "Corso BLSD"], [CRI.primoSoccorso, "Corso di primo soccorso"], [CRI.corsi, "Tutti i corsi"]].map(([h, l]) => (
+                  <a key={h} href={h} target="_blank" rel="noreferrer" className="glass inline-flex items-center justify-between gap-2 rounded-full px-4 py-2.5 text-sm font-semibold hover:text-gold">{l} <ExternalLink className="h-4 w-4" /></a>
+                ))}
+              </div>
+            </More>
+          )}
+        </div>
+      </div>
     </article>
   );
 }
 
-function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: number; setAmount: (n: number) => void; onConfirm: (m: PaymentChoice) => void }) {
+function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
   const [method, setMethod] = useState<PaymentChoice>("sumup");
-  const methods: { id: PaymentChoice; label: string; sub: string; icon: React.ReactNode }[] = [
+  const methods: { id: PaymentChoice; label: string; sub: string; icon: ReactNode }[] = [
     { id: "sumup", label: "SumUp online", sub: "Carta · simulatore", icon: <CreditCard className="h-5 w-5" /> },
     { id: "paypal", label: "PayPal online", sub: "Simulatore", icon: <span className="font-bold italic">P</span> },
     { id: "cash", label: "Contanti alla casetta", sub: "Piazza San Paolo", icon: <Banknote className="h-5 w-5" /> },
@@ -159,16 +177,14 @@ function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: num
   return (
     <section className="animate-rise mx-auto max-w-lg px-4 pt-6">
       <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Checkout demo</span>
-      <h1 className="mt-4 font-display text-4xl">Il tuo regalo</h1>
-      <div className="glass mt-6 flex items-center gap-4 rounded-3xl p-4">
+      <div className="glass mt-5 flex items-center gap-4 rounded-3xl p-4">
         <OrnamentIcon kind={p.ornament} className="w-14 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="font-display text-xl">{p.title}</p>
-          <p className="truncate text-sm text-muted-foreground">Diventerà {p.ornamentName} sull'Albero di Monza</p>
+          <button onClick={onEdit} className="text-xs text-muted-foreground underline">Cambia importo</button>
         </div>
-        <p className="font-display text-2xl text-gold">€{amount}</p>
+        <p className="font-display text-3xl text-gold">{amount} €</p>
       </div>
-      <div className="mt-6"><Amounts p={p} amount={amount} setAmount={setAmount} /></div>
       <p className="mt-6 text-sm font-semibold">Come vuoi donare</p>
       <div role="radiogroup" aria-label="Metodo di donazione" className="mt-3 grid gap-2">
         {methods.map((m) => (
@@ -181,43 +197,70 @@ function Checkout({ p, amount, setAmount, onConfirm }: { p: Project; amount: num
       {method !== "cash" ? (
         <div className="mt-4 rounded-2xl border border-dashed hairline-gold p-4 text-sm" data-testid="online-simulator">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Simulatore {method === "sumup" ? "SumUp" : "PayPal"} · DEMO</p>
-          <p className="mt-1 text-muted-foreground">Nessun collegamento a {method === "sumup" ? "SumUp" : "PayPal"}: non viene aperto alcun pagamento, nessun dato di carta o conto viene richiesto o verificato.</p>
+          <p className="mt-1 text-muted-foreground">Nessun collegamento a {method === "sumup" ? "SumUp" : "PayPal"}: non viene aperto alcun pagamento, nessun dato di carta o conto viene richiesto.</p>
         </div>
       ) : (
         <div className="mt-4 rounded-2xl border border-dashed hairline-gold p-4 text-sm">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti · DEMO</p>
-          <p className="mt-1 text-muted-foreground">Prepari il tuo addobbo e ricevi un QR con l'importo. Alla casetta in Piazza San Paolo un volontario lo scansiona: solo allora la pallina compare sull'albero.</p>
+          <p className="mt-1 text-muted-foreground">Ricevi un QR con l'importo. Alla casetta un volontario lo scansiona: solo allora l'addobbo compare sull'albero.</p>
         </div>
       )}
-      <button onClick={() => onConfirm(method)} className="mt-8 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
-        {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento ${method === "sumup" ? "SumUp" : "PayPal"}`}
+      <button onClick={() => onConfirm(method)} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
+        {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento di ${amount} €`}
       </button>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato di pagamento viene raccolto.</p>
     </section>
   );
 }
 
-const CASH_KEY = "cri-cash-pending";
-type Pending = { code: string; amount_cents: number; expires_at: string; kind: string };
-function CashFlow({ p, amount }: { p: Project; amount: number }) {
+/** The three ways to close a gift: to the city, WhatsApp postcard, email. */
+function Choices({ onPick, cash = false }: { onPick: (s: Step) => void; cash?: boolean }) {
+  const items = [
+    { s: "mine" as Step, t: "È il mio regalo a Monza", d: cash ? "Concludi qui: il tuo addobbo è già sull'albero" : "Appendi il tuo addobbo, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
+    { s: "dedica" as Step, t: "Regalalo a una persona", d: "Cartolina da condividere su WhatsApp", i: <MessageCircle className="h-5 w-5" /> },
+    { s: "sorpresa" as Step, t: "Mandalo via email", d: "Subito o la mattina di Natale", i: <Mail className="h-5 w-5" /> },
+  ];
+  return (
+    <div className="mt-8 space-y-3 text-left">
+      {items.map((o) => (
+        <button key={o.s} onClick={() => onPick(o.s)} className="glass flex w-full items-center gap-4 rounded-2xl p-4 transition hover:border-gold">
+          <span className="rounded-full bg-primary p-3 text-primary-foreground">{o.i}</span>
+          <span><span className="block font-display text-lg">{o.t}</span><span className="text-sm text-muted-foreground">{o.d}</span></span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CashFlow({ p, amount, onConfirmed, onPick }: { p: Project; amount: number; onConfirmed: (ornamentId: string | null) => void; onPick: (s: Step) => void }) {
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
   const [consent, setConsent] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pending, setPending] = useState<Pending | null>(null);
+  const [gift, setGift] = useState<StoredCashGift | null>(null);
   const [status, setStatus] = useState<CashStatus>("pending");
   useEffect(() => {
-    try { const s = JSON.parse(sessionStorage.getItem(CASH_KEY) ?? "null") as Pending | null; if (s && s.kind === p.ornament && new Date(s.expires_at) > new Date()) setPending(s); } catch { /* ignore */ }
-  }, [p.ornament]);
+    const g = loadCashGift();
+    if (g && g.project === p.id) { setGift(g); if (g.confirmed) { setStatus("confirmed"); onConfirmed(g.ornament_id ?? null); } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
   useEffect(() => {
-    if (!pending || status === "confirmed") return;
+    if (!gift || gift.confirmed) return;
     let on = true;
-    const check = () => cashRequestStatus(pending.code).then((s) => { if (on) setStatus(s); if (s !== "pending") sessionStorage.removeItem(CASH_KEY); }).catch(() => undefined);
+    const check = () => cashRequestResult(gift.code).then((r) => {
+      if (!on) return;
+      setStatus(r.status);
+      if (r.status === "confirmed") {
+        const next = { ...gift, confirmed: true, ornament_id: r.ornament_id };
+        saveCashGift(next); setGift(next); onConfirmed(r.ornament_id);
+      } else if (r.status !== "pending") clearCashGift();
+    }).catch(() => undefined);
     void check();
     const t = setInterval(check, 5000);
     return () => { on = false; clearInterval(t); };
-  }, [pending, status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gift]);
   const submit = async () => {
     const a = amountSchema.safeParse(amount);
     if (!a.success) { setErr(a.error.issues[0]?.message ?? "Importo non valido"); return; }
@@ -226,41 +269,46 @@ function CashFlow({ p, amount }: { p: Project; amount: number }) {
     setErr(""); setBusy(true);
     try {
       const row = await createCashRequest(p.ornament, a.data, r.data.firma, r.data.dedica, r.data.consent);
-      const next = { code: row.code, amount_cents: row.amount_cents, expires_at: row.expires_at, kind: p.ornament };
-      sessionStorage.setItem(CASH_KEY, JSON.stringify(next));
-      setStatus("pending"); setPending(next); window.scrollTo({ top: 0, behavior: "smooth" });
+      const next: StoredCashGift = { code: row.code, amount_cents: row.amount_cents, expires_at: row.expires_at, kind: p.ornament, project: p.id };
+      saveCashGift(next);
+      setStatus("pending"); setGift(next); window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) { setErr(e instanceof Error ? e.message : "Errore, riprova"); }
     finally { setBusy(false); }
   };
+  const restart = () => { clearCashGift(); setGift(null); setStatus("pending"); };
 
-  if (pending) return (
+  if (gift) return (
     <section className="animate-rise mx-auto max-w-lg px-4 pt-6 text-center">
       <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti alla casetta · DEMO</span>
       {status === "confirmed" ? (
-        <>
-          <OrnamentIcon kind={p.ornament} className="animate-arrive mx-auto mt-8 w-24" />
-          <h1 className="mt-6 font-display text-4xl leading-tight">Grazie! <span className="text-gold">La tua pallina è sull'albero.</span></h1>
-          <p className="mt-3 text-sm text-muted-foreground">Un volontario ha confermato il regalo (passaggio simulato, nessun incasso reale).</p>
-          <Link to="/albero" search={{ trova: 1 }} className="mt-6 flex items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-primary-foreground"><LocateFixed className="h-4 w-4" /> Trova il mio addobbo</Link>
-        </>
+        <div data-testid="cash-confirmed">
+          <OrnamentIcon kind={p.ornament} className="animate-floaty mx-auto mt-8 w-24" />
+          <h1 className="mt-6 font-display text-4xl leading-tight">Grazie! <span className="text-gold">Il tuo addobbo è sull'albero.</span></h1>
+          <p className="mt-3 text-sm text-muted-foreground">Un volontario ha confermato il regalo di {euro(gift.amount_cents)} (passaggio simulato). Ora puoi regalarlo a qualcuno: non serve donare di nuovo.</p>
+          <Choices onPick={onPick} cash />
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Link to="/albero" search={gift.ornament_id ? { addobbo: gift.ornament_id } : { trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</Link>
+            <button onClick={restart} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><RotateCcw className="h-4 w-4" /> Nuovo regalo</button>
+          </div>
+        </div>
       ) : status === "expired" || status === "not_found" ? (
         <>
           <h1 className="mt-6 font-display text-3xl">QR scaduto</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Nessuna pallina è stata appesa. Puoi prepararne uno nuovo.</p>
-          <button onClick={() => { setPending(null); setStatus("pending"); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Prepara un nuovo QR</button>
+          <p className="mt-2 text-sm text-muted-foreground">Nessun addobbo è stato appeso. Puoi prepararne uno nuovo.</p>
+          <button onClick={restart} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Prepara un nuovo QR</button>
         </>
       ) : (
         <>
-          <h1 className="mt-5 font-display text-3xl leading-tight">Rivolgiti ai volontari <span className="text-gold">della casetta</span></h1>
-          <p className="mt-2 text-sm text-muted-foreground">Mostra questo QR in Piazza San Paolo. La pallina comparirà sull'albero solo dopo la conferma del volontario.</p>
+          <h1 className="mt-5 font-display text-3xl leading-tight">Mostra questo QR <span className="text-gold">alla casetta</span></h1>
+          <p className="mt-2 text-sm text-muted-foreground">In Piazza San Paolo un volontario lo scansiona. Puoi chiudere la pagina: quando torni qui ritrovi il tuo regalo.</p>
           <div className="mx-auto mt-6 w-full max-w-xs rounded-3xl bg-paper p-5 text-ink shadow-deep">
-            <QRCodeSVG value={pending.code} className="h-auto w-full" bgColor="transparent" fgColor="currentColor" level="M" aria-label="QR monouso per la casetta" />
+            <QRCodeSVG value={gift.code} className="h-auto w-full" bgColor="transparent" fgColor="currentColor" level="M" aria-label="QR monouso per la casetta" />
             <p className="mt-4 text-xs uppercase tracking-widest">Importo da versare · demo</p>
-            <p className="font-display text-5xl" data-testid="cash-amount">{euro(pending.amount_cents)}</p>
-            <p className="mt-2 font-mono text-sm tracking-wider" data-testid="cash-code">{formatCode(pending.code)}</p>
-            <p className="mt-1 text-[11px]">{p.title} · valido fino alle {new Date(pending.expires_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</p>
+            <p className="font-display text-5xl" data-testid="cash-amount">{euro(gift.amount_cents)}</p>
+            <p className="mt-2 font-mono text-sm tracking-wider" data-testid="cash-code">{formatCode(gift.code)}</p>
+            <p className="mt-1 text-[11px]">{p.title} · valido fino alle {new Date(gift.expires_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</p>
           </div>
-          <p role="status" className="mt-4 text-xs text-gold">In attesa del volontario… questa pagina si aggiorna da sola.</p>
+          <p role="status" className="mt-4 text-xs text-gold">In attesa del volontario… la pagina si aggiorna da sola.</p>
           <p className="mt-2 text-[11px] text-muted-foreground">Il QR contiene solo un codice monouso, nessun dato personale. Demo: nessun pagamento reale.</p>
         </>
       )}
@@ -271,86 +319,72 @@ function CashFlow({ p, amount }: { p: Project; amount: number }) {
     <section className="mx-auto max-w-lg px-4 pt-6">
       <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contanti alla casetta · DEMO</span>
       <h1 className="mt-4 font-display text-4xl">Prepara il tuo addobbo</h1>
-      <p className="mt-2 text-muted-foreground">{p.title} · <span className="text-gold">€{amount}</span>. Nome e dedica sono facoltativi.</p>
-      <Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} />
+      <p className="mt-2 text-muted-foreground">{p.title} · <span className="text-gold">{amount} €</span>. Nome e dedica sono facoltativi.</p>
+      <div className="mt-5"><Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} /></div>
       <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Dedica facoltativa · max 90 caratteri" className="glass mt-4 w-full rounded-2xl p-4 outline-none focus:border-gold" />
       <p className="text-right text-[11px] text-muted-foreground">{msg.length}/90</p>
-      <label className="mt-3 flex items-start gap-3 text-sm">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
-        <span>Acconsento a pubblicare firma e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore. <span className="text-muted-foreground">Senza consenso, nome e dedica non vengono salvati.</span></span>
-      </label>
+      <Consent checked={consent} onChange={setConsent} />
       {err && <p role="alert" className="mt-2 text-sm text-primary">{err}</p>}
       <button disabled={busy} onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">{busy ? "Preparo il QR…" : "Genera il QR per la casetta"}</button>
-      <p className="mt-2 text-center text-[11px] text-muted-foreground">Fino alla conferma del volontario nessuna pallina viene appesa e il contatore non cambia.</p>
+      <p className="mt-2 text-center text-[11px] text-muted-foreground">Fino alla conferma del volontario nessun addobbo viene appeso e il contatore non cambia.</p>
     </section>
   );
 }
 
 function Success({ p, onPick }: { p: Project; onPick: (s: Step) => void }) {
   return (
-    <section className="relative mx-auto max-w-lg px-4 pt-10 text-center">
-      <Snow count={40} />
-      <div className="relative mx-auto w-28">
-        <div className="absolute inset-0 rounded-full bg-gold/40 blur-2xl" />
-        <OrnamentIcon kind={p.ornament} className="animate-arrive relative left-1/2 top-1/2 w-28" />
-      </div>
-      <h1 className="animate-rise mt-8 font-display text-4xl leading-tight">🎁 Il tuo regalo è arrivato.<br /><span className="text-gold">Ora puoi regalarlo a qualcuno.</span></h1>
-      <p className="mt-3 text-sm text-muted-foreground">Simulazione DEMO: nessun importo addebitato, nessuna donazione reale registrata. Scegli come appendere {p.ornamentName}.</p>
-      <div className="mt-8 space-y-3 text-left">
-        {[
-          { s: "mine" as Step, t: "È il mio regalo a Monza", d: "Appendilo all'albero, anche in forma anonima", i: <Heart className="h-5 w-5" /> },
-          { s: "dedica" as Step, t: "Dedicalo a una persona", d: "Una cartolina natalizia da condividere su WhatsApp", i: <Send className="h-5 w-5" /> },
-        ].map((o) => (
-          <button key={o.s} onClick={() => onPick(o.s)} className="glass flex w-full items-center gap-4 rounded-2xl p-4 transition hover:border-gold">
-            <span className="rounded-full bg-primary p-3 text-primary-foreground">{o.i}</span>
-            <span><span className="block font-display text-lg">{o.t}</span><span className="text-sm text-muted-foreground">{o.d}</span></span>
-          </button>
-        ))}
-      </div>
-      <p className="mt-6 text-[11px] text-muted-foreground">Demo · nessuna operazione reale è stata eseguita</p>
+    <section className="relative mx-auto max-w-lg px-4 pt-8 text-center">
+      <Snow count={30} />
+      <GiftBox project={p} open className="relative mx-auto w-40" />
+      <h1 className="animate-rise mt-4 font-display text-4xl leading-tight">Grazie! <span className="text-gold">A chi lo regali?</span></h1>
+      <p className="mt-3 text-sm text-muted-foreground">Simulazione DEMO: nessun importo addebitato. Scegli come appendere {p.ornamentName}.</p>
+      <Choices onPick={onPick} />
     </section>
   );
 }
 
-function Mine({ p }: { p: Project }) {
+function Consent({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+  return (
+    <label className="mt-3 flex items-start gap-3 text-sm">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
+      <span>{label ?? "Acconsento a pubblicare firma e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore."} <span className="text-muted-foreground">Facoltativo: senza consenso firma e dedica non vengono salvate.</span></span>
+    </label>
+  );
+}
+
+function hungNote(h: Hung | null) {
+  if (!h) return "";
+  if (h.error) return `Addobbo non appeso: ${h.error}`;
+  if (h.via === "cash") return "Il tuo addobbo è già sull'albero, confermato alla casetta.";
+  return h.status === "pending" ? "La dedica pubblica comparirà dopo la moderazione." : h.status === "rejected" ? "Il tuo addobbo è sull'albero, senza testo pubblico." : "";
+}
+
+type HangFn = (firma: string, dedica: string, consent: boolean) => Promise<Hung>;
+
+function Mine({ p, hung, hang }: { p: Project; hung: Hung | null; hang: HangFn }) {
   const [msg, setMsg] = useState("");
   const [name, setName] = useState("");
   const [err, setErr] = useState("");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<{ status: string; dedica: string } | null>(null);
+  if (hung) return <CityThanks project={p} ornamentId={hung.id} note={hungNote(hung)} />;
   const submit = async () => {
     const r = dedicaSchema.safeParse({ firma: name, dedica: msg, consent });
     if (!r.success) { setErr(r.error.issues[0]?.message ?? "Dati non validi"); return; }
     setErr(""); setBusy(true);
-    try {
-      const res = await addOrnament(p.ornament, r.data.firma, r.data.dedica, r.data.consent);
-      setDone({ status: res?.status ?? "pending", dedica: r.data.consent ? r.data.dedica : "" });
-    } catch (e) { setErr(e instanceof Error ? e.message : "Errore, riprova"); }
-    finally { setBusy(false); }
+    await hang(r.data.firma, r.data.dedica, r.data.consent);
+    setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
     <section className="mx-auto max-w-lg px-4 pt-6">
-      <h1 className="font-display text-4xl">Il tuo addobbo</h1>
-      <p className="mt-2 text-muted-foreground">Nome e dedica sono facoltativi: puoi restare anonimo.</p>
-      <Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} />
+      <h1 className="font-display text-4xl">Il tuo addobbo per Monza</h1>
+      <p className="mt-2 text-muted-foreground">Firma e dedica sono facoltative: puoi restare anonimo.</p>
+      <div className="mt-5"><Field label="Firma (facoltativa)" maxLength={40} placeholder="Es. Giulia" value={name} onChange={(e) => setName(e.target.value)} /></div>
       <textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={90} rows={3} placeholder="Dedica facoltativa · max 90 caratteri" className="glass mt-4 w-full rounded-2xl p-4 outline-none focus:border-gold" />
       <p className="text-right text-[11px] text-muted-foreground">{msg.length}/90</p>
       {err && <p className="mt-1 text-sm text-primary">{err}</p>}
-      <label className="mt-3 flex items-start gap-3 text-sm">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
-        <span>Acconsento a pubblicare firma e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore. <span className="text-muted-foreground">Senza consenso, nome e dedica non vengono salvati.</span></span>
-      </label>
-      <button disabled={busy} onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">Appendi all'Albero</button>
-      <Modal open={!!done} onClose={() => setDone(null)}>
-        <DemoNotice>Addobbo appeso all'albero demo condiviso. Donazione simulata: nessun importo reale.</DemoNotice>
-        <OrnamentIcon kind={p.ornament} className="animate-floaty mx-auto mt-4 w-20" />
-        {done?.dedica && <p className="mt-3 text-center font-display italic">“{done.dedica}”</p>}
-        <p className="mt-2 text-center text-xs text-gold">
-          {done?.status === "approved" ? "Visibile subito sull'albero" : done?.status === "pending" ? "Dedica in moderazione: l'addobbo è visibile, il testo dopo l'approvazione" : "Dedica non pubblicabile: l'addobbo resta senza testo"}
-        </p>
-        <Link to="/albero" search={{ trova: 1 }} className="mt-6 flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-center font-semibold text-primary-foreground"><LocateFixed className="h-4 w-4" /> Trova il mio addobbo</Link>
-      </Modal>
+      <Consent checked={consent} onChange={setConsent} />
+      <button disabled={busy} onClick={submit} className="mt-4 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60"><Gift className="mr-2 inline h-5 w-5" />Appendi all'Albero</button>
     </section>
   );
 }
@@ -371,83 +405,37 @@ const postcardSchema = z.object({
   msg: z.string().trim().max(90, "Massimo 90 caratteri"),
 });
 
-function Dedica({ p, onDetail, onEmail }: { p: Project; onDetail: () => void; onEmail: () => void }) {
+function Dedica({ p, hung, hang, onEmail }: { p: Project; hung: Hung | null; hang: HangFn; onEmail: () => void }) {
   const [to, setTo] = useState("");
   const [from, setFrom] = useState("");
   const [msg, setMsg] = useState("");
   const [consent, setConsent] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [created, setCreated] = useState<{ status: string } | null>(null);
-  const [hangErr, setHangErr] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [shareNote, setShareNote] = useState("");
-
-  useEffect(() => {
-    if (!created) return;
-    let on = true;
-    renderPostcardImage(p, to, from, msg).then((f) => on && setFile(f)).catch(() => on && setFile(null));
-    return () => { on = false; };
-  }, [created, p, to, from, msg]);
+  const [created, setCreated] = useState<Hung | null>(null);
 
   const create = async () => {
     const r = postcardSchema.safeParse({ to, from, msg });
     if (!r.success) { setErr(r.error.issues[0]?.message ?? "Dati non validi"); return; }
-    setErr(""); setBusy(true); setHangErr("");
-    try {
-      // The recipient name never leaves the device; firma/dedica are stored only with explicit consent.
-      const res = await addOrnament(p.ornament, consent ? r.data.from : "", consent ? r.data.msg : "", consent);
-      setCreated({ status: res?.status ?? "approved" });
-    } catch (e) {
-      setHangErr(e instanceof Error ? e.message : "Addobbo non appeso");
-      setCreated({ status: "none" });
-    } finally { setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  };
-
-  const share = async () => {
-    const text = postcardText(p, to, from, msg);
-    if (file && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Cartolina CRI Monza · demo", text }); setShareNote("Scegli WhatsApp dal menu di condivisione."); return; }
-      catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
-    }
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-    setShareNote("Si apre WhatsApp con il messaggio e il link al progetto. Puoi allegare l'immagine scaricata.");
-  };
-  const download = () => {
-    if (!file) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(file); a.download = file.name; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setErr(""); setBusy(true);
+    // The recipient name never leaves the device; "Da" and dedica are stored only with explicit consent.
+    const h = await hang(consent ? r.data.from : "", consent ? r.data.msg : "", consent);
+    setCreated(h); setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (created) return (
-    <section className="animate-rise mx-auto max-w-lg px-4 pt-6">
+    <section className="animate-rise mx-auto max-w-5xl px-4 pt-6">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">La tua cartolina · demo</p>
       <h1 className="mt-2 font-display text-4xl leading-tight">Per {to.trim()}, <span className="text-gold">con amore da Monza.</span></h1>
-      <div className="mt-6"><Postcard project={p} to={to.trim()} from={from.trim()} msg={msg.trim()} /></div>
-      <p className="mt-3 text-center text-xs text-gold">
-        {hangErr ? `Addobbo non appeso: ${hangErr}` : created.status === "pending" ? "Il tuo addobbo è sull'albero; la dedica pubblica sarà visibile dopo la moderazione." : created.status === "rejected" ? "Il tuo addobbo è sull'albero, senza testo pubblico." : "Il tuo addobbo è già appeso all'Albero di Monza."}
-      </p>
-      <div className="mt-6 space-y-2">
-        <button onClick={share} className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Condividi su WhatsApp</button>
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={download} disabled={!file} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-50"><Download className="h-4 w-4" /> Scarica immagine</button>
-          <Link to="/albero" search={{ trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova il mio addobbo</Link>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={onDetail} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Sparkles className="h-4 w-4" /> Il progetto</button>
-          <button onClick={onEmail} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Mail className="h-4 w-4" /> Anteprima email</button>
-        </div>
-      </div>
-      {shareNote && <p role="status" className="mt-3 text-center text-xs text-muted-foreground">{shareNote}</p>}
-      <p className="mt-4 text-center text-[11px] text-muted-foreground">La condivisione apre davvero WhatsApp o il menu del telefono; il messaggio indica che si tratta di una cartolina DEMO. Il nome del destinatario non viene salvato.</p>
+      <div className="mt-6"><PostcardStudio project={p} to={to.trim()} from={from.trim()} msg={msg.trim()} ornamentId={created.id} status={hungNote(created)} /></div>
+      <div className="mx-auto mt-3 max-w-lg"><button onClick={onEmail} className="glass flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Mail className="h-4 w-4" /> Mandala anche via email</button></div>
     </section>
   );
 
   return (
     <section className="mx-auto max-w-lg px-4 pt-6">
-      <h1 className="font-display text-4xl">Dedicalo a una persona</h1>
-      <p className="mt-2 text-muted-foreground">Crea la cartolina di “{p.title}” e appendi il tuo addobbo all'Albero di Monza.</p>
+      <h1 className="font-display text-4xl">Regalalo a una persona</h1>
+      <p className="mt-2 text-muted-foreground">Crea la cartolina di “{p.title}” da mandare su WhatsApp.</p>
       <div className="mt-6 space-y-4">
         <Field label="Per" placeholder="Nome del destinatario" maxLength={40} value={to} onChange={(e) => setTo(e.target.value)} />
         <Field label="Da (facoltativo)" placeholder="Il tuo nome" maxLength={40} value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -459,10 +447,7 @@ function Dedica({ p, onDetail, onEmail }: { p: Project; onDetail: () => void; on
           <button type="button" onClick={() => setMsg(p.postcardLine)} className="rounded-full border hairline-gold px-3 py-1.5 text-xs text-gold">Usa la frase suggerita</button>
           <span className="text-[11px] text-muted-foreground">{msg.length}/90</span>
         </div>
-        <label className="flex items-start gap-3 text-sm">
-          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
-          <span>Pubblica anche “Da” e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore. <span className="text-muted-foreground">Facoltativo: senza consenso l'addobbo resta anonimo.</span></span>
-        </label>
+        {!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche “Da” e dedica sull'albero e sullo schermo in piazza, dopo la verifica di un moderatore." />}
       </div>
       {err && <p role="alert" className="mt-3 text-sm text-primary">{err}</p>}
       <button disabled={busy} onClick={create} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">{busy ? "Preparo la cartolina…" : "Crea la cartolina"}</button>
@@ -471,63 +456,22 @@ function Dedica({ p, onDetail, onEmail }: { p: Project; onDetail: () => void; on
   );
 }
 
-function Sorpresa({ p }: { p: Project }) {
-  const [mode, setMode] = useState<EmailMode>("christmas");
-  const [donor, setDonor] = useState("");
-  const [to, setTo] = useState("");
-  const [msg, setMsg] = useState("");
-  const [error, setError] = useState("");
-  const [done, setDone] = useState<EmailMode | null>(null);
-  const confirm = () => {
-    const r = giftEmailSchema.safeParse({ mode, donor, to, msg });
-    if (!r.success) { setError(r.error.issues[0]?.message ?? "Dati non validi"); return; }
-    setError("");
-    setDone(r.data.mode);
-    // Nothing is kept: the recipient address is cleared right after the simulated confirmation.
-    setTo(""); setMsg("");
-  };
-  const modes: { id: EmailMode; t: string; d: string; i: React.ReactNode }[] = [
-    { id: "now", t: "Invia ora", d: "Arriva subito al destinatario", i: <Send className="h-5 w-5" /> },
-    { id: "christmas", t: "Sorprendilo a Natale", d: CHRISTMAS_DELIVERY, i: <CalendarClock className="h-5 w-5" /> },
-  ];
+function Sorpresa({ p, hung, hang }: { p: Project; hung: Hung | null; hang: HangFn }) {
+  const [consent, setConsent] = useState(false);
   return (
-    <section className="mx-auto max-w-5xl px-4 pt-6">
-      <h1 className="font-display text-4xl">Regalalo via email</h1>
-      <p className="mt-2 text-muted-foreground">Scegli se farlo arrivare subito o proprio la notte di Natale.</p>
-      <div className="mt-6 grid gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <div role="radiogroup" aria-label="Quando inviare l'email" className="grid grid-cols-2 gap-3">
-            {modes.map((m) => (
-              <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)} className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition ${mode === m.id ? "border-gold bg-secondary" : "glass"}`}>
-                <span className={mode === m.id ? "text-gold" : "text-muted-foreground"}>{m.i}</span>
-                <span className="font-display text-lg leading-tight">{m.t}</span>
-                <span className="text-xs text-muted-foreground">{m.d}</span>
-              </button>
-            ))}
-          </div>
-          <Field label="Il tuo nome (facoltativo)" placeholder="Federico" maxLength={40} value={donor} onChange={(e) => setDonor(e.target.value)} />
-          <Field label="Email destinatario" type="email" autoComplete="off" placeholder="nome@esempio.it" maxLength={255} value={to} onChange={(e) => setTo(e.target.value)} />
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Dedica (facoltativa)</span>
-            <textarea rows={3} maxLength={90} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Buon Natale! Quest'anno ho pensato a un regalo diverso." className="glass mt-1.5 w-full rounded-2xl p-4 outline-none focus:border-gold" />
-          </label>
-          <div className="glass flex items-center gap-3 rounded-2xl p-4">
-            <CalendarClock className="h-6 w-6 text-gold" />
-            <div><p className="text-xs uppercase tracking-widest text-muted-foreground">Consegna · demo</p><p className="font-display text-lg">{deliveryLabel(mode)}</p></div>
-          </div>
-          {error && <p role="alert" className="text-sm text-gold">{error}</p>}
-          <button onClick={confirm} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground">{mode === "now" ? "Invia ora" : "Programma sorpresa"}</button>
-          <p className="text-center text-[11px] text-muted-foreground">Demo: nessuna email verrà inviata o programmata, nessun indirizzo viene salvato.</p>
-        </div>
-        <div>
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-gold">Anteprima email</p>
-          <EmailPreview project={p} donor={donor} to={to} msg={msg} mode={mode} />
-        </div>
-      </div>
-      <Modal open={done !== null} onClose={() => setDone(null)}>
-        <DemoNotice>{done ? confirmationText(done) : ""} 🎄</DemoNotice>
-        <p className="mt-3 text-center text-sm text-muted-foreground">Questa è una simulazione: nessuna email è stata inviata né programmata, e l'indirizzo non è stato salvato.</p>
-      </Modal>
+    <section className="mx-auto max-w-6xl px-4 pt-6">
+      <EmailStudio
+        project={p}
+        ornamentId={hung?.id}
+        title="Regalalo via email"
+        subtitle="Scegli se farlo arrivare subito o la mattina di Natale."
+        consentSlot={!hung && <Consent checked={consent} onChange={setConsent} label="Pubblica anche il tuo nome e la dedica sull'albero, dopo la verifica di un moderatore." />}
+        onConfirm={async ({ donor, msg }) => {
+          const h = await hang(consent ? donor : "", consent ? msg : "", consent);
+          if (h.error) throw new Error(h.error);
+          return h.id;
+        }}
+      />
     </section>
   );
 }
