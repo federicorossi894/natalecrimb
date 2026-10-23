@@ -35,3 +35,14 @@
 - [x] Official poster "Mercatini di Natale" on /casetta, home and TV casetta scene
 - [x] Product photos: cioccolatini, panettone carta, panettone latta
 - [ ] Pandoro photo — awaits the original from the user (placeholder shown)
+
+## Tre nuove esperienze (23/10)
+- [ ] Calendario della Gentilezza: /calendario, 24 sportelli 1–24 dic, sblocco con data Europe/Rome del server, testi modificabili dai moderatori
+- [ ] TV: cerimonia apertura sportello alle 10:00 Rome una volta al giorno, poi messaggio compatto fisso; anteprima prima del 1/12, chiusura dopo il 24/12
+- [ ] Casetta delle meraviglie: /casetta più ricca e interattiva (stesse foto/locandina/prezzi, solo in presenza)
+- [ ] Muro degli auguri: /auguri con bigliettini su legno e mollette, solo approvati + esempi DEMO etichettati
+- [ ] Volontari: "Acquisto alla casetta" → QR/link monouso (7 giorni) per un augurio; demo in memoria
+- [ ] Pagina /augurio scrittura (180 car., soprannome facoltativo, consenso obbligatorio) + recupero stato
+- [ ] Moderazione auguri solo moderatori/admin (approva/rifiuta/nascondi, segnali automatici)
+- [ ] TV scena occasionale auguri approvati
+- [ ] Test: calendario date/fuso/TV reload, token doppio uso/scadenza, permessi, mobile, nessuna regressione
