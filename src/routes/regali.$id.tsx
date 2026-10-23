@@ -73,7 +73,7 @@ function Detail() {
   const toCheckout = () => { if (parsed.success) go("checkout"); };
 
   return (
-    <Shell hidePiazzaPill={step !== "detail"}>
+    <Shell hidePiazzaPill>
       <div className="mx-auto max-w-6xl px-4 pt-6">
         <button onClick={back} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro

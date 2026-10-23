@@ -65,7 +65,7 @@ export function TreeTV(){
     <div className="tv-vignette" aria-hidden />
     <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
       <CriLockup className="h-[6.5cqw]" />
-      <h1 className="mt-[0.4cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
+      <h1 className="mt-[1.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
     </div>
     <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
     <div className="tv-copy">
