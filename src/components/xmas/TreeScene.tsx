@@ -46,7 +46,7 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:nu
     const p=selected?ornamentAnchor(selected,height,index,count):[0,height*0.53,0];
     const a=selected?Math.atan2(p[0]??0,p[2]??0):clock.current*0.075;
     // TV framing: whole tree with breathing room in the left two-thirds; a focused bauble keeps some of the tree around it.
-    const d=selected?Math.max(3.6,height*1.15):height*TV_PANORAMA;
+    const d=selected?Math.max(3,height*0.8):height*TV_PANORAMA;
     target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.45:height*0.14),(p[2]??0)+Math.cos(a)*d);
     camera.position.lerp(target,1-Math.exp(-1.5*dt));camera.lookAt(p[0]??0,p[1]??0,p[2]??0);
   });
