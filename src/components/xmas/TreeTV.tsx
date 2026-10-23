@@ -9,13 +9,18 @@ import { TvQr } from './Qr';
 import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
+import { TvKindness } from './TvKindness';
+import { usePublicWishes, noteLook, type PublicWish } from '@/lib/wishes';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
-export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica';
-export const TV_DURATION: Record<TvScene, number> = { invito: 18000, passi: 14000, attivita: 14000, casetta: 14000, dedica: 12000 };
-/** The dedication scene exists only when at least one dedication is approved and public. */
-export const tvSequence = (hasPublicDedication: boolean): TvScene[] =>
-  hasPublicDedication ? ['invito', 'passi', 'attivita', 'casetta', 'dedica'] : ['invito', 'passi', 'attivita', 'casetta'];
+export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
+export const TV_DURATION: Record<TvScene, number> = { invito: 18000, passi: 14000, attivita: 14000, casetta: 14000, dedica: 12000, auguri: 14000 };
+/** Dedication and wishes scenes exist only when at least one approved, public item exists. */
+export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = false): TvScene[] => [
+  'invito', 'passi', 'attivita', 'casetta',
+  ...(hasPublicDedication ? (['dedica'] as const) : []),
+  ...(hasApprovedWishes ? (['auguri'] as const) : []),
+];
 const ARRIVAL_MS = 10000;
 const SAFETY_RELOAD_MS = 6 * 60 * 60 * 1000;
 type WakeNavigator = Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } };
@@ -26,6 +31,10 @@ const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kin
 export function TreeTV() {
   const { addedOrnaments: ornaments, addedCount, error } = useTreeStore();
   const events = useCasettaEvents();
+  const { wishes } = usePublicWishes(60_000);
+  const wishesRef = useRef<PublicWish[]>(wishes);
+  const wishCursor = useRef(0);
+  const [wishTrio, setWishTrio] = useState<PublicWish[]>([]);
   const [scene, setScene] = useState<TvScene>('invito');
   const [selected, setSelected] = useState<TreeOrnament | null>(null);
   const [arriving, setArriving] = useState<TreeOrnament | null>(null);
@@ -37,10 +46,11 @@ export function TreeTV() {
   const reduced = useReducedMotion();
   const publicDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
   const hasDedications = publicDedications.length > 0;
-  const sequence = tvSequence(hasDedications);
+  const sequence = tvSequence(hasDedications, wishes.length > 0);
 
   useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
   useEffect(() => { arrivingRef.current = arriving; }, [arriving]);
+  useEffect(() => { wishesRef.current = wishes; }, [wishes]);
 
   // New gift detection (polling via useTreeStore). The first non-empty load is the existing tree, not an arrival.
   useEffect(() => {
@@ -64,11 +74,17 @@ export function TreeTV() {
     let timer: ReturnType<typeof setTimeout>;
     const run = () => {
       const pub = ornamentsRef.current.filter((o) => o.dedica);
-      const seq = tvSequence(pub.length > 0);
+      const w = wishesRef.current;
+      const seq = tvSequence(pub.length > 0, w.length > 0);
       const s = seq[step.current % seq.length]!;
       step.current++;
       if (s === 'dedica') setSelected(pub[cursor.current++ % pub.length] ?? null);
       else setSelected(null);
+      if (s === 'auguri') {
+        const start = wishCursor.current;
+        setWishTrio(Array.from({ length: Math.min(3, w.length) }, (_, i) => w[(start + i) % w.length]!));
+        wishCursor.current = (start + 3) % Math.max(1, w.length);
+      }
       setScene(s);
       timer = setTimeout(run, TV_DURATION[s]);
     };
@@ -104,6 +120,8 @@ export function TreeTV() {
         <CriLockup className="h-[5.4cqw]" />
         <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
       </header>
+
+      <TvKindness reduced={reduced} />
 
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>
@@ -192,6 +210,20 @@ export function TreeTV() {
                 </div>
               </>
             )}
+          </section>
+
+          <section className={`tv-card ${on('auguri')}`} data-scene="auguri" data-testid="tv-wishes">
+            <p className="tv-kicker">Dal Muro degli auguri</p>
+            <p className="mt-[0.6cqw] text-[1.5cqw] text-muted-foreground">Biglietti lasciati alla casetta e letti dallo staff</p>
+            <div className="tv-notes">
+              {wishTrio.map((w, i) => (
+                <div key={`${w.id}-${i}`} className={`wish-note tv-note wish-paper-${noteLook(w.id).paper}`} style={{ ['--i' as string]: i, ['--tilt' as string]: `${noteLook(w.id).rotate}deg` }}>
+                  <span className="wish-pin" style={{ transform: 'translateX(-50%)' }} aria-hidden />
+                  <span className="wish-text line-clamp-5 block">{w.body}</span>
+                  <span className="mt-[0.5cqw] block text-right text-[1cqw] font-semibold">— {w.nickname ?? 'Un augurio da Monza'}</span>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className={`tv-card ${on('arrivo')}`} data-scene="arrivo">
