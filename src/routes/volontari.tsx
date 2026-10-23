@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Camera, CheckCircle2, Keyboard, PlusCircle, Presentation, RotateCcw, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Gift, Keyboard, Mail, PlusCircle, Presentation, RotateCcw, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { AuthBox } from "@/components/xmas/AuthBox";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS, type OrnamentKind } from "@/lib/data";
+import { EmailStudio } from "@/components/xmas/PostDonation";
 import { QRCodeSVG } from "qrcode.react";
 import { createDemoDesk, DEMO_CODE, type DemoEntry, type DeskApi, type DeskLookup } from "@/lib/volunteer-demo";
 import { DESK_METHOD_LABEL, euro, formatCode, isCompleteCode, manualOrnamentSchema, normalizeCode, projectForKind, type DeskMethod } from "@/lib/cash";
@@ -105,7 +106,7 @@ const realApi: DeskApi = {
   async add(i) {
     const { data, error } = await supabase.rpc("volunteer_add_ornament", { _kind: i.kind, _amount_cents: i.amount_cents, _method: i.method, _firma: i.consent ? i.firma : "", _dedica: i.consent ? i.dedica : "", _consent: i.consent });
     if (error) throw new Error(error.message);
-    return { status: data?.[0]?.status ?? "pending" };
+    return { status: data?.[0]?.status ?? "pending", id: data?.[0]?.id ?? null };
   },
 };
 const RESULT_TEXT = {
@@ -207,18 +208,22 @@ function ManualFlow({ api, demo = false }: { api: DeskApi; demo?: boolean }) {
   const [simulated, setSimulated] = useState(false);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ kind: OrnamentKind; firma: string; dedica: string; id: string | null; text: string } | null>(null);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const r = manualOrnamentSchema.safeParse({ kind, amount, method, firma, dedica, consent, simulated });
     if (!r.success) { setMsg(r.error.issues[0]?.message ?? "Dati non validi"); return; }
     setBusy(true);
-    let st: string;
-    try { st = (await api.add({ kind: r.data.kind, amount_cents: r.data.amount * 100, method: r.data.method, firma: r.data.firma, dedica: r.data.dedica, consent: r.data.consent })).status; }
+    let res: { status: string; id?: string | null };
+    try { res = await api.add({ kind: r.data.kind, amount_cents: r.data.amount * 100, method: r.data.method, firma: r.data.firma, dedica: r.data.dedica, consent: r.data.consent }); }
     catch (e) { setMsg(e instanceof Error ? e.message : "Errore"); setBusy(false); return; }
     setBusy(false);
-    setMsg(`${demo ? "Presentazione: pallina simulata, nessun dato salvato" : "Pallina appesa all'albero condiviso"} (${euro(r.data.amount * 100)}, ${DESK_METHOD_LABEL[r.data.method].toLowerCase()} · simulato).${st === "pending" ? " La dedica attende la moderazione." : st === "rejected" ? " La dedica non è pubblicabile: la pallina resta senza testo." : ""}`);
+    const st = res.status;
+    setMsg("");
+    setDone({ kind: r.data.kind, firma: r.data.firma, dedica: r.data.dedica, id: res.id ?? null, text: `${demo ? "Presentazione: pallina simulata, nessun dato salvato" : "Pallina appesa all'albero condiviso"} (${euro(r.data.amount * 100)}, ${DESK_METHOD_LABEL[r.data.method].toLowerCase()} · simulato).${st === "pending" ? " La dedica attende la moderazione." : st === "rejected" ? " La dedica non è pubblicabile: la pallina resta senza testo." : ""}` });
     setFirma(""); setDedica(""); setConsent(false); setSimulated(false);
   };
+  if (done) return <DeskAfter {...done} demo={demo} onEnd={() => setDone(null)} />;
   const fillExample = () => { setKind("calore"); setAmount("25"); setMethod("pos_manual"); setFirma("Famiglia Rossi"); setDedica("Una coperta calda per chi vive in strada"); setConsent(true); setSimulated(true); setMsg(""); };
   return (
     <form onSubmit={submit} className="mt-4 space-y-4">
@@ -251,6 +256,31 @@ function ManualFlow({ api, demo = false }: { api: DeskApi; demo?: boolean }) {
       {msg && <p role="status" className="text-sm text-gold">{msg}</p>}
       <button disabled={busy} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">Conferma e appendi la pallina</button>
     </form>
+  );
+}
+
+/** After a manual entry: finish, or send the donor a (simulated) email postcard, or gift it to someone by email. */
+function DeskAfter({ kind, firma, dedica, id, text, demo, onEnd }: { kind: OrnamentKind; firma: string; dedica: string; id: string | null; text: string; demo: boolean; onEnd: () => void }) {
+  const [mode, setMode] = useState<"choose" | "donor" | "recipient">("choose");
+  const p = projectForKind(kind) ?? PROJECTS[0]!;
+  return (
+    <div className="mt-4 space-y-4" data-testid="desk-after">
+      <p role="status" className="flex items-start gap-2 rounded-2xl border hairline-gold p-4 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-gold" />{text}</p>
+      {mode === "choose" ? (
+        <div className="grid gap-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">E adesso?</p>
+          <button onClick={onEnd} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><CheckCircle2 className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Termina</span><span className="text-xs text-muted-foreground">Torna al modulo per il prossimo donatore</span></span></button>
+          <button onClick={() => setMode("donor")} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><Mail className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Invia la cartolina al donatore</span><span className="text-xs text-muted-foreground">Email simulata con il link al suo addobbo</span></span></button>
+          <button onClick={() => setMode("recipient")} className="glass flex items-center gap-3 rounded-2xl p-4 text-left"><Gift className="h-6 w-6 shrink-0 text-gold" /><span><span className="block font-display text-lg">Regalalo a un destinatario</span><span className="text-xs text-muted-foreground">Email simulata, subito o il 25 dicembre alle 08:00</span></span></button>
+        </div>
+      ) : (
+        <>
+          <button onClick={() => setMode("choose")} className="text-sm text-muted-foreground underline">← Altre opzioni</button>
+          <EmailStudio project={p} audience={mode} ornamentId={id} demo={demo} defaults={{ donor: firma, msg: dedica }} />
+          <button onClick={onEnd} className="w-full rounded-full bg-fir py-3.5 font-semibold text-snow">Termina</button>
+        </>
+      )}
+    </div>
   );
 }
 
