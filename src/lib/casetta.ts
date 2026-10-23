@@ -1,4 +1,8 @@
 import { TREE_UNTIL } from "./data";
+import posterAsset from "@/assets/casetta/locandina-mercatini-di-natale.jpg.asset.json";
+import chocoAsset from "@/assets/casetta/cioccolatini-solidali-latta.jpg.asset.json";
+import boxAsset from "@/assets/casetta/panettone-solidale-scatola.jpg.asset.json";
+import tinAsset from "@/assets/casetta/panettone-solidale-latta.jpg.asset.json";
 
 /**
  * Casetta CRI shop window — facts confirmed by the Comitato (via the user), never invented.
@@ -20,10 +24,11 @@ export const CASETTA = {
 export type CasettaImage = { src: string; alt: string; width?: number; height?: number } | null;
 export type CasettaSlot = "poster" | "cioccolatini" | "panettoneCarta" | "panettoneLatta" | "pandoroLatta";
 export const CASETTA_MEDIA: Record<CasettaSlot, CasettaImage> = {
-  poster: null,
-  cioccolatini: null,
-  panettoneCarta: null,
-  panettoneLatta: null,
+  poster: { src: posterAsset.url, alt: "Locandina Mercatini di Natale di Croce Rossa Italiana – Comitato di Monza: dal 21 novembre al 6 gennaio, Piazza San Paolo Monza. Cioccolato, tisane, regali, panettone.", width: 1024, height: 1280 },
+  cioccolatini: { src: chocoAsset.url, alt: "Latta Cioccolatini solidali Croce Rossa Italiana con cioccolatini incartati di rosso", width: 391, height: 382 },
+  panettoneCarta: { src: boxAsset.url, alt: "Scatola in carta del Panettone solidale Croce Rossa Italiana", width: 427, height: 401 },
+  panettoneLatta: { src: tinAsset.url, alt: "Latta del Panettone solidale Croce Rossa Italiana accanto al panettone", width: 554, height: 343 },
+  // No original pandoro photo supplied yet: keep the placeholder, never a generated image.
   pandoroLatta: null,
 };
 
