@@ -6,7 +6,7 @@ import { Snow } from "@/components/xmas/Snow";
 import hero from "@/assets/kids/academy-hero.jpg";
 import cold from "@/assets/kids/scene-cold.jpg";
 import battito from "@/assets/kids/scene-battito.jpg";
-import { useAcademy } from "@/components/kids/Kit";
+import { HelperProvider, useAcademy } from "@/components/kids/Kit";
 import { Backpack, HelperBadge, Medal } from "@/components/kids/KidsArt";
 import { MissionCity } from "@/components/kids/MissionCity";
 import { MissionZaino } from "@/components/kids/MissionZaino";
@@ -58,7 +58,8 @@ function Academy() {
   else if (missione === "battito") body = <MissionBattito {...common} onComplete={() => complete("battito")} />;
   else if (missione === "diploma" && ready && canOpenDiploma(state)) body = <DiplomaView state={state} update={update} onExit={() => go()} />;
   else body = <Hub state={state} update={update} go={go} />;
-  return <Shell hidePiazzaPill={!!missione}><div className="pb-28">{body}</div></Shell>;
+  // The guide picked in the hub speaks the feedback in every mission (device-only choice, no personal data).
+  return <Shell hidePiazzaPill={!!missione}><HelperProvider helper={state.helper ?? "stella"}><div className="pb-28">{body}</div></HelperProvider></Shell>;
 }
 
 function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["state"]; update: ReturnType<typeof useAcademy>["update"]; go: (v?: View) => void }) {
@@ -80,8 +81,8 @@ function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["stat
 
       <section className="mx-auto max-w-6xl px-4 pt-8">
         <h2 className="font-display text-2xl">Scegli il tuo aiutante</h2>
-        <p className="text-sm text-muted-foreground">Comparirà sul tuo diploma. Non serve scrivere il nome.</p>
-        <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Aiutante del diploma">
+        <p className="text-sm text-muted-foreground">Ti darà consigli durante le missioni e comparirà sul tuo diploma. Non serve scrivere il nome.</p>
+        <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Il tuo aiutante">
           {HELPERS.map((h) => {
             const on = (state.helper ?? "stella") === h.id;
             return (

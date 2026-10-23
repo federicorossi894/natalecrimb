@@ -18,6 +18,18 @@ export const HELPERS: { id: HelperId; name: string }[] = [
   { id: "pettirosso", name: "Pettirosso" },
 ];
 
+/** Short openers each guide says before the feedback: warm, playful, never judging. */
+export const HELPER_VOICE: Record<HelperId, { great: string[]; kind: string[] }> = {
+  stella: { great: ["Che luce, aiutante!", "Brilli più di me!", "Evviva, ce l'hai fatta!"], kind: ["Ci penso con te…", "Nessun problema, riproviamo!", "Ogni stella ci prova più volte!"] },
+  pupazzo: { great: ["Mi si scalda il cuore di neve!", "Che bella scelta, evviva!", "Fantastico, salto di gioia!"], kind: ["Brrr… proviamo un'altra idea?", "Niente paura, anche io sbaglio strada sulla neve!", "Pensiamoci insieme, piano piano."] },
+  lanterna: { great: ["Hai acceso una luce!", "Che bagliore, ottima idea!", "Ecco, ora si vede la strada!"], kind: ["Illuminiamo un'altra idea.", "Facciamo un po' più di luce insieme…", "Nessuna fretta: guardiamo meglio."] },
+  pettirosso: { great: ["Cip cip, che bella scelta!", "Cip! Volo di gioia!", "Che bello, cip cip!"], kind: ["Cip… proviamo un'altra strada?", "Cip! Ci riproviamo insieme.", "Un piccolo volo e riproviamo!"] },
+};
+export const helperLead = (id: HelperId, tone: "great" | "kind", turn: number) => {
+  const list = HELPER_VOICE[id][tone];
+  return list[((turn % list.length) + list.length) % list.length]!;
+};
+
 export type Diploma = { code: string; issuedAt: string; claimedAt: string | null };
 export type AcademyState = { done: MissionId[]; helper: HelperId | null; diploma: Diploma | null };
 export const EMPTY_ACADEMY: AcademyState = { done: [], helper: null, diploma: null };

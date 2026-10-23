@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, Check, RotateCcw, Volume2, VolumeX, AudioLines } from "lucide-react";
 import { Snow } from "@/components/xmas/Snow";
-import { ACADEMY_KEY, EMPTY_ACADEMY, parseAcademy, type AcademyState } from "@/lib/kids-academy";
+import { ACADEMY_KEY, EMPTY_ACADEMY, HELPERS, helperLead, parseAcademy, type AcademyState, type HelperId } from "@/lib/kids-academy";
+import { HelperBadge } from "./KidsArt";
 
 /** Progress lives only in this device's storage (read after hydration, so SSR and client markup match). */
 export function useAcademy() {
@@ -116,18 +117,54 @@ export function ChoiceCard({ icon, label, state, onPick, disabled }: { icon: Rea
   );
 }
 
-/** Gentle feedback bubble, announced to screen readers. */
-export function Bubble({ tone, children }: { tone: "kind" | "great"; children: ReactNode }) {
+/** The guide the child picked in the Academy hub (stored on the device only, never a name). */
+const HelperContext = createContext<HelperId>("stella");
+export function HelperProvider({ helper, children }: { helper: HelperId; children: ReactNode }) {
+  return <HelperContext.Provider value={helper}>{children}</HelperContext.Provider>;
+}
+export const useHelper = () => useContext(HelperContext);
+export const helperName = (id: HelperId) => HELPERS.find((h) => h.id === id)?.name ?? "Stellina";
+
+let leadTurn = 0;
+
+/**
+ * Feedback spoken by the chosen guide: avatar + speech balloon with a short, warm opener, then the lesson.
+ * Announced to screen readers as "<guide>: …". Scrolls into view only when the message changes.
+ */
+export function Bubble({ tone, children, lead = true }: { tone: "kind" | "great"; children: ReactNode; lead?: boolean }) {
+  const helper = useHelper();
   const ref = useRef<HTMLDivElement>(null);
-  // Bring the feedback into view on phones (it can fall below the fold); margin keeps the next button visible too.
+  const last = useRef("");
+  const key = typeof children === "string" ? children : "";
+  // Opener rotates per new message, so the guide does not repeat the same exclamation every time.
+  const opener = useMemo(() => (lead ? helperLead(helper, tone, leadTurn++) : ""), [helper, tone, key, lead]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
+    const text = ref.current?.textContent ?? "";
+    if (text === last.current) return;
+    last.current = text;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     ref.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
-  }, [children]);
+  });
   return (
-    <div ref={ref} role="status" aria-live="polite" className={`animate-rise scroll-mb-40 scroll-mt-28 rounded-3xl p-4 text-base leading-relaxed ${tone === "great" ? "bg-paper text-ink" : "border hairline-gold bg-card"}`}>
-      {children}
+    <div ref={ref} role="status" aria-live="polite" className="animate-rise flex scroll-mb-40 scroll-mt-28 items-end gap-2.5" data-testid="helper-says" data-helper={helper}>
+      <HelperBadge id={helper} className={`h-14 w-14 shrink-0 drop-shadow-lg ${tone === "great" ? "kid-bump" : ""}`} />
+      <div className={`helper-balloon relative min-w-0 flex-1 rounded-3xl rounded-bl-md p-4 text-base leading-relaxed ${tone === "great" ? "bg-paper text-ink" : "border hairline-gold bg-card"}`}>
+        <span className={`block text-[11px] font-semibold uppercase tracking-widest ${tone === "great" ? "text-primary" : "text-gold"}`}>{helperName(helper)}<span className="sr-only"> dice:</span></span>
+        {opener && <strong className="block font-display text-lg leading-snug">{opener}</strong>}
+        <span className="block">{children}</span>
+      </div>
     </div>
+  );
+}
+
+/** One-line version for live moments (dragging, tapping the rhythm): no scrolling, no interruption. */
+export function HelperLine({ children, tone = "kind", className = "" }: { children: ReactNode; tone?: "kind" | "great"; className?: string }) {
+  const helper = useHelper();
+  return (
+    <p className={`flex items-center justify-center gap-2 text-sm font-semibold leading-snug ${tone === "great" ? "text-gold" : ""} ${className}`} data-testid="helper-line" data-helper={helper}>
+      <HelperBadge id={helper} className="h-9 w-9 shrink-0" />
+      <span className="min-w-0 text-left"><span className="sr-only">{helperName(helper)}: </span>{children}</span>
+    </p>
   );
 }
 

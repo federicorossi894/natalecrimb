@@ -194,3 +194,16 @@ describe('Kids academy', () => {
     expect(isPackComplete(['torcia', 'guanti', 'acqua', 'berretto', 'telefono'])).toBe(true);
   });
 });
+
+import { HELPERS, HELPER_VOICE, helperLead } from '@/lib/kids-academy';
+describe('Academy guide voice', () => {
+  it('every guide the child can pick has its own encouraging and correct-answer lines', () => {
+    for (const h of HELPERS) {
+      expect(HELPER_VOICE[h.id].great.length).toBeGreaterThan(0);
+      expect(HELPER_VOICE[h.id].kind.length).toBeGreaterThan(0);
+    }
+  });
+  it('rotates openers so the guide does not repeat the same line twice in a row', () => {
+    expect(helperLead('pupazzo', 'kind', 0)).not.toBe(helperLead('pupazzo', 'kind', 1));
+  });
+});

@@ -5,7 +5,7 @@ import { CRI } from "@/lib/data";
 import { GUIDE_BPM, MIN_TAPS, RHYTHM_SECONDS, liveBpm, rhythmSummary, zoneOf, BPM_MIN, BPM_MAX } from "@/lib/kids-academy";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { MagicHeart } from "./KidsArt";
-import { Bubble, ChoiceCard, ListenButton, MissionTop, PrimaryButton, RetryLink, SceneImage, useChimes } from "./Kit";
+import { Bubble, ChoiceCard, HelperLine, ListenButton, MissionTop, PrimaryButton, RetryLink, SceneImage, useChimes } from "./Kit";
 import { MissionDone } from "./MissionDone";
 
 type Choice = { icon: ReactNode; label: string; ok: boolean; fb: string };
@@ -216,7 +216,7 @@ function Rhythm({ sound, chime, onFinish }: { sound: boolean; chime: (k: "ok" | 
         {phase === "play" && (
           <>
             <p className="mt-2 font-display text-4xl" aria-hidden>{bpm ?? "…"} <span className="text-base text-muted-foreground">al minuto</span></p>
-            <p className={`mt-1 text-lg font-semibold ${zone === "good" ? "text-gold" : ""}`} aria-live="polite">{zone ? ZONE_TEXT[zone] : "Continua a toccare a tempo…"}</p>
+            <div aria-live="polite"><HelperLine tone={zone === "good" ? "great" : "kind"} className="mt-1 text-lg">{zone ? ZONE_TEXT[zone] : "Continua a toccare a tempo…"}</HelperLine></div>
           </>
         )}
         {phase === "retry" && (
