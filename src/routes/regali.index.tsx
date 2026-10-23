@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowRight, Banknote } from "lucide-react";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
-import { OrnamentIcon } from "@/components/xmas/Ornament";
-import { PROJECTS } from "@/lib/data";
+import { GiftBox } from "@/components/xmas/GiftBox";
+import { useUnwrap } from "@/hooks/use-unwrap";
+import { PROJECTS, getProject } from "@/lib/data";
+import { loadCashGift, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/")({
   head: () => ({
@@ -18,38 +22,38 @@ export const Route = createFileRoute("/regali/")({
   component: Regali,
 });
 
-const POS = ["sm:translate-y-0", "sm:translate-y-16", "sm:-translate-y-4", "sm:translate-y-12"];
-const BOX = ["bg-primary", "bg-fir", "bg-gold text-accent-foreground", "bg-snow text-ink"];
-
 function Regali() {
+  const { opening, unwrap } = useUnwrap();
+  const [cash, setCash] = useState<StoredCashGift | null>(null);
+  useEffect(() => setCash(loadCashGift()), []);
+  const cashProject = cash ? getProject(cash.project) : undefined;
   return (
     <Shell>
       <PageHead kicker="Sotto l'albero" title={<>Scarta un regalo.<br /><span className="text-gold">Scopri chi aiuta.</span></>}>
-        Ogni pacco è un progetto reale di Croce Rossa Monza. Scegli quello che ti tocca di più.
+        Ogni pacco è un progetto di Croce Rossa Monza. Toccane uno per aprirlo.
       </PageHead>
-      <section className="relative mx-auto max-w-6xl px-4 pb-24">
+      {cashProject && (
+        <div className="mx-auto max-w-6xl px-4">
+          <Link to="/regali/$id" params={{ id: cashProject.id }} className="glass flex items-center gap-3 rounded-2xl p-4 text-sm" data-testid="cash-resume">
+            <Banknote className="h-5 w-5 shrink-0 text-gold" />
+            <span className="min-w-0 flex-1"><strong>Il tuo regalo in contanti · {cashProject.title}</strong><br /><span className="text-muted-foreground">{cash?.confirmed ? "Confermato alla casetta: ora puoi mandare la cartolina." : "Mostra il QR ai volontari della casetta."}</span></span>
+            <ArrowRight className="h-4 w-4 text-gold" />
+          </Link>
+        </div>
+      )}
+      <section className="relative mx-auto max-w-6xl px-4 pb-20 pt-6">
         <Snow count={25} />
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-12 md:gap-x-10 lg:grid-cols-4">
           {PROJECTS.map((p, i) => (
-            <Link key={p.id} to="/regali/$id" params={{ id: p.id }} className={`group animate-rise ${POS[i]}`} style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="relative mx-auto aspect-square w-full max-w-[220px] transition duration-500 group-hover:-translate-y-2 group-hover:rotate-[-2deg]">
-                <div className={`absolute inset-x-[6%] bottom-0 top-[22%] rounded-xl shadow-deep ${BOX[i]}`}>
-                  <div className="absolute inset-y-0 left-1/2 w-[14%] -translate-x-1/2 bg-gold/90" />
-                </div>
-                <div className={`absolute inset-x-0 top-[14%] h-[16%] rounded-lg shadow-deep transition duration-500 group-hover:-translate-y-4 group-hover:-rotate-6 ${BOX[i]}`} style={{ filter: "brightness(1.08)" }}>
-                  <div className="absolute inset-y-0 left-1/2 w-[14%] -translate-x-1/2 bg-gold" />
-                </div>
-                <div className="absolute left-1/2 top-[2%] h-[16%] w-[40%] -translate-x-1/2 rounded-full border-[5px] border-gold transition duration-500 group-hover:-translate-y-4" />
-                <div className="absolute left-1/2 top-[36%] w-[40%] -translate-x-1/2 opacity-0 transition duration-500 group-hover:-translate-y-10 group-hover:opacity-100">
-                  <OrnamentIcon kind={p.ornament} className="w-full drop-shadow-xl" />
-                </div>
-              </div>
-              <p className="mt-4 text-center text-[10px] uppercase tracking-widest text-muted-foreground">{p.kicker}</p>
-              <p className="text-center font-display text-xl sm:text-2xl">{p.title}</p>
+            <Link key={p.id} to="/regali/$id" params={{ id: p.id }} onClick={unwrap(p.id)} className="gift-trigger group animate-rise rounded-3xl text-center outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ animationDelay: `${i * 0.08}s` }} aria-label={`Apri il regalo ${p.title}`}>
+              <GiftBox project={p} open={opening === p.id} className={`mx-auto w-full max-w-[240px] transition duration-500 ${opening && opening !== p.id ? "scale-95 opacity-40" : ""}`} />
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-gold">{p.kicker}</p>
+              <p className="mt-1 font-display text-xl leading-tight sm:text-2xl">{p.title}</p>
+              <p className="mx-auto mt-1 hidden max-w-[22ch] text-sm text-muted-foreground sm:block">{p.tagline}</p>
             </Link>
           ))}
         </div>
-        <p className="mt-24 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>
+        <p className="mt-16 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>
       </section>
     </Shell>
   );

@@ -10,7 +10,7 @@ export type DeskAdd = { kind: OrnamentKind; amount_cents: number; method: DeskMe
 export type DeskApi = {
   lookup(code: string): Promise<DeskLookup | null>;
   confirm(code: string, method: DeskMethod): Promise<{ result: string; ornament_status: string | null }>;
-  add(input: DeskAdd): Promise<{ status: string }>;
+  add(input: DeskAdd): Promise<{ status: string; id?: string | null }>;
 };
 export type DemoEntry = { kind: string; amount_cents: number; method: DeskMethod; source: "qr" | "manuale"; status: string; firma: string | null };
 
@@ -41,7 +41,7 @@ export function createDemoDesk(onLog: (e: DemoEntry) => void) {
     async add(i) {
       const f = i.consent ? i.firma.trim() || null : null, d = i.consent ? i.dedica.trim() || null : null, st = textStatus(f, d);
       onLog({ kind: i.kind, amount_cents: i.amount_cents, method: i.method, source: "manuale", status: st, firma: f });
-      return { status: st };
+      return { status: st, id: null };
     },
     newRequest() {
       let code = "";

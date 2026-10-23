@@ -204,6 +204,28 @@
 .tv-scene, .tv-scene * { cursor: none; }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
+/* Illustrated gift boxes */
+.gift-lid { transform-box: view-box; transform-origin: 100px 125px; transition: transform 0.75s cubic-bezier(.2,.8,.2,1); }
+.gift-bow { transform-box: view-box; transform-origin: 100px 92px; }
+.gift-glow { opacity: 0; transition: opacity 0.6s ease; }
+.gift-pop { opacity: 0; transform: translate(-50%, 35%) scale(0.5); transition: transform 0.8s 0.18s cubic-bezier(.2,1.3,.4,1), opacity 0.4s 0.18s; }
+.gift-trigger:hover .gift-lid, .gift-trigger:focus-visible .gift-lid { transform: translateY(-8px) rotate(-2.5deg); }
+.gift-trigger:hover .gift-bow, .gift-trigger:focus-visible .gift-bow { animation: bow-wiggle 0.9s ease-in-out; }
+.gift-trigger:hover .gift-glow { opacity: 0.45; }
+.gift-box.is-open .gift-lid { transform: translate(-14px, -62px) rotate(-18deg); }
+.gift-box.is-open .gift-glow { opacity: 1; }
+.gift-box.is-open .gift-pop { opacity: 1; transform: translate(-50%, -38%) scale(1); }
+@keyframes bow-wiggle { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-6deg) scale(1.04); } 60% { transform: rotate(4deg); } }
+
+/* WhatsApp-style message preview (illustrative, labelled DEMO) */
+:root { --wa-bg: #0b141a; --wa-header: #1f2c34; --wa-out: #005c4b; --wa-text: #e9edef; --wa-meta: #8696a0; --wa-link: #53bdeb; --wa-tick: #53bdeb; }
+.wa-chat { background-color: var(--wa-bg); background-image: radial-gradient(color-mix(in oklab, var(--wa-meta) 14%, transparent) 1px, transparent 1px); background-size: 14px 14px; color: var(--wa-text); }
+.wa-header { background: var(--wa-header); color: var(--wa-text); }
+.wa-bubble { background: var(--wa-out); color: var(--wa-text); border-radius: 10px 0 10px 10px; }
+.wa-meta { color: var(--wa-meta); }
+.wa-link { color: var(--wa-link); }
+.wa-tick { color: var(--wa-tick); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

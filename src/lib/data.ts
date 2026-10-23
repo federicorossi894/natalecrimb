@@ -7,14 +7,22 @@ export type Project = {
   ornament: OrnamentKind;
   ornamentName: string;
   tagline: string;
+  /** One or two short sentences shown first: the quick path must not require reading more. */
+  intro: string;
   /** Default postcard sentence, used when the donor writes no dedication. */
   postcardLine: string;
   /** Gift palette as CSS custom-property names (background, ribbon, text). */
   theme: { bg: string; ribbon: string; ink: string };
+  /** Optional deep-dive: what CRI Monza does in this area (no invented figures or services). */
   story: string;
   doing: string[];
-  amounts: { value: number; impact: string }[];
+  /** How a gift helps: a donation to the project as a whole, never an amount = object equivalence. */
+  helps: string;
+  amounts: number[];
 };
+
+/** Same suggested amounts everywhere so €5 is always one tap away. */
+const AMOUNTS = [5, 10, 20, 50];
 
 export const PROJECTS: Project[] = [
   {
@@ -23,23 +31,15 @@ export const PROJECTS: Project[] = [
     kicker: "Persone senza dimora",
     ornament: "calore",
     ornamentName: "una sciarpa",
-    tagline: "Una coperta, un tè caldo, qualcuno che si ferma.",
-    postcardLine: "Quest'anno il mio regalo per te scalda le notti di chi a Monza dorme fuori.",
+    tagline: "Una coperta, una bevanda calda, qualcuno che si ferma.",
+    intro: "Nelle notti d'inverno c'è chi a Monza vive in strada. Il tuo regalo sostiene le unità di strada di Croce Rossa.",
+    postcardLine: "Quest'anno il mio regalo per te scalda le notti di chi a Monza vive in strada.",
     theme: { bg: "--primary", ribbon: "--ivory", ink: "--snow" },
     story:
-      "Nelle notti di dicembre, a Monza, c'è chi dorme fuori. Le nostre Unità di Strada passano a portare coperte, bevande calde e soprattutto tempo: un nome chiamato, una parola, un controllo sulla salute. A volte è l'unico incontro della giornata.",
-    doing: [
-      "Uscite serali delle Unità di Strada",
-      "Coperte, sacchi a pelo e kit igiene",
-      "Bevande calde e pasti",
-      "Ascolto e orientamento ai servizi",
-    ],
-    amounts: [
-      { value: 5, impact: "Un tè caldo e un pasto per una notte" },
-      { value: 10, impact: "Una coperta termica nuova" },
-      { value: 20, impact: "Un kit inverno completo" },
-      { value: 50, impact: "Un'uscita serale dell'Unità di Strada" },
-    ],
+      "Con le unità di strada i volontari incontrano le persone senza dimora: portano coperte, bevande calde e generi di conforto, ma soprattutto tempo e ascolto. Un saluto, un nome, un aiuto per orientarsi verso i servizi del territorio.",
+    doing: ["Unità di strada con i volontari", "Coperte, bevande calde e generi di conforto", "Ascolto e vicinanza", "Orientamento ai servizi del territorio"],
+    helps: "Il tuo contributo sostiene le attività delle unità di strada nel loro insieme. Non acquisti un oggetto: dai forza a un servizio che c'è.",
+    amounts: AMOUNTS,
   },
   {
     id: "battito",
@@ -47,71 +47,47 @@ export const PROJECTS: Project[] = [
     kicker: "Defibrillatori e cultura del soccorso",
     ornament: "dae",
     ornamentName: "un piccolo DAE",
-    tagline: "Nei primi minuti, fa la differenza chi c'è.",
+    tagline: "Nei primi minuti fa la differenza chi c'è.",
+    intro: "Quando un cuore si ferma servono un defibrillatore vicino e qualcuno che sappia usarlo. Il tuo regalo sostiene i DAE e la formazione dei cittadini.",
     postcardLine: "Ti regalo un battito: perché a Monza ci sia sempre qualcuno pronto a salvare una vita.",
     theme: { bg: "--fir-deep", ribbon: "--gold", ink: "--snow" },
     story:
-      "Quando un cuore si ferma, ogni minuto conta. Prima che arrivi l'ambulanza servono due cose: un defibrillatore (DAE) vicino e una persona capace di usarlo. Con questo regalo aiuti Monza ad avere un nuovo DAE in un luogo pubblico.",
-    doing: [
-      "Installazione di nuovi DAE sul territorio",
-      "Corsi BLSD per cittadini e aziende",
-      "Dimostrazioni di manovre salvavita in piazza",
-      "Formazione nelle scuole",
-    ],
-    amounts: [
-      { value: 10, impact: "Un set di piastre per esercitazioni" },
-      { value: 20, impact: "Un manichino-minuto di formazione" },
-      { value: 50, impact: "Un pezzo concreto del nuovo DAE" },
-      { value: 100, impact: "Una teca protettiva per esterni" },
-    ],
+      "Croce Rossa promuove la diffusione dei defibrillatori (DAE) e la cultura del soccorso: insegna alla popolazione le manovre salvavita, il massaggio cardiaco e l'uso del DAE, con corsi BLSD e di primo soccorso aperti a tutti.",
+    doing: ["Diffusione dei defibrillatori (DAE)", "Corsi BLSD e di primo soccorso", "Formazione della popolazione alle manovre salvavita", "Sensibilizzazione alla cultura del soccorso"],
+    helps: "Il tuo contributo sostiene il progetto nel suo insieme, defibrillatori e formazione, senza corrispondere a un singolo oggetto.",
+    amounts: AMOUNTS,
   },
   {
     id: "prossimita",
     title: "Regala prossimità",
-    kicker: "Ambulatorio Mobile di Prossimità",
+    kicker: "Unità Mobile di Prossimità",
     ornament: "prossimita",
     ornamentName: "una mini unità mobile",
     tagline: "La salute che arriva dove serve.",
-    postcardLine: "Il mio regalo per te porta la salute nei quartieri di Monza, vicino a chi ne ha bisogno.",
+    intro: "Non tutti riescono a raggiungere i servizi. L'Unità Mobile di Prossimità porta vicinanza sanitaria e sociale nei luoghi della città.",
+    postcardLine: "Il mio regalo per te porta salute e vicinanza a chi a Monza ne ha più bisogno.",
     theme: { bg: "--ivory", ribbon: "--burgundy", ink: "--ink" },
     story:
-      "Non tutti riescono ad andare dal medico. L'Unità Mobile di Prossimità porta nei quartieri controlli di base, ascolto e orientamento: pressione, glicemia, una parola gentile, un consiglio su dove andare.",
-    doing: [
-      "Screening gratuiti nei quartieri",
-      "Controlli pressione e glicemia",
-      "Supporto a persone fragili e anziani soli",
-      "Orientamento ai servizi sanitari",
-    ],
-    amounts: [
-      { value: 5, impact: "Strisce per un controllo glicemia" },
-      { value: 15, impact: "Il carburante per una tappa nel quartiere" },
-      { value: 30, impact: "Materiale sanitario per una giornata" },
-      { value: 60, impact: "Una giornata di ambulatorio mobile" },
-    ],
+      "L'Unità Mobile di Prossimità di Croce Rossa Monza si sposta sul territorio e offre servizi sanitari e sociali di base: ascolto, controlli semplici, orientamento ai servizi e attenzione per le persone più fragili.",
+    doing: ["Servizi sanitari di base", "Supporto sociale e ascolto", "Attenzione per le persone fragili", "Orientamento ai servizi del territorio"],
+    helps: "Il tuo contributo sostiene l'attività dell'Unità Mobile nel suo insieme. È una donazione, non l'acquisto di una prestazione.",
+    amounts: AMOUNTS,
   },
   {
     id: "cuore",
     title: "Dove serve di più",
     kicker: "Il cuore di Croce Rossa Monza",
     ornament: "cuore",
-    ornamentName: "un cuore CRI",
+    ornamentName: "un cuore",
     tagline: "Fidati di chi c'è, ogni giorno.",
+    intro: "Un regalo libero permette a Croce Rossa Monza di intervenire dove il bisogno è più urgente, quando serve.",
     postcardLine: "Ho scelto per te il regalo più semplice: esserci, dove a Monza serve di più.",
     theme: { bg: "--burgundy", ribbon: "--gold", ink: "--snow" },
     story:
-      "Emergenze, trasporti, sociale, formazione, giovani. I volontari di Croce Rossa Monza ci sono 365 giorni l'anno. Un regalo libero ci permette di intervenire subito dove il bisogno è più urgente.",
-    doing: [
-      "Soccorso e trasporto sanitario",
-      "Attività sociali e distribuzione beni",
-      "Protezione civile ed emergenze",
-      "Progetti giovani e inclusione",
-    ],
-    amounts: [
-      { value: 5, impact: "Un piccolo gesto che si somma" },
-      { value: 10, impact: "Un kit di primo soccorso" },
-      { value: 25, impact: "Una divisa invernale per un volontario" },
-      { value: 50, impact: "Un turno di servizio in più" },
-    ],
+      "Le attività di Croce Rossa Monza sono tante e cambiano con i bisogni della città. Una donazione senza vincolo di progetto dà al Comitato la flessibilità di sostenere le attività dove servono di più.",
+    doing: ["Supporto flessibile alle attività del Comitato", "Risposta ai bisogni più urgenti", "Sostegno ai volontari", "Attività sanitarie e sociali"],
+    helps: "Il tuo contributo viene destinato dal Comitato dove è più utile in quel momento. Nessun oggetto acquistato: fiducia in chi c'è.",
+    amounts: AMOUNTS,
   },
 ];
 
@@ -158,4 +134,14 @@ export const CRI = {
   blsd: "https://www.crimonza.org/corso-blsd",
   primoSoccorso: "https://www.crimonza.org/corso-di-primo-soccorso",
   corsi: "https://www.crimonza.org/corsi-formazione",
+  /** Verified on crimonza.org (footer links), October 2026. */
+  social: [
+    { name: "Facebook", url: "https://www.facebook.com/CroceRossaItalianaMonza" },
+    { name: "Instagram", url: "https://www.instagram.com/crocerossamonza/" },
+    { name: "YouTube", url: "https://www.youtube.com/channel/UCNu_Ueq4iLV_hXW6VJnNdfg" },
+    { name: "LinkedIn", url: "https://www.linkedin.com/company/croce-rossa-italiana-comitato-di-monza/" },
+  ],
 };
+
+/** User-stated period: the Albero di Monza stands in Piazza San Paolo until 6 January. */
+export const TREE_UNTIL = "6 gennaio";
