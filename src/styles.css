@@ -351,7 +351,7 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .advent-reveal { animation: rise .6s ease both; }
 
 /* TV: compact daily card + once-a-day opening ceremony over the tree (QR and brand stay untouched). */
-.tv-kindness { position: absolute; left: 3cqw; bottom: 7cqw; width: 24cqw; padding: 1cqw 1.3cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 80%, transparent); border: 1px solid color-mix(in oklab, var(--scene-gold) 32%, transparent); backdrop-filter: blur(6px); animation: tv-kind-in 1.2s ease both; }
+.tv-kindness { position: absolute; left: 3cqw; top: 14.2cqw; width: 22cqw; padding: 1cqw 1.3cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 80%, transparent); border: 1px solid color-mix(in oklab, var(--scene-gold) 32%, transparent); backdrop-filter: blur(6px); animation: tv-kind-in 1.2s ease both; }
 @keyframes tv-kind-in { from { opacity: 0; transform: translateY(1cqw); } }
 .tv-advent { position: absolute; left: 14cqw; top: 9cqw; width: 33cqw; perspective: 120cqw; z-index: 5; pointer-events: none; animation: tv-advent-life 16s ease both; }
 .tv-advent-frame { position: relative; aspect-ratio: 4/3.1; border-radius: 1.2cqw; background: linear-gradient(160deg, var(--scene-gold), color-mix(in oklab, var(--scene-gold) 55%, var(--scene-bark)));
@@ -360,7 +360,7 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .tv-advent-leaf { position: absolute; inset: 1cqw; border-radius: .8cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--scene-gold); transform-origin: 0 50%; backface-visibility: hidden;
   background: linear-gradient(160deg, var(--scene-crimson), var(--scene-burgundy)); border: .25cqw solid color-mix(in oklab, var(--scene-gold) 70%, transparent); animation: tv-advent-open 1.8s 2.6s cubic-bezier(.3,.9,.3,1) both; }
 @keyframes tv-advent-open { to { transform: rotateY(-112deg); } }
-@keyframes tv-advent-life { 0% { opacity: 0; transform: scale(.7) translateY(3cqw); } 8% { opacity: 1; transform: none; } 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(-12cqw, 22cqw) scale(.45); } }
+@keyframes tv-advent-life { 0% { opacity: 0; transform: scale(.7) translateY(3cqw); } 8% { opacity: 1; transform: none; } 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(-12cqw, -2cqw) scale(.45); } }
 .tv-advent.is-reduced { animation: tv-kind-in 1s ease both; }
 .tv-advent.is-reduced .tv-advent-leaf { display: none; }
 .tv-notes { position: relative; display: flex; gap: 1.4cqw; margin-top: 2.8cqw; align-items: flex-start; }
