@@ -11,6 +11,7 @@ const NAV = [
   { to: "/regali", label: "I regali" },
   { to: "/albero", label: "Albero di Monza" },
   { to: "/piazza", label: "Oggi in Piazza" },
+  { to: "/casetta", label: "La casetta" },
   { to: "/babbo-natale", label: "Babbo Natale" },
   { to: "/piccoli-volontari", label: "Piccoli volontari" },
 ] as const;

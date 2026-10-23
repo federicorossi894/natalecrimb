@@ -8,6 +8,8 @@ import { GiftBox } from "@/components/xmas/GiftBox";
 import { useUnwrap } from "@/hooks/use-unwrap";
 import { SantaChimneySection } from "@/components/xmas/SantaChimney";
 import { PROJECTS } from "@/lib/data";
+import { CASETTA } from "@/lib/casetta";
+import { CasettaPoster } from "@/components/xmas/CasettaMedia";
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
@@ -96,11 +98,18 @@ function Home() {
 
       <section className="mx-auto max-w-6xl px-4">
         <div className="glass grid gap-6 overflow-hidden rounded-[2rem] p-6 sm:grid-cols-2 sm:p-10">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Villaggio di Natale · 40 giorni</p>
-            <h3 className="mt-3 font-display text-3xl">Vieni a trovarci alla casetta in Piazza San Paolo.</h3>
-            <p className="mt-3 text-muted-foreground">Mercatino solidale, panettoni e biscotti, controlli di pressione e glicemia, dimostrazioni di manovre salvavita.</p>
-            <Link to="/piazza" className="mt-6 inline-flex items-center gap-2 font-semibold text-gold">Cosa succede oggi <ArrowRight className="h-4 w-4" /></Link>
+          <div className="flex items-start gap-5">
+            {/* Official poster appears here only once the original file is attached; nothing is drawn in its place. */}
+            <CasettaPoster placeholder={false} className="w-28 shrink-0 sm:w-36" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">La casetta di Natale · dal {CASETTA.from} al {CASETTA.until}</p>
+              <h3 className="mt-3 font-display text-3xl">Vieni a trovarci alla casetta in Piazza San Paolo.</h3>
+              <p className="mt-3 text-muted-foreground">Cioccolato, tisane, regali e panettone. Il Natale ha un sapore ancora più buono quando lo condividi.</p>
+              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
+                <Link to="/casetta" className="inline-flex items-center gap-2 font-semibold text-gold">Sapori e regali solidali <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/piazza" className="inline-flex items-center gap-2 font-semibold text-foreground/80">Cosa succede oggi <ArrowRight className="h-4 w-4" /></Link>
+              </div>
+            </div>
           </div>
           <Link to="/albero" className="relative rounded-3xl bg-primary p-6 text-primary-foreground">
             <p className="text-xs uppercase tracking-widest opacity-80">Il cuore della campagna</p>
