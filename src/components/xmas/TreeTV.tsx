@@ -1,98 +1,216 @@
-import { useEffect, useRef, useState } from 'react';
-import { CalendarDays } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
-import { useCasettaEvents, formatEventWhen, EXAMPLE_EVENTS } from '@/lib/events';
-import type { TreeOrnament } from '@/lib/data';
-import { HomeQr } from './Qr';
-import { CriLockup } from './Ornament';
+import { useCasettaEvents, formatEventWhen } from '@/lib/events';
+import { PROJECTS, TREE_UNTIL, getProject, type TreeOrnament } from '@/lib/data';
+import { TvQr } from './Qr';
+import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
 
-type Beat='panorama'|'dedica'|'eventi';
-const SEQUENCE:Beat[]=['panorama','dedica','panorama','eventi'];
-const DURATION:Record<Beat,number>={panorama:13000,dedica:11000,eventi:12000};
-const ARRIVAL_MS=9000;
-const SAFETY_RELOAD_MS=6*60*60*1000;
-type WakeNavigator=Navigator&{wakeLock?:{request:(t:'screen')=>Promise<{release:()=>Promise<void>}>}};
+/** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
+export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica';
+export const TV_DURATION: Record<TvScene, number> = { invito: 18000, passi: 14000, attivita: 14000, casetta: 14000, dedica: 12000 };
+/** The dedication scene exists only when at least one dedication is approved and public. */
+export const tvSequence = (hasPublicDedication: boolean): TvScene[] =>
+  hasPublicDedication ? ['invito', 'passi', 'attivita', 'casetta', 'dedica'] : ['invito', 'passi', 'attivita', 'casetta'];
+const ARRIVAL_MS = 10000;
+const SAFETY_RELOAD_MS = 6 * 60 * 60 * 1000;
+type WakeNavigator = Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } };
 
-/** Autonomous 24/7 TV direction: panorama → approved dedication → panorama → casetta events, interrupted by new gifts. */
-export function TreeTV(){
-  const {addedOrnaments:ornaments,addedCount,error}=useTreeStore();
-  const events=useCasettaEvents();
-  const [beat,setBeat]=useState<Beat>('panorama');
-  const [selected,setSelected]=useState<TreeOrnament|null>(null);
-  const [arriving,setArriving]=useState<string|number|null>(null);
-  const previous=useRef<Set<string|number>|null>(null);
-  const ornamentsRef=useRef(ornaments);
-  const arrivingRef=useRef(arriving);
-  const step=useRef(0);
-  const cursor=useRef(0);
-  const reduced=useReducedMotion();
-  useEffect(()=>{ornamentsRef.current=ornaments;},[ornaments]);
-  useEffect(()=>{arrivingRef.current=arriving;},[arriving]);
-  useEffect(()=>{
-    const ids=new Set(ornaments.map(o=>o.id));const prev=previous.current;
-    // The first non-empty load is the existing tree, not an arrival (a genuine first gift 0→1 still animates).
-    if(prev&&!(prev.size===0&&ornaments.length>1)){const next=ornaments.find(o=>!prev.has(o.id));if(next){setArriving(next.id);setSelected(next);setBeat('panorama');}}
-    previous.current=ids;
-  },[ornaments]);
-  useEffect(()=>{if(!arriving)return;const t=setTimeout(()=>{setArriving(null);setSelected(null);},ARRIVAL_MS);return()=>clearTimeout(t);},[arriving]);
-  useEffect(()=>{
-    if(arriving)return;
-    let timer:ReturnType<typeof setTimeout>;
-    const run=()=>{
-      const b=SEQUENCE[step.current%SEQUENCE.length]!;step.current++;
-      if(b==='dedica'){const all=ornamentsRef.current,pub=all.filter(o=>o.dedica),pool=pub.length?pub:all;const next=pool.length?pool[cursor.current++%pool.length]:undefined;setSelected(next??null);setBeat(next?'dedica':'panorama');}
-      else{setSelected(null);setBeat(b);}
-      timer=setTimeout(run,DURATION[b]);
+const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kind);
+
+/** Autonomous, silent 24/7 casetta screen: big tree on the left, warm invitation + large QR on the right. */
+export function TreeTV() {
+  const { addedOrnaments: ornaments, addedCount, error } = useTreeStore();
+  const events = useCasettaEvents();
+  const [scene, setScene] = useState<TvScene>('invito');
+  const [selected, setSelected] = useState<TreeOrnament | null>(null);
+  const [arriving, setArriving] = useState<TreeOrnament | null>(null);
+  const previous = useRef<Set<string | number> | null>(null);
+  const ornamentsRef = useRef(ornaments);
+  const arrivingRef = useRef(arriving);
+  const step = useRef(0);
+  const cursor = useRef(0);
+  const reduced = useReducedMotion();
+  const publicDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
+  const hasDedications = publicDedications.length > 0;
+  const sequence = tvSequence(hasDedications);
+
+  useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
+  useEffect(() => { arrivingRef.current = arriving; }, [arriving]);
+
+  // New gift detection (polling via useTreeStore). The first non-empty load is the existing tree, not an arrival.
+  useEffect(() => {
+    const ids = new Set(ornaments.map((o) => o.id));
+    const prev = previous.current;
+    if (prev && !(prev.size === 0 && ornaments.length > 1)) {
+      const next = ornaments.find((o) => !prev.has(o.id));
+      if (next) { setArriving(next); setSelected(next); }
+    }
+    previous.current = ids;
+  }, [ornaments]);
+  useEffect(() => {
+    if (!arriving) return;
+    const t = setTimeout(() => { setArriving(null); setSelected(null); }, ARRIVAL_MS);
+    return () => clearTimeout(t);
+  }, [arriving]);
+
+  // Scene loop (≈60 s, ≈72 s with dedications), paused during an arrival.
+  useEffect(() => {
+    if (arriving) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const run = () => {
+      const pub = ornamentsRef.current.filter((o) => o.dedica);
+      const seq = tvSequence(pub.length > 0);
+      const s = seq[step.current % seq.length]!;
+      step.current++;
+      if (s === 'dedica') setSelected(pub[cursor.current++ % pub.length] ?? null);
+      else setSelected(null);
+      setScene(s);
+      timer = setTimeout(run, TV_DURATION[s]);
     };
     run();
-    return()=>clearTimeout(timer);
-  },[arriving]);
-  // Unattended screen: keep it awake and refresh the page periodically to clear any long-run drift.
-  useEffect(()=>{
-    let lock:{release:()=>Promise<void>}|null=null;
-    const req=async()=>{try{lock=(await (navigator as WakeNavigator).wakeLock?.request('screen'))??null;}catch{lock=null;}};
+    return () => clearTimeout(timer);
+  }, [arriving]);
+
+  // Unattended screen: keep it awake and refresh periodically to clear any long-run drift.
+  useEffect(() => {
+    let lock: { release: () => Promise<void> } | null = null;
+    const req = async () => { try { lock = (await (navigator as WakeNavigator).wakeLock?.request('screen')) ?? null; } catch { lock = null; } };
     void req();
-    const vis=()=>{if(document.visibilityState==='visible')void req();};
-    document.addEventListener('visibilitychange',vis);
-    const reload=setInterval(()=>{if(!arrivingRef.current&&navigator.onLine)window.location.reload();},SAFETY_RELOAD_MS);
-    return()=>{document.removeEventListener('visibilitychange',vis);clearInterval(reload);void lock?.release().catch(()=>{});};
-  },[]);
-  const showDedication=selected&&(beat==='dedica'||arriving);
-  return <div className="tv-scene" data-beat={arriving?'arrivo':beat}>
-    <TreeStage ornaments={ornaments} selected={selected} tv arrivingId={arriving} reduced={reduced} />
-    <div className="tv-vignette" aria-hidden />
-    <div className="pointer-events-none absolute left-[4%] top-[5%] max-w-[58%]">
-      <CriLockup className="h-[6.5cqw]" />
-      <h1 className="mt-[1.6cqw] font-display text-[2.6cqw]">L’Albero dei Regali di Monza</h1>
-    </div>
-    <span className="absolute right-[4%] top-[5%] border border-gold/40 px-[1cqw] py-[0.4cqw] text-[0.9cqw] text-gold">DEMO · Donazioni simulate</span>
-    <div className="tv-copy">
-      <p className="font-display text-[7cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</p>
-      <p className="mt-[0.8cqw] text-[1.3cqw] text-muted-foreground">regali appesi · dato DEMO</p>
-      <h2 className="tv-title mt-[1.8cqw] font-display">Fai crescere<br /><em className="text-gold">l’Albero di Monza</em></h2>
-      <div className="mt-[1.8cqw] grid grid-cols-[40%_1fr] items-center gap-[1.2cqw]">
-        <HomeQr className="w-full" /><p className="text-[1.2cqw] leading-relaxed">Scansiona il QR oppure chiedi ai volontari alla casetta.</p>
+    const vis = () => { if (document.visibilityState === 'visible') void req(); };
+    document.addEventListener('visibilitychange', vis);
+    const reload = setInterval(() => { if (!arrivingRef.current && navigator.onLine) window.location.reload(); }, SAFETY_RELOAD_MS);
+    return () => { document.removeEventListener('visibilitychange', vis); clearInterval(reload); void lock?.release().catch(() => {}); };
+  }, []);
+
+  const active = arriving ? 'arrivo' : scene;
+  const on = (s: TvScene | 'arrivo') => (active === s ? 'is-active' : '');
+  const dedication = scene === 'dedica' ? selected : null;
+  const arrivingProject = arriving ? projectOf(arriving) : undefined;
+
+  return (
+    <div className="tv-scene" data-beat={active} data-testid="tv-scene">
+      <div className="tv-tree">
+        <TreeStage ornaments={ornaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
+        {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
       </div>
-      <p className="mt-[1.2cqw] text-[0.9cqw] text-muted-foreground">Casetta CRI · Piazza San Paolo</p>
-      {error&&<p className="mt-[1cqw] text-[0.9cqw] text-gold">Connessione in ripristino</p>}
+      <div className="tv-vignette" aria-hidden />
+
+      <header className="tv-brand">
+        <CriLockup className="h-[5.4cqw]" />
+        <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
+      </header>
+
+      <div className="tv-counter" data-testid="tv-count-box">
+        <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>
+        <span className="text-[1.35cqw]">{addedCount === 1 ? 'gesto' : 'gesti'} di solidarietà</span>
+        <span className="tv-demo-tag">dato DEMO</span>
+        {error && <span className="text-[1.1cqw] text-gold">· connessione in ripristino</span>}
+      </div>
+
+      <aside className="tv-panel">
+        <div className="tv-twinkles" aria-hidden><i /><i /><i /><i /><i /></div>
+        <div className="flex items-center justify-between">
+          <div className="flex gap-[0.6cqw]" aria-hidden>
+            {sequence.map((s) => <span key={s} className={`tv-dot ${!arriving && scene === s ? 'is-on' : ''}`} />)}
+          </div>
+          <span className="tv-demo-badge">DEMO · donazioni simulate</span>
+        </div>
+
+        <div className="tv-scenes" aria-live="polite">
+          <section className={`tv-card ${on('invito')}`} data-scene="invito">
+            <p className="tv-kicker">Il Natale che fa bene</p>
+            <h2 className="tv-headline font-display">La prossima pallina potrebbe essere <em className="text-gold">la tua!</em></h2>
+            <p className="tv-lead">Scegli un regalo per Monza. Anche con 5 €. Appendilo all’Albero digitale.</p>
+          </section>
+
+          <section className={`tv-card ${on('passi')}`} data-scene="passi">
+            <p className="tv-kicker">Come partecipare</p>
+            <ol className="mt-[1.6cqw] space-y-[1.5cqw]">
+              {['Inquadra il QR qui sotto con il telefono', 'Scegli un regalo per Monza, anche con 5 €', 'La tua pallina si accende su questo albero'].map((t, i) => (
+                <li key={t} className="flex items-center gap-[1.4cqw]">
+                  <span className="tv-step font-display">{i + 1}</span>
+                  <span className="text-[2cqw] leading-snug">{t}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className={`tv-card ${on('attivita')}`} data-scene="attivita">
+            <p className="tv-kicker">Quattro regali per Monza</p>
+            <ul className="mt-[1.4cqw] space-y-[1.1cqw]">
+              {PROJECTS.map((p) => (
+                <li key={p.id} className="flex items-center gap-[1.3cqw]">
+                  <OrnamentIcon kind={p.ornament} className="h-[4.4cqw] w-[4cqw] shrink-0" />
+                  <span>
+                    <span className="block font-display text-[2cqw] leading-tight">{p.title}</span>
+                    <span className="block text-[1.3cqw] text-muted-foreground">{p.kicker}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className={`tv-card ${on('casetta')}`} data-scene="casetta" data-testid="tv-events">
+            <p className="tv-kicker flex items-center gap-[0.6cqw]"><MapPin className="h-[1.4cqw] w-[1.4cqw]" />Casetta Croce Rossa</p>
+            <h2 className="mt-[0.8cqw] font-display text-[3.3cqw] leading-[1.05]">Ti aspettiamo in Piazza San Paolo</h2>
+            <p className="mt-[0.9cqw] text-[1.6cqw] text-gold">Villaggio di Natale · fino al {TREE_UNTIL}</p>
+            <p className="tv-lead">Vieni a conoscere i progetti e i volontari di Croce Rossa Monza.</p>
+            {events.length > 0 && (
+              <div className="mt-[1.4cqw]">
+                <p className="flex items-center gap-[0.6cqw] text-[1.25cqw] font-semibold uppercase tracking-wide text-gold"><CalendarDays className="h-[1.3cqw] w-[1.3cqw]" />Prossimi appuntamenti</p>
+                <ul className="mt-[0.6cqw] space-y-[0.7cqw]">
+                  {events.slice(0, 2).map((e) => (
+                    <li key={e.id} className="border-l-2 border-gold/60 pl-[1cqw]" data-testid="tv-event">
+                      <p className="text-[1.25cqw] text-gold/90">{formatEventWhen(e)}</p>
+                      <p className="font-display text-[1.8cqw] leading-tight">{e.title}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+
+          <section className={`tv-card ${on('dedica')}`} data-scene="dedica">
+            {dedication && (
+              <>
+                <p className="tv-kicker">Una dedica per Monza</p>
+                <div className="tv-tag mt-[1.6cqw]">
+                  <p className="font-display text-[2.2cqw] leading-snug">“{dedication.dedica}”</p>
+                  <p className="mt-[1cqw] text-[1.4cqw] font-semibold">— {dedication.firma ?? 'Anonimo'}</p>
+                  <p className="mt-[0.6cqw] text-[1.15cqw] text-muted-foreground">{projectOf(dedication)?.title ?? ''} · dedica pubblicata con consenso</p>
+                </div>
+              </>
+            )}
+          </section>
+
+          <section className={`tv-card ${on('arrivo')}`} data-scene="arrivo">
+            {arriving && (
+              <div key={`a-${arriving.id}`} className="tv-arrival">
+                <p className="tv-kicker">Proprio adesso</p>
+                <div className="mt-[1.2cqw] flex items-center gap-[1.6cqw]">
+                  <OrnamentIcon kind={arriving.kind} className="tv-arrival-icon h-[8.8cqw] w-[8cqw] shrink-0" />
+                  <h2 className="font-display text-[3.2cqw] leading-[1.05]">Una nuova pallina è stata appesa!</h2>
+                </div>
+                <p className="tv-lead">{arrivingProject ? `${arrivingProject.title}: grazie!` : 'Grazie!'} La prossima potrebbe essere la tua.</p>
+                {arriving.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{arriving.dedica}”</p>}
+              </div>
+            )}
+          </section>
+        </div>
+
+        <div className="tv-qr-block">
+          <TvQr className="w-[15.5cqw] shrink-0" />
+          <div>
+            <p className="font-display text-[2.3cqw] leading-tight">Inquadra e scegli il tuo regalo</p>
+            <p className="mt-[1cqw] text-[1.6cqw] leading-snug">Oppure chiedi ai volontari alla casetta</p>
+          </div>
+        </div>
+      </aside>
     </div>
-    {showDedication&&<div key={`d-${selected.id}`} className="tv-dedication tree-tag animate-rise" aria-live="polite">
-      <p className="text-[0.9cqw] font-semibold uppercase text-primary">{arriving?'Un nuovo regalo è appena arrivato · DEMO':'Una dedica per Monza · DEMO'}</p>
-      <p className="mt-[0.7cqw] font-display text-[1.7cqw] leading-snug">{selected.dedica?`“${selected.dedica}”`:'Un regalo per Monza. Grazie!'}</p>
-      {selected.dedica&&<p className="mt-[0.7cqw] text-[1cqw] font-semibold">— {selected.firma??'Anonimo'}</p>}
-    </div>}
-    {beat==='eventi'&&!arriving&&<div key="eventi" className="tv-dedication tv-events animate-rise" data-testid="tv-events">
-      <p className="flex items-center gap-[0.6cqw] text-[0.9cqw] font-semibold uppercase text-gold"><CalendarDays className="h-[1.2cqw] w-[1.2cqw]" />{events.length?'Prossimamente alla casetta CRI':'Esempio DEMO · nessun evento confermato'}</p>
-      <ul className="mt-[1cqw] space-y-[0.9cqw]">
-        {(events.length?events.map(e=>({key:e.id,title:e.title,when:formatEventWhen(e),desc:e.description})):EXAMPLE_EVENTS.map(e=>({key:e.title,title:e.title,when:'Data e orario da confermare',desc:e.description}))).map(e=><li key={e.key} className="border-l-2 border-gold/60 pl-[1cqw]">
-          <p className="text-[0.85cqw] uppercase tracking-wide text-gold/90">{e.when}</p>
-          <p className="font-display text-[1.6cqw] leading-tight">{e.title}</p>
-          {e.desc&&<p className="text-[0.95cqw] text-muted-foreground">{e.desc}</p>}
-        </li>)}
-      </ul>
-      {!events.length&&<p className="mt-[1cqw] text-[0.85cqw] text-muted-foreground">Esempi illustrativi: non sono eventi in programma.</p>}
-    </div>}
-  </div>;
+  );
 }
+
+export { getProject };
