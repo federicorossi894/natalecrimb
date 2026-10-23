@@ -149,7 +149,7 @@ function DetailView({ p, amount, setAmount, onGo }: { p: Project; amount: number
           </More>
           {p.officialLink && (
             <a href={p.officialLink.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border hairline-gold bg-card/60 px-5 py-4 font-semibold transition hover:text-gold" data-testid="official-link">
-              <span>{p.officialLink.label}<span className="mt-0.5 block text-xs font-normal text-muted-foreground">Sul sito ufficiale di Croce Rossa Monza</span></span>
+              <span>{p.officialLink.label}<span className="mt-0.5 block text-xs font-normal text-muted-foreground">Il sito del progetto · si apre in una nuova scheda</span></span>
               <ExternalLink className="h-5 w-5 shrink-0 text-gold" />
             </a>
           )}

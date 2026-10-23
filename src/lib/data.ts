@@ -79,7 +79,7 @@ export const PROJECTS: Project[] = [
       "Non tutti riescono a raggiungere un ambulatorio o a orientarsi tra i servizi: per età, fragilità, solitudine o difficoltà di accesso. Per questo Croce Rossa Monza sta realizzando un'Unità Mobile di Prossimità, un presidio sanitario mobile pensato per muoversi a Monza e nei Comuni del Comitato invece di aspettare che siano le persone ad arrivare. Le sue attività si adatteranno ai bisogni del territorio, insieme a istituzioni, professionisti sanitari e realtà del Terzo Settore.",
     doing: ["Prevenzione e promozione della salute, come gli screening", "Attenzione ad anziani e persone fragili", "Educazione sanitaria e ascolto", "Orientamento verso i servizi sanitari del territorio"],
     helps: "Il tuo contributo sostiene la realizzazione dell'Unità Mobile nel suo insieme. È una donazione, non l'acquisto di una prestazione.",
-    officialLink: { label: "Scopri l'Unità Mobile di Prossimità", url: "https://www.crimonza.org/post/chef-for-health-il-buono-per-il-bene" },
+    officialLink: { label: "Scopri l'Unità Mobile di Prossimità", url: "https://umpcrimb.lovable.app" },
     amounts: AMOUNTS,
   },
   {
