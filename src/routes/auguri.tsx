@@ -7,9 +7,9 @@ import { DEMO_UNTIL, usePublicWishes, wallWishes } from "@/lib/wishes";
 export const Route = createFileRoute("/auguri")({
   head: () => ({
     meta: [
-      { title: "Muro degli auguri · Il Natale che fa bene – CRI Monza" },
+      { title: "Muro degli Auguri · Il Natale che fa bene – CRI Monza" },
       { name: "description", content: "I biglietti di auguri lasciati alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, letti dallo staff e appesi uno accanto all'altro." },
-      { property: "og:title", content: "Muro degli auguri · Il Natale che fa bene" },
+      { property: "og:title", content: "Muro degli Auguri · Il Natale che fa bene" },
       { property: "og:description", content: "Tanti biglietti, una sola città: gli auguri di Monza appesi alla casetta CRI." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -24,7 +24,7 @@ function Auguri() {
   const demoShown = wishes.length < DEMO_UNTIL;
   return (
     <Shell>
-      <PageHead kicker="Muro degli auguri" title={<>Tanti biglietti, <em className="text-gold">una sola città.</em></>}>
+      <PageHead kicker="Muro degli Auguri" title={<>Tanti biglietti, <em className="text-gold">una sola città.</em></>}>
         Alla casetta di Piazza San Paolo, chi passa lascia un augurio per Monza. Ogni biglietto viene letto dallo staff e poi appeso qui, con una molletta, accanto agli altri.
       </PageHead>
       <section className="mx-auto max-w-6xl px-4">

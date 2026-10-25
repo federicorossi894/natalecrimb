@@ -179,7 +179,7 @@ function Casetta() {
           {[
             { I: MapPin, t: "Vieni in piazza", d: `Piazza San Paolo, dal ${CASETTA.from} al ${CASETTA.until}.` },
             { I: Gift, t: "Scegli il tuo pensiero", d: "Dolci, tisane e regali, scelti di persona con i volontari." },
-            { I: PenLine, t: "Lascia un augurio", d: "Dopo l'acquisto puoi chiedere il QR per appendere un biglietto sul Muro degli auguri." },
+            { I: PenLine, t: "Lascia un augurio", d: "Dopo l'acquisto puoi chiedere il QR per appendere un biglietto sul Muro degli Auguri." },
           ].map(({ I, t, d }, i) => (
             <li key={t} className="glass relative rounded-3xl p-5">
               <span className="absolute right-5 top-4 font-display text-4xl text-gold/30" aria-hidden>{i + 1}</span>
@@ -190,7 +190,7 @@ function Casetta() {
           ))}
         </ol>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link to="/auguri" className="inline-flex items-center gap-2 text-sm font-semibold text-gold">Guarda il Muro degli auguri <ArrowRight className="h-4 w-4" /></Link>
+          <Link to="/auguri" className="inline-flex items-center gap-2 text-sm font-semibold text-gold">Guarda il Muro degli Auguri <ArrowRight className="h-4 w-4" /></Link>
           <Link to="/calendario" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground/80">Calendario della Gentilezza <ArrowRight className="h-4 w-4" /></Link>
         </div>
 

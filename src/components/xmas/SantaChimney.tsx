@@ -11,7 +11,7 @@ const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) /
 const STARS = [[40, 40], [130, 28], [210, 60], [330, 34], [372, 96], [98, 120], [300, 140], [180, 150]] as const;
 
 /** Full story length in ms (landing → down the chimney → window lights up). */
-export const SANTA_FULL_MS = 5200;
+export const SANTA_FULL_MS = 3400;
 /** Home teaser stops once Santa has landed on the chimney. */
 export const SANTA_TEASER_END = 0.3;
 /** Static frame for reduced motion: Santa on the chimney, window already lit. */
@@ -74,15 +74,15 @@ export function SantaScene({ p, forceLit = false, className = "" }: { p: number;
           {/* volunteer-style red jacket */}
           <path d="M-22 -30 Q-24 -92 0 -96 Q24 -92 22 -30Z" fill="var(--primary)" />
           <line x1="0" y1="-92" x2="0" y2="-31" stroke="var(--ink)" strokeOpacity="0.35" strokeWidth="1.2" />
-          <rect x="-23" y="-44" width="46" height="4.5" fill="var(--reflect)" />
-          <rect x="-23" y="-37" width="46" height="4.5" fill="var(--reflect)" />
+          <rect x="-23" y="-44" width="46" height="4.5" fill="var(--snow)" />
+          <rect x="-23" y="-37" width="46" height="4.5" fill="var(--snow)" />
           <rect x="-23" y="-44" width="46" height="1.2" fill="var(--snow)" opacity="0.8" />
           <rect x="-23" y="-37" width="46" height="1.2" fill="var(--snow)" opacity="0.8" />
           <rect x="-22" y="-63" width="44" height="7" fill="var(--ink)" />
           <rect x="-5" y="-64" width="10" height="9" fill="none" stroke="var(--gold)" strokeWidth="2" />
           {/* arms: left holds the sack, right waves; reflective cuffs */}
           <path d="M-17 -86 Q-29 -92 -27 -104 M17 -86 Q30 -108 26 -124" stroke="var(--primary)" strokeWidth="10" strokeLinecap="round" fill="none" />
-          <path d="M-32 -97 L-22 -97 M21 -114 L31 -114" stroke="var(--reflect)" strokeWidth="3.5" />
+          <path d="M-32 -97 L-22 -97 M21 -114 L31 -114" stroke="var(--snow)" strokeWidth="3.5" />
           <circle cx="-27" cy="-106" r="5.5" fill="var(--ink)" />
           <circle cx="26" cy="-127" r="6" fill="var(--ink)" />
           {/* head, beard, hat */}

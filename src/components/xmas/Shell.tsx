@@ -13,7 +13,7 @@ const NAV = [
   { to: "/piazza", label: "Oggi in Piazza" },
   { to: "/casetta", label: "La casetta" },
   { to: "/calendario", label: "Calendario" },
-  { to: "/auguri", label: "Auguri" },
+  { to: "/auguri", label: "Muro degli Auguri" },
   { to: "/babbo-natale", label: "Babbo Natale" },
   { to: "/piccoli-volontari", label: "Piccoli volontari" },
 ] as const;
