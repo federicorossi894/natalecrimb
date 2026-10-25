@@ -62,7 +62,7 @@ export function WishWall({ wishes }: { wishes: PublicWish[] }) {
 
 const STATUS_TEXT: Record<string, { t: string; d: string }> = {
   pending: { t: "In attesa di lettura", d: "Lo staff della casetta legge ogni augurio prima di appenderlo al muro. Di solito serve poco tempo." },
-  approved: { t: "Appeso al Muro degli auguri", d: "Il tuo biglietto è sul muro e può comparire sullo schermo della casetta." },
+  approved: { t: "Appeso al Muro degli Auguri", d: "Il tuo biglietto è sul muro e può comparire sullo schermo della casetta." },
   rejected: { t: "Non pubblicato", d: "Questo augurio non è stato appeso, per esempio perché conteneva dati personali o link. Grazie comunque per il pensiero." },
   hidden: { t: "Non più visibile", d: "Il biglietto è stato tolto dal muro dallo staff." },
 };
@@ -123,7 +123,7 @@ export function WishWriter({ code, api, demo = false, onDone }: { code: string; 
           </div>
         )}
         <div className="flex flex-wrap gap-3">
-          <Link to="/auguri" className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Vai al Muro degli auguri</Link>
+          <Link to="/auguri" className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Vai al Muro degli Auguri</Link>
           {onDone && <button type="button" onClick={onDone} className="glass rounded-full px-5 py-3 text-sm font-semibold">Prossimo cliente</button>}
         </div>
       </div>
@@ -152,7 +152,7 @@ export function WishWriter({ code, api, demo = false, onDone }: { code: string; 
       </ul>
       <label className="flex items-start gap-3 text-sm">
         <input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); setErr(""); }} className="mt-1 h-5 w-5 shrink-0 accent-[var(--gold)]" />
-        <span>Acconsento a pubblicare questo augurio e il soprannome sul Muro degli auguri del sito e sullo schermo della casetta, dopo la lettura dello staff.</span>
+        <span>Acconsento a pubblicare questo augurio e il soprannome sul Muro degli Auguri del sito e sullo schermo della casetta, dopo la lettura dello staff.</span>
       </label>
       {err && <p role="alert" className="text-sm text-gold">{err}</p>}
       <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">
@@ -171,7 +171,7 @@ function Notice({ title, text }: { title: string; text: string }) {
     <div className="glass rounded-3xl p-6 text-center" role="status">
       <p className="font-display text-2xl">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{text}</p>
-      <Link to="/auguri" className="mt-4 inline-block text-sm font-semibold text-gold underline-offset-4 hover:underline">Guarda il Muro degli auguri</Link>
+      <Link to="/auguri" className="mt-4 inline-block text-sm font-semibold text-gold underline-offset-4 hover:underline">Guarda il Muro degli Auguri</Link>
     </div>
   );
 }

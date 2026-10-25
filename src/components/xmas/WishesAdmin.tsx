@@ -30,7 +30,7 @@ export function WishesAdmin() {
   };
   return (
     <div className="mt-10" data-testid="wishes-admin">
-      <h2 className="font-display text-2xl">Muro degli auguri</h2>
+      <h2 className="font-display text-2xl">Muro degli Auguri</h2>
       <p className="mt-1 text-sm text-muted-foreground">Ogni augurio resta invisibile finché non lo approvi. I segnali automatici sono solo un aiuto: decidi tu.</p>
       <div className="mt-4 flex flex-wrap gap-2" role="tablist">
         {TABS.map((t) => (
