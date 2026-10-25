@@ -10,19 +10,20 @@ import {
 } from "@/lib/wishes";
 import { cn } from "@/lib/utils";
 
-/** One paper note held by a wooden clothespin. */
+/** One paper note held by a wooden clothespin. On the wall the tilt is kept small and the full text always shows. */
 export function PaperNote({ wish, onOpen, className, style, big = false }: { wish: PublicWish; onOpen?: () => void; className?: string; style?: CSSProperties; big?: boolean }) {
   const look = noteLook(wish.id);
   const content = (
     <>
-      <span className="wish-pin" style={{ transform: `translateX(-50%) rotate(${look.pin}deg)` }} aria-hidden />
+      <span className="wish-pin" style={{ transform: `translateX(-50%) rotate(${look.pin * 0.5}deg)` }} aria-hidden />
       {wish.demo && <span className="wish-demo-stamp">Esempio · DEMO</span>}
-      <span className={cn("wish-text block", big ? "text-[1.7rem] leading-snug" : "line-clamp-6 text-[1.15rem] leading-[1.25]")}>{wish.body}</span>
+      <span className={cn("wish-text block break-words", big ? "text-[1.7rem] leading-snug" : "text-[1.12rem] leading-[1.28]")}>{wish.body}</span>
       <span className={cn("mt-2 block text-right font-semibold", big ? "text-base" : "text-[0.78rem]")}>— {wish.nickname ?? "Un augurio da Monza"}</span>
     </>
   );
   const cls = cn("wish-note", `wish-paper-${look.paper}`, className);
-  const st: CSSProperties = { ...style, ["--tilt" as string]: `${big ? 0 : look.rotate}deg`, ["--lift" as string]: `${big ? 0 : look.lift}px` };
+  // Wall notes: contained rotation (±1.8°) and a tiny drop so neighbours never cover each other's text.
+  const st: CSSProperties = { ...style, ["--tilt" as string]: `${big ? 0 : Math.round(look.rotate * 4) / 10}deg`, ["--lift" as string]: `${big ? 0 : Math.round(look.lift * 0.35)}px` };
   if (!onOpen) return <div className={cls} style={st}>{content}</div>;
   return (
     <button type="button" onClick={onOpen} className={cls} style={st} aria-label={`Leggi l'augurio${wish.nickname ? ` di ${wish.nickname}` : ""}${wish.demo ? " (esempio demo)" : ""}`}>
@@ -31,7 +32,7 @@ export function PaperNote({ wish, onOpen, className, style, big = false }: { wis
   );
 }
 
-/** Wooden wall with twine rows; notes overlap slightly like the real thing and fill in progressively. */
+/** Wooden wall with a twine line per row; notes hang side by side (never overlapping) and fill in progressively. */
 export function WishWall({ wishes }: { wishes: PublicWish[] }) {
   const [open, setOpen] = useState<PublicWish | null>(null);
   return (
@@ -48,7 +49,7 @@ export function WishWall({ wishes }: { wishes: PublicWish[] }) {
       <Modal open={!!open} onClose={() => setOpen(null)}>
         {open && (
           <div className="pt-6">
-            <PaperNote wish={open} big className="mx-auto max-w-sm" />
+            <PaperNote wish={open} big className="wish-open mx-auto max-w-sm" />
             <p className="mt-5 text-center text-xs text-muted-foreground">
               {open.demo ? "Biglietto di esempio per la demo: non è un augurio vero." : "Augurio letto e approvato dallo staff della casetta prima della pubblicazione."}
             </p>
