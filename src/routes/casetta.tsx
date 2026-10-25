@@ -75,23 +75,26 @@ function HangingSign({ label, i }: { label: string; i: number }) {
   );
 }
 
-function ProductCard({ p }: { p: (typeof CASETTA_PRODUCTS)[number] }) {
+const TAG_TILT = [-2, 1.5, -1.2, 2];
+
+/** One product on the counter: original photo on a white stage, wooden shelf, ivory tag on twine (swings when touched). */
+function StallItem({ p, i }: { p: (typeof CASETTA_PRODUCTS)[number]; i: number }) {
   const [swing, setSwing] = useState(false);
   return (
-    <li className={cn("product-card glass relative flex flex-col rounded-3xl p-3", swing && "is-swing")} onPointerDown={() => { setSwing(true); setTimeout(() => setSwing(false), 700); }}>
-      <CasettaPhoto slot={p.photo} label={p.name} />
-      <div className="flex flex-1 flex-col px-2 pb-2 pt-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="pt-3 font-display text-xl leading-tight">{p.name}</h3>
-          <span className="price-tag"><span data-testid="casetta-price">{formatEuro(p.price)}</span></span>
-        </div>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{p.format}</p>
-        <p className="mt-3 text-sm text-foreground/85">{p.blurb}</p>
-        <p className="mt-auto pt-4 text-[11px] font-semibold uppercase tracking-widest text-gold">Solo alla casetta</p>
+    <li className={cn("stall-item", swing && "is-swing")} onPointerDown={() => { setSwing(true); setTimeout(() => setSwing(false), 700); }}>
+      <CasettaPhoto slot={p.photo} label={p.name} className="stall-goods" />
+      <span className="stall-plank" aria-hidden />
+      <div className="stall-tag" style={{ ["--tilt" as string]: `${TAG_TILT[i % 4]}deg` }}>
+        <h3 className="font-display text-lg leading-tight sm:text-xl">{p.name}</h3>
+        <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-ink/65">{p.format}</p>
+        <p className="stall-price mt-2"><span data-testid="casetta-price">{formatEuro(p.price)}</span></p>
+        <p className="mt-2 text-xs leading-snug text-ink/80 sm:text-[13px]">{p.blurb}</p>
       </div>
     </li>
   );
 }
+
+const STALL_LIGHTS = Array.from({ length: 14 }, (_, i) => `${(i % 5) * 0.8}s`);
 
 function Casetta() {
   return (
@@ -151,20 +154,23 @@ function Casetta() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-14">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Da portare a casa</p>
-            <h2 className="mt-2 font-display text-3xl sm:text-4xl">I dolci delle feste</h2>
+      <section className="mx-auto max-w-6xl px-4 pt-14" aria-labelledby="stall-title">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sul banco della casetta</p>
+        <h2 id="stall-title" className="mt-2 font-display text-3xl sm:text-4xl">I dolci delle feste</h2>
+
+        <div className="stall mt-6">
+          <span className="stall-awning" aria-hidden />
+          <div className="stall-lights" aria-hidden>
+            {STALL_LIGHTS.map((d, i) => <span key={i} style={{ ["--d" as string]: d }} />)}
           </div>
-          <p className="inline-flex items-center gap-2 rounded-full border hairline-gold px-4 py-2 text-xs font-semibold text-gold">
-            <Store className="h-4 w-4" /> In vendita solo alla casetta, non sul sito
+          <ul className="stall-shelf" data-testid="casetta-products">
+            {CASETTA_PRODUCTS.map((p, i) => <StallItem key={p.id} p={p} i={i} />)}
+          </ul>
+          <p className="mt-7 flex items-center justify-center gap-2 text-center text-sm text-snow/90">
+            <Store className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+            Prezzi indicati dal Comitato · si scelgono e si acquistano solo alla casetta
           </p>
         </div>
-
-        <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="casetta-products">
-          {CASETTA_PRODUCTS.map((p) => <ProductCard key={p.id} p={p} />)}
-        </ul>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pt-14">
@@ -192,12 +198,11 @@ function Casetta() {
           <div>
             <h2 className="font-display text-2xl sm:text-3xl">Ti aspettiamo in Piazza San Paolo</h2>
             <p className="mt-2 max-w-xl text-muted-foreground">
-              Dal {CASETTA.from} al {CASETTA.until}, i dolci delle feste si trovano esclusivamente alla casetta di Croce Rossa Italiana – Comitato di Monza. Sul sito non si acquista e non si prenota: si sceglie di persona, insieme a cioccolato, tisane e regali, e intanto si conoscono i volontari.
+              Dal {CASETTA.from} al {CASETTA.until} alla casetta di Croce Rossa Italiana – Comitato di Monza. Sul sito non si acquista e non si prenota: si sceglie di persona, insieme a cioccolato, tisane e regali, e intanto si conoscono i volontari.
             </p>
           </div>
           <VisitCta />
         </div>
-        <p className="mt-4 text-center text-[11px] text-muted-foreground">Prezzi indicati dal Comitato · nessun ordine, pagamento o prenotazione online.</p>
       </section>
     </Shell>
   );

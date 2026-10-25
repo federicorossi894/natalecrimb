@@ -21,21 +21,33 @@ export function CasettaPoster({ className, placeholder = true }: { className?: s
   );
 }
 
-/** Product photo slot: original photo when attached, otherwise a quiet placeholder (never a generated image). */
+/**
+ * Product stage: the original photo, whole and uncropped, on a uniform white stage. Without an original
+ * (pandoro) it shows a neutral line illustration declared as such — never a generated or fake photo.
+ */
 export function CasettaPhoto({ slot, label, className }: { slot: CasettaSlot; label: string; className?: string }) {
   const img = CASETTA_MEDIA[slot];
-  if (img) {
-    // Whole photo, never cropped: white stage matches the original white backdrop.
-    return (
-      <div className={cn("flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl bg-photo-stage p-3", className)}>
-        <img src={img.src} alt={img.alt} width={img.width} height={img.height} loading="lazy" className="max-h-full max-w-full object-contain" />
-      </div>
-    );
-  }
   return (
-    <div className={cn("flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed hairline-gold bg-secondary/40 text-center", className)} role="img" aria-label={`${label}: foto in arrivo`}>
-      <ImageIcon className="h-7 w-7 text-gold/60" aria-hidden />
-      <span className="text-xs text-muted-foreground">Foto in arrivo</span>
+    <div className={cn("flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl bg-photo-stage p-[9%]", className)}>
+      {img
+        ? <img src={img.src} alt={img.alt} width={img.width} height={img.height} loading="lazy" className="max-h-full max-w-full object-contain" />
+        : <NeutralTin label={label} />}
     </div>
+  );
+}
+
+function NeutralTin({ label }: { label: string }) {
+  return (
+    <figure className="flex h-full w-full flex-col items-center justify-center" data-testid="casetta-illustration">
+      <svg viewBox="0 0 120 110" className="h-[78%] w-auto" role="img" aria-label={`${label}: illustrazione neutra, non una foto del prodotto`}>
+        <g fill="none" stroke="var(--wood)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="60" cy="22" rx="38" ry="10" />
+          <path d="M22 22 V86 A38 10 0 0 0 98 86 V22" />
+          <path d="M22 30 A38 10 0 0 0 98 30" opacity="0.5" />
+        </g>
+        <path d="M60 46 L65 57 L77 58 L68 66 L71 78 L60 72 L49 78 L52 66 L43 58 L55 57Z" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinejoin="round" />
+      </svg>
+      <figcaption className="mt-1 text-[10px] italic text-ink/55">Illustrazione, non foto del prodotto</figcaption>
+    </figure>
   );
 }
