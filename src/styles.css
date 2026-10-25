@@ -305,6 +305,7 @@
 /* One twine segment per cell; neighbours join across the gap, so each row reads as one line. */
 .wish-cell::before { content: ""; position: absolute; left: -13px; right: -13px; top: 6px; height: 2px; border-radius: 2px; background: var(--twine);
   box-shadow: 0 1px 0 color-mix(in oklab, var(--wood-dark) 55%, transparent); }
+.wish-cell:last-child::before { right: -100vw; }
 .wish-cell .wish-note { width: 100%; max-width: 232px; animation: wish-hang .8s cubic-bezier(.2,1.2,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
 .wish-note { position: relative; display: block; text-align: left; color: var(--ink); padding: 1.55rem 1rem .85rem; border-radius: 2px 3px 2px 5px;
   transform: translateY(var(--lift, 0px)) rotate(var(--tilt, 0deg)); transform-origin: 50% 0;
@@ -321,7 +322,7 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
   background: linear-gradient(90deg, color-mix(in oklab, var(--pin) 75%, var(--wood-dark)), var(--pin) 35%, color-mix(in oklab, var(--pin) 70%, var(--snow)) 52%, var(--pin) 68%, color-mix(in oklab, var(--pin) 72%, var(--wood-dark)));
   box-shadow: 0 3px 4px -1px color-mix(in oklab, var(--ink) 60%, transparent); }
 .wish-pin::after { content: ""; position: absolute; left: -2px; right: -2px; top: 40%; height: 4px; border-radius: 2px; background: var(--kid-steel); }
-.wish-demo-stamp { position: absolute; right: .45rem; top: .5rem; padding: 2px 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 9px/1.1 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--burgundy); transform: rotate(5deg); opacity: .85; }
+.wish-demo-stamp { position: relative; display: inline-block; margin: 0 0 .35rem; padding: 2px 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 9px/1.1 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--burgundy); transform: rotate(-2deg); opacity: .85; }
 .wish-editor { padding-top: 2.2rem; }
 .wish-note.wish-open { animation: wish-open .5s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes wish-open { from { opacity: 0; transform: translateY(10px) rotate(-1.2deg) scale(.97); } to { opacity: 1; transform: none; } }

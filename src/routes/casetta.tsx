@@ -75,7 +75,7 @@ function HangingSign({ label, i }: { label: string; i: number }) {
   );
 }
 
-const TAG_TILT = [-2, 1.5, -1.2, 2];
+const TAG_TILT = [-1.2, 1, -0.8, 1.3];
 
 /** One product on the counter: original photo on a white stage, wooden shelf, ivory tag on twine (swings when touched). */
 function StallItem({ p, i }: { p: (typeof CASETTA_PRODUCTS)[number]; i: number }) {
