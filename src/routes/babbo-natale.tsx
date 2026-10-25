@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Check, Gift, MapPin, Pencil, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
-import { SantaScene } from "@/components/xmas/SantaChimney";
+import { AutoSantaScene } from "@/components/xmas/SantaChimney";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS } from "@/lib/data";
 import {
@@ -73,7 +73,7 @@ function Babbo() {
           <span className="mt-5 inline-block rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary">Servizio in definizione · contenuti e disponibilità da confermare</span>
         </div>
         <div className="santa-stage overflow-hidden rounded-[2rem] shadow-deep">
-          <SantaScene p={0.26} forceLit className="mx-auto block h-[46svh] max-h-[460px] w-full" />
+          <AutoSantaScene mode="full" className="mx-auto h-[46svh] max-h-[460px] w-full" />
         </div>
       </section>
 
