@@ -299,17 +299,20 @@
     repeating-linear-gradient(90deg, color-mix(in oklab, var(--wood-light) 22%, transparent) 0 2px, transparent 2px 9px, color-mix(in oklab, var(--wood-dark) 16%, transparent) 9px 10px, transparent 10px 23px),
     linear-gradient(180deg, var(--wood-light), var(--wood) 55%, var(--wood-dark));
   box-shadow: inset 0 0 70px color-mix(in oklab, var(--wood-dark) 85%, transparent), var(--shadow-deep); }
-.wish-grid { --row: 214px; position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: var(--row);
-  background: repeating-linear-gradient(180deg, transparent 0 21px, var(--twine) 21px 23px, color-mix(in oklab, var(--wood-dark) 55%, transparent) 23px 24px, transparent 24px var(--row)); }
-@media (min-width: 640px) { .wish-grid { --row: 236px; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); } }
-.wish-cell { position: relative; display: flex; justify-content: center; padding-top: 16px; }
-.wish-cell .wish-note { width: 105%; max-width: 236px; margin: 0 -2.5%; max-height: calc(var(--row) - 26px); overflow: hidden; animation: wish-hang .8s cubic-bezier(.2,1.2,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
+.wish-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); column-gap: 14px; row-gap: 20px; align-items: start; }
+@media (min-width: 640px) { .wish-grid { grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); column-gap: 24px; row-gap: 30px; } }
+.wish-cell { position: relative; display: flex; justify-content: center; padding-top: 18px; }
+/* One twine segment per cell; neighbours join across the gap, so each row reads as one line. */
+.wish-cell::before { content: ""; position: absolute; left: -13px; right: -13px; top: 6px; height: 2px; border-radius: 2px; background: var(--twine);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--wood-dark) 55%, transparent); }
+.wish-cell:last-child::before { right: -100vw; }
+.wish-cell .wish-note { width: 100%; max-width: 232px; animation: wish-hang .8s cubic-bezier(.2,1.2,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
 .wish-note { position: relative; display: block; text-align: left; color: var(--ink); padding: 1.55rem 1rem .85rem; border-radius: 2px 3px 2px 5px;
   transform: translateY(var(--lift, 0px)) rotate(var(--tilt, 0deg)); transform-origin: 50% 0;
   box-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 10%, transparent), 0 12px 18px -9px color-mix(in oklab, var(--ink) 70%, transparent);
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
 button.wish-note { cursor: pointer; }
-button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(var(--lift, 0px)) rotate(0deg) scale(1.06); z-index: 6; outline: none;
+button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(var(--lift, 0px)) rotate(0deg) scale(1.03); z-index: 6; outline: none;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 80%, transparent), 0 22px 30px -12px color-mix(in oklab, var(--ink) 80%, transparent); }
 .wish-paper-ivory { background: linear-gradient(180deg, var(--paper), color-mix(in oklab, var(--paper) 86%, var(--kraft))); }
 .wish-paper-kraft { background: linear-gradient(180deg, var(--kraft), color-mix(in oklab, var(--kraft) 84%, var(--wood-light))); }
@@ -319,8 +322,10 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
   background: linear-gradient(90deg, color-mix(in oklab, var(--pin) 75%, var(--wood-dark)), var(--pin) 35%, color-mix(in oklab, var(--pin) 70%, var(--snow)) 52%, var(--pin) 68%, color-mix(in oklab, var(--pin) 72%, var(--wood-dark)));
   box-shadow: 0 3px 4px -1px color-mix(in oklab, var(--ink) 60%, transparent); }
 .wish-pin::after { content: ""; position: absolute; left: -2px; right: -2px; top: 40%; height: 4px; border-radius: 2px; background: var(--kid-steel); }
-.wish-demo-stamp { position: absolute; right: .45rem; top: .5rem; padding: 2px 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 9px/1.1 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--burgundy); transform: rotate(5deg); opacity: .85; }
+.wish-demo-stamp { position: relative; display: inline-block; margin: 0 0 .35rem; padding: 2px 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 9px/1.1 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--burgundy); transform: rotate(-2deg); opacity: .85; }
 .wish-editor { padding-top: 2.2rem; }
+.wish-note.wish-open { animation: wish-open .5s cubic-bezier(.2,.9,.3,1) both; }
+@keyframes wish-open { from { opacity: 0; transform: translateY(10px) rotate(-1.2deg) scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes wish-hang { from { opacity: 0; transform: translateY(-20px) rotate(calc(var(--tilt, 0deg) * -2)); } to { opacity: 1; transform: translateY(var(--lift, 0px)) rotate(var(--tilt, 0deg)); } }
 
 /* ---------- Calendario della Gentilezza ---------- */
@@ -385,10 +390,37 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .casetta-sign-rope { width: 40px; height: 16px; border: 2px solid var(--twine); border-bottom: 0; border-radius: 40px 40px 0 0; }
 @keyframes sign-sway { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
 @keyframes sign-swing { 0% { transform: rotate(0); } 20% { transform: rotate(12deg); } 45% { transform: rotate(-8deg); } 70% { transform: rotate(4deg); } 100% { transform: rotate(0); } }
-.price-tag { position: relative; flex-shrink: 0; margin-right: 4px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; transition: transform .7s cubic-bezier(.2,1.5,.4,1); }
-.price-tag::before { content: ""; width: 1px; height: 12px; background: var(--gold); }
-.price-tag > span { position: relative; padding: .35rem .75rem .35rem .95rem; border-radius: 4px 10px 10px 4px; background: var(--paper); color: var(--burgundy); font-family: var(--font-display); font-size: 1.35rem; line-height: 1; box-shadow: 0 6px 12px -6px color-mix(in oklab, var(--ink) 75%, transparent); border: 1px solid color-mix(in oklab, var(--gold) 70%, transparent); }
-.price-tag > span::before { content: ""; position: absolute; left: 5px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 99px; background: var(--burgundy); }
-.product-card { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s; }
-.product-card:hover, .product-card:focus-within { transform: translateY(-4px); box-shadow: 0 24px 40px -22px color-mix(in oklab, var(--gold) 55%, transparent); }
-.product-card:hover .price-tag, .product-card.is-swing .price-tag { transform: rotate(-10deg); }
+/* Market counter: wooden shelf, discreet lights, ivory tags; original photos on uniform white stages (never cropped). */
+:root { --reflect: oklch(0.86 0.012 250); }
+.stall { position: relative; isolation: isolate; overflow: hidden; border-radius: 2rem; padding: 4.1rem .75rem 1.5rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in oklab, var(--gold) 24%, transparent), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 140px, color-mix(in oklab, var(--wood-dark) 75%, transparent) 140px 142px),
+    linear-gradient(180deg, color-mix(in oklab, var(--wood-dark) 70%, var(--ink)), var(--wood-dark));
+  box-shadow: inset 0 0 70px color-mix(in oklab, var(--ink) 70%, transparent), var(--shadow-deep); }
+@media (min-width: 640px) { .stall { padding: 4.6rem 1.5rem 1.75rem; } }
+.stall-awning { position: absolute; left: 0; right: 0; top: 0; height: 22px; z-index: 2;
+  background: repeating-linear-gradient(90deg, var(--primary) 0 36px, color-mix(in oklab, var(--ivory) 92%, var(--primary)) 36px 72px);
+  box-shadow: 0 6px 10px -4px color-mix(in oklab, var(--ink) 70%, transparent); }
+.stall-awning::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px;
+  background: radial-gradient(circle at 18px 0, var(--primary) 17px, transparent 17.5px) 0 0 / 72px 12px repeat-x,
+    radial-gradient(circle at 54px 0, color-mix(in oklab, var(--ivory) 92%, var(--primary)) 17px, transparent 17.5px) 0 0 / 72px 12px repeat-x; }
+.stall-lights { position: absolute; left: 1rem; right: 1rem; top: 44px; height: 10px; display: flex; justify-content: space-between; pointer-events: none; }
+.stall-lights::before { content: ""; position: absolute; left: 0; right: 0; top: 2px; height: 1px; background: color-mix(in oklab, var(--twine) 50%, transparent); }
+.stall-lights > span { position: relative; width: 6px; height: 6px; border-radius: 99px; background: var(--gold); box-shadow: 0 0 10px var(--gold), 0 0 3px var(--gold); animation: twinkle 4.5s ease-in-out infinite; animation-delay: var(--d); }
+.stall-shelf { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
+@media (min-width: 1024px) { .stall-shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.stall-item { position: relative; display: flex; flex-direction: column; padding: 0 .45rem; }
+@media (min-width: 640px) { .stall-item { padding: 0 .9rem; } }
+.stall-goods { position: relative; z-index: 1; box-shadow: 0 16px 18px -14px color-mix(in oklab, var(--ink) 90%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--gold) 30%, transparent); }
+.stall-plank { position: relative; z-index: 2; display: block; height: 15px; margin: -5px -.45rem 0;
+  background: linear-gradient(180deg, var(--wood-light), var(--wood) 55%, var(--wood-dark)); box-shadow: 0 10px 14px -8px color-mix(in oklab, var(--ink) 85%, transparent); }
+@media (min-width: 640px) { .stall-plank { margin: -5px -.9rem 0; } }
+.stall-tag { --tilt: 0deg; position: relative; z-index: 1; margin: 16px auto 0; width: min(100%, 15rem); padding: 1rem .75rem .85rem; text-align: center; color: var(--ink);
+  background: var(--paper); border-radius: 6px; border: 1px solid color-mix(in oklab, var(--gold) 45%, transparent);
+  box-shadow: 0 12px 16px -12px color-mix(in oklab, var(--ink) 90%, transparent);
+  transform: rotate(var(--tilt)); transform-origin: 50% -16px; transition: transform .7s cubic-bezier(.2,1.5,.4,1); }
+.stall-tag::before { content: ""; position: absolute; left: 50%; top: -17px; width: 28px; height: 18px; margin-left: -14px; border: 1.5px solid var(--twine); border-bottom: 0; border-radius: 28px 28px 0 0; }
+.stall-tag::after { content: ""; position: absolute; left: 50%; top: 5px; width: 6px; height: 6px; margin-left: -3px; border-radius: 99px; background: var(--wood-dark); }
+.stall-item:hover .stall-tag, .stall-item.is-swing .stall-tag { transform: rotate(calc(var(--tilt) * -3)); }
+.stall-price { font-family: var(--font-display); color: var(--burgundy); font-size: 1.6rem; line-height: 1; }
