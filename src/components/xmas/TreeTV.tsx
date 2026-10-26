@@ -9,7 +9,7 @@ import { TvQr } from './Qr';
 import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
-import { TvKindness } from './TvKindness';
+import { TvKindness, type AdventPreview } from './TvKindness';
 import { usePublicWishes, wallWishes, DEMO_WISHES, type PublicWish } from '@/lib/wishes';
 import { layoutWall, DEFAULT_SIGNATURE } from '@/lib/tv-wall';
 
@@ -31,7 +31,7 @@ const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kin
 /** Scenes the presentation preview can show, in director order (the arrival card is a beat, not a loop scene). */
 export type TvBeat = TvScene | 'arrivo';
 /** Preview control: shows one real scene immediately, with no loop, no wake lock and no reload. */
-export type TvPreview = { beat: TvBeat };
+export type TvPreview = { beat: TvBeat; advent?: AdventPreview | null };
 
 /** Fictitious dedication, used only in the preview when the shared tree has no public dedication yet. */
 const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un sorriso in strada. Grazie!', firma: 'Esempio DEMO' };
@@ -219,7 +219,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
       </header>
 
-      <TvKindness reduced={reduced} />
+      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} />
 
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>
