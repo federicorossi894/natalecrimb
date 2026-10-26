@@ -401,14 +401,16 @@ button.advent-plaque.is-available:hover .advent-plaque-leaf, button.advent-plaqu
 .tv-adv.is-message .tv-adv-shade, .tv-adv.is-out .tv-adv-shade { opacity: 1; }
 .tv-adv-head { position: absolute; left: 3cqw; top: 2.6cqw; padding: 1.2cqw 1.6cqw; border-radius: 1cqw; background: color-mix(in oklab, var(--scene-night) 72%, transparent); backdrop-filter: blur(6px); opacity: 0; transition: opacity 1.2s ease .3s; }
 .tv-adv:not(.is-dark) .tv-adv-head { opacity: 1; }
-.tv-adv.is-message:has(.tv-adv-note.is-left) .tv-adv-head, .tv-adv.is-out:has(.tv-adv-note.is-left) .tv-adv-head { opacity: 0; }
+.tv-adv:is(.is-focus, .is-open, .is-message, .is-out) .tv-adv-head { opacity: 0; transition-delay: 0s; }
+.advent-sede.is-tv .advent-plaque-lock { display: none; }
+.tv-adv.is-open .advent-plaque.is-opening .advent-plaque-glow { animation: none; opacity: 1; inset: -1.2cqw; }
 .tv-adv-note { position: absolute; top: 50%; width: 41cqw; max-height: 48cqw; overflow: hidden; padding: 2.6cqw 2.8cqw 2.2cqw; border-radius: 1.2cqw; background: var(--scene-ivory); color: var(--ink); border: .22cqw solid var(--advent-rim);
   box-shadow: 0 0 5cqw color-mix(in oklab, var(--scene-gold) 35%, transparent), 0 2cqw 4cqw -1cqw color-mix(in oklab, var(--scene-night) 85%, transparent);
   opacity: 0; transform: translateY(calc(-50% + 2cqw)) scale(.97); transition: opacity 1s ease, transform 1.2s cubic-bezier(.2,.8,.2,1); }
 .tv-adv-note.is-right { right: 3.5cqw; }
 .tv-adv-note.is-left { left: 3.5cqw; }
 .tv-adv.is-message .tv-adv-note, .tv-adv.is-out .tv-adv-note { opacity: 1; transform: translateY(-50%); }
-.tv-adv-demo { position: absolute; right: 1.6cqw; top: 1.4cqw; padding: .25cqw .7cqw; border: .1cqw solid currentColor; border-radius: .3cqw; color: var(--burgundy); font: 700 .95cqw/1.1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; transform: rotate(2deg); }
+.tv-adv-demo { display: inline-block; margin-bottom: .9cqw; padding: .25cqw .7cqw; border: .1cqw solid currentColor; border-radius: .3cqw; color: var(--burgundy); font: 700 .95cqw/1.1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; transform: rotate(-1.5deg); }
 .tv-adv-foot { margin-top: 1.4cqw; font-size: 1.05cqw; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in oklab, var(--ink) 62%, transparent); }
 .tv-adv.is-reduced .tv-adv-stage, .tv-adv.is-reduced .advent-plaque-leaf { transition: none; }
 @media (prefers-reduced-motion: reduce) { .tv-adv-stage { transition: none; } .tv-adv-note { transform: translateY(-50%); } }
