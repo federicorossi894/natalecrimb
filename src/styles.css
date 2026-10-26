@@ -350,7 +350,7 @@ button.advent-plaque:focus-visible { outline: 3px solid var(--scene-gold); outli
 .advent-plaque-glow { position: absolute; inset: -.5cqw; border-radius: 1cqw; opacity: 0; pointer-events: none; transition: opacity .6s ease; mix-blend-mode: screen;
   background: radial-gradient(closest-side, color-mix(in oklab, var(--scene-gold) 85%, transparent), color-mix(in oklab, var(--scene-gold) 30%, transparent) 65%, transparent); }
 button.advent-plaque.is-available:hover .advent-plaque-leaf, button.advent-plaque.is-today:hover .advent-plaque-leaf, button.advent-plaque:focus-visible:not(.is-opened) .advent-plaque-leaf { transform: rotateY(-14deg); }
-.advent-plaque.is-locked .advent-plaque-leaf { filter: saturate(.7) brightness(.76); }
+.advent-plaque.is-locked .advent-plaque-leaf { filter: saturate(.85) brightness(.86); }
 .advent-plaque-lock { position: absolute; right: -.35cqw; bottom: -.35cqw; width: 1.25cqw; height: 1.25cqw; display: grid; place-items: center; border-radius: 999px; color: var(--advent-rim);
   background: color-mix(in oklab, var(--scene-night) 85%, transparent); border: .08cqw solid color-mix(in oklab, var(--advent-rim) 70%, transparent); }
 .advent-plaque-lock svg { width: .7cqw; height: .7cqw; }
