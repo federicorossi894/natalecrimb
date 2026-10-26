@@ -38,7 +38,7 @@
 
 ## Tre nuove esperienze (23/10)
 - [x] Calendario della Gentilezza: /calendario, 24 sportelli 1–24 dic, sblocco con data Europe/Rome del server, testi modificabili dai moderatori
-- [x] TV: cerimonia apertura sportello alle 10:00 Rome una volta al giorno, poi messaggio compatto fisso; anteprima prima del 1/12, chiusura dopo il 24/12
+- [x] TV: cerimonia apertura sportello alle 12:00 Rome (spostata dalle 10:00 il 26/10) una volta al giorno, poi messaggio compatto fisso; anteprima prima del 1/12, chiusura dopo il 24/12
 - [x] Casetta delle meraviglie: /casetta più ricca e interattiva (stesse foto/locandina/prezzi, solo in presenza)
 - [x] Muro degli auguri: /auguri con bigliettini su legno e mollette, solo approvati + esempi DEMO etichettati
 - [x] Volontari: "Acquisto alla casetta" → QR/link monouso (7 giorni) per un augurio; demo in memoria
@@ -52,3 +52,9 @@
 - [x] Santa: red-cross sleeve patch (white disc, thin red rim) on the volunteer jacket
 - [x] TV wish wall: panoramic 16:9, 3–5 twine rows, note size by length, no overlap, QR kept, new-note animation
 - [x] /tv-preview (unlinked): real TV scenes on buttons + 35 s quick demo, DEMO labels
+
+## Calendario definitivo sulla sede CRI Monza (26/10)
+- [x] /calendario: illustrazione originale della sede + 24 sportellini allineati al riferimento numerato
+- [x] TV: cerimonia delle 12:00 (zoom, apertura, messaggio, ritorno), una volta al giorno
+- [x] /tv-preview?modo=calendario: giorno 1–24, simula/pausa/salti di fase
+- [ ] Prova su TV fisica della cerimonia — awaits the casetta screen
