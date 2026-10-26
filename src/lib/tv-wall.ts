@@ -12,7 +12,7 @@ export const WALL = {
   /** Rows that reach below qrTop end at shortRight, leaving the QR block free. */
   shortRight: 58.5,
   qrTop: 35,
-  top: 11.8,
+  top: 13.4,
   bottom: 54.8,
   maxRows: 5,
   gap: 1.3,
@@ -38,20 +38,22 @@ export const wallSize = (body: string): WallSize => (body.length <= 48 ? "s" : b
 
 export type WallNote = { wish: PublicWish; size: WallSize; width: number; lines: number; height: number; tilt: number; drop: number; isNew: boolean };
 export type WallRow = { y: number; right: number; height: number; notes: WallNote[] };
-export type WallLayout = { rows: WallRow[]; used: number };
+/** `scale` enlarges paper and handwriting together when few wishes leave room (more legible from afar). */
+export type WallLayout = { rows: WallRow[]; used: number; scale: number };
+export const WALL_SCALES = [1.4, 1.25, 1.1, 1] as const;
 
-const glyph = WALL.font * CHAR_EM;
-
-export function measureNote(wish: PublicWish, isNew = false): WallNote {
+export function measureNote(wish: PublicWish, isNew = false, scale = 1): WallNote {
   const len = wish.body.length;
-  const ideal = Math.ceil(len / TARGET_LINES) * glyph + PAD_X * 2;
-  const width = Math.round(Math.min(WALL_WIDTH.max, Math.max(WALL_WIDTH.min, ideal)) * 10) / 10;
-  const perLine = Math.max(8, Math.floor((width - PAD_X * 2) / glyph));
+  const glyph = WALL.font * CHAR_EM * scale;
+  const padX = PAD_X * scale;
+  const ideal = Math.ceil(len / TARGET_LINES) * glyph + padX * 2;
+  const width = Math.round(Math.min(WALL_WIDTH.max * scale, Math.max(WALL_WIDTH.min * scale, ideal)) * 10) / 10;
+  const perLine = Math.max(8, Math.floor((width - padX * 2) / glyph));
   const lines = Math.max(1, Math.ceil(len / perLine));
   const look = noteLook(wish.id);
   return {
     wish, size: wallSize(wish.body), width, lines, isNew,
-    height: PAD_Y + lines * WALL.line + SIG + (wish.demo ? STAMP : 0),
+    height: (PAD_Y + lines * WALL.line + SIG + (wish.demo ? STAMP : 0)) * scale,
     tilt: Math.round(look.rotate * 0.35 * 10) / 10,
     drop: Math.round((look.lift / 12) * 0.5 * 10) / 10,
   };
@@ -75,7 +77,16 @@ function packRow(queue: WallNote[], capacity: number, maxCount: number) {
  * how many wishes were placed (the caller advances its cursor by `used`).
  */
 export function layoutWall(wishes: PublicWish[], newIds: ReadonlySet<string> = new Set()): WallLayout {
-  const queue = wishes.map((w) => measureNote(w, newIds.has(w.id)));
+  // Largest handwriting that still fits every wish; otherwise normal size and as many as fit.
+  for (const scale of WALL_SCALES) {
+    const l = layoutAt(wishes, newIds, scale);
+    if (l.used === wishes.length || scale === 1) return l;
+  }
+  return layoutAt(wishes, newIds, 1);
+}
+
+function layoutAt(wishes: PublicWish[], newIds: ReadonlySet<string>, scale: number): WallLayout {
+  const queue = wishes.map((w) => measureNote(w, newIds.has(w.id), scale));
   const desiredRows = Math.min(WALL.maxRows, Math.max(1, Math.ceil(queue.length / 3)));
   const perRow = Math.max(2, Math.ceil(queue.length / desiredRows));
   const rows: WallRow[] = [];
@@ -85,12 +96,12 @@ export function layoutWall(wishes: PublicWish[], newIds: ReadonlySet<string> = n
     const rest = queue.slice(i);
     let right: number = WALL.fullRight;
     let notes = packRow(rest, right - WALL.left, perRow);
-    let h = Math.max(...notes.map((n) => n.height + n.drop)) + ROW_EXTRA;
+    let h = Math.max(...notes.map((n) => n.height + n.drop)) + ROW_EXTRA * scale;
     if (y + h > WALL.qrTop) {
       right = WALL.shortRight;
       notes = packRow(rest, right - WALL.left, perRow);
       if (!notes.length) break;
-      h = Math.max(...notes.map((n) => n.height + n.drop)) + ROW_EXTRA;
+      h = Math.max(...notes.map((n) => n.height + n.drop)) + ROW_EXTRA * scale;
     }
     if (!notes.length || y + h > WALL.bottom) break;
     rows.push({ y, right, height: h, notes });
@@ -102,7 +113,7 @@ export function layoutWall(wishes: PublicWish[], newIds: ReadonlySet<string> = n
   const extra = rows.length > 1 ? Math.min(3, spare / rows.length) : 0;
   if (extra > 0) {
     const moved = rows.map((r, k) => ({ ...r, y: r.y + extra * k }));
-    if (moved.every((r) => r.right !== WALL.fullRight || r.y + r.height <= WALL.qrTop)) return { rows: moved, used: i };
+    if (moved.every((r) => r.right !== WALL.fullRight || r.y + r.height <= WALL.qrTop)) return { rows: moved, used: i, scale };
   }
-  return { rows, used: i };
+  return { rows, used: i, scale };
 }

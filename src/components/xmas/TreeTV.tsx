@@ -187,7 +187,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       <div className="tv-vignette" aria-hidden />
 
       {/* Panoramic wish wall: full 16:9 width, 3–5 twine lines; the brand and the QR block stay visible on top. */}
-      <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'}>
+      <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'} style={{ ['--s' as string]: wall.scale }}>
         <div className="tv-wall-head">
           <p className="tv-kicker">Dal Muro degli auguri</p>
           <p className="mt-[0.4cqw] text-[1.35cqw]">Biglietti lasciati alla casetta e letti dallo staff</p>
