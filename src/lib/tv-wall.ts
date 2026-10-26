@@ -53,7 +53,8 @@ export function measureNote(wish: PublicWish, isNew = false, scale = 1): WallNot
   const ideal = Math.max((Math.ceil(len / TARGET_LINES) + 2) * glyph + padX * 2, sigNeed);
   const width = Math.round(Math.min(WALL_WIDTH.max * scale, Math.max(WALL_WIDTH.min * scale, ideal)) * 10) / 10;
   const perLine = Math.max(8, Math.floor((width - padX * 2) / glyph));
-  const lines = Math.max(1, Math.ceil(len / perLine));
+  // Word wrapping wastes part of each line: assume 85% fill so the estimate stays on the safe side.
+  const lines = Math.max(1, Math.ceil(len / (perLine * 0.85)));
   const look = noteLook(wish.id);
   return {
     wish, size: wallSize(wish.body), width, lines, isNew,
