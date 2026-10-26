@@ -403,7 +403,10 @@ button.advent-plaque.is-available:hover .advent-plaque-leaf, button.advent-plaqu
 .tv-adv:not(.is-dark) .tv-adv-head { opacity: 1; }
 .tv-adv:is(.is-focus, .is-open, .is-message, .is-out) .tv-adv-head { opacity: 0; transition-delay: 0s; }
 .advent-sede.is-tv .advent-plaque-lock { display: none; }
-.tv-adv.is-open .advent-plaque.is-opening .advent-plaque-glow { animation: none; opacity: 1; inset: -1.2cqw; }
+.tv-adv .advent-plaque.is-opening .advent-plaque-glow { animation: advent-glow-tv 1.6s ease-out both; mix-blend-mode: normal; inset: 0; border-radius: .62cqw;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--snow) 70%, transparent), color-mix(in oklab, var(--scene-gold) 40%, transparent));
+  box-shadow: 0 0 2.4cqw 1cqw color-mix(in oklab, var(--scene-gold) 85%, transparent), inset 0 0 1.4cqw color-mix(in oklab, var(--scene-gold) 90%, transparent); }
+@keyframes advent-glow-tv { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: .9; } }
 .tv-adv-note { position: absolute; top: 50%; width: 41cqw; max-height: 48cqw; overflow: hidden; padding: 2.6cqw 2.8cqw 2.2cqw; border-radius: 1.2cqw; background: var(--scene-ivory); color: var(--ink); border: .22cqw solid var(--advent-rim);
   box-shadow: 0 0 5cqw color-mix(in oklab, var(--scene-gold) 35%, transparent), 0 2cqw 4cqw -1cqw color-mix(in oklab, var(--scene-night) 85%, transparent);
   opacity: 0; transform: translateY(calc(-50% + 2cqw)) scale(.97); transition: opacity 1s ease, transform 1.2s cubic-bezier(.2,.8,.2,1); }
