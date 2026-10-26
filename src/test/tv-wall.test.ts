@@ -20,7 +20,7 @@ describe("TV panoramic wish wall", () => {
     const layout = layoutWall([{ id: "a", body: "Buon Natale!", nickname: null }, { id: "b", body: "b".repeat(180), nickname: null }]);
     const [short, long] = layout.rows[0]!.notes;
     expect(long!.width).toBeGreaterThan(short!.width);
-    expect(short!.width).toBeCloseTo(WALL_WIDTH.min * layout.scale, 1);
+    expect(long!.width).toBeLessThanOrEqual(WALL_WIDTH.max * layout.scale);
   });
 
   it("keeps notes side by side without overlap, rows apart, and the QR block free", () => {

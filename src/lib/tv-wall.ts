@@ -22,9 +22,9 @@ export const WALL = {
 
 export type WallSize = "s" | "m" | "l";
 /** Paper width range: short wishes get small notes, long ones wider paper so they stay within ~3 lines. */
-export const WALL_WIDTH = { min: 12.5, max: 33 } as const;
+export const WALL_WIDTH = { min: 12.5, max: 32 } as const;
 /** Conservative glyph width for the handwritten font (em): overestimates lines, so text never spills. */
-const CHAR_EM = 0.42;
+const CHAR_EM = 0.38;
 const PAD_X = 1.4;
 /** Pin + top padding and bottom padding. */
 const PAD_Y = 1.7 + 0.6;
