@@ -10,7 +10,8 @@ import { CriLockup, OrnamentIcon } from './Ornament';
 import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
 import { TvKindness } from './TvKindness';
-import { usePublicWishes, noteLook, type PublicWish } from '@/lib/wishes';
+import { usePublicWishes, wallWishes, DEMO_WISHES, type PublicWish } from '@/lib/wishes';
+import { layoutWall } from '@/lib/tv-wall';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
@@ -27,14 +28,24 @@ type WakeNavigator = Navigator & { wakeLock?: { request: (t: 'screen') => Promis
 
 const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kind);
 
+/** Scenes the presentation preview can show, in director order (the arrival card is a beat, not a loop scene). */
+export type TvBeat = TvScene | 'arrivo';
+/** Preview control: shows one real scene immediately, with no loop, no wake lock and no reload. */
+export type TvPreview = { beat: TvBeat };
+
+/** Fictitious dedication, used only in the preview when the shared tree has no public dedication yet. */
+const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un sorriso in strada. Grazie!', firma: 'Esempio DEMO' };
+
 /** Autonomous, silent 24/7 casetta screen: big tree on the left, warm invitation + large QR on the right. */
-export function TreeTV() {
+export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const { addedOrnaments: ornaments, addedCount, error } = useTreeStore();
   const events = useCasettaEvents();
   const { wishes } = usePublicWishes(60_000);
   const wishesRef = useRef<PublicWish[]>(wishes);
   const wishCursor = useRef(0);
-  const [wishTrio, setWishTrio] = useState<PublicWish[]>([]);
+  const [wishPage, setWishPage] = useState<PublicWish[]>([]);
+  const knownWishes = useRef<Set<string> | null>(null);
+  const [newWishIds, setNewWishIds] = useState<ReadonlySet<string>>(new Set());
   const [scene, setScene] = useState<TvScene>('invito');
   const [selected, setSelected] = useState<TreeOrnament | null>(null);
   const [arriving, setArriving] = useState<TreeOrnament | null>(null);
@@ -44,33 +55,70 @@ export function TreeTV() {
   const step = useRef(0);
   const cursor = useRef(0);
   const reduced = useReducedMotion();
-  const publicDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
+  const realDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
+  // Preview only: when no public dedication exists yet, one ornament carries a clearly labelled fictitious example.
+  const previewDedication = useMemo(() => {
+    if (!preview || realDedications.length || !ornaments.length) return null;
+    return { ...ornaments[ornaments.length - 1]!, ...PREVIEW_DEDICATION };
+  }, [preview, realDedications.length, ornaments]);
+  const shownOrnaments = useMemo(
+    () => (previewDedication ? ornaments.map((o) => (o.id === previewDedication.id ? previewDedication : o)) : ornaments),
+    [ornaments, previewDedication],
+  );
+  const publicDedications = previewDedication ? [previewDedication] : realDedications;
   const hasDedications = publicDedications.length > 0;
-  const sequence = tvSequence(hasDedications, wishes.length > 0);
+  // The wall lists approved wishes only; while they are few it adds the "Esempio · DEMO" notes, like /auguri.
+  const wallSource = useMemo(() => (wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, preview]);
+  const sequence = preview ? tvSequence(true, true) : tvSequence(hasDedications, wishes.length > 0);
 
   useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
   useEffect(() => { arrivingRef.current = arriving; }, [arriving]);
-  useEffect(() => { wishesRef.current = wishes; }, [wishes]);
+  useEffect(() => { wishesRef.current = wallSource; }, [wallSource]);
+
+  // Newly approved wishes get a gentle "just pinned" animation the next time the wall is on screen.
+  useEffect(() => {
+    const ids = new Set(wishes.map((w) => w.id));
+    const prev = knownWishes.current;
+    if (prev) {
+      const fresh = wishes.filter((w) => !prev.has(w.id)).map((w) => w.id);
+      if (fresh.length) setNewWishIds((cur) => new Set([...cur, ...fresh]));
+    }
+    knownWishes.current = ids;
+  }, [wishes]);
+
+  /** Next wall page: fresh wishes first, then continue the rotation from the cursor. */
+  const nextWishPage = (list: PublicWish[]) => {
+    if (!list.length) return [];
+    const fresh = list.filter((w) => newWishIds.has(w.id));
+    const start = wishCursor.current % list.length;
+    const rotated = [...list.slice(start), ...list.slice(0, start)].filter((w) => !newWishIds.has(w.id));
+    const page = [...fresh, ...rotated];
+    const { used } = layoutWall(page, newWishIds);
+    wishCursor.current = (start + Math.max(1, used - fresh.length)) % list.length;
+    return page.slice(0, Math.max(1, used));
+  };
+  const nextWishRef = useRef(nextWishPage);
+  nextWishRef.current = nextWishPage;
 
   // New gift detection (polling via useTreeStore). The first non-empty load is the existing tree, not an arrival.
   useEffect(() => {
     const ids = new Set(ornaments.map((o) => o.id));
     const prev = previous.current;
-    if (prev && !(prev.size === 0 && ornaments.length > 1)) {
+    if (!preview && prev && !(prev.size === 0 && ornaments.length > 1)) {
       const next = ornaments.find((o) => !prev.has(o.id));
       if (next) { setArriving(next); setSelected(next); }
     }
     previous.current = ids;
   }, [ornaments]);
   useEffect(() => {
-    if (!arriving) return;
+    if (!arriving || preview) return;
     const t = setTimeout(() => { setArriving(null); setSelected(null); }, ARRIVAL_MS);
     return () => clearTimeout(t);
   }, [arriving]);
 
   // Scene loop (≈60 s, ≈72 s with dedications), paused during an arrival.
   useEffect(() => {
-    if (arriving) return;
+    if (arriving || preview) return;
     let timer: ReturnType<typeof setTimeout>;
     const run = () => {
       const pub = ornamentsRef.current.filter((o) => o.dedica);
@@ -80,20 +128,34 @@ export function TreeTV() {
       step.current++;
       if (s === 'dedica') setSelected(pub[cursor.current++ % pub.length] ?? null);
       else setSelected(null);
-      if (s === 'auguri') {
-        const start = wishCursor.current;
-        setWishTrio(Array.from({ length: Math.min(3, w.length) }, (_, i) => w[(start + i) % w.length]!));
-        wishCursor.current = (start + 3) % Math.max(1, w.length);
-      }
+      if (s === 'auguri') setWishPage(nextWishRef.current(w));
       setScene(s);
       timer = setTimeout(run, TV_DURATION[s]);
     };
     run();
     return () => clearTimeout(timer);
-  }, [arriving]);
+  }, [arriving, preview]);
+
+  // Preview: apply the chosen beat immediately with the same states the loop would produce.
+  const previewBeat = preview?.beat;
+  useEffect(() => {
+    if (!previewBeat) return;
+    const list = ornamentsRef.current;
+    if (previewBeat === 'arrivo') {
+      const last = list[list.length - 1] ?? null;
+      setArriving(last); setSelected(last); setScene('invito');
+      return;
+    }
+    setArriving(null);
+    setSelected(previewBeat === 'dedica' ? (publicDedications[0] ?? null) : null);
+    if (previewBeat === 'auguri') setWishPage(nextWishRef.current(wishesRef.current));
+    setScene(previewBeat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewBeat, publicDedications[0]?.id, ornaments.length > 0, wallSource.length]);
 
   // Unattended screen: keep it awake and refresh periodically to clear any long-run drift.
   useEffect(() => {
+    if (preview) return;
     let lock: { release: () => Promise<void> } | null = null;
     const req = async () => { try { lock = (await (navigator as WakeNavigator).wakeLock?.request('screen')) ?? null; } catch { lock = null; } };
     void req();
@@ -101,20 +163,54 @@ export function TreeTV() {
     document.addEventListener('visibilitychange', vis);
     const reload = setInterval(() => { if (!arrivingRef.current && navigator.onLine) window.location.reload(); }, SAFETY_RELOAD_MS);
     return () => { document.removeEventListener('visibilitychange', vis); clearInterval(reload); void lock?.release().catch(() => {}); };
-  }, []);
+  }, [preview]);
 
   const active = arriving ? 'arrivo' : scene;
   const on = (s: TvScene | 'arrivo') => (active === s ? 'is-active' : '');
   const dedication = scene === 'dedica' ? selected : null;
   const arrivingProject = arriving ? projectOf(arriving) : undefined;
+  const wall = useMemo(() => layoutWall(wishPage, newWishIds), [wishPage, newWishIds]);
+  const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
+  // Once a fresh wish has been shown on the wall it becomes an ordinary note.
+  useEffect(() => {
+    if (scene !== 'auguri' || !newWishIds.size) return;
+    const t = setTimeout(() => setNewWishIds(new Set()), TV_DURATION.auguri);
+    return () => clearTimeout(t);
+  }, [scene, newWishIds.size]);
 
   return (
     <div className="tv-scene" data-beat={active} data-testid="tv-scene">
       <div className="tv-tree">
-        <TreeStage ornaments={ornaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
+        <TreeStage ornaments={shownOrnaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
         {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
       </div>
       <div className="tv-vignette" aria-hidden />
+
+      {/* Panoramic wish wall: full 16:9 width, 3–5 twine lines; the brand and the QR block stay visible on top. */}
+      <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'}>
+        <div className="tv-wall-head">
+          <p className="tv-kicker">Dal Muro degli auguri</p>
+          <p className="mt-[0.4cqw] text-[1.35cqw]">Biglietti lasciati alla casetta e letti dallo staff</p>
+        </div>
+        {wall.rows.map((row, r) => (
+          <div key={`${r}-${row.notes[0]?.wish.id}`} className="tv-wall-row" style={{ top: `${row.y}cqw`, left: '2.5cqw', width: `${row.right - 2.5}cqw` }}>
+            {row.notes.map((n, k) => (
+              <div
+                key={n.wish.id}
+                className={`wish-note tv-wall-note wish-paper-${['ivory', 'kraft', 'snow', 'blush'][(r + k * 3 + n.wish.id.length) % 4]} ${n.isNew ? 'is-new' : ''}`}
+                data-testid="tv-wall-note"
+                data-demo={n.wish.demo ? 'true' : undefined}
+                style={{ width: `${n.width}cqw`, ['--tilt' as string]: `${n.tilt}deg`, ['--lift' as string]: `${n.drop}cqw`, ['--i' as string]: r * 2 + k }}
+              >
+                <span className="wish-pin" aria-hidden />
+                {n.wish.demo && <span className="wish-demo-stamp tv-wall-stamp">Esempio · DEMO</span>}
+                <span className="wish-text tv-wall-text" style={{ WebkitLineClamp: n.lines }}>{n.wish.body}</span>
+                <span className="tv-wall-sig">— {n.wish.nickname ?? 'Un augurio da Monza'}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </section>
 
       <header className="tv-brand">
         <CriLockup className="h-[5.4cqw]" />
@@ -206,24 +302,10 @@ export function TreeTV() {
                 <div className="tv-tag mt-[1.6cqw]">
                   <p className="font-display text-[2.2cqw] leading-snug">“{dedication.dedica}”</p>
                   <p className="mt-[1cqw] text-[1.4cqw] font-semibold">— {dedication.firma ?? 'Anonimo'}</p>
-                  <p className="mt-[0.6cqw] text-[1.15cqw] text-muted-foreground">{projectOf(dedication)?.title ?? ''} · dedica pubblicata con consenso</p>
+                  <p className="mt-[0.6cqw] text-[1.15cqw] text-muted-foreground">{projectOf(dedication)?.title ?? ''} · {isPreviewDedication ? 'dedica di esempio · DEMO' : 'dedica pubblicata con consenso'}</p>
                 </div>
               </>
             )}
-          </section>
-
-          <section className={`tv-card ${on('auguri')}`} data-scene="auguri" data-testid="tv-wishes">
-            <p className="tv-kicker">Dal Muro degli auguri</p>
-            <p className="mt-[0.6cqw] text-[1.5cqw] text-muted-foreground">Biglietti lasciati alla casetta e letti dallo staff</p>
-            <div className="tv-notes">
-              {wishTrio.map((w, i) => (
-                <div key={`${w.id}-${i}`} className={`wish-note tv-note wish-paper-${noteLook(w.id).paper}`} style={{ ['--i' as string]: i, ['--tilt' as string]: `${noteLook(w.id).rotate}deg` }}>
-                  <span className="wish-pin" style={{ transform: 'translateX(-50%)' }} aria-hidden />
-                  <span className="wish-text line-clamp-5 block">{w.body}</span>
-                  <span className="mt-[0.5cqw] block text-right text-[1cqw] font-semibold">— {w.nickname ?? 'Un augurio da Monza'}</span>
-                </div>
-              ))}
-            </div>
           </section>
 
           <section className={`tv-card ${on('arrivo')}`} data-scene="arrivo">
