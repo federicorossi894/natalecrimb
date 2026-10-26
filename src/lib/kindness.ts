@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
  * rule only to drive the UI between fetches; the visitor's clock is corrected with the server time.
  */
 export const ROME_TZ = "Europe/Rome";
-export const CEREMONY_HOUR = 10;
+/** Daily TV moment (Europe/Rome). Visitors' doors still unlock at midnight; this is only the casetta screen event. */
+export const CEREMONY_HOUR = 12;
 export const DOORS = 24;
 
 export type RomeParts = { year: number; month: number; day: number; hour: number; minute: number };
@@ -33,7 +34,7 @@ export function calendarPhase(d: Date): CalendarPhase {
   return "preview";
 }
 
-/** Door the casetta screen shows: today's only from 10:00 Rome, yesterday's before. 0 = nothing open yet. */
+/** Door the casetta screen shows: today's only from 12:00 Rome, yesterday's before. 0 = nothing open yet. */
 export function tvDay(d: Date) {
   const r = romeParts(d);
   if (r.month === 12 && r.day <= DOORS) return r.hour >= CEREMONY_HOUR ? r.day : r.day - 1;
@@ -45,15 +46,13 @@ export const seasonYear = (d: Date) => { const r = romeParts(d); return r.month 
 export const ceremonyKey = (d: Date, day: number) => `${seasonYear(d)}-${day}`;
 
 /**
- * The opening ceremony plays only when 10:00 passes while the screen is on, and once per day per screen:
- * a TV started or reloaded after 10:00 shows the message straight away, without the ceremony.
+ * The opening ceremony plays only when 12:00 passes while the screen is on, and once per day per screen:
+ * a TV started or reloaded after 12:00 shows the message straight away, without the ceremony.
  */
 export function ceremonyDue(prevDay: number | null, nowDay: number, phase: CalendarPhase, lastShown: string | null, key: string) {
   return prevDay !== null && phase === "open" && nowDay >= 1 && nowDay > prevDay && lastShown !== key;
 }
 
-/** Visual order of the doors on the cabinet: shuffled once, the same for everyone. */
-export const DOOR_ORDER = [13, 4, 21, 8, 1, 17, 10, 24, 6, 15, 2, 19, 11, 22, 5, 9, 16, 3, 20, 12, 7, 23, 14, 18];
 
 /** Shown before 1 December so the page can be presented; clearly an example, never one of the 24 doors. */
 export const EXAMPLE_DOOR = {
@@ -62,6 +61,16 @@ export const EXAMPLE_DOOR = {
 };
 
 export type Door = { day: number; title: string | null; message: string | null };
+
+/**
+ * DEMO stand-in for a door whose real text is not public yet (the server never sends future texts).
+ * Always labelled as an example; never presented as one of the 24 configured messages.
+ */
+export const demoDoor = (day: number): Door => ({
+  day,
+  title: `Il gesto del ${day} dicembre`,
+  message: `${EXAMPLE_DOOR.message} Il gesto vero di questa finestrella comparirà il ${day} dicembre.`,
+});
 
 export function useKindnessCalendar(refreshMs = 10 * 60_000) {
   const [doors, setDoors] = useState<Door[]>([]);
