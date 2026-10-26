@@ -20,7 +20,7 @@ const rnd = (i: number, s: number) => {
 export function demoGrowthOrnaments(count: number): TreeOrnament[] {
   const n = Math.max(0, Math.min(GROWTH_MAX, Math.round(count)));
   return Array.from({ length: n }, (_, i) => {
-    const y = 82 - Math.sqrt(rnd(i, 1)) * 60; // denser where the illustrated tree is wider
+    const y = 22 + Math.sqrt(rnd(i, 1)) * 60; // denser where the illustrated tree is wider
     const half = ((y - 10) / 80) * 34;
     return { id: `demo-crescita-${i + 1}`, kind: KINDS[Math.floor(rnd(i, 2) * KINDS.length)]!, x: 50 + (rnd(i, 3) * 2 - 1) * half * 0.85, y };
   });
