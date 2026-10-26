@@ -56,7 +56,7 @@ export function AdventCeremony({ day, door, demo, reduced, elapsed }: { day: num
         <p className="text-[1.3cqw] font-semibold uppercase tracking-[0.16em] text-burgundy">{day} dicembre · Gesto del giorno</p>
         <p className="mt-[0.9cqw] font-display text-[3.1cqw] leading-[1.08]">{door.title ?? "La finestrella di oggi"}</p>
         {door.message && <p className={`mt-[1.1cqw] leading-[1.38] ${long ? "text-[1.7cqw]" : "text-[2cqw]"}`}>{door.message}</p>}
-        <p className="mt-[1.4cqw] text-[1.05cqw] uppercase tracking-[0.14em] text-muted-foreground">Croce Rossa Italiana – Comitato di Monza</p>
+        <p className="tv-adv-foot">Croce Rossa Italiana – Comitato di Monza</p>
       </div>
     </div>
   );
