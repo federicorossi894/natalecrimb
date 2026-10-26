@@ -1,6 +1,6 @@
 import { AdventScene, SEDE_SRC, type DoorState } from "./AdventScene";
 import { CriLockup } from "./Ornament";
-import { adventCamera } from "@/lib/advent-layout";
+import { adventCamera, pct, plaqueOf } from "@/lib/advent-layout";
 import type { Door } from "@/lib/kindness";
 
 /**

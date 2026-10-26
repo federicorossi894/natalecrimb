@@ -403,6 +403,8 @@ button.advent-plaque.is-available:hover .advent-plaque-leaf, button.advent-plaqu
 .tv-adv:not(.is-dark) .tv-adv-head { opacity: 1; }
 .tv-adv:is(.is-focus, .is-open, .is-message, .is-out) .tv-adv-head { opacity: 0; transition-delay: 0s; }
 .advent-sede.is-tv .advent-plaque-lock { display: none; }
+.tv-adv-spot { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 1.2s ease; }
+.tv-adv:is(.is-open, .is-message) .tv-adv-spot { opacity: 1; }
 .tv-adv .advent-plaque.is-opening .advent-plaque-glow { animation: advent-glow-tv 1.6s ease-out both; mix-blend-mode: normal; inset: 0; border-radius: .62cqw;
   background: radial-gradient(closest-side, color-mix(in oklab, var(--snow) 70%, transparent), color-mix(in oklab, var(--scene-gold) 40%, transparent));
   box-shadow: 0 0 2.4cqw 1cqw color-mix(in oklab, var(--scene-gold) 85%, transparent), inset 0 0 1.4cqw color-mix(in oklab, var(--scene-gold) 90%, transparent); }
