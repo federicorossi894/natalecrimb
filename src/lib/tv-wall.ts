@@ -50,7 +50,7 @@ export function measureNote(wish: PublicWish, isNew = false, scale = 1): WallNot
   const glyph = WALL.font * CHAR_EM * scale;
   const padX = PAD_X * scale;
   const sigNeed = (`— ${wish.nickname ?? DEFAULT_SIGNATURE}`.length * SIG_EM + PAD_X * 2 + 0.4) * scale;
-  const ideal = Math.max(Math.ceil(len / TARGET_LINES) * glyph + padX * 2, sigNeed);
+  const ideal = Math.max((Math.ceil(len / TARGET_LINES) + 2) * glyph + padX * 2, sigNeed);
   const width = Math.round(Math.min(WALL_WIDTH.max * scale, Math.max(WALL_WIDTH.min * scale, ideal)) * 10) / 10;
   const perLine = Math.max(8, Math.floor((width - padX * 2) / glyph));
   const lines = Math.max(1, Math.ceil(len / perLine));
