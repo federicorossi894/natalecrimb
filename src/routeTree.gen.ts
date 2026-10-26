@@ -21,6 +21,7 @@ import { Route as ModerazioneRouteImport } from './routes/moderazione'
 import { Route as PiazzaRouteImport } from './routes/piazza'
 import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
 import { Route as PresentazioneRouteImport } from './routes/presentazione'
+import { Route as TvPreviewRouteImport } from './routes/tv-preview'
 import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
@@ -86,6 +87,11 @@ const PresentazioneRoute = PresentazioneRouteImport.update({
   path: '/presentazione',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TvPreviewRoute = TvPreviewRouteImport.update({
+  id: '/tv-preview',
+  path: '/tv-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VolontariRoute = VolontariRouteImport.update({
   id: '/volontari',
   path: '/volontari',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
+  '/tv-preview': typeof TvPreviewRoute
   '/volontari': typeof VolontariRoute
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
+  '/tv-preview': typeof TvPreviewRoute
   '/volontari': typeof VolontariRoute
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
+  '/tv-preview': typeof TvPreviewRoute
   '/volontari': typeof VolontariRoute
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
+    | '/tv-preview'
     | '/volontari'
     | '/augurio/$code'
     | '/regali/$id'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
+    | '/tv-preview'
     | '/volontari'
     | '/augurio/$code'
     | '/regali/$id'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
+    | '/tv-preview'
     | '/volontari'
     | '/augurio/$code'
     | '/regali/$id'
@@ -232,6 +244,7 @@ export interface RootRouteChildren {
   PiazzaRoute: typeof PiazzaRoute
   PiccoliVolontariRoute: typeof PiccoliVolontariRoute
   PresentazioneRoute: typeof PresentazioneRoute
+  TvPreviewRoute: typeof TvPreviewRoute
   VolontariRoute: typeof VolontariRoute
   AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PresentazioneRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tv-preview': {
+      id: '/tv-preview'
+      path: '/tv-preview'
+      fullPath: '/tv-preview'
+      preLoaderRoute: typeof TvPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/volontari': {
       id: '/volontari'
       path: '/volontari'
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   PiazzaRoute: PiazzaRoute,
   PiccoliVolontariRoute: PiccoliVolontariRoute,
   PresentazioneRoute: PresentazioneRoute,
+  TvPreviewRoute: TvPreviewRoute,
   VolontariRoute: VolontariRoute,
   AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,

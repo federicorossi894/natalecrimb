@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tv-preview")({
   component: TvPreviewPage,
 });
 
-export const PREVIEW_SCENES: { beat: TvBeat; label: string; note: string }[] = [
+const PREVIEW_SCENES: { beat: TvBeat; label: string; note: string }[] = [
   { beat: "invito", label: "Albero e QR", note: "Invito principale" },
   { beat: "passi", label: "Come partecipare", note: "3 passi" },
   { beat: "attivita", label: "Quattro regali", note: "Le cause CRI Monza" },
@@ -32,7 +32,7 @@ export const PREVIEW_SCENES: { beat: TvBeat; label: string; note: string }[] = [
   { beat: "arrivo", label: "Nuova pallina", note: "Arrivo di un regalo" },
 ];
 /** Quick run: 7 scenes × 5 s = 35 s. */
-export const QUICK_STEP_MS = 5000;
+const QUICK_STEP_MS = 5000;
 
 function TvPreviewPage() {
   const [beat, setBeat] = useState<TvBeat>("invito");
