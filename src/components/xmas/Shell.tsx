@@ -12,7 +12,7 @@ const NAV = [
   { to: "/albero", label: "Albero di Monza" },
   { to: "/piazza", label: "Oggi in Piazza" },
   { to: "/casetta", label: "La casetta" },
-  { to: "/calendario", label: "Calendario" },
+  { to: "/calendario", label: "Calendario della Gentilezza" },
   { to: "/auguri", label: "Muro degli Auguri" },
   { to: "/babbo-natale", label: "Babbo Natale" },
   { to: "/piccoli-volontari", label: "Piccoli volontari" },
@@ -33,14 +33,14 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
     <div className="relative min-h-screen">
       <DemoBanner />
       <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[72px]">
-          <Link to="/" className="flex min-w-0 items-center gap-4" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[72px] 2xl:max-w-[90rem]">
+          <Link to="/" className="flex min-w-0 shrink-0 items-center gap-4" aria-label="Il Natale che fa bene – Croce Rossa Italiana, Comitato di Monza">
             <CriLockup className="h-11 shrink-0 sm:h-12" />
             {/* Campaign title kept apart from the institutional mark (clear space + divider). */}
-            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block xl:hidden 2xl:block" />
-            <span className="hidden min-w-0 font-display text-base leading-tight sm:block xl:hidden 2xl:block">Il Natale <em className="text-gold">che fa bene</em></span>
+            <span aria-hidden className="hidden h-8 w-px shrink-0 bg-border sm:block 2xl:hidden" />
+            <span className="hidden min-w-0 font-display text-base leading-tight sm:block 2xl:hidden">Il Natale <em className="text-gold">che fa bene</em></span>
           </Link>
-          <nav className="hidden items-center gap-1 xl:flex">
+          <nav className="hidden items-center gap-1 2xl:flex">
             {NAV.slice(1).map((n) => (
               <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground" activeProps={{ className: "bg-secondary !text-foreground" }}>
                 {n.label}
@@ -49,13 +49,13 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
           </nav>
           <div className="flex shrink-0 items-center gap-1">
             <Link to="/regali" className="hidden items-center gap-1.5 rounded-full border hairline-gold px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-gold transition hover:bg-gold hover:text-accent-foreground sm:inline-flex"><Gift className="h-4 w-4" /> Regala</Link>
-            <button className="rounded-full p-2 xl:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
+            <button className="rounded-full p-2 2xl:hidden" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
               {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
         {open && (
-          <nav className="animate-rise border-t px-4 pb-4 xl:hidden">
+          <nav className="animate-rise border-t px-4 pb-4 2xl:hidden">
             <p className="pt-3 font-display text-base text-muted-foreground sm:hidden">Il Natale <em className="text-gold">che fa bene</em></p>
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="block border-b py-3.5 font-display text-xl last:border-0" activeOptions={{ exact: true }} activeProps={{ className: "text-gold" }}>

@@ -132,14 +132,8 @@ function Calendario() {
           </div>
           {demo && <span className="advent-demo-chip">DEMO · {demoDay} dicembre simulato</span>}
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground" aria-label="Legenda">
-            <li className="flex items-center gap-1.5"><span className="advent-key is-available" aria-hidden />Da aprire</li>
-            <li className="flex items-center gap-1.5"><span className="advent-key is-today" aria-hidden />Oggi</li>
-            <li className="flex items-center gap-1.5"><span className="advent-key is-opened" aria-hidden />Già aperta</li>
-            <li className="flex items-center gap-1.5"><span className="advent-key is-locked" aria-hidden />Si apre più avanti</li>
-          </ul>
-          <button type="button" onClick={() => setZoom((z) => !z)} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-xs font-semibold lg:hidden" data-testid="advent-zoom">
+        <div className="mt-3 flex justify-end lg:hidden">
+          <button type="button" onClick={() => setZoom((z) => !z)} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-xs font-semibold" data-testid="advent-zoom">
             {zoom ? <><Minimize2 className="h-3.5 w-3.5" aria-hidden />Vedi tutta la sede</> : <><Maximize2 className="h-3.5 w-3.5" aria-hidden />Ingrandisci</>}
           </button>
         </div>
