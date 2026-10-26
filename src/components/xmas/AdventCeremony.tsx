@@ -32,6 +32,7 @@ export function AdventCeremony({ day, door, demo, reduced, elapsed }: { day: num
   const isOpen = phase === "open" || phase === "message" || phase === "out";
   // Earlier days have already been opened on previous noons; later ones are still closed.
   const state = (d: number): DoorState => (d < day ? "opened" : d > day ? "locked" : isOpen ? "opened" : "today");
+  const spot = plaqueOf(day);
   const long = (door.message?.length ?? 0) > 210;
 
   return (
@@ -42,6 +43,7 @@ export function AdventCeremony({ day, door, demo, reduced, elapsed }: { day: num
         style={{ transform: zoomed ? `translate(${cam.dx.toFixed(3)}cqw, ${cam.dy.toFixed(3)}cqw) scale(${cam.k})` : "none" }}
       >
         <AdventScene tv state={state} opening={!reduced && phase === "open" ? day : null} />
+        {spot && <div className="tv-adv-spot" style={{ background: `radial-gradient(ellipse 9% 13% at ${pct(spot.cx)} ${pct(spot.cy)}, transparent 55%, color-mix(in oklab, var(--scene-night) 46%, transparent) 100%)` }} aria-hidden />}
       </div>
       <div className="tv-adv-night" aria-hidden />
       <div className={`tv-adv-shade is-${cam.panel}`} aria-hidden />
