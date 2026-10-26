@@ -12,25 +12,27 @@ export const WALL = {
   /** Rows that reach below qrTop end at shortRight, leaving the QR block free. */
   shortRight: 58.5,
   qrTop: 35,
-  top: 12.5,
-  bottom: 53.6,
+  top: 11.8,
+  bottom: 54.8,
   maxRows: 5,
-  gap: 1.8,
-  font: 1.25,
-  line: 1.4,
+  gap: 1.3,
+  font: 1.2,
+  line: 1.32,
 } as const;
 
 export type WallSize = "s" | "m" | "l";
-export const WALL_WIDTH: Record<WallSize, number> = { s: 12.5, m: 16.5, l: 22 };
+/** Paper width range: short wishes get small notes, long ones wider paper so they stay within ~3 lines. */
+export const WALL_WIDTH = { min: 12.5, max: 33 } as const;
 /** Conservative glyph width for the handwritten font (em): overestimates lines, so text never spills. */
-const CHAR_EM = 0.5;
-const PAD_X = 1.6;
-/** Pin + top padding, bottom padding, signature line, optional DEMO stamp. */
-const PAD_Y = 1.9 + 0.7;
-const SIG = 1.6;
-const STAMP = 1.65;
-/** Pin above the twine + max downward drop of a note. */
-const ROW_EXTRA = 1.2;
+const CHAR_EM = 0.42;
+const PAD_X = 1.4;
+/** Pin + top padding and bottom padding. */
+const PAD_Y = 1.7 + 0.6;
+const SIG = 1.5;
+const STAMP = 1.55;
+/** Note offset below the twine + rotation slack. */
+const ROW_EXTRA = 0.9;
+const TARGET_LINES = 3;
 
 export const wallSize = (body: string): WallSize => (body.length <= 48 ? "s" : body.length <= 105 ? "m" : "l");
 
@@ -38,17 +40,20 @@ export type WallNote = { wish: PublicWish; size: WallSize; width: number; lines:
 export type WallRow = { y: number; right: number; height: number; notes: WallNote[] };
 export type WallLayout = { rows: WallRow[]; used: number };
 
+const glyph = WALL.font * CHAR_EM;
+
 export function measureNote(wish: PublicWish, isNew = false): WallNote {
-  const size = wallSize(wish.body);
-  const width = WALL_WIDTH[size];
-  const perLine = Math.max(8, Math.floor((width - PAD_X * 2) / (WALL.font * CHAR_EM)));
-  const lines = Math.max(1, Math.ceil(wish.body.length / perLine));
+  const len = wish.body.length;
+  const ideal = Math.ceil(len / TARGET_LINES) * glyph + PAD_X * 2;
+  const width = Math.round(Math.min(WALL_WIDTH.max, Math.max(WALL_WIDTH.min, ideal)) * 10) / 10;
+  const perLine = Math.max(8, Math.floor((width - PAD_X * 2) / glyph));
+  const lines = Math.max(1, Math.ceil(len / perLine));
   const look = noteLook(wish.id);
   return {
-    wish, size, width, lines, isNew,
+    wish, size: wallSize(wish.body), width, lines, isNew,
     height: PAD_Y + lines * WALL.line + SIG + (wish.demo ? STAMP : 0),
-    tilt: Math.round(look.rotate * 0.4 * 10) / 10,
-    drop: Math.round((look.lift / 12) * 0.8 * 10) / 10,
+    tilt: Math.round(look.rotate * 0.35 * 10) / 10,
+    drop: Math.round((look.lift / 12) * 0.5 * 10) / 10,
   };
 }
 
@@ -71,7 +76,7 @@ function packRow(queue: WallNote[], capacity: number, maxCount: number) {
  */
 export function layoutWall(wishes: PublicWish[], newIds: ReadonlySet<string> = new Set()): WallLayout {
   const queue = wishes.map((w) => measureNote(w, newIds.has(w.id)));
-  const desiredRows = Math.min(WALL.maxRows, Math.max(1, Math.ceil(queue.length / 4)));
+  const desiredRows = Math.min(WALL.maxRows, Math.max(1, Math.ceil(queue.length / 3)));
   const perRow = Math.max(2, Math.ceil(queue.length / desiredRows));
   const rows: WallRow[] = [];
   let y = WALL.top;

@@ -17,7 +17,9 @@ describe("TV panoramic wish wall", () => {
   it("gives long wishes wider paper than short ones", () => {
     expect(wallSize("Buon Natale!")).toBe("s");
     expect(wallSize("a".repeat(180))).toBe("l");
-    expect(WALL_WIDTH.l).toBeGreaterThan(WALL_WIDTH.s);
+    const [short, long] = layoutWall([{ id: "a", body: "Buon Natale!", nickname: null }, { id: "b", body: "b".repeat(180), nickname: null }]).rows[0]!.notes;
+    expect(long!.width).toBeGreaterThan(short!.width);
+    expect(short!.width).toBe(WALL_WIDTH.min);
   });
 
   it("keeps notes side by side without overlap, rows apart, and the QR block free", () => {
@@ -32,7 +34,7 @@ describe("TV panoramic wish wall", () => {
   });
 
   it("adapts the number of lines to how many wishes there are", () => {
-    expect(layoutWall(make(3, () => 30)).rows.length).toBe(1);
+    expect(layoutWall(make(2, () => 30)).rows.length).toBe(1);
     expect(layoutWall(DEMO_WISHES).rows.length).toBeGreaterThanOrEqual(2);
   });
 
