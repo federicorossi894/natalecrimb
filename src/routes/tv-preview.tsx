@@ -259,7 +259,6 @@ function AdventPreviewLab({ onBack }: { onBack: () => void }) {
   const phase = steps.reduce<CeremonyPhase>((p, s) => (elapsed >= s.at ? s.id : p), "dark");
 
   const play = clock.play;
-  const setPlaying = (f: (p: boolean) => boolean) => { void f; clock.toggle(); };
   const jump = (id: CeremonyPhase) => clock.seek(stillAt(id));
   const pickDay = (d: number) => { setDay(d); clock.seek(stillAt("lit")); };
   const fullscreen = () => { void frame.current?.requestFullscreen?.().catch(() => {}); };
@@ -271,7 +270,7 @@ function AdventPreviewLab({ onBack }: { onBack: () => void }) {
           <Play className="h-4 w-4" aria-hidden /> Simula apertura delle 12:00
         </button>
         {!done && (
-          <button type="button" onClick={() => setPlaying((p) => !p)} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-semibold" data-testid="advent-pause">
+          <button type="button" onClick={clock.toggle} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-semibold" data-testid="advent-pause">
             {playing ? <><Pause className="h-4 w-4" aria-hidden /> Ferma qui</> : <><Play className="h-4 w-4" aria-hidden /> Riprendi</>}
           </button>
         )}
