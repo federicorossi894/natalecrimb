@@ -11,7 +11,7 @@ import { useReducedMotion } from './TreeExperience';
 import { TreeStage } from './TreeStage';
 import { TvKindness } from './TvKindness';
 import { usePublicWishes, wallWishes, DEMO_WISHES, type PublicWish } from '@/lib/wishes';
-import { layoutWall } from '@/lib/tv-wall';
+import { layoutWall, DEFAULT_SIGNATURE } from '@/lib/tv-wall';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
@@ -40,7 +40,7 @@ const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un 
 export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const { addedOrnaments: ornaments, addedCount, error } = useTreeStore();
   const events = useCasettaEvents();
-  const { wishes } = usePublicWishes(60_000);
+  const { wishes, loaded: wishesLoaded } = usePublicWishes(60_000);
   const wishesRef = useRef<PublicWish[]>(wishes);
   const wishCursor = useRef(0);
   const [wishPage, setWishPage] = useState<PublicWish[]>([]);
@@ -77,14 +77,16 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
 
   // Newly approved wishes get a gentle "just pinned" animation the next time the wall is on screen.
   useEffect(() => {
+    if (!wishesLoaded) return;
     const ids = new Set(wishes.map((w) => w.id));
     const prev = knownWishes.current;
+    // The first load is the wall as it already is, not a batch of new notes.
     if (prev) {
       const fresh = wishes.filter((w) => !prev.has(w.id)).map((w) => w.id);
       if (fresh.length) setNewWishIds((cur) => new Set([...cur, ...fresh]));
     }
     knownWishes.current = ids;
-  }, [wishes]);
+  }, [wishes, wishesLoaded]);
 
   /** Next wall page: fresh wishes first, then continue the rotation from the cursor. */
   const nextWishPage = (list: PublicWish[]) => {
@@ -205,7 +207,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
                 <span className="wish-pin" aria-hidden />
                 {n.wish.demo && <span className="wish-demo-stamp tv-wall-stamp">Esempio · DEMO</span>}
                 <span className="wish-text tv-wall-text" style={{ WebkitLineClamp: n.lines }}>{n.wish.body}</span>
-                <span className="tv-wall-sig">— {n.wish.nickname ?? 'Un augurio da Monza'}</span>
+                <span className="tv-wall-sig">— {n.wish.nickname ?? DEFAULT_SIGNATURE}</span>
               </div>
             ))}
           </div>

@@ -12,10 +12,10 @@ export const WALL = {
   /** Rows that reach below qrTop end at shortRight, leaving the QR block free. */
   shortRight: 58.5,
   qrTop: 35,
-  top: 13.4,
-  bottom: 54.8,
+  top: 13.2,
+  bottom: 55.4,
   maxRows: 5,
-  gap: 1.3,
+  gap: 1.1,
   font: 1.2,
   line: 1.32,
 } as const;
@@ -33,6 +33,9 @@ const STAMP = 1.55;
 /** Note offset below the twine + rotation slack. */
 const ROW_EXTRA = 0.9;
 const TARGET_LINES = 3;
+/** Signature: sans-serif at 1cqw, ~0.56em per glyph; the paper is always wide enough to keep it on one line. */
+const SIG_EM = 0.56;
+export const DEFAULT_SIGNATURE = "Un augurio da Monza";
 
 export const wallSize = (body: string): WallSize => (body.length <= 48 ? "s" : body.length <= 105 ? "m" : "l");
 
@@ -46,7 +49,8 @@ export function measureNote(wish: PublicWish, isNew = false, scale = 1): WallNot
   const len = wish.body.length;
   const glyph = WALL.font * CHAR_EM * scale;
   const padX = PAD_X * scale;
-  const ideal = Math.ceil(len / TARGET_LINES) * glyph + padX * 2;
+  const sigNeed = (`— ${wish.nickname ?? DEFAULT_SIGNATURE}`.length * SIG_EM + PAD_X * 2 + 0.4) * scale;
+  const ideal = Math.max(Math.ceil(len / TARGET_LINES) * glyph + padX * 2, sigNeed);
   const width = Math.round(Math.min(WALL_WIDTH.max * scale, Math.max(WALL_WIDTH.min * scale, ideal)) * 10) / 10;
   const perLine = Math.max(8, Math.floor((width - padX * 2) / glyph));
   const lines = Math.max(1, Math.ceil(len / perLine));

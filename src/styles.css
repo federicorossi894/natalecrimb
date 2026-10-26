@@ -390,7 +390,7 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .tv-wall-note .wish-pin { width: calc(var(--s, 1) * .75cqw); height: calc(var(--s, 1) * 2.3cqw); top: calc(var(--s, 1) * -1.4cqw); transform: translateX(-50%); }
 .tv-wall-note .wish-pin::after { left: -.1cqw; right: -.1cqw; height: .22cqw; }
 .tv-wall-text { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; font-size: calc(var(--s, 1) * 1.2cqw); line-height: calc(var(--s, 1) * 1.32cqw); overflow-wrap: anywhere; }
-.tv-wall-sig { display: block; margin-top: calc(var(--s, 1) * .3cqw); text-align: right; font: 600 calc(var(--s, 1) * 1cqw)/1.15 var(--font-sans); }
+.tv-wall-sig { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: calc(var(--s, 1) * .3cqw); text-align: right; font: 600 calc(var(--s, 1) * 1cqw)/1.15 var(--font-sans); }
 .tv-wall-stamp { margin-bottom: calc(var(--s, 1) * .4cqw); padding: .1cqw .4cqw; border-radius: .2cqw; font-size: calc(var(--s, 1) * .85cqw); }
 .tv-wall.is-active .tv-wall-note { animation: tv-wall-in .9s cubic-bezier(.2,1.1,.4,1) both; animation-delay: calc(var(--i) * .12s + .4s); }
 .tv-wall.is-active .tv-wall-note.is-new { animation: tv-wall-new 2.6s cubic-bezier(.3,.9,.3,1) both; animation-delay: 1.4s; outline: .22cqw solid color-mix(in oklab, var(--scene-gold) 75%, transparent); outline-offset: .2cqw; }
