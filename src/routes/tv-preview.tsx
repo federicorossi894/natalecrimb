@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Expand, Pause, Play } from "lucide-react";
 import { TreeTV, type TvBeat } from "@/components/xmas/TreeTV";
+import { TreeGrowthLab } from "@/components/xmas/TreeGrowthLab";
 
 /**
  * Internal presentation page (not linked anywhere): the real casetta TV component, with buttons that jump
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/tv-preview")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { modo?: "crescita" } => (s["modo"] === "crescita" ? { modo: "crescita" } : {}),
   component: TvPreviewPage,
 });
 
@@ -35,6 +37,9 @@ const PREVIEW_SCENES: { beat: TvBeat; label: string; note: string }[] = [
 const QUICK_STEP_MS = 5000;
 
 function TvPreviewPage() {
+  const { modo } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const growth = modo === "crescita";
   const [beat, setBeat] = useState<TvBeat>("invito");
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -65,7 +70,7 @@ function TvPreviewPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Pagina interna · non collegata al sito</p>
             <h1 className="font-display text-2xl leading-tight sm:text-3xl">Anteprima regia TV <span className="ml-1 rounded-full bg-primary px-2.5 py-0.5 align-middle font-sans text-xs font-bold tracking-wider text-primary-foreground">DEMO</span></h1>
           </div>
-          <div className="flex flex-wrap gap-2">
+          {!growth && <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => { setElapsed(0); setPlaying((p) => !p); }} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-deep">
               {playing ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
               {playing ? "Ferma la demo" : "Riproduci demo rapida · 35 s"}
@@ -73,8 +78,20 @@ function TvPreviewPage() {
             <button type="button" onClick={fullscreen} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-semibold">
               <Expand className="h-4 w-4" aria-hidden /> Schermo intero
             </button>
-          </div>
+          </div>}
         </header>
+
+        <div role="tablist" aria-label="Modalità anteprima" className="mt-4 inline-flex rounded-full bg-muted p-1">
+          {([[false, "Scene TV"], [true, "Crescita albero"]] as const).map(([g, label]) => (
+            <button key={label} type="button" role="tab" aria-selected={growth === g}
+              onClick={() => { setPlaying(false); setElapsed(0); void navigate({ search: g ? { modo: "crescita" } : {}, replace: true }); }}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${growth === g ? "bg-background text-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {growth ? <TreeGrowthLab /> : <>
 
         <div ref={frame} className="tv-preview-frame mt-4" data-testid="tv-preview-frame">
           <div className="tv-preview-inner">
@@ -106,6 +123,7 @@ function TvPreviewPage() {
           Sono le scene vere dello schermo di /albero-live, con l’albero, i regali e gli auguri condivisi. Sullo schermo della casetta scorrono da sole, senza pulsanti, in circa 60–75 secondi.
           Il riquadro del Calendario della Gentilezza in alto a sinistra è quello reale del giorno. L’apertura delle ore 10 non è inclusa qui. Donazioni simulate: nessun pagamento reale.
         </p>
+        </>}
       </div>
     </main>
   );
