@@ -368,12 +368,37 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 @keyframes tv-advent-life { 0% { opacity: 0; transform: scale(.7) translateY(3cqw); } 8% { opacity: 1; transform: none; } 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(-12cqw, -2cqw) scale(.45); } }
 .tv-advent.is-reduced { animation: tv-kind-in 1s ease both; }
 .tv-advent.is-reduced .tv-advent-leaf { display: none; }
-.tv-notes { position: relative; display: flex; gap: 1.4cqw; margin-top: 2.8cqw; align-items: flex-start; }
-.tv-notes::before { content: ""; position: absolute; left: -1cqw; right: -1cqw; top: .3cqw; height: .18cqw; background: var(--twine); }
-.tv-note { flex: 1; min-width: 0; padding: 2.2cqw 1.2cqw 1cqw; font-size: 1.75cqw; line-height: 1.18; }
-.tv-note .wish-pin { width: .9cqw; height: 2.4cqw; top: -.9cqw; }
-.tv-card.is-active .tv-note { animation: tv-note-in 1.1s cubic-bezier(.2,1.1,.4,1) both; animation-delay: calc(var(--i) * .5s + .5s); }
-@keyframes tv-note-in { from { opacity: 0; transform: translateX(6cqw) rotate(8deg); } to { opacity: 1; transform: rotate(var(--tilt, 0deg)); } }
+.tv-brand { z-index: 5; }
+.tv-qr-block { z-index: 6; transition: background 1s ease; }
+.tv-scene[data-beat="auguri"] .tv-qr-block { background: color-mix(in oklab, var(--scene-night) 90%, transparent); }
+/* Panoramic wish wall (TV): wooden boards across the whole 16:9 frame, twine lines, clothespins. */
+.tv-wall { position: absolute; inset: 0; z-index: 4; opacity: 0; visibility: hidden; transition: opacity 1.2s ease, visibility 0s linear 1.2s; color: var(--snow);
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 0%, color-mix(in oklab, var(--scene-gold) 18%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--scene-night) 82%, transparent), transparent 11cqw),
+    repeating-linear-gradient(90deg, transparent 0 12.3cqw, color-mix(in oklab, var(--wood-dark) 88%, transparent) 12.3cqw 12.5cqw),
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--wood-light) 20%, transparent) 0 .12cqw, transparent .12cqw .5cqw, color-mix(in oklab, var(--wood-dark) 16%, transparent) .5cqw .56cqw, transparent .56cqw 1.3cqw),
+    linear-gradient(180deg, var(--wood-light), var(--wood) 50%, var(--wood-dark));
+  box-shadow: inset 0 0 8cqw color-mix(in oklab, var(--wood-dark) 90%, transparent); }
+.tv-wall.is-active { opacity: 1; visibility: visible; transition: opacity 1.2s ease .2s, visibility 0s; }
+.tv-wall-head { position: absolute; right: 3cqw; top: 2.8cqw; text-align: right; }
+.tv-wall-row { position: absolute; display: flex; justify-content: space-evenly; align-items: flex-start; }
+.tv-wall-row::before { content: ""; position: absolute; left: -1.4cqw; right: -1.4cqw; top: 0; height: .2cqw; border-radius: .2cqw; background: var(--twine);
+  box-shadow: 0 .18cqw .25cqw color-mix(in oklab, var(--wood-dark) 70%, transparent); }
+.tv-wall-row::after { content: ""; position: absolute; left: -1.7cqw; top: -.25cqw; width: .7cqw; height: .7cqw; border-radius: 999px; background: var(--kid-steel);
+  box-shadow: calc(100% + 0cqw) 0 0 0 transparent; }
+.tv-wall-note { flex: none; margin-top: .6cqw; padding: 1.9cqw 1.6cqw .7cqw; border-radius: .15cqw .2cqw .15cqw .35cqw;
+  box-shadow: 0 .1cqw 0 color-mix(in oklab, var(--ink) 10%, transparent), 0 1cqw 1.2cqw -.6cqw color-mix(in oklab, var(--ink) 75%, transparent); }
+.tv-wall-note .wish-pin { width: .75cqw; height: 2.3cqw; top: -1.4cqw; transform: translateX(-50%); }
+.tv-wall-note .wish-pin::after { left: -.1cqw; right: -.1cqw; height: .22cqw; }
+.tv-wall-text { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; font-size: 1.25cqw; line-height: 1.4cqw; overflow-wrap: anywhere; }
+.tv-wall-sig { display: block; margin-top: .35cqw; text-align: right; font: 600 1.05cqw/1.15 var(--font-sans); }
+.tv-wall-stamp { margin-bottom: .4cqw; padding: .1cqw .4cqw; border-radius: .2cqw; font-size: .85cqw; }
+.tv-wall.is-active .tv-wall-note { animation: tv-wall-in .9s cubic-bezier(.2,1.1,.4,1) both; animation-delay: calc(var(--i) * .12s + .4s); }
+.tv-wall.is-active .tv-wall-note.is-new { animation: tv-wall-new 2.6s cubic-bezier(.3,.9,.3,1) both; animation-delay: 1.4s; outline: .22cqw solid color-mix(in oklab, var(--scene-gold) 75%, transparent); outline-offset: .2cqw; }
+@keyframes tv-wall-in { from { opacity: 0; transform: translateY(-1.2cqw) rotate(calc(var(--tilt, 0deg) * -2)); } to { opacity: 1; transform: translateY(var(--lift, 0)) rotate(var(--tilt, 0deg)); } }
+@keyframes tv-wall-new { 0% { opacity: 0; transform: translateY(-5cqw) rotate(-7deg); } 35% { opacity: 1; transform: translateY(var(--lift, 0)) rotate(5deg); } 55% { transform: translateY(var(--lift, 0)) rotate(-3deg); } 75% { transform: translateY(var(--lift, 0)) rotate(1.5deg); } 100% { opacity: 1; transform: translateY(var(--lift, 0)) rotate(var(--tilt, 0deg)); } }
+@media (prefers-reduced-motion: reduce) { .tv-wall.is-active .tv-wall-note, .tv-wall.is-active .tv-wall-note.is-new { animation: none; } }
 
 /* ---------- Casetta delle meraviglie ---------- */
 .casetta-lights { position: absolute; left: 0; right: 0; top: 0; height: 70px; z-index: 1; }

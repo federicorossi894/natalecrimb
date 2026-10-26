@@ -27,8 +27,8 @@ const CHAR_EM = 0.5;
 const PAD_X = 1.6;
 /** Pin + top padding, bottom padding, signature line, optional DEMO stamp. */
 const PAD_Y = 1.9 + 0.7;
-const SIG = 1.45;
-const STAMP = 1.35;
+const SIG = 1.6;
+const STAMP = 1.65;
 /** Pin above the twine + max downward drop of a note. */
 const ROW_EXTRA = 1.2;
 
