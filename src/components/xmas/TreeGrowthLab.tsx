@@ -89,7 +89,8 @@ export function TreeGrowthLab() {
           <div ref={frame} className="growth-tv mt-3" data-testid="growth-frame">
             <div className="tv-tree">{stage}</div>
             <div className="growth-tv-panel">
-              <span className="growth-demo-badge">DEMO · Crescita simulata</span>
+              <span className="growth-demo-badge">DEMO</span>
+              <p className="growth-tv-meta uppercase tracking-[0.18em]">Crescita simulata</p>
               <p className="growth-tv-count" data-testid="growth-count"><strong>{shownCount}</strong> palline simulate</p>
               <p className="growth-tv-meta">Altezza albero {height.toFixed(2)} (unità scena) · inquadratura TV</p>
             </div>
