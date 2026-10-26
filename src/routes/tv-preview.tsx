@@ -252,32 +252,16 @@ function AdventPreviewLab({ onBack }: { onBack: () => void }) {
     const next = steps[i + 1]?.at ?? total;
     return Math.min(next - 200, steps[i]!.at + 2600);
   };
-  const [day, setDay] = useState(5);
-  const [elapsed, setElapsed] = useState(() => stillAt("lit"));
-  const [playing, setPlaying] = useState(false);
+  const [day, setDay] = useState(1);
+  const clock = useCeremonyClock(total, stillAt("lit"));
+  const { elapsed, playing, done } = clock;
   const frame = useRef<HTMLDivElement>(null);
-  const done = elapsed >= total;
   const phase = steps.reduce<CeremonyPhase>((p, s) => (elapsed >= s.at ? s.id : p), "dark");
 
-  useEffect(() => {
-    if (!playing) return;
-    let last = performance.now();
-    const id = setInterval(() => {
-      const t = performance.now();
-      const dt = t - last;
-      last = t;
-      setElapsed((e) => {
-        const n = e + dt;
-        if (n >= total) { setPlaying(false); return total; }
-        return n;
-      });
-    }, 100);
-    return () => clearInterval(id);
-  }, [playing, total]);
-
-  const play = () => { setElapsed(0); setPlaying(true); };
-  const jump = (id: CeremonyPhase) => { setPlaying(false); setElapsed(stillAt(id)); };
-  const pickDay = (d: number) => { setPlaying(false); setDay(d); setElapsed(stillAt("lit")); };
+  const play = clock.play;
+  const setPlaying = (f: (p: boolean) => boolean) => { void f; clock.toggle(); };
+  const jump = (id: CeremonyPhase) => clock.seek(stillAt(id));
+  const pickDay = (d: number) => { setDay(d); clock.seek(stillAt("lit")); };
   const fullscreen = () => { void frame.current?.requestFullscreen?.().catch(() => {}); };
 
   return (
