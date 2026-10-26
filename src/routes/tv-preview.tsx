@@ -23,7 +23,10 @@ export const Route = createFileRoute("/tv-preview")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { modo?: Modo } => (s["modo"] === "crescita" || s["modo"] === "calendario" ? { modo: s["modo"] } : {}),
+  validateSearch: (s: Record<string, unknown>): { modo?: Modo } => {
+    const m = s["modo"];
+    return m === "crescita" || m === "calendario" ? { modo: m } : {};
+  },
   component: TvPreviewPage,
 });
 
@@ -151,7 +154,7 @@ function AdventPreviewLab({ onBack }: { onBack: () => void }) {
     const next = steps[i + 1]?.at ?? total;
     return Math.min(next - 200, steps[i]!.at + 2600);
   };
-  const [day, setDay] = useState(new Date().getMonth() === 11 ? Math.min(new Date().getDate(), DOORS) : 5);
+  const [day, setDay] = useState(5);
   const [elapsed, setElapsed] = useState(() => stillAt("lit"));
   const [playing, setPlaying] = useState(false);
   const frame = useRef<HTMLDivElement>(null);
