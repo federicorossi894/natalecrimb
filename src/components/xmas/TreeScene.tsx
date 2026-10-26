@@ -64,6 +64,9 @@ function Ground({palette}:{palette:Palette}) {
 export default function TreeScene(props:Props) {
   const [palette,setPalette]=useState<Palette|null>(null);
   const [supported,setSupported]=useState(true);
+  // R3F forces a context loss ~0.5s after the canvas unmounts: that is not a GPU failure, so it must not reload the TV.
+  const mounted=useRef(true);
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   useEffect(()=>{
     const s=getComputedStyle(document.documentElement);const p={} as Palette;
     for(const k of PALETTE_KEYS)p[k]=s.getPropertyValue(`--scene-${k}`).trim();setPalette(p);
@@ -75,7 +78,7 @@ export default function TreeScene(props:Props) {
   if(!palette)return <div className="tree-stage" aria-busy="true" />;
   const h=treeHeight(props.ornaments.length);
   return <div className="tree-stage" aria-label="Albero dei Regali tridimensionale" data-ornament-count={props.ornaments.length} data-tree-height={h.toFixed(2)}>
-    <SceneBoundary fallback={fallback}><Canvas shadows dpr={[1,1.5]} camera={{position:[0,2.7,5.2],fov:42}} gl={{antialias:true}} onCreated={({gl})=>{gl.domElement.addEventListener('webglcontextlost',()=>{setSupported(false);if(props.tv)setTimeout(()=>window.location.reload(),8000);});}}>
+    <SceneBoundary fallback={fallback}><Canvas shadows dpr={[1,1.5]} camera={{position:[0,2.7,5.2],fov:42}} gl={{antialias:true}} onCreated={({gl})=>{gl.domElement.addEventListener('webglcontextlost',()=>{if(!mounted.current)return;setSupported(false);if(props.tv)setTimeout(()=>window.location.reload(),8000);});}}>
       <color attach="background" args={[palette.night]} /><fog attach="fog" args={[palette.night,9,27]} />
       <ambientLight intensity={0.65} /><hemisphereLight args={[palette.rim,palette.ground,1.2]} />
       <directionalLight position={[3,6,5]} intensity={2.4} color={palette.snow} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
