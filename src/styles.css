@@ -385,8 +385,6 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 .tv-wall-row { position: absolute; display: flex; justify-content: space-evenly; align-items: flex-start; }
 .tv-wall-row::before { content: ""; position: absolute; left: -1.4cqw; right: -1.4cqw; top: 0; height: .2cqw; border-radius: .2cqw; background: var(--twine);
   box-shadow: 0 .18cqw .25cqw color-mix(in oklab, var(--wood-dark) 70%, transparent); }
-.tv-wall-row::after { content: ""; position: absolute; left: -1.7cqw; top: -.25cqw; width: .7cqw; height: .7cqw; border-radius: 999px; background: var(--kid-steel);
-  box-shadow: calc(100% + 0cqw) 0 0 0 transparent; }
 .tv-wall-note { flex: none; margin-top: .6cqw; padding: 1.9cqw 1.6cqw .7cqw; border-radius: .15cqw .2cqw .15cqw .35cqw;
   box-shadow: 0 .1cqw 0 color-mix(in oklab, var(--ink) 10%, transparent), 0 1cqw 1.2cqw -.6cqw color-mix(in oklab, var(--ink) 75%, transparent); }
 .tv-wall-note .wish-pin { width: .75cqw; height: 2.3cqw; top: -1.4cqw; transform: translateX(-50%); }
