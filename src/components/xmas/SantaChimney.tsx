@@ -19,8 +19,8 @@ const STATIC_P = 0.26;
 
 /**
  * Illustrated rooftop: Santa (CRI-volunteer-style red jacket with reflective bands, sack on the
- * shoulder) lands on the chimney and slides down as `p` goes 0 → 1. No emblem is drawn: the CRI
- * mark is never redrawn, so the jacket only carries stylised reflective details.
+ * shoulder) lands on the chimney and slides down as `p` goes 0 → 1. The official CRI mark is never
+ * redrawn: the jacket carries reflective bands and a simple red-cross sleeve patch only.
  */
 export function SantaScene({ p, forceLit = false, className = "" }: { p: number; forceLit?: boolean; className?: string }) {
   const drop = ease(seg(p, 0, 0.24));
@@ -83,6 +83,12 @@ export function SantaScene({ p, forceLit = false, className = "" }: { p: number;
           {/* arms: left holds the sack, right waves; reflective cuffs */}
           <path d="M-17 -86 Q-29 -92 -27 -104 M17 -86 Q30 -108 26 -124" stroke="var(--primary)" strokeWidth="10" strokeLinecap="round" fill="none" />
           <path d="M-32 -97 L-22 -97 M21 -114 L31 -114" stroke="var(--snow)" strokeWidth="3.5" />
+          {/* sleeve patch: plain red cross in a white disc with a thin red rim (a generic volunteer patch, not the CRI logo) */}
+          <g data-testid="santa-sleeve-badge" transform="translate(21.9 -95.4)">
+            <circle r="4.3" fill="var(--snow)" stroke="var(--primary)" strokeWidth="0.7" />
+            <rect x="-0.95" y="-2.9" width="1.9" height="5.8" fill="var(--primary)" />
+            <rect x="-2.9" y="-0.95" width="5.8" height="1.9" fill="var(--primary)" />
+          </g>
           <circle cx="-27" cy="-106" r="5.5" fill="var(--ink)" />
           <circle cx="26" cy="-127" r="6" fill="var(--ink)" />
           {/* head, beard, hat */}

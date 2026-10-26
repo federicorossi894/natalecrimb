@@ -47,3 +47,8 @@
 - [x] TV scena auguri approvati
 - [ ] Prova reale con account volontario/moderatore (QR augurio, doppio uso, scadenza, approvazione) — awaits a volunteer/moderator account usable for testing
 - [ ] Calendar texts: 24 draft gentle missions written by the agent — await staff review in /moderazione
+
+## Rifinitura TV pre-presentazione (26/10)
+- [x] Santa: red-cross sleeve patch (white disc, thin red rim) on the volunteer jacket
+- [x] TV wish wall: panoramic 16:9, 3–5 twine rows, note size by length, no overlap, QR kept, new-note animation
+- [x] /tv-preview (unlinked): real TV scenes on buttons + 35 s quick demo, DEMO labels
