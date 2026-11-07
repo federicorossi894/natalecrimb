@@ -18,10 +18,10 @@ import { layoutWall, DEFAULT_SIGNATURE } from '@/lib/tv-wall';
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
 export const TV_DURATION: Record<TvScene, number> = { invito: 18000, passi: 14000, attivita: 14000, casetta: 14000, dedica: 12000, auguri: 14000 };
 /** Dedication and wishes scenes exist only when at least one approved, public item exists. */
-export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = false): TvScene[] => [
+export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = false, capabilities = CAMPAIGN): TvScene[] => [
   'invito', 'passi', 'attivita', 'casetta',
   ...(hasPublicDedication ? (['dedica'] as const) : []),
-  ...(CAMPAIGN.publicWishWall && hasApprovedWishes ? (['auguri'] as const) : []),
+  ...(capabilities.publicWishWall && hasApprovedWishes ? (['auguri'] as const) : []),
 ];
 const ARRIVAL_MS = 10000;
 const SAFETY_RELOAD_MS = 6 * 60 * 60 * 1000;

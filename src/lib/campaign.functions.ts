@@ -10,7 +10,7 @@ export const publicDemoRpc = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     assertCampaignRpc(data.name, 'public');
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-    const { data: result, error } = await supabaseAdmin.rpc('campaign_demo_dispatch', { _name: data.name, _args: data.args, _actor: null });
+    const { data: result, error } = await supabaseAdmin.rpc('campaign_demo_dispatch', { _name: data.name, _args: data.args });
     if (error) throw new Error('Operazione non completata. Controlla i dati e riprova.');
     return result;
   });
