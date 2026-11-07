@@ -9,7 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Payments, emails and bookings remain UI-only simulations; Cloud persists only the shared demo tree, pending cash-at-the-casetta requests, casetta events, kindness-calendar texts and moderated wishes.
+- Campaign capabilities and readiness derive only from src/lib/campaign.ts; sensitive DEMO RPCs use server wrappers and service-only dispatcher to prevent direct API bypass. LIVE services require separate verified implementations, never reuse DEMO records as paid gifts. Emails/bookings remain simulations only where capabilities permit.
 - Cash gifts: create_cash_request stores only the SHA-256 of a server-generated one-time 16-char code (2h expiry); only volunteers (user_roles volunteer/moderator/admin via is_volunteer) can look up/confirm through security-definer RPCs, and confirm_cash_request locks the row so a second scan returns the same ornament instead of a duplicate. /volontari is unlinked but protected by auth + roles, not by obscurity. Signed-out visitors get a presentation mode backed by the in-memory sandbox in src/lib/volunteer-demo.ts (same flows, zero Cloud calls) so it can be shown without accounts. Santa booking data lives only in component state (validated by src/lib/santa.ts) and is cleared on simulated confirmation; postcard images are drawn locally on a canvas and shared via the Web Share API or a wa.me link, never uploaded.
 
 - Shared demo tree lives in Lovable Cloud table demo_ornaments; visitors write/read only via security-definer RPCs (hang_ornament, public_tree, my_ornaments), moderators (user_roles admin/moderator) read/update via RLS — keeps private dedicas and counts tamper-proof.

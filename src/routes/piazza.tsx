@@ -1,3 +1,5 @@
+import { CAMPAIGN } from "@/lib/campaign";
+import { useCasettaEvents, formatEventWhen } from "@/lib/events";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ExternalLink, MapPin } from "lucide-react";
@@ -28,6 +30,7 @@ const DAYS = Array.from({ length: 40 }).map((_, i) => {
 
 function Piazza() {
   const [sel, setSel] = useState(0);
+  const events = useCasettaEvents();
   const day = DAYS[sel]!;
   return (
     <Shell>
@@ -35,7 +38,7 @@ function Piazza() {
         <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> Casetta Croce Rossa · centro di Monza</span>
       </PageHead>
       <section className="mx-auto max-w-6xl px-4">
-        <span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contenuti demo da confermare</span>
+        {CAMPAIGN.demo ? <><span className="rounded-full border hairline-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">Contenuti demo da confermare</span>
         <ol className="relative mt-6 space-y-3 border-l border-gold/30 pl-6">
           {AGENDA_TODAY.map((a) => (
             <li key={a.title} className="glass relative rounded-2xl p-4">
@@ -66,6 +69,7 @@ function Piazza() {
           <p className="mt-3 text-xs text-muted-foreground">Programma di esempio · demo</p>
         </div>
 
+        </> : <div className="space-y-4">{events.length ? events.map(e => <article key={e.id}><p className="text-gold">{formatEventWhen(e)}</p><h2 className="font-display text-xl">{e.title}</h2><p>{e.description}</p></article>) : <p>Ti aspettiamo alla casetta in Piazza San Paolo. Gli appuntamenti confermati saranno pubblicati qui.</p>}</div>}
         <a href={CRI.site} target="_blank" rel="noreferrer" className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">
           Sito ufficiale CRI Monza <ExternalLink className="h-4 w-4" />
         </a>

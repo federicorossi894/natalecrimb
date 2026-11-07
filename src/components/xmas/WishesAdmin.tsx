@@ -1,3 +1,5 @@
+import { campaignRpc } from "@/lib/campaign-rpc";
+import { demoModeration } from "@/lib/campaign.functions";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,14 +19,16 @@ export function WishesAdmin() {
   const [rows, setRows] = useState<Row[]>([]);
   const [msg, setMsg] = useState("");
   const load = useCallback(async () => {
-    const t = TABS.find((x) => x.id === tab)!;
-    const { data, error } = await supabase.from("wishes").select("id,body,nickname,status,auto_flags,created_at").in("status", [...t.statuses]).order("created_at", { ascending: tab === "pending" }).limit(200);
-    if (error) { setMsg(error.message); return; }
-    setRows(data ?? []);
+    const t = TABS.find((x) => x.id === tab);
+    if (!t) return;
+    try {
+      const data = await demoModeration({ data: { action: 'wishes' } });
+      setRows(data.wishes.filter(w => (t.statuses as readonly string[]).includes(w.status)));
+    } catch { setMsg('Lettura non disponibile'); }
   }, [tab]);
   useEffect(() => { void load(); }, [load]);
   const act = async (id: string, status: "approved" | "rejected" | "hidden") => {
-    const { error } = await supabase.rpc("moderate_wish", { _id: id, _status: status });
+    const { error } = await campaignRpc("moderate_wish", { _id: id, _status: status });
     setMsg(error ? error.message : "");
     void load();
   };

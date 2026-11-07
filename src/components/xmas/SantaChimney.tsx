@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { CAMPAIGN } from "@/lib/campaign";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
@@ -194,9 +195,9 @@ export function SantaChimneySection() {
             </ol>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link to="/babbo-natale" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.02]">
-                Scopri e prenota · demo <ArrowRight className="h-4 w-4" />
+                {CAMPAIGN.demo ? "Scopri e prenota · demo" : "Scopri il servizio"} <ArrowRight className="h-4 w-4" />
               </Link>
-              <span className="text-xs text-muted-foreground">Contributo DEMO €{SANTA_CONTRIBUTION_EUR} a famiglia · {SANTA_CONTRIBUTION_NOTE}</span>
+              <span className="text-xs text-muted-foreground">Contributo {CAMPAIGN.demo && "DEMO "}€{SANTA_CONTRIBUTION_EUR} a famiglia · {SANTA_CONTRIBUTION_NOTE}</span>
             </div>
           </div>
           <AutoSantaScene mode="teaser" className="mx-auto aspect-[5/6] w-full max-w-[400px]" />

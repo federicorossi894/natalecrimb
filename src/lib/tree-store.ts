@@ -1,3 +1,5 @@
+import { CAMPAIGN } from "./campaign";
+import { campaignRpc } from "@/lib/campaign-rpc";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +25,7 @@ const EVT = "cri-demo-tree";
 export const POLL_MS = 15000;
 
 export async function addOrnament(kind: OrnamentKind, amountEuro: number, firma: string, dedica: string, consent: boolean) {
-  const { data, error } = await supabase.rpc("hang_ornament", { _kind: kind, _amount_cents: Math.round(amountEuro * 100), _firma: firma, _dedica: dedica, _consent: consent, _client: clientId() });
+  const { data, error } = await campaignRpc("hang_ornament", { _kind: kind, _amount_cents: Math.round(amountEuro * 100), _firma: firma, _dedica: dedica, _consent: consent, _client: clientId() });
   if (error) throw new Error(error.message);
   window.dispatchEvent(new Event(EVT));
   return data?.[0] ?? null;
@@ -34,7 +36,8 @@ export function useTreeStore() {
   const [mine, setMine] = useState<MyOrnament[]>([]);
   const [error, setError] = useState(false);
   const sync = useCallback(async () => {
-    const [t, m] = await Promise.all([supabase.rpc("public_tree"), supabase.rpc("my_ornaments", { _client: clientId() })]);
+    if (!CAMPAIGN.sharedDemoData) { setRemote([]); setMine([]); setError(false); return; }
+    const [t, m] = await Promise.all([campaignRpc("public_tree"), campaignRpc("my_ornaments", { _client: clientId() })]);
     if (t.error) { setError(true); return; }
     setError(false);
     setRemote((t.data ?? []).reverse().map((o) => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })));
@@ -47,5 +50,5 @@ export function useTreeStore() {
     window.addEventListener(EVT, h);
     return () => { clearInterval(t); window.removeEventListener(EVT, h); };
   }, [sync]);
-  return { mine, error, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: [...TREE_ORNAMENTS, ...remote], total: MOCK_TOTAL_GIFTS + remote.length, refresh: sync };
+  return { mine, error, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: CAMPAIGN.demo ? [...TREE_ORNAMENTS, ...remote] : remote, total: (CAMPAIGN.demo ? MOCK_TOTAL_GIFTS : 0) + remote.length, refresh: sync };
 }
