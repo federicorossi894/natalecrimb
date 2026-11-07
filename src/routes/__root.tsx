@@ -1,6 +1,8 @@
+import { CAMPAIGN, campaignRouteAllowed } from "@/lib/campaign";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
+  notFound,
   Link,
   createRootRouteWithContext,
   useRouter,
@@ -74,12 +76,13 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: ({ location }) => { if (!campaignRouteAllowed(location.pathname)) throw notFound(); },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Il Natale che fa bene – Croce Rossa Monza" },
-      { name: "description", content: "Demo della campagna natalizia di Croce Rossa Italiana – Comitato di Monza." },
+      { name: "description", content: CAMPAIGN.demo ? "Demo della campagna natalizia di Croce Rossa Italiana – Comitato di Monza." : "Campagna natalizia di Croce Rossa Italiana – Comitato di Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },

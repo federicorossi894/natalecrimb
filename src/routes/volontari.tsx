@@ -1,3 +1,5 @@
+import { CAMPAIGN } from "@/lib/campaign";
+import { campaignRpc } from "@/lib/campaign-rpc";
 import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -53,7 +55,7 @@ function Volontari() {
       <section className="mx-auto max-w-lg px-4 pb-16">
         {!ready ? null : !session ? (
           <>
-            <DemoMode />
+            {CAMPAIGN.demo && <DemoMode />}
             <div className="mt-10 border-t pt-8">
               <p className="mb-3 text-center text-xs text-muted-foreground">Operazioni reali sull'albero condiviso: solo per volontari abilitati</p>
               <AuthBox title="Accesso volontari" returnPath="/volontari" roleName="volontario" />
@@ -80,15 +82,15 @@ function Volontari() {
                 <button onClick={() => setView("manual")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left">
                   <PlusCircle className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Inserisci pallina manualmente</span><span className="text-sm text-muted-foreground">Per chi dona alla casetta senza telefono</span></span>
                 </button>
-                <button onClick={() => setView("wish")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left" data-testid="desk-wish">
+                {CAMPAIGN.volunteerPurchaseWishQR && <button onClick={() => setView("wish")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left" data-testid="desk-wish">
                   <PenLine className="h-9 w-9 shrink-0 text-gold" /><span><span className="block font-display text-2xl">Acquisto alla casetta</span><span className="text-sm text-muted-foreground">QR monouso per un augurio sul Muro</span></span>
-                </button>
+                </button>}
               </div>
             )}
             {view !== "home" && <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">← Torna alla dashboard</button>}
             {view === "scan" && <ScanFlow api={realApi} />}
             {view === "manual" && <ManualFlow api={realApi} />}
-            {view === "wish" && <WishTokenDesk create={createWishToken} api={realWishApi} />}
+            {view === "wish" && CAMPAIGN.volunteerPurchaseWishQR && <WishTokenDesk create={createWishToken} api={realWishApi} />}
           </>
         )}
       </section>
@@ -99,18 +101,18 @@ function Volontari() {
 type Lookup = DeskLookup;
 const realApi: DeskApi = {
   async lookup(code) {
-    const { data, error } = await supabase.rpc("cash_request_lookup", { _code: normalizeCode(code) });
+    const { data, error } = await campaignRpc("cash_request_lookup", { _code: normalizeCode(code) });
     if (error) throw new Error(error.message);
     return data?.[0] ?? null;
   },
   async confirm(code, method) {
-    const { data, error } = await supabase.rpc("confirm_cash_request", { _code: normalizeCode(code), _method: method });
+    const { data, error } = await campaignRpc("confirm_cash_request", { _code: normalizeCode(code), _method: method });
     if (error) throw new Error(error.message);
     const r = data?.[0];
     return { result: r?.result ?? "not_found", ornament_status: r?.ornament_status ?? null };
   },
   async add(i) {
-    const { data, error } = await supabase.rpc("volunteer_add_ornament", { _kind: i.kind, _amount_cents: i.amount_cents, _method: i.method, _firma: i.consent ? i.firma : "", _dedica: i.consent ? i.dedica : "", _consent: i.consent });
+    const { data, error } = await campaignRpc("volunteer_add_ornament", { _kind: i.kind, _amount_cents: i.amount_cents, _method: i.method, _firma: i.consent ? i.firma : "", _dedica: i.consent ? i.dedica : "", _consent: i.consent });
     if (error) throw new Error(error.message);
     return { status: data?.[0]?.status ?? "pending", id: data?.[0]?.id ?? null };
   },

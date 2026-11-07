@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PenLine, QrCode, ShieldCheck, Store } from "lucide-react";
 import { Shell, PageHead } from "@/components/xmas/Shell";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/auguri")({
 function Auguri() {
   const { wishes, loaded } = usePublicWishes();
   const all = wallWishes(wishes);
-  const demoShown = wishes.length < DEMO_UNTIL;
+  const demoShown = CAMPAIGN.demo && wishes.length < DEMO_UNTIL;
   return (
     <Shell>
       <PageHead kicker="Muro degli Auguri" title={<>Tanti biglietti, <em className="text-gold">una sola città.</em></>}>

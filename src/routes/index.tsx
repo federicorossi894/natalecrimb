@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, Gift } from "lucide-react";
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Il Natale che fa bene – Croce Rossa Monza" },
-      { name: "description", content: "Questo Natale, scegli cosa regalare a Monza. Demo della campagna natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo." },
+      { name: "description", content: `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
       { property: "og:title", content: "Il Natale che fa bene – Croce Rossa Monza" },
       { property: "og:description", content: "Scegli un regalo concreto per le persone che vivono a Monza." },
       { property: "og:type", content: "website" },
@@ -58,7 +59,7 @@ function Home() {
             Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.
           </h1>
           <p className="animate-rise mt-5 max-w-md text-lg text-foreground/85" style={{ animationDelay: "0.2s" }}>
-            Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi.
+            {CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi." : "Scopri i progetti di Croce Rossa Italiana — Comitato di Monza. Le donazioni online saranno disponibili dopo l’attivazione dei pagamenti."}
           </p>
           <div className="animate-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.3s" }}>
             <Button onClick={() => setOpening(true)} className="group h-auto rounded-full px-7 py-4 text-base shadow-deep transition hover:scale-[1.03]">
@@ -85,7 +86,7 @@ function Home() {
         <ol className="mt-14 grid gap-3 sm:grid-cols-3">
           {[
             { n: "1", t: "Scegli un regalo", d: "Quattro progetti di Croce Rossa Monza." },
-            { n: "2", t: "Dona in pochi tocchi", d: "Bastano 5 €. Online o alla casetta." },
+            { n: "2", t: "Dona in pochi tocchi", d: CAMPAIGN.volunteerCashDonations ? "Bastano 5 €. Online o alla casetta." : CAMPAIGN.livePayments ? "Bastano 5 €. Online." : "Pagamenti online in attivazione." },
             { n: "3", t: "Accendi l'Albero di Monza", d: "Il tuo regalo diventa un addobbo. Puoi dedicarlo a chi vuoi." },
           ].map((s) => (
             <li key={s.n} className="glass flex items-start gap-4 rounded-2xl p-5">

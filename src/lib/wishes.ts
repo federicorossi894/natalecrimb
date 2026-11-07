@@ -1,3 +1,5 @@
+import { CAMPAIGN } from "./campaign";
+import { campaignRpc } from "@/lib/campaign-rpc";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,14 +42,14 @@ export type WishApi = {
 
 export const realWishApi: WishApi = {
   async lookup(code) {
-    const { data, error } = await supabase.rpc("wish_lookup", { _code: normalizeCode(code) });
+    const { data, error } = await campaignRpc("wish_lookup", { _code: normalizeCode(code) });
     if (error) throw new Error(error.message);
     const r = data?.[0];
     if (!r) return { state: "not_found", expires_at: null, body: null, nickname: null, wish_status: null };
     return { state: r.state as WishState, expires_at: r.expires_at, body: r.body ?? null, nickname: r.nickname ?? null, wish_status: r.wish_status ?? null };
   },
   async submit(code, body, nickname, consent) {
-    const { data, error } = await supabase.rpc("submit_wish", { _code: normalizeCode(code), _body: body, _nickname: nickname, _consent: consent });
+    const { data, error } = await campaignRpc("submit_wish", { _code: normalizeCode(code), _body: body, _nickname: nickname, _consent: consent });
     if (error) throw new Error(error.message);
     const r = data?.[0];
     return { result: (r?.result ?? "not_found") as WishSubmit["result"], wish_status: r?.wish_status ?? null };
@@ -55,7 +57,7 @@ export const realWishApi: WishApi = {
 };
 
 export async function createWishToken() {
-  const { data, error } = await supabase.rpc("create_wish_token");
+  const { data, error } = await campaignRpc("create_wish_token");
   if (error) throw new Error(error.message);
   const r = data?.[0];
   if (!r) throw new Error("Codice non creato");
@@ -104,14 +106,15 @@ export const DEMO_WISHES: PublicWish[] = [
 ];
 /** Below this many real wishes the wall also shows the labelled examples. */
 export const DEMO_UNTIL = 12;
-export const wallWishes = (real: PublicWish[]) => (real.length >= DEMO_UNTIL ? real : [...real, ...DEMO_WISHES]);
+export const wallWishes = (real: PublicWish[]) => (!CAMPAIGN.demo || real.length >= DEMO_UNTIL ? real : [...real, ...DEMO_WISHES]);
 
 export function usePublicWishes(refreshMs = 60_000) {
   const [wishes, setWishes] = useState<PublicWish[]>([]);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
+    if (!CAMPAIGN.publicWishWall) { setLoaded(true); return; }
     let alive = true;
-    const load = () => supabase.rpc("public_wishes").then(({ data, error }) => {
+    const load = () => campaignRpc("public_wishes").then(({ data, error }) => {
       if (!alive) return;
       if (!error) setWishes((data ?? []).map((w) => ({ id: w.id, body: w.body, nickname: w.nickname ?? null })));
       setLoaded(true);

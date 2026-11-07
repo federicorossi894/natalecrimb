@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Banknote } from "lucide-react";
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/regali/")({
 function Regali() {
   const { opening, unwrap } = useUnwrap();
   const [cash, setCash] = useState<StoredCashGift | null>(null);
-  useEffect(() => setCash(loadCashGift()), []);
+  useEffect(() => setCash(CAMPAIGN.volunteerCashDonations ? loadCashGift() : null), []);
   const cashProject = cash ? getProject(cash.project) : undefined;
   return (
     <Shell>
@@ -53,7 +54,7 @@ function Regali() {
             </Link>
           ))}
         </div>
-        <p className="mt-16 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>
+        {CAMPAIGN.demo && <p className="mt-16 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>}
       </section>
     </Shell>
   );

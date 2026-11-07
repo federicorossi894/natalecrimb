@@ -1,3 +1,4 @@
+import { campaignRpc } from "@/lib/campaign-rpc";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ export function WishesAdmin() {
   }, [tab]);
   useEffect(() => { void load(); }, [load]);
   const act = async (id: string, status: "approved" | "rejected" | "hidden") => {
-    const { error } = await supabase.rpc("moderate_wish", { _id: id, _status: status });
+    const { error } = await campaignRpc("moderate_wish", { _id: id, _status: status });
     setMsg(error ? error.message : "");
     void load();
   };

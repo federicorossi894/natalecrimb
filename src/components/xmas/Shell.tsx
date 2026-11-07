@@ -1,3 +1,4 @@
+import { CAMPAIGN, campaignRouteAllowed } from "@/lib/campaign";
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X, MapPin, Facebook, Instagram, Youtube, Linkedin, Gift } from "lucide-react";
@@ -19,6 +20,7 @@ const NAV = [
 ] as const;
 
 export function DemoBanner() {
+  if (!CAMPAIGN.demo) return null;
   return (
     <div className="bg-ink/80 px-4 py-1.5 text-center text-[10.5px] leading-snug text-paper/80 sm:text-xs">
       <strong className="tracking-widest text-gold">PROTOTIPO DIMOSTRATIVO</strong> · Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita.
@@ -41,7 +43,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
             <span className="hidden min-w-0 font-display text-base leading-tight sm:block 2xl:hidden">Il Natale <em className="text-gold">che fa bene</em></span>
           </Link>
           <nav className="hidden items-center gap-1 2xl:flex">
-            {NAV.slice(1).map((n) => (
+            {NAV.filter(n => campaignRouteAllowed(n.to)).slice(1).map((n) => (
               <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:text-foreground" activeProps={{ className: "bg-secondary !text-foreground" }}>
                 {n.label}
               </Link>
@@ -57,7 +59,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
         {open && (
           <nav className="animate-rise border-t px-4 pb-4 2xl:hidden">
             <p className="pt-3 font-display text-base text-muted-foreground sm:hidden">Il Natale <em className="text-gold">che fa bene</em></p>
-            {NAV.map((n) => (
+            {NAV.filter(n => campaignRouteAllowed(n.to)).map((n) => (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="block border-b py-3.5 font-display text-xl last:border-0" activeOptions={{ exact: true }} activeProps={{ className: "text-gold" }}>
                 {n.label}
               </Link>
@@ -94,7 +96,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
             })}
           </ul>
         </div>
-        <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale.</p>
+        {CAMPAIGN.demo && <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale.</p>}
       </footer>
     </div>
   );

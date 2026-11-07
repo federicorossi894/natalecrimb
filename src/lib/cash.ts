@@ -1,3 +1,4 @@
+import { campaignRpc } from "@/lib/campaign-rpc";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { PROJECTS, type OrnamentKind } from "./data";
@@ -55,7 +56,7 @@ export const manualOrnamentSchema = z.object({
 });
 
 export async function createCashRequest(kind: OrnamentKind, amountEuro: number, firma: string, dedica: string, consent: boolean) {
-  const { data, error } = await supabase.rpc("create_cash_request", {
+  const { data, error } = await campaignRpc("create_cash_request", {
     _kind: kind, _amount_cents: Math.round(amountEuro * 100), _firma: consent ? firma : "", _dedica: consent ? dedica : "", _consent: consent, _client: clientId(),
   });
   if (error) throw new Error(error.message);
@@ -66,7 +67,7 @@ export async function createCashRequest(kind: OrnamentKind, amountEuro: number, 
 
 export type CashStatus = "pending" | "confirmed" | "expired" | "not_found";
 export async function cashRequestStatus(code: string): Promise<CashStatus> {
-  const { data, error } = await supabase.rpc("cash_request_status", { _code: code });
+  const { data, error } = await campaignRpc("cash_request_status", { _code: code });
   if (error) throw new Error(error.message);
   return (data as CashStatus) ?? "not_found";
 }
@@ -74,7 +75,7 @@ export async function cashRequestStatus(code: string): Promise<CashStatus> {
 export type CashResult = { status: CashStatus; kind: string | null; amount_cents: number | null; ornament_id: string | null };
 /** Owner of the one-time code (the donor's phone) learns which ornament was hung, to open the postcard step. */
 export async function cashRequestResult(code: string): Promise<CashResult> {
-  const { data, error } = await supabase.rpc("cash_request_result", { _code: code });
+  const { data, error } = await campaignRpc("cash_request_result", { _code: code });
   if (error) throw new Error(error.message);
   const r = data?.[0];
   if (!r) return { status: "not_found", kind: null, amount_cents: null, ornament_id: null };

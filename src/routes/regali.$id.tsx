@@ -1,3 +1,4 @@
+import { CAMPAIGN, campaignPaymentMethods } from "@/lib/campaign";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
@@ -41,7 +42,8 @@ type Hung = { id: string | null; status: string; via: "online" | "cash"; error?:
 
 function Detail() {
   const { id } = Route.useLoaderData();
-  const p = getProject(id)!;
+  const p = getProject(id);
+  if (!p) throw notFound();
   const [step, setStep] = useState<Step>("detail");
   const [preset, setPreset] = useState(5);
   const [custom, setCustom] = useState("");
@@ -52,7 +54,7 @@ function Detail() {
   const amountError = parsed.success ? "" : parsed.error.issues[0]?.message ?? "Importo non valido";
   const go = (s: Step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
   // A cash gift prepared on this phone for this project: resume it (QR or post-confirmation choices).
-  useEffect(() => { const g = loadCashGift(); if (g && g.project === p.id) setStep("cash"); }, [p.id]);
+  useEffect(() => { const g = CAMPAIGN.volunteerCashDonations ? loadCashGift() : null; if (g && g.project === p.id) setStep("cash"); }, [p.id]);
   const hang = async (firma: string, dedica: string, consent: boolean): Promise<Hung> => {
     if (hung) return hung;
     try {
@@ -83,8 +85,8 @@ function Detail() {
       {step === "checkout" && (parsed.success
         ? <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />
         : <InvalidAmount error={amountError} onEdit={() => go("detail")} />)}
-      {step === "cash" && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
-      {step === "success" && <Success p={p} onPick={go} />}
+      {step === "cash" && CAMPAIGN.volunteerCashDonations && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
+      {step === "success" && CAMPAIGN.simulators && <Success p={p} onPick={go} />}
       {step === "mine" && <Mine p={p} hung={hung} hang={hang} />}
       {step === "dedica" && <Dedica p={p} hung={hung} hang={hang} onEmail={() => go("sorpresa")} />}
       {step === "sorpresa" && <Sorpresa p={p} hung={hung} hang={hang} />}
@@ -151,13 +153,13 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
 
         <section className="glass-strong rounded-3xl p-5 shadow-deep lg:sticky lg:top-24 lg:row-span-2" data-testid="quick-donate">
           <p className="font-display text-2xl">Fai questo regalo</p>
-          <p className="mb-4 mt-1 text-sm text-muted-foreground">Bastano 5 €. Scegli e conferma: due tocchi.</p>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">{CAMPAIGN.simulators ? "Bastano 5 €. Scegli e conferma: due tocchi." : "Scegli il progetto e verifica le modalità disponibili."}</p>
           <Amounts p={p} preset={preset} setPreset={setPreset} custom={custom} setCustom={setCustom} error={error} />
           <button onClick={onGo} disabled={Boolean(error)} aria-describedby={error ? "amount-help" : undefined} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
             {error ? "Scegli un importo valido" : `Dona ${amount} €`}
           </button>
-          <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</p>
-          <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>
+          <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. {CAMPAIGN.demo || CAMPAIGN.livePayments || CAMPAIGN.volunteerCashDonations ? <>Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</> : "Le donazioni online non sono ancora disponibili."}</p>
+          {CAMPAIGN.demo && <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>}
         </section>
 
         <div className="space-y-3">
@@ -173,6 +175,10 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
             </a>
           )}
           <More title="Come aiuta il tuo regalo"><p>{p.helps}</p></More>
+          <More title="Le donazioni possono avere benefici fiscali">
+            <p>Le agevolazioni dipendono dai requisiti previsti dalla normativa e dalle modalità di pagamento. Conserva la ricevuta e verifica la tua situazione con un consulente fiscale.</p>
+            {CAMPAIGN.demo && <p className="mt-2">Le transazioni DEMO non sono erogazioni liberali e non producono ricevute fiscali.</p>}
+          </More>
           <More title="Donazione o acquisto?">
             <p>Il tuo è un regalo a Croce Rossa Italiana – Comitato di Monza: sostiene il progetto nel suo insieme. L'addobbo sull'albero è il simbolo del tuo gesto, non un oggetto comprato.</p>
           </More>
@@ -193,6 +199,7 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
 }
 
 function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
+  if (!CAMPAIGN.simulators) return <section className="mx-auto max-w-lg px-4 pt-6"><h1 className="font-display text-3xl">Donazioni online non disponibili</h1><p role="status" className="mt-4 text-muted-foreground">Il pagamento reale non è ancora configurato e verificato. Nessun addebito e nessun addobbo vengono registrati.</p></section>;
   const [method, setMethod] = useState<PaymentChoice>("sumup");
   const methods: { id: PaymentChoice; label: string; sub: string; icon: ReactNode }[] = [
     { id: "sumup", label: "SumUp online", sub: "Carta · simulatore", icon: <CreditCard className="h-5 w-5" /> },
@@ -212,7 +219,7 @@ function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number
       </div>
       <p className="mt-6 text-sm font-semibold">Come vuoi donare</p>
       <div role="radiogroup" aria-label="Metodo di donazione" className="mt-3 grid gap-2">
-        {methods.map((m) => (
+        {methods.filter(m => campaignPaymentMethods().includes(m.id)).map((m) => (
           <button key={m.id} type="button" role="radio" aria-checked={method === m.id} onClick={() => setMethod(m.id)} className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-left text-sm transition ${method === m.id ? "border-gold bg-secondary" : "glass"}`}>
             {m.icon}<span><span className="block font-semibold">{m.label}</span><span className="text-xs text-muted-foreground">{m.sub}</span></span>
             {method === m.id && <Check className="ml-auto h-4 w-4 text-gold" />}
@@ -230,7 +237,7 @@ function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number
           <p className="mt-1 text-muted-foreground">Ricevi un QR con l'importo. Alla casetta un volontario lo scansiona: solo allora l'addobbo compare sull'albero.</p>
         </div>
       )}
-      <button onClick={() => onConfirm(method)} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
+      <button onClick={() => { if (campaignPaymentMethods().includes(method) && CAMPAIGN.simulators) onConfirm(method); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
         {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento di ${amount} €`}
       </button>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato di pagamento viene raccolto.</p>

@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2 } from "lucide-react";
@@ -42,7 +43,7 @@ function Calendario() {
 
   // DEMO (before 1 December only): a simulated day, example texts, nothing saved.
   const [demoDay, setDemoDay] = useState<number | null>(null);
-  const demo = phase === "preview" && demoDay !== null;
+  const demo = CAMPAIGN.demo && phase === "preview" && demoDay !== null;
   const [opened, setOpened] = useState<number[]>([]);
   const [demoOpened, setDemoOpened] = useState<number[]>([]);
   const [opening, setOpening] = useState<number | null>(null);
@@ -104,7 +105,7 @@ function Calendario() {
         {phase === "preview" && (
           <div className="glass mb-5 flex flex-col gap-4 rounded-3xl p-5 sm:flex-row sm:items-center sm:justify-between" data-testid="calendar-preview">
             <p className="text-sm"><b className="font-display text-lg">Il calendario si apre il 1° dicembre.</b><br /><span className="text-muted-foreground">Le finestrelle seguono la data italiana: si aprono a mezzanotte, ora di Roma, qualunque sia l'orologio del tuo telefono.</span></p>
-            {demoDay === null ? (
+            {!CAMPAIGN.demo ? null : demoDay === null ? (
               <button type="button" onClick={() => { setDemoDay(12); setHint(""); }} className="shrink-0 rounded-full border hairline-gold px-5 py-3 text-sm font-semibold text-gold" data-testid="calendar-demo-on">Prova il calendario · DEMO</button>
             ) : (
               <div className="flex shrink-0 flex-wrap items-center gap-2">
