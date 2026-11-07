@@ -273,6 +273,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      campaign_demo_dispatch: {
+        Args: { _actor?: string; _args: Json; _name: string }
+        Returns: Json
+      }
       cash_code_hash: { Args: { _code: string }; Returns: string }
       cash_request_lookup: {
         Args: { _code: string }
