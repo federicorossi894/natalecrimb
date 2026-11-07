@@ -64,6 +64,13 @@
       "when": 1794062412377,
       "tag": "0008_campaign_demo_server_boundary",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794062627713,
+      "tag": "0009_campaign_demo_moderation_server_only",
+      "breakpoints": true
     }
   ]
 }
