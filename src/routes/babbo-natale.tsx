@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Check, Gift, MapPin, Pencil, ShieldCheck } from "lucide-react";
@@ -13,10 +14,10 @@ import {
 export const Route = createFileRoute("/babbo-natale")({
   head: () => ({
     meta: [
-      { title: "Prenota il tuo Babbo Natale – CRI Monza · DEMO" },
-      { name: "description", content: "La sera della Vigilia i volontari CRI vestiti da Babbo Natale portano a casa i regali preparati dalla famiglia. Prenotazione dimostrativa, servizio in definizione." },
+      { title: `Babbo Natale – CRI Monza${CAMPAIGN.demo ? " · DEMO" : ""}` },
+      { name: "description", content: "La sera della Vigilia i volontari CRI vestiti da Babbo Natale portano a casa i regali preparati dalla famiglia. Servizio in definizione." },
       { property: "og:title", content: "Prenota il tuo Babbo Natale 🎅 – CRI Monza" },
-      { property: "og:description", content: "Una sorpresa a domicilio la sera della Vigilia. Prenotazione solo dimostrativa, servizio in definizione." },
+      { property: "og:description", content: "Una sorpresa a domicilio la sera della Vigilia. Servizio in definizione." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -94,15 +95,15 @@ function Babbo() {
       <section className="mx-auto mt-6 max-w-6xl px-4">
         <div className="flex flex-col gap-4 rounded-3xl border hairline-gold bg-burgundy p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Contributo proposto · DEMO</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Contributo proposto {CAMPAIGN.demo && "· DEMO"}</p>
             <p className="mt-1 font-display text-4xl">€{SANTA_CONTRIBUTION_EUR} <span className="text-lg">a famiglia</span></p>
             <p className="mt-1 text-sm font-semibold text-gold">{SANTA_CONTRIBUTION_NOTE}</p>
           </div>
-          <p className="max-w-sm text-xs text-foreground/75">Contributo indicativo, da confermare dal Comitato. Nessun importo viene richiesto in questa demo.</p>
+          <p className="max-w-sm text-xs text-foreground/75">Contributo indicativo, da confermare dal Comitato. {CAMPAIGN.demo ? "Nessun importo viene richiesto in questa demo." : "Prenotazioni non ancora disponibili."}</p>
         </div>
       </section>
 
-      <section id="prenota" className="mx-auto mt-12 max-w-2xl scroll-mt-24 px-4">
+      {CAMPAIGN.bookingSimulator ? <section id="prenota" className="mx-auto mt-12 max-w-2xl scroll-mt-24 px-4">
         <div className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest">
           {(["form", "review", "done"] as Stage[]).map((s, i) => (
             <span key={s} className={`rounded-full px-3 py-1 ${stage === s ? "bg-gold text-accent-foreground" : "glass text-muted-foreground"}`}>{i + 1}. {s === "form" ? "Dati" : s === "review" ? "Riepilogo" : "Conferma"}</span>
@@ -190,7 +191,7 @@ function Babbo() {
           </div>
         )}
         <p className="mt-6 text-center text-[11px] text-muted-foreground">Questo servizio vive solo in questa sezione: i regali per Monza non danno diritto alla visita di Babbo Natale.</p>
-      </section>
+      </section> : <section className="mx-auto mt-12 max-w-2xl px-4"><p role="status">Prenotazioni non disponibili: servizio e disponibilità da confermare dal Comitato.</p></section>}
     </Shell>
   );
 }

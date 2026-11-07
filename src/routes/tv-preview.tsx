@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Expand, Pause, Play, RotateCcw } from "lucide-react";
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/tv-preview")({
 type Modo = "crescita" | "calendario";
 type SceneId = TvBeat | "calendario";
 
-const PREVIEW_SCENES: { id: SceneId; label: string; note: string }[] = [
+const ALL_PREVIEW_SCENES: { id: SceneId; label: string; note: string }[] = [
   { id: "invito", label: "Albero e QR", note: "Invito principale" },
   { id: "passi", label: "Come partecipare", note: "3 passi" },
   { id: "attivita", label: "Quattro regali", note: "Le cause CRI Monza" },
@@ -43,6 +44,7 @@ const PREVIEW_SCENES: { id: SceneId; label: string; note: string }[] = [
   { id: "calendario", label: "Calendario della Gentilezza", note: "Apertura delle 12:00" },
   { id: "arrivo", label: "Nuova pallina", note: "Arrivo di un regalo" },
 ];
+const PREVIEW_SCENES = ALL_PREVIEW_SCENES.filter(s => s.id !== "auguri" || CAMPAIGN.publicWishWall);
 /** Quick run: each scene 4.5 s; the calendar gets a condensed version of its 12:00 opening (see quickCeremony). */
 const QUICK_STEP_MS = 4500;
 const QUICK_HOLD_MS = 4300;

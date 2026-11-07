@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "@/lib/campaign";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
@@ -20,7 +21,7 @@ export const TV_DURATION: Record<TvScene, number> = { invito: 18000, passi: 1400
 export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = false): TvScene[] => [
   'invito', 'passi', 'attivita', 'casetta',
   ...(hasPublicDedication ? (['dedica'] as const) : []),
-  ...(hasApprovedWishes ? (['auguri'] as const) : []),
+  ...(CAMPAIGN.publicWishWall && hasApprovedWishes ? (['auguri'] as const) : []),
 ];
 const ARRIVAL_MS = 10000;
 const SAFETY_RELOAD_MS = 6 * 60 * 60 * 1000;
@@ -141,7 +142,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   // Preview: apply the chosen beat immediately with the same states the loop would produce.
   const previewBeat = preview?.beat;
   useEffect(() => {
-    if (!previewBeat) return;
+    if (!previewBeat || (previewBeat === "auguri" && !CAMPAIGN.publicWishWall)) return;
     const list = ornamentsRef.current;
     if (previewBeat === 'arrivo') {
       const last = list[list.length - 1] ?? null;
@@ -189,7 +190,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       <div className="tv-vignette" aria-hidden />
 
       {/* Panoramic wish wall: full 16:9 width, 3–5 twine lines; the brand and the QR block stay visible on top. */}
-      <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'} style={{ ['--s' as string]: wall.scale }}>
+      {CAMPAIGN.publicWishWall && <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'} style={{ ['--s' as string]: wall.scale }}>
         <div className="tv-wall-head">
           <p className="tv-kicker">Dal Muro degli auguri</p>
           <p className="mt-[0.4cqw] text-[1.35cqw]">Biglietti lasciati alla casetta e letti dallo staff</p>
@@ -212,7 +213,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
             ))}
           </div>
         ))}
-      </section>
+      </section>}
 
       <header className="tv-brand">
         <CriLockup className="h-[5.4cqw]" />
@@ -224,7 +225,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>
         <span className="text-[1.35cqw]">{addedCount === 1 ? 'gesto' : 'gesti'} di solidarietà</span>
-        <span className="tv-demo-tag">dato DEMO</span>
+        {CAMPAIGN.demo && <span className="tv-demo-tag">dato DEMO</span>}
         {error && <span className="text-[1.1cqw] text-gold">· connessione in ripristino</span>}
       </div>
 
@@ -234,20 +235,20 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
           <div className="flex gap-[0.6cqw]" aria-hidden>
             {sequence.map((s) => <span key={s} className={`tv-dot ${!arriving && scene === s ? 'is-on' : ''}`} />)}
           </div>
-          <span className="tv-demo-badge">DEMO · donazioni simulate</span>
+          {CAMPAIGN.demo && <span className="tv-demo-badge">DEMO · donazioni simulate</span>}
         </div>
 
         <div className="tv-scenes" aria-live="polite">
           <section className={`tv-card ${on('invito')}`} data-scene="invito">
             <p className="tv-kicker">Il Natale che fa bene</p>
             <h2 className="tv-headline font-display">La prossima pallina potrebbe essere <em className="text-gold">la tua!</em></h2>
-            <p className="tv-lead">Scegli un regalo per Monza. Anche con 5 €. Appendilo all’Albero digitale.</p>
+            <p className="tv-lead">{CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli un regalo per Monza. Anche con 5 €. Appendilo all’Albero digitale." : "Scopri i progetti di Croce Rossa Monza. Le donazioni online sono in attivazione."}</p>
           </section>
 
           <section className={`tv-card ${on('passi')}`} data-scene="passi">
             <p className="tv-kicker">Come partecipare</p>
             <ol className="mt-[1.6cqw] space-y-[1.5cqw]">
-              {['Inquadra il QR qui sotto con il telefono', 'Scegli un regalo per Monza, anche con 5 €', 'La tua pallina si accende su questo albero'].map((t, i) => (
+              {['Inquadra il QR qui sotto con il telefono', 'Scegli un regalo per Monza, anche con 5 €', CAMPAIGN.demo || CAMPAIGN.livePayments ? 'La tua pallina si accende su questo albero' : 'Scopri le attività e il Calendario della Gentilezza'].map((t, i) => (
                 <li key={t} className="flex items-center gap-[1.4cqw]">
                   <span className="tv-step font-display">{i + 1}</span>
                   <span className="text-[2cqw] leading-snug">{t}</span>
@@ -329,7 +330,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
           <TvQr className="w-[15.5cqw] shrink-0" />
           <div>
             <p className="font-display text-[2.2cqw] leading-tight">Inquadra e scegli il tuo regalo</p>
-            <p className="mt-[1cqw] text-[1.6cqw] leading-snug">Oppure chiedi ai volontari alla casetta</p>
+            {CAMPAIGN.volunteerCashDonations && <p className="mt-[1cqw] text-[1.6cqw] leading-snug">Oppure chiedi ai volontari alla casetta</p>}
           </div>
         </div>
       </aside>
