@@ -1,4 +1,5 @@
 import { CAMPAIGN } from "@/lib/campaign";
+import { demoModeration } from "@/lib/campaign.functions";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -45,14 +46,13 @@ function Mod() {
     const { data: m } = await supabase.rpc("is_moderator");
     setIsMod(!!m);
     if (!m || !CAMPAIGN.sharedDemoData) return;
-    const { data } = await supabase.from("demo_ornaments").select("id,kind,firma,dedica,status,publish_consent,created_at").not("dedica", "is", null).order("created_at", { ascending: false }).limit(100);
-    setRows(data ?? []);
+    try { const data = await demoModeration({ data: { action: 'ornaments' } }); setRows(data.ornaments); } catch { setRows([]); }
   }, []);
   useEffect(() => { if (session) void load(); }, [session, load]);
 
   const setStatus = async (id: string, status: "approved" | "rejected") => {
     if (!CAMPAIGN.sharedDemoData) return;
-    await supabase.from("demo_ornaments").update({ status }).eq("id", id);
+    await demoModeration({ data: { action: 'setOrnament', id, status } });
     void load();
   };
 
