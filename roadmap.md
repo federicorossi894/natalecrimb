@@ -1,9 +1,12 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
-- [ ] Central typed capabilities, readiness and route gates; DEMO remains active.
-- [ ] Server and direct RPC protections; separate demo data from any future live operations.
-- [ ] Mode-coherent navigation, checkout, wishes, volunteers, TV and previews; discreet fiscal information.
-- [ ] Document prerequisites, matrix, single setting and incomplete live dependencies; tests and responsive verification.
+- [x] Central typed capabilities, readiness and route gates; DEMO remains active.
+- [x] Server and direct RPC protections; DEMO data denied outside DEMO (LIVE storage/services not implemented).
+- [x] Mode-coherent navigation, checkout, wishes, volunteers, TV and previews; discreet fiscal information under current readiness.
+- [x] Document prerequisites, matrix, single setting and incomplete live dependencies; policy tests and DEMO responsive verification.
+- [ ] LIVE services, payment verification and isolated data — blocked by payments setup, operator roles and administrative procedures.
+- [ ] Authorized staff end-to-end QR/moderation test — requesting account has no volunteer/moderator role.
+- [ ] Published legacy client compatibility — direct RPCs now denied; new client requires explicit publish authorization.
 - [x] Official CRI marks in header, footer, postcard, email, kids page, TV.
 - [x] Lush 3D tree, project ornaments, dedication panel X/outside/Back.
 - [x] Phase 1: home "Prenota il tuo Babbo Natale" scroll section (Santa down the chimney, static with reduced motion).

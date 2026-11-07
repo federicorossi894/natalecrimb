@@ -16,10 +16,10 @@ import { SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES } fro
 export const Route = createFileRoute("/moderazione")({
   head: () => ({
     meta: [
-      { title: "Moderazione dediche (demo) – CRI Monza" },
-      { name: "description", content: "Area riservata ai moderatori per approvare le dediche dell'Albero di Monza demo." },
-      { property: "og:title", content: "Moderazione dediche · demo" },
-      { property: "og:description", content: "Area riservata ai moderatori dell'Albero di Monza demo." },
+      { title: CAMPAIGN.demo ? "Moderazione dediche (demo) – CRI Monza" : "Gestione calendario ed eventi – CRI Monza" },
+      { name: "description", content: "Area riservata ai moderatori della campagna Il Natale che fa bene." },
+      { property: "og:title", content: CAMPAIGN.demo ? "Moderazione dediche · demo" : "Gestione contenuti della campagna" },
+      { property: "og:description", content: "Area riservata agli operatori autorizzati della campagna CRI Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
