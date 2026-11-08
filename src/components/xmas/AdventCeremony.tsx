@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AdventScene, SEDE_SRC, type DoorState } from "./AdventScene";
 import { CriLockup } from "./Ornament";
 import { adventCamera, pct, plaqueOf } from "@/lib/advent-layout";
@@ -25,8 +26,9 @@ export function ceremonyPhaseAt(ms: number, reduced: boolean): CeremonyPhase {
   return phase;
 }
 
-export function AdventCeremony({ day, door, demo, reduced, elapsed }: { day: number; door: Door; demo: boolean; reduced: boolean; elapsed: number }) {
+export function AdventCeremony({ day, door, demo, reduced, elapsed, onAudioPhase }: { day: number; door: Door; demo: boolean; reduced: boolean; elapsed: number; onAudioPhase?: ((day: number, phase: CeremonyPhase) => void) | undefined }) {
   const phase = ceremonyPhaseAt(elapsed, reduced);
+  useEffect(() => { onAudioPhase?.(day, phase); }, [day, phase, onAudioPhase]);
   const cam = adventCamera(day);
   const zoomed = !reduced && (phase === "focus" || phase === "open" || phase === "message");
   const isOpen = phase === "open" || phase === "message" || phase === "out";

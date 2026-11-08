@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 import {
   calendarPhase, ceremonyDue, ceremonyKey, crossedNoon, demoDoor, tvDay, useKindnessCalendar, type CalendarPhase,
 } from "@/lib/kindness";
-import { AdventCeremony, ceremonyLength } from "./AdventCeremony";
+import { AdventCeremony, ceremonyLength, type CeremonyPhase } from "./AdventCeremony";
 
 const LAST_KEY = "cri-tv-kindness-ceremony";
 export { CEREMONY_MS } from "./AdventCeremony";
@@ -17,7 +17,7 @@ export type AdventPreview = { day: number; elapsed: number };
  * A screen started or reloaded after 12:00 shows the message straight away, never the ceremony again.
  * In the preview the ceremony never starts by itself: it is driven by `advent`.
  */
-export function TvKindness({ reduced, preview = false, advent = null, onPlayingChange, onHealthChange }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null; onPlayingChange?: (playing: boolean) => void; onHealthChange?: (error: boolean) => void }) {
+export function TvKindness({ reduced, preview = false, advent = null, onPlayingChange, onHealthChange, onAudioPhase }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null; onPlayingChange?: (playing: boolean) => void; onHealthChange?: (error: boolean) => void; onAudioPhase?: ((day: number, phase: CeremonyPhase) => void) | undefined }) {
   const { doors, status, error, now, reload } = useKindnessCalendar(10 * 60_000);
   const [state, setState] = useState<{ day: number; phase: CalendarPhase } | null>(null);
   const [ceremony, setCeremony] = useState<{ day: number; t0: number } | null>(null);
@@ -69,7 +69,7 @@ export function TvKindness({ reduced, preview = false, advent = null, onPlayingC
   if (playing) {
     const real = doors.find((x) => x.day === playing.day);
     const door = real?.message ? real : preview ? demoDoor(playing.day) : { day: playing.day, title: null, message: null };
-    return <AdventCeremony key={playing.day} day={playing.day} door={door} demo={!real?.message && preview} reduced={reduced} elapsed={playing.elapsed} />;
+    return <AdventCeremony key={playing.day} day={playing.day} door={door} demo={!real?.message && preview} reduced={reduced} elapsed={playing.elapsed} onAudioPhase={onAudioPhase} />;
   }
 
   if (!state) return null;

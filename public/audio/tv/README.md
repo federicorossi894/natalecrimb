@@ -1,0 +1,5 @@
+# TV audio assets — not ready
+
+There are **zero music files** here, not silent placeholder tracks. The manifest is `src/lib/tv-audio-manifest.ts` and is intentionally empty and inactive. The UI says “Musica in preparazione”; only original synthesized visible-event effects can be enabled with the explicit audio button.
+
+Before adding any track: acquire its actual file, verify artist/title/runtime, listen for voices/watermarks/imitated well-known melodies, retain source and licence evidence and Committee physical-venue approval, normalize loudness with true-peak headroom, record the manifest entry, and verify the actual served file. No hotlinks or competing music-library redistribution. At least 15 distinct tracks and 55–60 minutes must be verified before the catalogue gate can open. See docs/TV_AUDIO_2026-11-08.md.

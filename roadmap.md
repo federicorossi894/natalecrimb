@@ -1,13 +1,15 @@
 # CRI Monza demo — roadmap
 ## TV audio — 8 November
-- [ ] Verify real music catalogue/licensing and record exact count/duration or honest preparation blocker.
-- [ ] Add scoped consented TV playback, bounded crossfade and visible-event original effects without altering camera.
-- [ ] Test consent, mute/background, failures and virtual long-run; document and publish safe DEMO.
+- [x] Research and document actual 0 acquired tracks / 0 seconds; explicit preparation state, no fake assets.
+- [x] Scoped consented TV player, two-stream crossfade and visible-event original effects; camera unchanged.
+- [x] 359 tests/build OK; real Chromium generated audio, mute/reload/no-GPU and virtual four-hour handovers verified; report delivered.
+- [ ] Music catalogue activation — awaits >=15 acquired individually licensed tracks / >=55–60 minutes and Committee venue-rights clearance; no complete soundtrack claimed.
+- [ ] Confirm safe DEMO audio deployment — publication completion checked separately.
 ## TV cinematic storytelling — 8 November
 - [x] Add public-only fair narrative focus, smooth TV camera and safe scene priorities; no audio or other services.
 - [x] 347 tests, 1920×1080 camera/fallback/priority checks and 246-second browser soak; short optical check on the physical TV remains with the operator.
 - [x] Document evidence and verify automatic build OK; safe DEMO publication requested.
-- [ ] Confirm deployed storytelling revision — public URL returns HTTP 200 but the new preview control was not yet present at the post-request check; awaits deployment completion.
+- [x] Prior cinematic deployment confirmed HTTP 200 and public scene-racconto control on 8 November at 18:30 UTC.
 ## TV 40-day audit — 8 November
 - [x] Harden public-only polling, exact count beyond 300, reconnect, arrival queue, reload/ceremony, QR visibility and Wake Lock cleanup.
 - [x] 335 tests, build OK, 15min accelerated browser fault/scene/clock matrix, 308.8s real WebGL soak and safe DEMO release HTTP 200/new asset verified.
