@@ -6,6 +6,7 @@ import { b64url, makeVerifier, normalizeVolunteerName, sha256Hex, verifyPassword
 
 /** The only operations reachable with the shared volunteer password. */
 export const SHARED_VOLUNTEER_RPC = ['cash_request_lookup', 'confirm_cash_request', 'volunteer_add_ornament'] as const;
+/** Plus one no-input operation: a one-time wish QR after a casetta sale (createSharedWishToken). */
 const GENERIC = 'Nome o password non corretti.';
 const cookieOpts = { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', maxAge: VOLUNTEER_SESSION_HOURS * 3600 };
 
@@ -79,3 +80,15 @@ export const volunteerRpc = createServerFn({ method: 'POST' })
     if (error) throw new Error(error.code === '42501' ? 'Sessione scaduta: accedi di nuovo.' : 'Operazione non completata. Controlla i dati e riprova.');
     return result;
   });
+
+/** "Acquisto alla casetta": one-time wish code for the customer, same shared session, no client input. */
+export const createSharedWishToken = createServerFn({ method: 'POST' }).handler(async () => {
+  assertCampaignRpc('create_wish_token', 'volunteer');
+  const h = await currentTokenHash();
+  if (!h) throw new Error('Sessione scaduta: accedi di nuovo.');
+  const { data: result, error } = await (await admin()).rpc('campaign_volunteer_dispatch', { _token_hash: h, _name: 'create_wish_token', _args: {} as never });
+  if (error) throw new Error(error.code === '42501' ? 'Sessione scaduta: accedi di nuovo.' : 'Codice non creato: attendi qualche minuto e riprova.');
+  const r = (result as Array<{ code: string; expires_at: string }> | null)?.[0];
+  if (!r) throw new Error('Codice non creato');
+  return { code: r.code, expires_at: r.expires_at };
+});
