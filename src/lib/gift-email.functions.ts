@@ -55,7 +55,10 @@ export const requestPaidGiftEmail = createServerFn({ method: "POST" })
       .eq("id", d.id)
       .eq("gift_email_state", "not_requested")
       .select("id");
-    if (result.error || !result.data?.length) throw new Error("Richiesta regalo già presente o non salvata. Non è stato inviato un nuovo messaggio.");
+    if (result.error || !result.data?.length)
+      throw new Error(
+        "Richiesta regalo già presente o non salvata. Non è stato inviato un nuovo messaggio.",
+      );
     if (due) return { state: "blocked" as const }; // Never say scheduled until a managed single-event schedule is registered.
     const { processDonationEmail } = await import("./donation-email.server");
     return processDonationEmail(d.id, "gift");

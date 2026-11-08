@@ -31,7 +31,7 @@ export async function runDemoEmailQa(p: QaPorts) {
   if (!attemptId) return { state: "rate_limited" as const };
   // An ambiguous error leaves the durable claim intact. Never blind-retry a send.
   const result = await p.send(recipient, attemptId);
-  const state = result.sent ? "accepted" as const : "suppressed" as const;
+  const state = result.sent ? ("accepted" as const) : ("suppressed" as const);
   await p.finish(attemptId, state);
   return { state };
 }
