@@ -277,7 +277,9 @@ export async function reconcileDonation(d: Donation, capture = false) {
       // order if absent; never manufacture the missing reference from browser data.
       result = captured.purchase_units[0]?.custom_id
         ? captured
-        : paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(d.provider_id)}`));
+        : paypalOrder.parse(
+            await paypal(`/v2/checkout/orders/${encodeURIComponent(d.provider_id)}`),
+          );
     }
     const unit = result.purchase_units[0];
     const paidCapture = unit?.payments?.captures?.[0];
