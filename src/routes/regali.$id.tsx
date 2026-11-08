@@ -1,4 +1,4 @@
-import { CAMPAIGN, campaignPaymentMethods } from "@/lib/campaign";
+import { CAMPAIGN, assertCampaignPayment, campaignPaymentMethods } from "@/lib/campaign";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
@@ -237,7 +237,7 @@ function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number
           <p className="mt-1 text-muted-foreground">Ricevi un QR con l'importo. Alla casetta un volontario lo scansiona: solo allora l'addobbo compare sull'albero.</p>
         </div>
       )}
-      <button onClick={() => { if (campaignPaymentMethods().includes(method) && CAMPAIGN.simulators) onConfirm(method); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
+      <button onClick={() => { assertCampaignPayment(method, 'demo'); onConfirm(method); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
         {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento di ${amount} €`}
       </button>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato di pagamento viene raccolto.</p>

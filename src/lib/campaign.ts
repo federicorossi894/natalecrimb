@@ -16,13 +16,24 @@ export const CAMPAIGN_OPTIONS = {
 export type CampaignOptions = { [K in keyof typeof CAMPAIGN_OPTIONS]: boolean };
 export const OPTIONAL_SERVICE_READINESS = { santaBookings: false, emailSending: false, emailScheduling: false } as const;
 export type OptionalReadiness = { [K in keyof typeof OPTIONAL_SERVICE_READINESS]: boolean };
-export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS) {
+export const ONLINE_PROVIDERS = ['sumup', 'paypal'] as const;
+export type OnlineProvider = typeof ONLINE_PROVIDERS[number];
+export type ProviderReadiness = Record<OnlineProvider, { implemented: boolean; configured: boolean; webhookVerified: boolean }>;
+/** All OFF: simulator labels and credential presence are not operational verification. */
+export const LIVE_PROVIDER_READINESS: ProviderReadiness = {
+  sumup: { implemented: false, configured: false, webhookVerified: false },
+  paypal: { implemented: false, configured: false, webhookVerified: false },
+};
+export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS, providers: ProviderReadiness = LIVE_PROVIDER_READINESS) {
   const demo = mode === 'DEMO';
   const cash = mode === 'ADVANCED_1' || mode === 'ADVANCED_2';
   const wall = mode === 'ADVANCED_2';
+  const verifiedProviders = ONLINE_PROVIDERS.filter(p => providers[p].implemented && providers[p].configured && providers[p].webhookVerified);
+  const livePayments = !demo && ready.payments && ready.liveData && verifiedProviders.length > 0;
   return {
     demo, simulators: demo, previews: demo,
-    livePayments: !demo && ready.payments && ready.liveData,
+    livePayments,
+    liveOnlineProviders: livePayments ? verifiedProviders : [],
     volunteerCashDonations: demo || (cash && ready.cash && ready.liveData),
     volunteerPurchaseWishQR: demo || (wall && ready.purchaseWishQR && ready.liveData),
     publicWishWall: demo || (wall && ready.purchaseWishQR && ready.liveData),
@@ -50,7 +61,17 @@ export function campaignRouteAllowed(path: string, c = CAMPAIGN) {
   return true;
 }
 export function campaignPaymentMethods(c = CAMPAIGN): ('sumup' | 'paypal' | 'cash')[] {
-  return [...(c.simulators ? ['sumup' as const, 'paypal' as const] : []), ...(c.volunteerCashDonations ? ['cash' as const] : [])];
+  return [...(c.demo && c.simulators ? [...ONLINE_PROVIDERS] : !c.demo && c.livePayments ? c.liveOnlineProviders : []), ...(c.volunteerCashDonations ? ['cash' as const] : [])];
+}
+/** Shared checkout/server boundary: identical identifiers never imply identical execution. */
+export function assertCampaignPayment(method: string, execution: 'demo' | 'live', c = CAMPAIGN) {
+  if (!campaignPaymentMethods(c).some(p => p === method)) throw new Error('Metodo di pagamento non disponibile.');
+  if (execution === 'demo') {
+    if (!c.demo || !c.simulators) throw new Error('Simulazione non autorizzata.');
+    return;
+  }
+  assertCampaignAction(method === 'cash' ? 'cashDonation' : 'onlinePayment', c);
+  if (method !== 'cash' && !c.liveOnlineProviders.some(p => p === method)) throw new Error('Provider non verificato.');
 }
 /** Guard for every future LIVE handler, before data access. Never accepts client readiness. */
 export function assertCampaignAction(action: 'onlinePayment' | 'cashDonation' | 'purchaseWishQR' | 'wishModeration' | 'emailNow' | 'emailChristmas' | 'santaBooking', c = CAMPAIGN) {
