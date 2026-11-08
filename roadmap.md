@@ -1,9 +1,13 @@
 # CRI Monza demo — roadmap
+## Shared cash DEMO and authorized email preparation — 8 November
+- [x] Shared Cloud volunteer access primary, optional local presentation explicitly separate; isolated SQL idempotence/three fresh reads and three-reader 15-second DEMO polling/remount tests, browser role denial verified. Physical Cloud test remains blocked by authorized account below.
+- [x] Owner-confirmed server-only QA recipient, protected preparation endpoint, fixed manual template and mocked claim/audit orchestration; no real send. Domain setup form is the next owner action below.
+- [x] Public legacy version verified HTTP 200 and old local-first desk; safe DEMO release tested (296 tests, build OK, basic security checks without findings); publish authorized by owner, no LIVE/payment/provider changes. Practical steps and blockers in docs/SHARED_DEMO_QA_2026-11-08.md.
 ## Email preparation and afternoon checks — 8 November
 - [x] Independent donor confirmation opt-in, private intent/atomic attempt audit and paid-only trigger; no real send.
 - [x] Gift email templates, paid-record ownership, disabled sender state, central LIVE initialization gate and mock tests; Christmas single-event callback prepared but not scheduled.
 - [x] DEMO desktop/mobile regression, read-only TV/content checks and executable two-phone checklist; published comparison blocked by HTTP 403, physical hardware and authorized moderation remain unverified.
-- [ ] Configure official Natale mailbox/domain and managed email scaffold — requires owner setup; confirm exact QA recipient before any future send.
+- [ ] Configure official Natale mailbox/domain and managed email scaffold, durable manual QA limit/audit adapter — requires owner/domain DNS authorization; exact QA recipient confirmed, no sends before setup and approval.
 ## Campaign modes architecture
 - [x] 8 November preflight code/tests: foreign webhook no-op, effective return origin, paid postcard, PayPal missing custom_id fallback, SumUp transaction identity, isolated PostgreSQL validation and read-only listener/accessibility audit; see docs/PAYMENT_PREFLIGHT.md.
 - [x] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery endpoint, mock-only regression suite and manual procedure; all LIVE readiness unchanged/false.
@@ -12,7 +16,7 @@
 - [ ] Payment operational verification — STOP by owner: no staging/second project; future dedicated PayPal app after President meeting and authorized 5 EUR/provider test on main project. Preserve existing code; no listener, rotation or schedule now.
 - [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
-- [ ] Real single-event email delivery/scheduling and QA sends — blocked by official mailbox/domain setup, generated managed send adapter, verified per-event scheduling and confirmed QA address/rate-audit implementation; no sender, queue, actual schedule or QA success fabricated.
+- [ ] Real single-event email delivery/scheduling and QA sends — blocked by official mailbox/domain setup, generated managed send adapter, verified per-event scheduling and durable QA rate/audit implementation; QA address now confirmed, no sender, queue, actual schedule or QA success fabricated.
 - [ ] Optional home visits and courtesy biscuit activation — blocked by Committee approval; Santa also needs real availability/contribution and booking operations.
 - [x] Central typed capabilities, readiness and route gates; DEMO remains active.
 - [x] Server and direct RPC protections; DEMO data denied outside DEMO (LIVE storage/services not implemented).
@@ -20,7 +24,7 @@
 - [x] Document prerequisites, matrix, single setting and incomplete live dependencies; policy tests and DEMO responsive verification.
 - [ ] LIVE services, payment verification and isolated data — blocked by payments setup, operator roles and administrative procedures.
 - [ ] Authorized staff end-to-end QR/moderation test — requesting account has no volunteer/moderator role.
-- [ ] Published legacy client compatibility — direct RPCs now denied; new client requires explicit publish authorization.
+- [x] Published legacy client identified and DEMO-only update explicitly authorized on 8 November; publication requested after final safe-release checks.
 - [x] Official CRI marks in header, footer, postcard, email, kids page, TV.
 - [x] Lush 3D tree, project ornaments, dedication panel X/outside/Back.
 - [x] Phase 1: home "Prenota il tuo Babbo Natale" scroll section (Santa down the chimney, static with reduced motion).
@@ -35,7 +39,7 @@
 - [x] Phase 3: SumUp/PayPal simulators, cash QR at the casetta, /volontari (scan + manual entry) with roles.
 - [ ] Assign volunteer role to real accounts — awaits the Comitato's volunteer sign-ups.
 - [x] Refined demo for 27 Oct: 2.5D gift boxes, €5 quick path, project copy rewrite, official Unità Mobile link, email modes (Christmas = 25 Dec 00:05 Europe/Rome), cash donor postcard recovery, /presentazione (3 fictitious cases, PNG/HTML export).
-- [ ] Publish — awaits the user's explicit go-ahead (published site still calls the old gift function; online gifts there fail until republished).
+- [x] Publish DEMO update — owner explicitly authorized on 8 November after safe-release checks; deployment completion checked separately, LIVE remains off.
 - Limits: no physical-iPhone/TV test; moderator approval + event creation not exercised (no moderator account yet); native share sheet with image not testable headless (wa.me fallback verified).
 ## Audit 23/10 stabilisation (P0/P1)
 - [x] P0 SPA nav: email/postcard form stays visible after clicking a link (regali → /albero; /volontari back to dashboard)

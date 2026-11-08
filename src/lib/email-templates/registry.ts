@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { template as receipt } from "./donor-confirmation";
 import { template as gift } from "./gift";
+import { template as demoQa } from "./demo-qa";
 export type TemplateEntry<P extends object = Record<string, unknown>> = {
   component: ComponentType<P>;
   subject: string;
@@ -8,4 +9,4 @@ export type TemplateEntry<P extends object = Record<string, unknown>> = {
   previewData?: P;
 };
 // Disabled preparation only. The managed scaffold replaces the sender/helper after domain setup.
-export const TEMPLATES = { "donor-confirmation": receipt, gift };
+export const TEMPLATES = { "donor-confirmation": receipt, gift, "demo-qa": demoQa };

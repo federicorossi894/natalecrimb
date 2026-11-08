@@ -56,3 +56,35 @@ it.each(["BASIC", "ADVANCED_1", "ADVANCED_2"] as const)(
     tv.unmount();
   },
 );
+it("shared DEMO phones A/B and TV poll once at 15 seconds and retain one ornament on remount", async () => {
+  Object.assign(CAMPAIGN, campaignCapabilities("DEMO"));
+  let rows: { id: string; kind: string; x: number; y: number }[] = [];
+  mocks.demo.mockImplementation(async (name: string) => ({
+    data: name === "public_tree" ? [...rows] : [],
+    error: null,
+  }));
+  const clients = Array.from({ length: 3 }, () => renderHook(useTreeStore));
+  await act(async () => {
+    await Promise.resolve();
+  });
+  const baseline = clients[0]?.result.current.total;
+  rows = [{ id: "cash-confirmed-once", kind: "calore", x: 50, y: 60 }];
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(15000);
+  });
+  for (const client of clients) {
+    expect(client.result.current.addedOrnaments.map((o) => o.id)).toEqual(["cash-confirmed-once"]);
+    expect(client.result.current.total).toBe((baseline ?? 0) + 1);
+    client.unmount();
+  }
+  const refreshed = Array.from({ length: 3 }, () => renderHook(useTreeStore));
+  await act(async () => {
+    await Promise.resolve();
+  });
+  for (const client of refreshed) {
+    expect(client.result.current.addedCount).toBe(1);
+    expect(client.result.current.addedOrnaments[0]?.id).toBe("cash-confirmed-once");
+    client.unmount();
+  }
+  expect(mocks.live).not.toHaveBeenCalled();
+});

@@ -11,8 +11,8 @@ import {
   assertOfficialEmailReady,
   officialEmailReady,
   OFFICIAL_EMAIL_READINESS,
-  DEMO_EMAIL_QA,
 } from "@/lib/email-readiness";
+import { DEMO_EMAIL_QA } from "@/lib/demo-email-qa.server";
 import {
   deliverDonationEmail,
   DefiniteEmailRefusal,
@@ -162,9 +162,9 @@ describe("Official sender hard gate and protected QA", () => {
         "ATTENZIONE: email ufficiale Natale non ancora configurata; impossibile attivare modalità LIVE",
       ),
   );
-  it("official sender is not configured and QA has no guessed recipient", () => {
+  it("official sender stays unavailable and owner-confirmed QA remains disabled", () => {
     expect(officialEmailReady()).toBe(false);
-    expect(DEMO_EMAIL_QA.confirmedRecipients).toEqual([]);
+    expect(DEMO_EMAIL_QA.confirmedRecipients).toEqual(["federico.rossi@crimonza.org"]);
     expect(DEMO_EMAIL_QA.enabled).toBe(false);
   });
   const ready = {

@@ -33,5 +33,3 @@ export function officialEmailReady(r: OfficialEmailReadiness = OFFICIAL_EMAIL_RE
 export function assertOfficialEmailReady(r: OfficialEmailReadiness = OFFICIAL_EMAIL_READINESS) {
   if (!officialEmailReady(r)) throw new Error(EMAIL_LIVE_BLOCKER);
 }
-/** Empty until the owner confirms the exact address. Never inferred from dictated text. */
-export const DEMO_EMAIL_QA = { enabled: false, confirmedRecipients: [] as readonly string[] };
