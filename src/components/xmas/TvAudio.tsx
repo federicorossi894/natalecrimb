@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TV_TRACKS, catalogueReady } from '@/lib/tv-audio-manifest';
 import { AudioEventGate, type TvAudioEvent } from '@/lib/tv-audio-policy';
@@ -12,23 +12,20 @@ export function TvAudio({ cue }: { cue: TvAudioCue }) {
   const consent = useRef(false);
   const [active, setActive] = useState(false);
   const [notice, setNotice] = useState('');
-  const [compact, setCompact] = useState(false);
   const ready = catalogueReady(TV_TRACKS);
   const previousCeremony = useRef(false);
 
   useEffect(() => {
     const visible = () => {
       if (document.hidden) engine.current?.silence();
-      else if (consent.current && engine.current) engine.current.activate();
+      else if (consent.current && engine.current) {
+        try { engine.current.activate(); }
+        catch { consent.current = false; setActive(false); setNotice('Audio bloccato. Riprova.'); }
+      }
     };
     document.addEventListener('visibilitychange', visible);
     return () => { document.removeEventListener('visibilitychange', visible); engine.current?.dispose(); engine.current = null; };
   }, []);
-  useEffect(() => {
-    if (!active) { setCompact(false); return; }
-    const timer = setTimeout(() => setCompact(true), 7000);
-    return () => clearTimeout(timer);
-  }, [active]);
   // Cue changes alone trigger sounds. Enabling/returning to the tab never replays a current beat.
   useEffect(() => {
     const audible = consent.current && !document.hidden;
@@ -47,28 +44,28 @@ export function TvAudio({ cue }: { cue: TvAudioCue }) {
     previousCeremony.current = !!cue.ceremony;
   }, [cue.arrival, cue.dedication, cue.wish, cue.ceremony?.key, cue.ceremony?.phase]);
 
-  const toggle = () => {
-    if (active) {
-      consent.current = false; engine.current?.silence(); setActive(false);
-      try { localStorage.setItem('cri-tv-audio-preference', 'off'); } catch { /* optional preference */ }
-      return;
-    }
+  const activate = () => {
     try {
       // Synchronous user gesture: no async import, network or storage precedes resume().
       if (!engine.current) engine.current = new TvAudioEngine(ready ? TV_TRACKS : []);
-      engine.current.onBlocked = () => { consent.current = false; engine.current?.silence(); setActive(false); setNotice('Tocca per riattivare audio'); };
-      engine.current.onUnavailable = () => setNotice('Musica non disponibile · effetti attivi');
-      consent.current = true; engine.current.activate(); setActive(true); setNotice('');
+      engine.current.onBlocked = () => { consent.current = false; engine.current?.silence(); setActive(false); setNotice('Audio bloccato. Riprova.'); };
+      engine.current.onUnavailable = () => { consent.current = false; engine.current?.silence(); setActive(false); setNotice('Audio non disponibile. Riprova.'); };
+      const context = engine.current.context;
+      context.onstatechange = () => {
+        if (consent.current && context.state === 'running') { setActive(true); setNotice(''); }
+      };
+      consent.current = true; engine.current.activate();
+      if (context.state === 'running') setActive(true);
+      setNotice('');
       try { localStorage.setItem('cri-tv-audio-preference', 'on'); } catch { /* never auto-resume on a new page */ }
     } catch { consent.current = false; setActive(false); setNotice('Audio non disponibile su questo browser'); }
   };
-  return <div className={`tv-audio ${compact ? 'is-compact' : ''}`} data-testid="tv-audio" data-audio={active ? 'enabled' : 'silent'}>
-    <Button className="tv-audio-button" variant="outline" onClick={toggle} aria-label={active ? 'Disattiva audio' : 'Attiva audio'} title={active ? 'Disattiva audio' : 'Attiva audio'}>
-      {active ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />}
-      <span>{active ? ready ? 'Audio attivo' : 'Effetti attivi' : 'Attiva audio'}</span>
+  if (active) return null;
+  return <div className="tv-audio" data-testid="tv-audio" data-audio="silent">
+    <Button className="tv-audio-button" variant="outline" onClick={activate} aria-label="Attiva audio">
+      <VolumeX aria-hidden />
+      <span>Attiva audio</span>
     </Button>
-    {!ready && <span className="tv-audio-status" role="status">Musica in preparazione</span>}
-    {ready && <a href="/crediti-musica" target="_blank" rel="noreferrer" className="tv-audio-status" title="Crediti musicali e condizioni per la diffusione pubblica">Musica: Kevin MacLeod · CC BY 4.0</a>}
     {notice && <span className="tv-audio-status" role="status">{notice}</span>}
   </div>;
 }
