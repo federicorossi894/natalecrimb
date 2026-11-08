@@ -11,7 +11,7 @@ export function VolunteerReview() {
   const [open,setOpen]=useState(false),[busy,setBusy]=useState<string|null>(null),[message,setMessage]=useState('');
   const pending=useRef(false);
   return <section className="mt-4 border-y border-border py-4" data-testid="volunteer-review">
-    <Button variant="outline" className="h-auto w-full justify-between whitespace-normal py-3" onClick={()=>setOpen(v=>!v)}><Bell/><span>Da approvare · {poll.data.count}</span></Button>
+    <Button variant="outline" className="h-auto w-full justify-between whitespace-normal py-3" onClick={()=>setOpen(v=>!v)}><Bell/><span>Auguri e dediche da approvare · {poll.data.count}</span></Button>
     <p role="status" className="mt-2 text-sm text-gold">{poll.error||poll.stale?'Lista in ripristino':poll.data.count?`${poll.data.count} auguri e dediche in attesa di lettura`: 'Nessun messaggio in attesa'}</p>
     {open&&!poll.error&&poll.data.items.map(item=><article key={item.id} className="mt-4 border-b border-border pb-4" data-testid="review-item">
       <p className="text-xs text-muted-foreground">{item.type==='wish'?'Augurio':'Dedica'} · {new Date(item.created_at).toLocaleString('it-IT')}</p>

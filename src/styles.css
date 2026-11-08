@@ -247,6 +247,7 @@
 .tv-audio-button svg { width: 1.5cqw; height: 1.5cqw; }
 .tv-audio-status { font-size: .95cqw; padding: .4cqw .65cqw; background: var(--scene-night); color: var(--scene-gold); border-radius: 4px; }
 .tv-audio.is-compact .tv-audio-button span { display: none; }
+.tv-scene[data-beat="auguri"] .tv-audio { left:40cqw; top:2.6cqw; bottom:auto; flex-direction:column; align-items:flex-start; }
 /* Editorial stories occupy only the existing right scene slot: never the permanent QR or brand. */
 .tv-story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; z-index: 2; pointer-events: none; animation: tv-story-in 1.6s ease backwards; transition: opacity 1.8s ease; }
 .tv-story.is-leaving { opacity: 0; animation: tv-story-out 1.8s ease both; }
