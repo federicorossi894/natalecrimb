@@ -1,4 +1,8 @@
 # CRI Monza demo — roadmap
+## Gmail manual QA correction — 8 November
+- [ ] Verify available Gmail identity/scopes and link only the exact owner account; no send during preparation.
+- [ ] Three fixed staff-only manual tests, independent QA gate, durable audit/limits, mock regression and desktop/mobile verification.
+- [ ] Actual reception check — awaits explicit manual send and mailbox confirmation; LIVE unchanged.
 ## Shared cash DEMO and authorized email preparation — 8 November
 - [x] Shared Cloud volunteer access primary, optional local presentation explicitly separate; isolated SQL idempotence/three fresh reads and three-reader 15-second DEMO polling/remount tests, browser role denial verified. Physical Cloud test remains blocked by authorized account below.
 - [x] Owner-confirmed server-only QA recipient, protected preparation endpoint, fixed manual template and mocked claim/audit orchestration; no real send. Domain setup form is the next owner action below.
