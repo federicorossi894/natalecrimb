@@ -1,5 +1,6 @@
 import { CAMPAIGN } from "@/lib/campaign";
 import { demoModeration } from "@/lib/campaign.functions";
+import { liveDedicationModeration } from '@/lib/payments.functions';
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -45,12 +46,14 @@ function Mod() {
   const load = useCallback(async () => {
     const { data: m } = await supabase.rpc("is_moderator");
     setIsMod(!!m);
-    if (!m || !CAMPAIGN.sharedDemoData) return;
+    if (!m) return;
+    if (CAMPAIGN.liveData) { try { setRows(await liveDedicationModeration({ data: {} })); } catch { setRows([]); } return; }
     try { const data = await demoModeration({ data: { action: 'ornaments' } }); setRows(data.ornaments); } catch { setRows([]); }
   }, []);
   useEffect(() => { if (session) void load(); }, [session, load]);
 
   const setStatus = async (id: string, status: "approved" | "rejected") => {
+    if (CAMPAIGN.liveData) { await liveDedicationModeration({ data: { id, status } }); void load(); return; }
     if (!CAMPAIGN.sharedDemoData) return;
     await demoModeration({ data: { action: 'setOrnament', id, status } });
     void load();

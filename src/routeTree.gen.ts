@@ -18,6 +18,7 @@ import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
 import { Route as GiochiRouteImport } from './routes/giochi'
 import { Route as ModerazioneRouteImport } from './routes/moderazione'
+import { Route as PagamentoRouteImport } from './routes/pagamento'
 import { Route as PiazzaRouteImport } from './routes/piazza'
 import { Route as PiccoliVolontariRouteImport } from './routes/piccoli-volontari'
 import { Route as PresentazioneRouteImport } from './routes/presentazione'
@@ -26,6 +27,8 @@ import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
+import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal-webhook'
+import { Route as ApiPublicSumupWebhookRouteImport } from './routes/api/public/sumup-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -72,6 +75,11 @@ const ModerazioneRoute = ModerazioneRouteImport.update({
   path: '/moderazione',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PagamentoRoute = PagamentoRouteImport.update({
+  id: '/pagamento',
+  path: '/pagamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PiazzaRoute = PiazzaRouteImport.update({
   id: '/piazza',
   path: '/piazza',
@@ -112,6 +120,16 @@ const RegaliIdRoute = RegaliIdRouteImport.update({
   path: '/regali/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaypalWebhookRoute = ApiPublicPaypalWebhookRouteImport.update({
+  id: '/api/public/paypal-webhook',
+  path: '/api/public/paypal-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSumupWebhookRoute = ApiPublicSumupWebhookRouteImport.update({
+  id: '/api/public/sumup-webhook',
+  path: '/api/public/sumup-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
+  '/pagamento': typeof PagamentoRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
@@ -131,6 +150,8 @@ export interface FileRoutesByFullPath {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +163,7 @@ export interface FileRoutesByTo {
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
+  '/pagamento': typeof PagamentoRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
@@ -150,6 +172,8 @@ export interface FileRoutesByTo {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
+  '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -162,6 +186,7 @@ export interface FileRoutesById {
   '/casetta': typeof CasettaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
+  '/pagamento': typeof PagamentoRoute
   '/piazza': typeof PiazzaRoute
   '/piccoli-volontari': typeof PiccoliVolontariRoute
   '/presentazione': typeof PresentazioneRoute
@@ -170,6 +195,8 @@ export interface FileRoutesById {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -183,6 +210,7 @@ export interface FileRouteTypes {
     | '/casetta'
     | '/giochi'
     | '/moderazione'
+    | '/pagamento'
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
@@ -191,6 +219,8 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/public/paypal-webhook'
+    | '/api/public/sumup-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -202,6 +232,7 @@ export interface FileRouteTypes {
     | '/casetta'
     | '/giochi'
     | '/moderazione'
+    | '/pagamento'
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
@@ -210,6 +241,8 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali'
+    | '/api/public/paypal-webhook'
+    | '/api/public/sumup-webhook'
   id:
     | '__root__'
     | '/'
@@ -221,6 +254,7 @@ export interface FileRouteTypes {
     | '/casetta'
     | '/giochi'
     | '/moderazione'
+    | '/pagamento'
     | '/piazza'
     | '/piccoli-volontari'
     | '/presentazione'
@@ -229,6 +263,8 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/public/paypal-webhook'
+    | '/api/public/sumup-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -241,6 +277,7 @@ export interface RootRouteChildren {
   CasettaRoute: typeof CasettaRoute
   GiochiRoute: typeof GiochiRoute
   ModerazioneRoute: typeof ModerazioneRoute
+  PagamentoRoute: typeof PagamentoRoute
   PiazzaRoute: typeof PiazzaRoute
   PiccoliVolontariRoute: typeof PiccoliVolontariRoute
   PresentazioneRoute: typeof PresentazioneRoute
@@ -249,6 +286,8 @@ export interface RootRouteChildren {
   AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
+  ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
+  ApiPublicSumupWebhookRoute: typeof ApiPublicSumupWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -316,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModerazioneRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pagamento': {
+      id: '/pagamento'
+      path: '/pagamento'
+      fullPath: '/pagamento'
+      preLoaderRoute: typeof PagamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/piazza': {
       id: '/piazza'
       path: '/piazza'
@@ -372,6 +418,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegaliIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/paypal-webhook': {
+      id: '/api/public/paypal-webhook'
+      path: '/api/public/paypal-webhook'
+      fullPath: '/api/public/paypal-webhook'
+      preLoaderRoute: typeof ApiPublicPaypalWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sumup-webhook': {
+      id: '/api/public/sumup-webhook'
+      path: '/api/public/sumup-webhook'
+      fullPath: '/api/public/sumup-webhook'
+      preLoaderRoute: typeof ApiPublicSumupWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -385,6 +445,7 @@ const rootRouteChildren: RootRouteChildren = {
   CasettaRoute: CasettaRoute,
   GiochiRoute: GiochiRoute,
   ModerazioneRoute: ModerazioneRoute,
+  PagamentoRoute: PagamentoRoute,
   PiazzaRoute: PiazzaRoute,
   PiccoliVolontariRoute: PiccoliVolontariRoute,
   PresentazioneRoute: PresentazioneRoute,
@@ -393,6 +454,8 @@ const rootRouteChildren: RootRouteChildren = {
   AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
+  ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
+  ApiPublicSumupWebhookRoute: ApiPublicSumupWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

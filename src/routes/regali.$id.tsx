@@ -8,6 +8,7 @@ import { Snow } from "@/components/xmas/Snow";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { GiftBox } from "@/components/xmas/GiftBox";
 import { CityThanks, EmailStudio, PostcardStudio } from "@/components/xmas/PostDonation";
+import { LiveCheckout } from "@/components/xmas/LiveCheckout";
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { QRCodeSVG } from "qrcode.react";
@@ -198,8 +199,10 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
   );
 }
 
-function Checkout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
-  if (!CAMPAIGN.simulators) return <section className="mx-auto max-w-lg px-4 pt-6"><h1 className="font-display text-3xl">Donazioni online non disponibili</h1><p role="status" className="mt-4 text-muted-foreground">Il pagamento reale non è ancora configurato e verificato. Nessun addebito e nessun addobbo vengono registrati.</p></section>;
+function Checkout(props: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
+  return CAMPAIGN.simulators ? <DemoCheckout {...props} /> : <LiveCheckout project={props.p} amount={props.amount} onEdit={props.onEdit} />;
+}
+function DemoCheckout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
   const [method, setMethod] = useState<PaymentChoice>("sumup");
   const methods: { id: PaymentChoice; label: string; sub: string; icon: ReactNode }[] = [
     { id: "sumup", label: "SumUp online", sub: "Carta · simulatore", icon: <CreditCard className="h-5 w-5" /> },

@@ -5,7 +5,7 @@ export type CampaignMode = typeof CAMPAIGN_MODES[number];
 
 /** Readiness is evidence, not a switch to pretend an integration exists. */
 export const LIVE_READINESS = {
-  payments: false, cash: false, purchaseWishQR: false, liveData: false,
+  payments: false, cash: false, purchaseWishQR: false, liveData: true,
 } as const;
 export type Readiness = { [K in keyof typeof LIVE_READINESS]: boolean };
 /** Optional Committee-approved services, independent of campaign tier. */
@@ -19,10 +19,10 @@ export type OptionalReadiness = { [K in keyof typeof OPTIONAL_SERVICE_READINESS]
 export const ONLINE_PROVIDERS = ['sumup', 'paypal'] as const;
 export type OnlineProvider = typeof ONLINE_PROVIDERS[number];
 export type ProviderReadiness = Record<OnlineProvider, { implemented: boolean; configured: boolean; webhookVerified: boolean }>;
-/** Credentials authenticated on 2026-11-08; checkout and confirmation remain unimplemented/unverified. */
+/** Implemented server adapters; operational webhook checks remain pending (no real payments performed). */
 export const LIVE_PROVIDER_READINESS: ProviderReadiness = {
-  sumup: { implemented: false, configured: true, webhookVerified: false },
-  paypal: { implemented: false, configured: true, webhookVerified: false },
+  sumup: { implemented: true, configured: true, webhookVerified: false },
+  paypal: { implemented: true, configured: true, webhookVerified: false },
 };
 export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS, providers: ProviderReadiness = LIVE_PROVIDER_READINESS) {
   const demo = mode === 'DEMO';

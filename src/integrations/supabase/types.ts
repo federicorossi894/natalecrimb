@@ -176,6 +176,107 @@ export type Database = {
         }
         Relationships: []
       }
+      live_donations: {
+        Row: {
+          access_hash: string
+          amount_cents: number
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          dedica: string | null
+          firma: string | null
+          id: string
+          kind: string
+          paid_at: string | null
+          provider: string
+          provider_id: string | null
+          provider_payment_id: string | null
+          publish_consent: boolean
+          status: string
+        }
+        Insert: {
+          access_hash: string
+          amount_cents: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          dedica?: string | null
+          firma?: string | null
+          id?: string
+          kind: string
+          paid_at?: string | null
+          provider: string
+          provider_id?: string | null
+          provider_payment_id?: string | null
+          publish_consent?: boolean
+          status?: string
+        }
+        Update: {
+          access_hash?: string
+          amount_cents?: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          dedica?: string | null
+          firma?: string | null
+          id?: string
+          kind?: string
+          paid_at?: string | null
+          provider?: string
+          provider_id?: string | null
+          provider_payment_id?: string | null
+          publish_consent?: boolean
+          status?: string
+        }
+        Relationships: []
+      }
+      live_ornaments: {
+        Row: {
+          created_at: string
+          dedica: string | null
+          donation_id: string
+          firma: string | null
+          id: string
+          kind: string
+          publish_consent: boolean
+          status: string
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          dedica?: string | null
+          donation_id: string
+          firma?: string | null
+          id?: string
+          kind: string
+          publish_consent?: boolean
+          status?: string
+          x?: number
+          y?: number
+        }
+        Update: {
+          created_at?: string
+          dedica?: string | null
+          donation_id?: string
+          firma?: string | null
+          id?: string
+          kind?: string
+          publish_consent?: boolean
+          status?: string
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_ornaments_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: true
+            referencedRelation: "live_donations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -310,6 +411,17 @@ export type Database = {
           result: string
         }[]
       }
+      confirm_live_donation: {
+        Args: {
+          _amount_cents: number
+          _currency: string
+          _id: string
+          _payment_id: string
+          _provider: string
+          _provider_id: string
+        }
+        Returns: string
+      }
       create_cash_request: {
         Args: {
           _amount_cents: number
@@ -365,6 +477,18 @@ export type Database = {
         }[]
       }
       kindness_unlocked_day: { Args: { _at: string }; Returns: number }
+      live_public_tree: {
+        Args: never
+        Returns: {
+          created_at: string
+          dedica: string
+          firma: string
+          id: string
+          kind: string
+          x: number
+          y: number
+        }[]
+      }
       moderate_wish: { Args: { _id: string; _status: string }; Returns: string }
       my_ornaments: {
         Args: { _client: string }
