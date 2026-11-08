@@ -241,6 +241,21 @@
 @keyframes tv-arrive-pulse { 0% { opacity: 0; transform: scale(.6); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes tv-arrive-pop { 0% { opacity: 0; transform: translateY(-3cqw) scale(.4) rotate(-12deg); } 70% { opacity: 1; transform: translateY(0) scale(1.08) rotate(4deg); } 100% { transform: none; } }
 .tv-scene, .tv-scene * { cursor: none; }
+/* Editorial stories occupy only the existing right scene slot: never the permanent QR or brand. */
+.tv-story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; z-index: 2; pointer-events: none; animation: tv-story-in 1.6s ease both; transition: opacity 1.8s ease; }
+.tv-story.is-leaving { opacity: 0; }
+.tv-story-heading { display: flex; align-items: center; gap: 1.2cqw; margin-top: 1.2cqw; }
+.tv-story-heading h2 { font-size: 2.8cqw; line-height: 1.08; }
+.tv-story-text { margin-top: 1.3cqw; font-size: 2.05cqw; line-height: 1.32; overflow-wrap: anywhere; }
+.tv-story-signature { margin-top: 1cqw; font-size: 1.4cqw; color: var(--scene-gold); overflow-wrap: anywhere; }
+.tv-story-signature span { display: block; margin-top: .3cqw; font-size: .95cqw; color: var(--muted-foreground); }
+.tv-story-invite { margin-top: 1.2cqw; font-size: 1.2cqw; color: var(--scene-gold); }
+.tv-scene[data-story] .tv-card { opacity: 0; transition-delay: 0s; }
+.tv-scene[data-story="leaving"] .tv-card.is-active { opacity: 1; transition-delay: .8s; }
+.tv-scene[data-story="focus"] .tv-kindness { opacity: 0; transition: opacity 1s ease; }
+.tv-scene[data-beat="auguri"] .tv-story, .tv-scene[data-ceremony="true"] .tv-story { display: none; }
+@keyframes tv-story-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tv-story { animation: tv-story-in .6s ease both; transition: opacity .6s ease; } }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
 /* Illustrated gift boxes */

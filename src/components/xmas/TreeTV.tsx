@@ -14,6 +14,8 @@ import { TreeStage } from './TreeStage';
 import { TvKindness, type AdventPreview } from './TvKindness';
 import { usePublicWishes, wallWishes, DEMO_WISHES, type PublicWish } from '@/lib/wishes';
 import { layoutWall, DEFAULT_SIGNATURE } from '@/lib/tv-wall';
+import { storyOrnaments, storyPriority } from '@/lib/tv-storytelling';
+import { useTvStorytelling } from './useTvStorytelling';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
@@ -28,9 +30,9 @@ export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = fal
 const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kind);
 
 /** Scenes the presentation preview can show, in director order (the arrival card is a beat, not a loop scene). */
-export type TvBeat = TvScene | 'arrivo';
+export type TvBeat = TvScene | 'arrivo' | 'racconto';
 /** Preview control: shows one real scene immediately, with no loop, no wake lock and no reload. */
-export type TvPreview = { beat: TvBeat; advent?: AdventPreview | null };
+export type TvPreview = { beat: TvBeat; advent?: AdventPreview | null; acceleratedStory?: boolean };
 
 /** Fictitious dedication, used only in the preview when the shared tree has no public dedication yet. */
 const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un sorriso in strada. Grazie!', firma: 'Esempio DEMO' };
@@ -58,6 +60,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const step = useRef(0);
   const cursor = useRef(0);
   const reduced = useReducedMotion();
+  const safeOrnaments = useMemo(() => storyOrnaments(ornaments, error), [ornaments, error]);
   const realDedications = useMemo(() => error ? [] : ornaments.filter((o) => o.dedica), [ornaments, error]);
   // Preview only: when no public dedication exists yet, one ornament carries a clearly labelled fictitious example.
   const previewDedication = useMemo(() => {
@@ -75,7 +78,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const wallSource = useMemo(() => (wishesError ? [] : wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, wishesError, preview]);
   const sequence = preview ? tvSequence(true, true) : tvSequence(hasDedications, wishes.length > 0);
 
-  useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
+  useEffect(() => { ornamentsRef.current = safeOrnaments; }, [safeOrnaments]);
   useEffect(() => { arrivingRef.current = arriving; }, [arriving]);
   useEffect(() => { wishesRef.current = wallSource; }, [wallSource]);
 
@@ -113,25 +116,35 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
     const prev = previous.current;
     if (!preview && prev) {
       arrivalQueue.current = queueArrivals(arrivalQueue.current, ornaments.filter(o => !prev.has(o.id)));
-      if (!arrivingRef.current) {
+      if (!arrivingRef.current && !ceremonyRef.current) {
         const next = arrivalQueue.current.shift();
         if (next) { arrivingRef.current = next; setArriving(next); setSelected(next); }
       }
     }
     previous.current = ids;
   }, [ornaments, loaded, preview]);
+  const arrivalRemaining = useRef(ARRIVAL_MS);
+  const timedArrivalId = useRef<TreeOrnament['id'] | null>(null);
   useEffect(() => {
-    if (!arriving || preview) return;
+    if (preview) return;
+    if (!arriving && !ceremonyPlaying) {
+      const next = arrivalQueue.current.shift() ?? null;
+      if (next) { arrivingRef.current = next; setArriving(next); setSelected(next); }
+    }
+    if (!arriving) return;
+    if (timedArrivalId.current !== arriving.id) { timedArrivalId.current = arriving.id; arrivalRemaining.current = ARRIVAL_MS; }
+    if (ceremonyPlaying) return;
+    const started = performance.now();
     const t = setTimeout(() => {
       const next = arrivalQueue.current.shift() ?? null;
       arrivingRef.current = next; setArriving(next); setSelected(next);
-    }, ARRIVAL_MS);
-    return () => clearTimeout(t);
-  }, [arriving]);
+    }, arrivalRemaining.current);
+    return () => { clearTimeout(t); arrivalRemaining.current = Math.max(0, arrivalRemaining.current - (performance.now() - started)); };
+  }, [arriving, ceremonyPlaying, preview]);
 
   // Scene loop (≈60 s, ≈72 s with dedications), paused during an arrival.
   useEffect(() => {
-    if (arriving || preview) return;
+    if (arriving || preview || ceremonyPlaying) return;
     let timer: ReturnType<typeof setTimeout>;
     const run = () => {
       const pub = ornamentsRef.current.filter((o) => o.dedica);
@@ -147,7 +160,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
     };
     run();
     return () => clearTimeout(timer);
-  }, [arriving, preview]);
+  }, [arriving, preview, ceremonyPlaying]);
 
   // Preview: apply the chosen beat immediately with the same states the loop would produce.
   const previewBeat = preview?.beat;
@@ -160,6 +173,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       return;
     }
     setArriving(null);
+    if (previewBeat === 'racconto') { setSelected(null); setScene('invito'); return; }
     setSelected(previewBeat === 'dedica' ? (publicDedications[0] ?? null) : null);
     if (previewBeat === 'auguri') setWishPage(nextWishRef.current(wishesRef.current));
     setScene(previewBeat);
@@ -181,6 +195,9 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const arrivingProject = arriving ? projectOf(arriving) : undefined;
   const wall = useMemo(() => layoutWall(wishPage.filter(w => wallSource.some(current => current.id === w.id)), newWishIds), [wishPage, wallSource, newWishIds]);
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
+  const priority = storyPriority({ ceremony: ceremonyPlaying || !!preview?.advent, arrival: !!arriving, wall: scene === 'auguri', dedication: scene === 'dedica' });
+  const story = useTvStorytelling(safeOrnaments, priority, error, !preview || preview.beat === 'racconto', !!preview?.acceleratedStory);
+  const cameraSelection = priority === 'ceremony' || priority === 'wall' ? null : arriving ? safeOrnaments.find(o => o.id === arriving.id) ?? null : dedication ?? (story.focusing ? story.content?.ornament ?? null : null);
   // Once a fresh wish has been shown on the wall it becomes an ordinary note.
   useEffect(() => {
     if (scene !== 'auguri' || !newWishIds.size) return;
@@ -189,9 +206,9 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   }, [scene, newWishIds.size]);
 
   return (
-    <div className="tv-scene" data-beat={active} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
+    <div className="tv-scene" data-beat={active} data-story={story.content ? story.leaving ? 'leaving' : 'focus' : undefined} data-story-kind={story.content?.ornament.kind} data-story-id={story.content?.ornament.id} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
       <div className="tv-tree">
-        <TreeStage ornaments={shownOrnaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
+        <TreeStage ornaments={error ? safeOrnaments : shownOrnaments} selected={cameraSelection} tv arrivingId={ceremonyPlaying ? null : arriving?.id ?? null} reduced={reduced} editorialFocus={story.focusing} cameraSuspended={priority === 'ceremony' || priority === 'wall'} />
         {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
       </div>
       <div className="tv-vignette" aria-hidden />
@@ -246,6 +263,16 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         </div>
 
         <div className="tv-scenes" aria-live="polite">
+          {story.content && <section className={`tv-story ${story.leaving ? 'is-leaving' : ''}`} data-testid="tv-story" aria-label={story.content.project.title}>
+            <p className="tv-kicker">{story.content.dedication ? 'Una dedica, una luce' : 'Dentro questa pallina'}</p>
+            <div className="tv-story-heading">
+              <OrnamentIcon kind={story.content.ornament.kind} className="h-[5cqw] w-[4.5cqw] shrink-0" />
+              <h2 className="font-display">{story.content.project.title}</h2>
+            </div>
+            <p className="tv-story-text font-display">{story.content.dedication ? `“${story.content.text}”` : story.content.text}</p>
+            {story.content.signature && <p className="tv-story-signature">— {story.content.signature}<span>Dedica pubblicata con consenso</span></p>}
+            <p className="tv-story-invite">{story.content.ornament.kind === 'calore' || story.content.ornament.kind === 'cuore' ? 'Anche la tua pallina può entrare nell’albero.' : 'Un piccolo gesto. Una nuova luce per Monza.'}</p>
+          </section>}
           <section className={`tv-card ${on('invito')}`} data-scene="invito">
             <p className="tv-kicker">Il Natale che fa bene</p>
             <h2 className="tv-headline font-display">La prossima pallina potrebbe essere <em className="text-gold">la tua!</em></h2>

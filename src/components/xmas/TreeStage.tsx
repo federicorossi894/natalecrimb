@@ -13,6 +13,9 @@ export type TreeStageProps = {
   arrivingId?: string | number | null;
   resetKey?: number;
   reduced: boolean;
+  /** TV-only narrative framing and opaque-overlay pause; other pages retain their camera. */
+  editorialFocus?: boolean;
+  cameraSuspended?: boolean;
 };
 
 /** True when the browser can create a WebGL context (some office/remote browsers run without GPU acceleration). */

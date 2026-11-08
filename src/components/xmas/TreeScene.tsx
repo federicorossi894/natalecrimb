@@ -8,10 +8,11 @@ import type { TreeOrnament } from '@/lib/data';
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
 import { IllustratedTree } from './TreeStage';
 import { TV_GPU_RECOVERY } from '@/lib/tv-reliability';
+import { tvCameraFrame, type CameraPoint } from '@/lib/tv-camera';
 
 type Palette = ScenePalette;
 const PALETTE_KEYS = ['night','fir','needle','bark','gold','red','snow','ground','rim','ivory','burgundy','forest','crimson'] as const;
-type Props = { ornaments: TreeOrnament[]; selected: TreeOrnament | null; onPick?: (o: TreeOrnament) => void; tv?: boolean; arrivingId?: string | number | null; resetKey?: number; reduced: boolean };
+type Props = { ornaments: TreeOrnament[]; selected: TreeOrnament | null; onPick?: (o: TreeOrnament) => void; tv?: boolean; arrivingId?: string | number | null; resetKey?: number; reduced: boolean; editorialFocus?: boolean; cameraSuspended?: boolean };
 
 class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
@@ -25,15 +26,18 @@ function TreeStar({height,palette}:{height:number;palette:Palette}) {
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
 }
-const TV_PANORAMA=1.95;
-function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined}) {
+function CameraRig({height,selected,index,count,tv,reduced,resetKey,editorialFocus,cameraSuspended}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined;editorialFocus?:boolean;cameraSuspended?:boolean}) {
   const controls=useRef<OrbitControlsType>(null);
   const { camera, gl, size }=useThree();
   const moving=useRef(false);
   const clock=useRef(0);
   const target=useMemo(()=>new THREE.Vector3(),[]);
+  const look=useMemo(()=>new THREE.Vector3(0,height*0.53,0),[]);
+  const lookDesired=useMemo(()=>new THREE.Vector3(),[]);
+  const initialized=useRef(false);
+  const probeAt=useRef(0);
   useEffect(()=>{
-    if(tv){if(!selected){camera.position.set(0,height*0.67,height*TV_PANORAMA);camera.lookAt(0,height*0.53,0);}return;}
+    if(tv){if(!initialized.current){camera.position.set(0,height*0.67,height*1.95);look.set(0,height*0.53,0);camera.lookAt(look);initialized.current=true;}return;}
     const c=controls.current;if(!c)return;
     const p=selected ? ornamentAnchor(selected,height,index,count):[0,height*0.5,0];
     c.target.set(p[0]??0,p[1]??0,p[2]??0);
@@ -43,13 +47,23 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey}: {height:nu
   useEffect(()=>{ const stop=()=>{moving.current=true;};gl.domElement.addEventListener('pointerdown',stop);return()=>gl.domElement.removeEventListener('pointerdown',stop);},[gl]);
   useFrame((_,delta)=>{
     if(!tv)return;
-    const dt=Math.min(delta,0.05);if(!reduced)clock.current+=dt;
-    const p=selected?ornamentAnchor(selected,height,index,count):[0,height*0.53,0];
-    const a=selected?Math.atan2(p[0]??0,p[2]??0):clock.current*0.075;
-    // TV framing: whole tree with breathing room in the left two-thirds; a focused bauble keeps some of the tree around it.
-    const d=selected?Math.max(4,height*0.95):height*TV_PANORAMA;
-    target.set((p[0]??0)+Math.sin(a)*d,(p[1]??0)+(selected?0.45:height*0.14),(p[2]??0)+Math.cos(a)*d);
-    camera.position.lerp(target,1-Math.exp(-1.5*dt));camera.lookAt(p[0]??0,p[1]??0,p[2]??0);
+    const dt=Math.min(delta,0.05);
+    if(!reduced && !cameraSuspended){
+      if(!selected)clock.current+=dt;
+      const p=selected?ornamentAnchor(selected,height,index,count) as CameraPoint:null;
+      const frame=tvCameraFrame(height,clock.current,p,!!editorialFocus);
+      target.fromArray(frame.position);lookDesired.fromArray(frame.look);
+      // Both position AND lookAt ease, including return; no selection-change effect can snap the TV camera.
+      const ease=1-Math.exp(-1.15*dt);
+      camera.position.lerp(target,ease);look.lerp(lookDesired,ease);camera.lookAt(look);
+    }
+    // Public numeric diagnostics, sampled without React renders, for camera/soak verification.
+    probeAt.current+=dt;
+    if(probeAt.current>=0.5){
+      probeAt.current=0;
+      const stage=gl.domElement.closest<HTMLElement>('.tree-stage');
+      if(stage){stage.dataset.cameraPosition=camera.position.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset.cameraLook=look.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset.cameraSelected=String(selected?.id??'');stage.dataset.cameraMode=cameraSuspended?'suspended':reduced?'reduced':editorialFocus?'editorial':selected?'selected':'panorama';}
+    }
   });
   return tv?null:<OrbitControls ref={controls} makeDefault enablePan={false} enableDamping minDistance={1.5} maxDistance={10} minPolarAngle={0.22} maxPolarAngle={Math.PI*0.63} />;
 }
@@ -95,7 +109,7 @@ export default function TreeScene(props:Props) {
       
       <Decorations {...props} height={h} palette={palette} />
       <TreeStar height={h} palette={palette} />
-      <CameraRig height={h} selected={props.selected} index={props.selected?props.ornaments.findIndex(o=>o.id===props.selected?.id):-1} count={props.ornaments.length} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} />
+      <CameraRig height={h} selected={props.selected} index={props.selected?props.ornaments.findIndex(o=>o.id===props.selected?.id):-1} count={props.ornaments.length} tv={props.tv} reduced={props.reduced} resetKey={props.resetKey} editorialFocus={props.editorialFocus} cameraSuspended={props.cameraSuspended} />
     </Canvas></SceneBoundary>
   </div>;
 }
