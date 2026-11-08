@@ -4,11 +4,15 @@ import { assertCampaignAction, assertCampaignPayment } from './campaign';
 import { donationAccessSchema, donationCheckoutSchema } from './payment-policy';
 import { createProviderCheckout, liveTreeEnabled, loadDonation, reconcileDonation, tokenHash } from './payments.server';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import { getRequest } from '@tanstack/react-start/server';
+import { paymentOrigin } from './payment-deployment';
 
 export const startDonationCheckout = createServerFn({ method: 'POST' })
   .inputValidator(data => donationCheckoutSchema.parse(data))
   .handler(async ({ data }) => {
     assertCampaignPayment(data.provider, 'live');
+    const requestUrl = getRequest().url;
+    paymentOrigin(requestUrl, process.env['PAYMENT_PUBLIC_ORIGIN']);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const accessHash = await tokenHash(data.accessToken);
     const { data: existing, error: lookupError } = await supabaseAdmin.from('live_donations').select('id').eq('id', data.requestId).maybeSingle();
@@ -21,7 +25,7 @@ export const startDonationCheckout = createServerFn({ method: 'POST' })
     }
     const { error } = await supabaseAdmin.from('live_donations').insert({ id: data.requestId, access_hash: accessHash, provider: data.provider, kind: data.kind, amount_cents: data.amount * 100 });
     if (error) throw new Error('Richiesta già in corso o non disponibile.');
-    const checkout = await createProviderCheckout(data.provider, data.requestId, data.amount * 100);
+    const checkout = await createProviderCheckout(data.provider, data.requestId, data.amount * 100, requestUrl);
     const { error: updateError } = await supabaseAdmin.from('live_donations').update({ provider_id: checkout.providerId, checkout_url: checkout.url, status: 'pending' }).eq('id', data.requestId);
     if (updateError) throw new Error('Richiesta da verificare. Non procedere a una nuova donazione.');
     return { id: data.requestId, url: checkout.url };

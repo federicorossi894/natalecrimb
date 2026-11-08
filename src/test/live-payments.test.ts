@@ -28,7 +28,7 @@ describe('Real payment adapters, no external requests', () => {
   it.each(['BASIC','ADVANCED_1','ADVANCED_2'] as const)('%s creates hosted SumUp checkout from a trusted amount/reference', async mode => {
     Object.assign(CAMPAIGN, campaignCapabilities(mode, ready, undefined, undefined, providers));
     fetchMock.mockResolvedValueOnce(response({ merchant_profile: { merchant_code: 'test-merchant' } })).mockResolvedValueOnce(response({ id: 'checkout-1', hosted_checkout_url: 'https://checkout.sumup.com/test' }));
-    const checkout = await createProviderCheckout('sumup', id, 500);
+    const checkout = await createProviderCheckout('sumup', id, 500, 'https://natalecrimb.lovable.app');
     expect(checkout.providerId).toBe('checkout-1');
     const init = fetchMock.mock.calls[1]?.[1];
     expect(JSON.parse(init.body)).toMatchObject({ amount: 5, currency: 'EUR', checkout_reference: id });
@@ -36,7 +36,7 @@ describe('Real payment adapters, no external requests', () => {
   });
   it('DEMO never calls a real provider or writes LIVE data', async () => {
     Object.assign(CAMPAIGN, campaignCapabilities('DEMO', ready, undefined, undefined, providers));
-    await expect(createProviderCheckout('sumup', id, 500)).rejects.toThrow();
+    await expect(createProviderCheckout('sumup', id, 500, 'https://natalecrimb.lovable.app')).rejects.toThrow();
     await expect(reconcileDonation(donation)).rejects.toThrow();
     expect(fetchMock).not.toHaveBeenCalled(); expect(db.rpc).not.toHaveBeenCalled();
   });
@@ -51,7 +51,7 @@ describe('Real payment adapters, no external requests', () => {
     expect((await reconcileDonation(donation)).ornamentId).toBeNull(); expect(db.rpc).not.toHaveBeenCalled();
   });
   it.each([{ amount: 6 }, { currency: 'USD' }, { checkout_reference: 'other' }, { id: 'other' }])('rejects mismatched provider evidence %j', async override => {
-    fetchMock.mockResolvedValue(response({ id: 'checkout-1', status: 'PAID', checkout_reference: id, amount: 5, currency: 'EUR', ...override }));
+    fetchMock.mockResolvedValue(response({ id: 'checkout-1', status: 'PAID', checkout_reference: id, amount: 5, currency: 'EUR', transaction_id: 'tx-1', ...override }));
     await expect(reconcileDonation(donation)).rejects.toThrow(); expect(db.rpc).not.toHaveBeenCalled();
   });
   it('provider errors do not confirm donations', async () => {

@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { CAMPAIGN, assertCampaignAction, assertCampaignPayment, type OnlineProvider } from './campaign';
 import { decimalCents, validatePaymentEvidence, type PaymentEvidence } from './payment-policy';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
+import { paymentOrigin, PAYPAL_WEBHOOK_EVENTS } from './payment-deployment';
 
 const SUMUP = 'https://connector-gateway.lovable.dev/udc_sumup';
 const PAYPAL = 'https://api-m.paypal.com';
-const ORIGIN = 'https://natalecrimb.lovable.app';
 export type Donation = { id: string; provider: string; provider_id: string | null; amount_cents: number; access_hash: string; status: string; checkout_url: string | null };
 // Bounded network work; a timeout is ambiguous, never permission to create/capture again.
 const paymentFetch: typeof fetch = (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(10000) });
@@ -41,16 +41,17 @@ async function paypal(path: string, method = 'GET', body?: object, requestId?: s
 const sumupCheckout = z.object({ id: z.string(), status: z.string(), checkout_reference: z.string(), amount: z.union([z.string(), z.number()]), currency: z.string(), transaction_id: z.string().optional(), transactions: z.array(z.object({ id: z.string(), status: z.string() })).optional() });
 const paypalOrder = z.object({ id: z.string(), status: z.string(), purchase_units: z.array(z.object({ custom_id: z.string().optional(), amount: z.object({ currency_code: z.string(), value: z.string() }).optional(), payments: z.object({ captures: z.array(z.object({ id: z.string(), status: z.string(), amount: z.object({ currency_code: z.string(), value: z.string() }) })) }).optional() })) });
 
-export async function createProviderCheckout(provider: OnlineProvider, id: string, amountCents: number) {
+export async function createProviderCheckout(provider: OnlineProvider, id: string, amountCents: number, requestUrl: string) {
   assertCampaignPayment(provider, 'live');
   z.number().int().min(500).max(100000).multipleOf(100).parse(amountCents);
   z.string().uuid().parse(id);
-  const returnUrl = `${ORIGIN}/pagamento?id=${id}`;
+  const origin = paymentOrigin(requestUrl, process.env['PAYMENT_PUBLIC_ORIGIN']);
+  const returnUrl = `${origin}/pagamento?id=${id}`;
   if (provider === 'sumup') {
     const account = z.object({ merchant_profile: z.object({ merchant_code: z.string().min(1) }) }).parse(await sumup('/v0.1/me'));
     const checkout = z.object({ id: z.string(), hosted_checkout_url: z.string().url() }).parse(await sumup('/v0.1/checkouts', 'POST', {
       amount: amountCents / 100, currency: 'EUR', checkout_reference: id, merchant_code: account.merchant_profile.merchant_code,
-      description: 'Donazione — Croce Rossa Italiana, Comitato di Monza', hosted_checkout: { enabled: true }, redirect_url: returnUrl, return_url: `${ORIGIN}/api/public/sumup-webhook`,
+      description: 'Donazione — Croce Rossa Italiana, Comitato di Monza', hosted_checkout: { enabled: true }, redirect_url: returnUrl, return_url: `${origin}/api/public/sumup-webhook`,
     }));
     assertProviderRedirect(checkout.hosted_checkout_url, provider);
     return { providerId: checkout.id, url: checkout.hosted_checkout_url };
@@ -81,7 +82,8 @@ export async function reconcileDonation(d: Donation, capture = false) {
   if (d.provider === 'sumup') {
     const result = sumupCheckout.parse(await sumup(`/v0.1/checkouts/${encodeURIComponent(d.provider_id)}`));
     if (result.status !== 'PAID') return { status: result.status === 'FAILED' ? 'failed' : 'pending', ornamentId: null };
-    const paymentId = result.transaction_id ?? result.transactions?.find(t => t.status === 'SUCCESSFUL')?.id ?? result.id;
+    const paymentId = result.transactions?.find(t => t.status === 'SUCCESSFUL')?.id ?? result.transaction_id;
+    if (!paymentId || (result.transactions?.length && !result.transactions.some(t => t.id === paymentId && t.status === 'SUCCESSFUL'))) throw new Error('Transazione SumUp non confermata.');
     proof = { provider: 'sumup', providerId: result.id, reference: result.checkout_reference, amountCents: decimalCents(result.amount), currency: result.currency, paymentId, paid: true };
   } else {
     let result = paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(d.provider_id)}`));
@@ -134,13 +136,23 @@ export async function handlePaypalWebhook(request: Request) {
   }));
   if (result.verification_status !== 'SUCCESS') throw new Error('Notifica non verificata.');
   const approved = event.event_type === 'CHECKOUT.ORDER.APPROVED';
-  if (!approved && !['PAYMENT.CAPTURE.COMPLETED','PAYMENT.CAPTURE.PENDING','PAYMENT.CAPTURE.DENIED','PAYMENT.CAPTURE.REVERSED'].includes(event.event_type)) return;
-  const orderId = approved ? event.resource.id : event.resource.supplementary_data?.related_ids.order_id;
+  const approvalReversed = event.event_type === 'CHECKOUT.PAYMENT-APPROVAL.REVERSED';
+  if (!PAYPAL_WEBHOOK_EVENTS.some(type => type === event.event_type)) return;
+  const orderId = approved || approvalReversed ? event.resource.id : event.resource.supplementary_data?.related_ids.order_id;
   if (!orderId) throw new Error('Riferimento ordine mancante.');
   const { data, error } = await supabaseAdmin.from('live_donations').select('id').eq('provider', 'paypal').eq('provider_id', orderId).maybeSingle();
   if (error) throw new Error('Registro non disponibile.');
   if (!data) return;
   const d = await loadDonation(data.id);
+  if (approvalReversed) {
+    // Order-level signal, never a capture authorization; authoritative GET only.
+    const parent = paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(orderId)}`));
+    const unit = parent.purchase_units[0];
+    if (parent.id !== d.provider_id || parent.purchase_units.length !== 1 || unit?.custom_id !== d.id || unit.amount?.currency_code !== 'EUR' || decimalCents(unit.amount.value) !== d.amount_cents) throw new Error('Ordine PayPal non corrispondente.');
+    if (parent.status === 'VOIDED' && !unit.payments?.captures.length) await recordSettlement(d, 'denied');
+    else await reconcileDonation(d, false);
+    return;
+  }
   if (!approved) {
     // Event status/amount are never evidence: independently read this capture.
     if (!event.resource.id) throw new Error('Riferimento capture mancante.');

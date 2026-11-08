@@ -129,7 +129,7 @@ describe('Mock-only pre-live hardening', () => {
   });
   it('DEMO rejects every server payment path before network or data access', async () => {
     Object.assign(CAMPAIGN, campaignCapabilities('DEMO',ready,undefined,undefined,providers));
-    for (const action of [() => createProviderCheckout('paypal',id,500), () => reconcileDonation(d,true), () => handlePaypalWebhook(webhook()), () => handleSumupWebhook(new Request('https://example.test')), () => recoverLivePayments()]) await expect(action()).rejects.toThrow();
+    for (const action of [() => createProviderCheckout('paypal',id,500,'https://natalecrimb.lovable.app'), () => reconcileDonation(d,true), () => handlePaypalWebhook(webhook()), () => handleSumupWebhook(new Request('https://example.test')), () => recoverLivePayments()]) await expect(action()).rejects.toThrow();
     expect(fetchMock).not.toHaveBeenCalled(); expect(db.rpc).not.toHaveBeenCalled(); expect(db.from).not.toHaveBeenCalled();
   });
   it.each(['BASIC','ADVANCED_1','ADVANCED_2'] as const)('%s remains closed with actual unverified readiness', async mode => {
@@ -137,7 +137,7 @@ describe('Mock-only pre-live hardening', () => {
     await expect(handlePaypalWebhook(webhook())).rejects.toThrow(); await expect(recoverLivePayments()).rejects.toThrow(); expect(fetchMock).not.toHaveBeenCalled();
   });
   it('adapter rejects below 5 EUR even if the input form is bypassed', async () => {
-    await expect(createProviderCheckout('paypal',id,400)).rejects.toThrow(); expect(fetchMock).not.toHaveBeenCalled();
+    await expect(createProviderCheckout('paypal',id,400,'https://natalecrimb.lovable.app')).rejects.toThrow(); expect(fetchMock).not.toHaveBeenCalled();
   });
   it('recovery reconciles approved stored orders without browser', async () => {
     const implementation = db.rpc.getMockImplementation();

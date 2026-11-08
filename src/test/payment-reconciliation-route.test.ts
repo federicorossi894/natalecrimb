@@ -8,15 +8,16 @@ vi.mock('@/lib/payments.server', () => ({ recoverLivePayments: mocks.recover }))
 vi.mock('@tanstack/react-router', () => ({ createFileRoute: () => (options: unknown) => ({ options }) }));
 const handler = (Route.options as unknown as { server: { handlers: { POST: (input: { request: Request }) => Promise<Response> } } }).server.handlers.POST;
 const run = (body = '{"kind":"payment-reconciliation"}') => handler({ request: new Request('https://example.test/api/public/payment-reconciliation', { method: 'POST', body }) });
-beforeEach(() => { vi.clearAllMocks(); mocks.auth.mockResolvedValue(null); mocks.recover.mockResolvedValue({ checked: 0, paid: 0, manual: 0, errors: 0 }); });
-afterEach(() => { CAMPAIGN.livePayments = false; });
+beforeEach(() => { vi.clearAllMocks(); CAMPAIGN.demo = true; mocks.auth.mockResolvedValue(null); mocks.recover.mockResolvedValue({ checked: 0, paid: 0, manual: 0, errors: 0 }); });
+afterEach(() => { CAMPAIGN.livePayments = false; CAMPAIGN.demo = true; });
 
 it('unauthorized calls never invoke recovery even with simulated readiness', async () => {
   CAMPAIGN.livePayments = true; mocks.auth.mockResolvedValue(new Response('Unauthorized', { status: 401 }));
   expect((await run()).status).toBe(401); expect(mocks.recover).not.toHaveBeenCalled();
 });
 it('authenticated DEMO calls remain disabled', async () => {
-  expect((await run()).status).toBe(503); expect(mocks.recover).not.toHaveBeenCalled();
+  CAMPAIGN.livePayments = true;
+  const result = await run(); expect(result.status).toBe(200); expect(await result.json()).toEqual({ skipped: 'payments-disabled', checked: 0 }); expect(mocks.recover).not.toHaveBeenCalled();
 });
 it('invalid or oversized bodies cannot invoke recovery', async () => {
   CAMPAIGN.livePayments = true;
@@ -24,10 +25,10 @@ it('invalid or oversized bodies cannot invoke recovery', async () => {
   expect(mocks.recover).not.toHaveBeenCalled();
 });
 it('authorized simulated LIVE request invokes the bounded worker once', async () => {
-  CAMPAIGN.livePayments = true; expect((await run()).status).toBe(200); expect(mocks.recover).toHaveBeenCalledTimes(1);
+  CAMPAIGN.demo = false; CAMPAIGN.livePayments = true; expect((await run()).status).toBe(200); expect(mocks.recover).toHaveBeenCalledTimes(1);
 });
 it('recovery failure requests retry without exposing internal errors', async () => {
-  CAMPAIGN.livePayments = true; mocks.recover.mockRejectedValue(new Error('internal'));
+  CAMPAIGN.demo = false; CAMPAIGN.livePayments = true; mocks.recover.mockRejectedValue(new Error('internal'));
   const result = await run(); expect(result.status).toBe(503); expect(await result.text()).not.toContain('internal');
 });
 it('deployment mode and payment verification flags stay explicitly off', () => {
