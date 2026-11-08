@@ -219,9 +219,12 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   useEffect(()=>{
     if(!specialAllowed)return;
     if(!publicEvent){const next=publicQueue[0];if(next){setPublicEvent(next);setPublicQueue(q=>q.slice(1));}return;}
+  },[publicEvent,publicQueue,specialAllowed]);
+  useEffect(()=>{
+    if(!specialAllowed||!publicEvent)return;
     const t=setTimeout(()=>setPublicEvent(null),12000);
     return()=>clearTimeout(t);
-  },[publicEvent,publicQueue,specialAllowed]);
+  },[publicEvent,specialAllowed]);
   const specialWall=useMemo(()=>specialWish?layoutWall([specialWish,...wallSource.filter(w=>w.id!==specialWish.id)],new Set([specialWish.id])):null,[specialWish,wallSource]);
   const displayedWall=specialWall??wall;
   const wallActive=!!specialWish||(!publicEvent&&active==='auguri');
