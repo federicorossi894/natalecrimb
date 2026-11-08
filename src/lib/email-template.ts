@@ -4,6 +4,7 @@ import { EMAIL_SENDER, deliveryLabel, type EmailAudience, type EmailMode } from 
 import { baubleDataUrl, cssHex, ornamentUrl, projectUrl } from "./postcard-share";
 import biancoLogo from "@/assets/cri-bianco-orizzontale.png.asset.json";
 import { LOCKUP, TERRITORIAL_LABEL, lockupText } from "./cri-lockup";
+import { CAMPAIGN } from './campaign';
 
 /**
  * Email-safe lockup: the unaltered official mark, then "Comitato di Monza" in Arial Regular, white, centred under
@@ -74,7 +75,7 @@ export function giftEmailHtml(e: GiftEmail) {
         <b>A:</b> ${esc(e.toEmail.trim()) || (e.audience === "donor" ? "email del donatore" : "email del destinatario")}<br>
         <b>Oggetto:</b> ${esc(emailSubject(e))}<br>
         <b>Consegna:</b> ${e.audience === "donor" ? "Subito, appena confermi" : esc(deliveryLabel(e.mode))}
-        <span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:${C.gold};color:${C.ink};font-size:11px;font-weight:bold;letter-spacing:1px">DEMO · NON INVIATA</span>
+        <span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:${C.gold};color:${C.ink};font-size:11px;font-weight:bold;letter-spacing:1px">${CAMPAIGN.demo ? "DEMO · NON INVIATA" : "ANTEPRIMA · NON INVIATA"}</span>
       </td></tr>
     </table>
   </td></tr>` : "";
@@ -132,7 +133,7 @@ ${envelope}
   <tr><td class="px" style="padding:22px 40px 26px;font:12px/1.6 Arial,sans-serif;color:${C.ink}">
     <p style="margin:0;font-weight:700">Croce Rossa Italiana – Comitato di Monza</p>
     <p style="margin:2px 0 0"><a href="${CRI.site}" style="color:${C.ink}">crimonza.org</a> · ${social}</p>
-    <p style="margin:10px 0 0;opacity:.6">Inviata da ${EMAIL_SENDER} · Email dimostrativa: nessuna email è stata inviata o programmata, nessuna donazione reale.</p>
+    <p style="margin:10px 0 0;opacity:.6">Mittente previsto: ${EMAIL_SENDER} · ${CAMPAIGN.demo ? "Email dimostrativa: nessuna email è stata inviata o programmata, nessuna donazione reale." : "Anteprima: nessuna email inviata o programmata."}</p>
   </td></tr>
 </table>
 </td></tr></table>
