@@ -30,7 +30,7 @@ import {
   type DeskLookup,
 } from "@/lib/volunteer-demo";
 import { WishTokenDesk } from "@/components/xmas/WishWall";
-import { createDemoWishApi } from "@/lib/wishes";
+import { createDemoWishApi, realWishApi } from "@/lib/wishes";
 import {
   DESK_METHOD_LABEL,
   euro,
@@ -41,7 +41,7 @@ import {
   projectForKind,
   type DeskMethod,
 } from "@/lib/cash";
-import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc } from "@/lib/volunteer-session.functions";
+import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc, createSharedWishToken } from "@/lib/volunteer-session.functions";
 
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
 
@@ -72,7 +72,8 @@ function Volontari() {
   const rpc = useServerFn(volunteerRpc);
   const [user, setUser] = useState<Me | undefined>(undefined);
   const [localPresentation, setLocalPresentation] = useState(false);
-  const [view, setView] = useState<"home" | "scan" | "manual">("home");
+  const [view, setView] = useState<"home" | "scan" | "manual" | "wish">("home");
+  const createWish = useServerFn(createSharedWishToken);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -184,6 +185,15 @@ function Volontari() {
                     <span className="text-sm text-muted-foreground">Per chi dona alla casetta senza telefono</span>
                   </span>
                 </button>
+                {CAMPAIGN.volunteerPurchaseWishQR && (
+                  <button onClick={() => setView("wish")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left" data-testid="shared-wish">
+                    <PenLine className="h-9 w-9 shrink-0 text-gold" />
+                    <span>
+                      <span className="block font-display text-2xl">Acquisto alla casetta</span>
+                      <span className="text-sm text-muted-foreground">QR monouso per lasciare un augurio</span>
+                    </span>
+                  </button>
+                )}
               </div>
             )}
             {view !== "home" && (
@@ -193,6 +203,7 @@ function Volontari() {
             )}
             {view === "scan" && <ScanFlow api={api} />}
             {view === "manual" && <ManualFlow api={api} />}
+            {view === "wish" && CAMPAIGN.volunteerPurchaseWishQR && <WishTokenDesk create={() => createWish()} api={realWishApi} />}
           </>
         )}
       </section>
