@@ -78,6 +78,13 @@
       "when": 1794131854384,
       "tag": "0010_live_donation_checkout_and_atomic_ornaments",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794131871232,
+      "tag": "0011_lock_live_payment_tables_to_server",
+      "breakpoints": true
     }
   ]
 }
