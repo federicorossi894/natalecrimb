@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAMPAIGN, assertCampaignPayment, assertCampaignRpc, campaignCapabilities, campaignPaymentMethods, type ProviderReadiness } from '@/lib/campaign';
+import { CAMPAIGN, LIVE_PROVIDER_READINESS, assertCampaignPayment, assertCampaignRpc, campaignCapabilities, campaignPaymentMethods, type ProviderReadiness } from '@/lib/campaign';
 
 const ready = { payments: true, cash: true, purchaseWishQR: true, liveData: true };
 const providers: ProviderReadiness = {
@@ -7,6 +7,16 @@ const providers: ProviderReadiness = {
   paypal: { implemented: true, configured: true, webhookVerified: true },
 };
 describe('Verified providers and explicit payment execution', () => {
+  it('authenticated credentials alone never authorize either provider in LIVE', () => {
+    expect(LIVE_PROVIDER_READINESS.sumup.configured).toBe(true);
+    expect(LIVE_PROVIDER_READINESS.paypal.configured).toBe(true);
+    for (const mode of ['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const) {
+      const c = campaignCapabilities(mode, { ...ready, cash: false });
+      expect(campaignPaymentMethods(c)).toEqual([]);
+      expect(() => assertCampaignPayment('sumup', 'live', c)).toThrow();
+      expect(() => assertCampaignPayment('paypal', 'live', c)).toThrow();
+    }
+  });
   it('DEMO retains SumUp/PayPal simulators and cash, never live execution', () => {
     expect(campaignPaymentMethods(CAMPAIGN)).toEqual(['sumup', 'paypal', 'cash']);
     expect(() => assertCampaignPayment('sumup', 'demo')).not.toThrow();
