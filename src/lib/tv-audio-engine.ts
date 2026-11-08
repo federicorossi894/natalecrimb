@@ -124,6 +124,7 @@ export class TvAudioEngine {
     if (!this.enabled) return;
     if (event.type === 'arrival') [1046.5, 1568, 2093].forEach((f, i) => this.tone(f, i * 0.12, 0.9, 0.023));
     else if (event.type === 'dedication') [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, i * 0.2, 1.4, 0.025));
+    else if(event.type==='wish') { this.tone(1800,0.7,0.065,0.035); this.tone(850,0.73,0.09,0.025); }
     else {
       const at = this.context.currentTime;
       this.music.gain.cancelScheduledValues(at); this.music.gain.setTargetAtTime(0.065, at, 0.35);

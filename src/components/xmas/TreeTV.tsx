@@ -18,6 +18,8 @@ import { storyOrnaments, storyPriority } from '@/lib/tv-storytelling';
 import { useTvStorytelling } from './useTvStorytelling';
 import { TvAudio } from './TvAudio';
 import type { CeremonyPhase } from './AdventCeremony';
+import { TvPostcard } from './TvPostcard';
+import { publicEventChanges, queuePublicEvents, type PublicEvent } from '@/lib/tv-public-events';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
@@ -43,7 +45,10 @@ const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un 
 export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const { addedOrnaments: ornaments, addedCount, error, loaded } = useTreeStore({ publicOnly: true });
   const { events, error: eventsError } = useCasettaEventsStatus();
-  const { wishes, loaded: wishesLoaded, error: wishesError } = usePublicWishes(60_000);
+  const { wishes, loaded: wishesLoaded, error: wishesError } = usePublicWishes(4000);
+  const eventBaseline=useRef<ReturnType<typeof publicEventChanges>['snapshot']|null>(null);
+  const [publicQueue,setPublicQueue]=useState<PublicEvent[]>([]);
+  const [publicEvent,setPublicEvent]=useState<PublicEvent|null>(null);
   const [calendarError, setCalendarError] = useState(false);
   const [ceremonyPlaying, setCeremonyPlaying] = useState(false);
   const [audioPhase, setAudioPhase] = useState<{ key: string; phase: string } | null>(null);
@@ -200,8 +205,26 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const wall = useMemo(() => layoutWall(wishPage.filter(w => wallSource.some(current => current.id === w.id)), newWishIds), [wishPage, wallSource, newWishIds]);
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
   const priority = storyPriority({ ceremony: ceremonyPlaying || !!preview?.advent, arrival: !!arriving, wall: scene === 'auguri', dedication: scene === 'dedica' });
-  const story = useTvStorytelling(safeOrnaments, priority, error, !preview || preview.beat === 'racconto', !!preview?.acceleratedStory);
-  const cameraSelection = priority === 'ceremony' || priority === 'wall' ? null : arriving ? safeOrnaments.find(o => o.id === arriving.id) ?? null : dedication ?? (story.focusing ? story.content?.ornament ?? null : null);
+  const specialAllowed=!arriving&&!ceremonyPlaying&&!preview?.advent;
+  const specialWish=specialAllowed&&publicEvent?.type==='wish'&&!wishesError?wishes.find(w=>w.id===publicEvent.id)??null:null;
+  const specialDedication=specialAllowed&&publicEvent?.type==='dedication'&&!error?safeOrnaments.find(o=>String(o.id)===publicEvent.id&&o.dedica)??null:null;
+  const story = useTvStorytelling(safeOrnaments, specialWish?'wall':specialDedication?'dedication':priority, error, !preview || preview.beat === 'racconto', !!preview?.acceleratedStory);
+  const cameraSelection = priority === 'ceremony' || specialWish || (priority === 'wall'&&!specialDedication) ? null : arriving ? safeOrnaments.find(o => o.id === arriving.id) ?? null : specialDedication ?? dedication ?? (story.focusing ? story.content?.ornament ?? null : null);
+  useEffect(()=>{
+    if(preview||!loaded||!wishesLoaded||error||wishesError)return;
+    const result=publicEventChanges(eventBaseline.current,safeOrnaments,wishes);
+    eventBaseline.current=result.snapshot;
+    setPublicQueue(q=>queuePublicEvents(q.filter(e=>e.type==='wish'?wishes.some(w=>w.id===e.id):safeOrnaments.some(o=>String(o.id)===e.id&&o.dedica)),result.events));
+  },[safeOrnaments,wishes,loaded,wishesLoaded,error,wishesError,preview]);
+  useEffect(()=>{
+    if(!specialAllowed)return;
+    if(!publicEvent){const next=publicQueue[0];if(next){setPublicEvent(next);setPublicQueue(q=>q.slice(1));}return;}
+    const t=setTimeout(()=>setPublicEvent(null),12000);
+    return()=>clearTimeout(t);
+  },[publicEvent,publicQueue,specialAllowed]);
+  const specialWall=useMemo(()=>specialWish?layoutWall([specialWish,...wallSource.filter(w=>w.id!==specialWish.id)],new Set([specialWish.id])):null,[specialWish,wallSource]);
+  const displayedWall=specialWall??wall;
+  const wallActive=!!specialWish||(!publicEvent&&active==='auguri');
   // Once a fresh wish has been shown on the wall it becomes an ordinary note.
   useEffect(() => {
     if (scene !== 'auguri' || !newWishIds.size) return;
@@ -210,20 +233,20 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   }, [scene, newWishIds.size]);
 
   return (
-    <div className="tv-scene" data-beat={active} data-story={story.content ? story.leaving ? 'leaving' : 'focus' : undefined} data-story-kind={story.content?.ornament.kind} data-story-id={story.content?.ornament.id} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
+    <div className="tv-scene" data-beat={specialWish?'auguri':specialDedication?'dedica':active} data-special={specialWish?'wish':specialDedication?'dedication':undefined} data-story={story.content ? story.leaving ? 'leaving' : 'focus' : undefined} data-story-kind={story.content?.ornament.kind} data-story-id={story.content?.ornament.id} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
       <div className="tv-tree">
-        <TreeStage ornaments={error ? safeOrnaments : shownOrnaments} selected={cameraSelection} tv arrivingId={ceremonyPlaying ? null : arriving?.id ?? null} reduced={reduced} editorialFocus={story.focusing} cameraSuspended={priority === 'ceremony' || priority === 'wall'} />
+        <TreeStage ornaments={error ? safeOrnaments : shownOrnaments} selected={cameraSelection} tv arrivingId={ceremonyPlaying ? null : arriving?.id ?? null} reduced={reduced} editorialFocus={story.focusing} cameraSuspended={priority === 'ceremony' || !!specialWish || (priority === 'wall'&&!specialDedication)} />
         {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
       </div>
       <div className="tv-vignette" aria-hidden />
 
       {/* Panoramic wish wall: full 16:9 width, 3–5 twine lines; the brand and the QR block stay visible on top. */}
-      {CAMPAIGN.publicWishWall && <section className={`tv-wall ${active === 'auguri' ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={active !== 'auguri'} style={{ ['--s' as string]: wall.scale }}>
+      {CAMPAIGN.publicWishWall && <section className={`tv-wall ${wallActive ? 'is-active' : ''}`} data-scene="auguri" data-testid="tv-wishes" aria-hidden={!wallActive} style={{ ['--s' as string]: displayedWall.scale }}>
         <div className="tv-wall-head">
           <p className="tv-kicker">Dal Muro degli auguri</p>
           <p className="mt-[0.4cqw] text-[1.35cqw]">Biglietti lasciati alla casetta e letti dallo staff</p>
         </div>
-        {wall.rows.map((row, r) => (
+        {displayedWall.rows.map((row, r) => (
           <div key={`${r}-${row.notes[0]?.wish.id}`} className="tv-wall-row" style={{ top: `${row.y}cqw`, left: '2.5cqw', width: `${row.right - 2.5}cqw` }}>
             {row.notes.map((n, k) => (
               <div
@@ -233,7 +256,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
                 data-demo={n.wish.demo ? 'true' : undefined}
                 style={{ width: `${n.width}cqw`, ['--tilt' as string]: `${n.tilt}deg`, ['--lift' as string]: `${n.drop}cqw`, ['--i' as string]: r * 2 + k }}
               >
-                <span className="wish-pin" aria-hidden />
+                <span className={`wish-pin ${specialWish?.id===n.wish.id?'is-snapping':''}`} aria-hidden />
                 {n.wish.demo && <span className="wish-demo-stamp tv-wall-stamp">Esempio · DEMO</span>}
                 <span className="wish-text tv-wall-text" style={{ WebkitLineClamp: n.lines }}>{n.wish.body}</span>
                 <span className="tv-wall-sig">— {n.wish.nickname ?? DEFAULT_SIGNATURE}</span>
@@ -252,6 +275,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       <TvAudio cue={{
         arrival: priority === 'arrival' && currentArrival ? String(currentArrival.id) : null,
         dedication: priority === 'dedication' && dedication ? String(dedication.id) : story.content?.dedication && story.focusing ? String(story.content.ornament.id) : null,
+        wish: specialWish?.id??null,
         ceremony: priority === 'ceremony' ? audioPhase : null,
       }} />
 
@@ -272,7 +296,9 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         </div>
 
         <div className="tv-scenes" aria-live="polite">
+          {specialDedication&&<section className="tv-special-postcard"><TvPostcard ornament={specialDedication}/></section>}
           {story.content && <section className={`tv-story ${story.leaving ? 'is-leaving' : ''}`} data-testid="tv-story" aria-label={story.content.project.title}>
+            {story.content.dedication?<TvPostcard ornament={story.content.ornament}/>:<>
             <p className="tv-kicker">{story.content.dedication ? 'Una dedica, una luce' : 'Dentro questa pallina'}</p>
             <div className="tv-story-heading">
               <OrnamentIcon kind={story.content.ornament.kind} className="h-[5cqw] w-[4.5cqw] shrink-0" />
@@ -281,6 +307,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
             <p className="tv-story-text font-display">{story.content.dedication ? `“${story.content.text}”` : story.content.text}</p>
             {story.content.signature && <p className="tv-story-signature">— {story.content.signature}<span>Dedica pubblicata con consenso</span></p>}
             <p className="tv-story-invite">{story.content.ornament.kind === 'calore' || story.content.ornament.kind === 'cuore' ? 'Anche la tua pallina può entrare nell’albero.' : 'Un piccolo gesto. Una nuova luce per Monza.'}</p>
+            </>}
           </section>}
           <section className={`tv-card ${on('invito')}`} data-scene="invito">
             <p className="tv-kicker">Il Natale che fa bene</p>
@@ -345,11 +372,8 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
             {dedication && (
               <>
                 <p className="tv-kicker">Una dedica per Monza</p>
-                <div className="tv-tag mt-[1.6cqw]">
-                  <p className="font-display text-[2.2cqw] leading-snug">“{dedication.dedica}”</p>
-                  <p className="mt-[1cqw] text-[1.4cqw] font-semibold">— {dedication.firma ?? 'Anonimo'}</p>
-                  <p className="mt-[0.6cqw] text-[1.15cqw] text-muted-foreground">{projectOf(dedication)?.title ?? ''} · {isPreviewDedication ? 'dedica di esempio · DEMO' : 'dedica pubblicata con consenso'}</p>
-                </div>
+                <TvPostcard ornament={dedication}/>
+                {isPreviewDedication&&<p className="text-sm">Esempio DEMO</p>}
               </>
             )}
           </section>
@@ -363,7 +387,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
                   <h2 className="font-display text-[3.2cqw] leading-[1.05]">Una nuova pallina è stata appesa!</h2>
                 </div>
                 <p className="tv-lead">{arrivingProject ? `${arrivingProject.title}: grazie!` : 'Grazie!'} La prossima potrebbe essere la tua.</p>
-                {currentArrival?.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{currentArrival.dedica}”</p>}
+                {currentArrival?.dedica && <TvPostcard ornament={currentArrival}/>}
               </div>
             )}
           </section>

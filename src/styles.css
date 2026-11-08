@@ -251,6 +251,20 @@
 .tv-story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; z-index: 2; pointer-events: none; animation: tv-story-in 1.6s ease backwards; transition: opacity 1.8s ease; }
 .tv-story.is-leaving { opacity: 0; animation: tv-story-out 1.8s ease both; }
 .tv-story-heading { display: flex; align-items: center; gap: 1.2cqw; margin-top: 1.2cqw; }
+.tv-postcard { position: relative; padding: 1.8cqw 2.2cqw; color: var(--ink); background: var(--paper); border: .15cqw double var(--scene-gold); border-radius: 4px; box-shadow: var(--shadow-deep); transform: rotate(-1deg); }
+.tv-postcard-stamp { position: absolute; top: .6cqw; right: .9cqw; color: var(--burgundy); font-size: 2cqw; }
+.tv-postcard-kicker { font-size: .95cqw; text-transform: uppercase; color: var(--burgundy); margin-bottom: 1.2cqw; }
+.tv-postcard-text { font-size: 2.15cqw; line-height: 1.28; overflow-wrap: anywhere; }
+.tv-postcard-signature { font-size: 1.4cqw; margin-top: 1.1cqw; }
+.tv-postcard-foot { font-size: .85cqw; margin-top: 1.5cqw; color: var(--burgundy); }
+.tv-special-postcard { position:absolute; inset:0; z-index:3; display:flex; align-items:center; animation:tv-story-in 1s ease both; }
+.tv-scene[data-special] .tv-card { opacity:0; }
+.tv-arrival:has(.tv-postcard) .tv-arrival-icon { height:4cqw; width:4cqw; }
+.tv-arrival:has(.tv-postcard) h2 { font-size:2cqw; }
+.tv-arrival:has(.tv-postcard) .tv-lead { display:none; }
+.tv-arrival .tv-postcard { margin-top:1.2cqw; }
+.wish-pin.is-snapping { animation:tv-pin-snap 1s ease both; }
+@keyframes tv-pin-snap { 0%,65%{transform:translateY(-1cqw) rotate(-25deg)} 75%{transform:translateY(0) rotate(12deg)} 100%{transform:none} }
 .tv-story-heading h2 { font-size: 2.8cqw; line-height: 1.08; }
 .tv-story-text { margin-top: 1.3cqw; font-size: 2.05cqw; line-height: 1.32; overflow-wrap: anywhere; }
 .tv-story-signature { margin-top: 1cqw; font-size: 1.4cqw; color: var(--scene-gold); overflow-wrap: anywhere; }
