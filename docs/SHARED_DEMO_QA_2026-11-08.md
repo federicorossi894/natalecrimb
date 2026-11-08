@@ -36,3 +36,6 @@ Preparata orchestrazione testabile con porte per claim atomica, invio e audit, m
 1. Account volontario/moderatore autorizzato dal Comitato per la prova Cloud e QA: il richiedente attualmente non ha i ruoli. Nessuna promozione arbitraria.
 2. Dominio, casella/mittente e collegamento gestito email con limite/audit: il modulo va completato da chi può autorizzare il dominio e aggiornare DNS. Nessun invio effettuato.
 3. Collaudo sui due telefoni e TV fisici dopo aggiornamento pubblico: i test isolati/mocked non sostituiscono questa prova.
+
+## Risultati automatici della release
+296 test in 26 file superati; compilazione automatica OK. Lint file modificati: zero errori, due avvisi preesistenti delle dipendenze useMemo della presentazione locale. Controlli sicurezza di base: nessun rilievo; non comprendono analisi approfondita del codice. Nessuna scrittura Cloud di prove/dati personali, nessuna email inviata, nessuna operazione provider reale.
