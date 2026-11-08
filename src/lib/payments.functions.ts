@@ -40,6 +40,9 @@ export const startDonationCheckout = createServerFn({ method: "POST" })
       provider: data.provider,
       kind: data.kind,
       amount_cents: data.amount * 100,
+      donor_email_requested: data.donorConfirmation.requested,
+      donor_email_private: data.donorConfirmation.requested ? data.donorConfirmation.email : null,
+      donor_email_state: data.donorConfirmation.requested ? 'blocked' : 'not_requested',
     });
     if (error) throw new Error("Richiesta già in corso o non disponibile.");
     const checkout = await createProviderCheckout(
