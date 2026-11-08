@@ -5,7 +5,7 @@ import { TV_TRACKS, catalogueReady } from '@/lib/tv-audio-manifest';
 import { AudioEventGate, type TvAudioEvent } from '@/lib/tv-audio-policy';
 import { TvAudioEngine } from '@/lib/tv-audio-engine';
 
-export type TvAudioCue = { arrival: string | null; dedication: string | null; ceremony: { key: string; phase: string } | null };
+export type TvAudioCue = { arrival: string | null; dedication: string | null; wish?: string|null; ceremony: { key: string; phase: string } | null };
 export function TvAudio({ cue }: { cue: TvAudioCue }) {
   const engine = useRef<TvAudioEngine | null>(null);
   const gate = useRef(new AudioEventGate());
@@ -41,10 +41,11 @@ export function TvAudio({ cue }: { cue: TvAudioCue }) {
     else {
       if (previousCeremony.current) engine.current?.endCeremony();
       if (cue.arrival) send({ type: 'arrival', key: cue.arrival });
+      else if(cue.wish) send({type:'wish',key:cue.wish});
       else if (cue.dedication) send({ type: 'dedication', key: cue.dedication });
     }
     previousCeremony.current = !!cue.ceremony;
-  }, [cue.arrival, cue.dedication, cue.ceremony?.key, cue.ceremony?.phase]);
+  }, [cue.arrival, cue.dedication, cue.wish, cue.ceremony?.key, cue.ceremony?.phase]);
 
   const toggle = () => {
     if (active) {

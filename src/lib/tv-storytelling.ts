@@ -62,7 +62,7 @@ export function storyContent(id: TreeOrnament['id'] | undefined, publicRows: rea
   // Never edit a donor's meaning or show a financial amount: use the official project story instead.
   const financial = /€|\b(?:EUR|euro)\b|[$£]/i;
   const dedicated = !!row.dedica && row.dedica.length <= 90 && (row.firma?.length ?? 0) <= 40 && !financial.test(`${row.dedica} ${row.firma ?? ''}`);
-  return { ornament: row, project, dedication: dedicated ? row.dedica : undefined, signature: dedicated ? row.firma ?? 'Anonimo' : undefined, text: dedicated ? row.dedica ?? '' : TV_STORIES[row.kind] };
+  return { ornament: row, project, dedication: dedicated ? row.dedica : undefined, signature: dedicated ? row.firma : undefined, text: dedicated ? row.dedica ?? '' : TV_STORIES[row.kind] };
 }
 
 /** Bounded, deterministic scheduler. Interruption discards a focus and gives a fresh quiet interval.

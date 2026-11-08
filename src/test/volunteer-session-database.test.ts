@@ -28,12 +28,37 @@ beforeAll(async () => {
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
     GRANT USAGE ON SCHEMA public,auth TO anon,authenticated,service_role;`);
-  for (const tag of ["0000_migration", "0002_add_volunteer_role", "0003_cash_requests_and_volunteers", "0004_cash_request_result", "0005_minimum_donation_5_euro", "0006_restore_cash_request_min_5", "0007_kindness_calendar_and_wishes", "0008_campaign_demo_server_boundary", "0015_volunteer_shared_sessions", "0016_volunteer_shared_wish_token"])
+  for (const tag of ["0000_migration", "0002_add_volunteer_role", "0003_cash_requests_and_volunteers", "0004_cash_request_result", "0005_minimum_donation_5_euro", "0006_restore_cash_request_min_5", "0007_kindness_calendar_and_wishes", "0008_campaign_demo_server_boundary", "0015_volunteer_shared_sessions", "0016_volunteer_shared_wish_token", "0017_shared_demo_review"])
     await db.exec(await readFile(`drizzle/migrations/${tag}.sql`, "utf8"));
   await svc("SELECT * FROM public.volunteer_session_open($1,$2,12)", [tokenA, "  Maria   Rossi "]);
   await svc("SELECT * FROM public.volunteer_session_open($1,$2,12)", [tokenB, "Luca Bianchi"]);
 }, 30000);
 afterAll(async () => { await db?.close(); });
+const review=(token:string,action:string,type:string|null=null,id:string|null=null,decision:string|null=null)=>svc<{r:{result:string;count:number;items:{id:string;body:string}[]}}>('SELECT public.volunteer_demo_review($1,$2,$3,$4::uuid,$5) r',[token,action,type,id,decision]).then(r=>r[0]?.r);
+it('shared review: customer code submits pending, two reviewers atomically decide, public reads only approved and audit keeps wish ID',async()=>{
+  const code=(await vol(tokenA,'create_wish_token',{})) as {code:string}[];
+  const c=code[0]?.code;if(!c)throw new Error('No code');
+  await db.query('SELECT * FROM public.submit_wish($1,$2,$3,true)',[c,'Buon Natale ai volontari','Famiglia']);
+  const pending=await review(tokenA,'list');const item=pending?.items.find(i=>i.body==='Buon Natale ai volontari');if(!item)throw new Error('Missing wish');
+  expect((await db.query('SELECT * FROM public.public_wishes()')).rows).toHaveLength(0);
+  await expect(review('f'.repeat(64),'list')).rejects.toThrow(/Unauthorized/);
+  await expect(db.query('SELECT public.volunteer_demo_review($1,\'list\')',[tokenA])).rejects.toThrow();
+  const decisions=await Promise.all([review(tokenA,'decide','wish',item.id,'approved'),review(tokenB,'decide','wish',item.id,'rejected')]);
+  expect(decisions.map(d=>d?.result).sort()).toEqual(['already_processed','approved']);
+  expect((await db.query('SELECT * FROM public.public_wishes()')).rows).toHaveLength(1);
+  const audit=(await db.query<{wish_id:string;display_name:string}>('SELECT wish_id,display_name FROM public.volunteer_audit WHERE action=\'review\'')).rows;
+  expect(audit.some(a=>a.wish_id===item.id&&a.display_name==='Maria Rossi')).toBe(true);
+  await expect(db.query('SELECT * FROM public.submit_wish($1,$2,$3,false)',[c,'No consent','Test'])).resolves.toBeDefined();
+});
+it('flags block volunteer approval, refusal stays nonpublic and decisions are rate-limited',async()=>{
+  const [item]=(await db.query<{id:string}>("INSERT INTO public.wishes(body,nickname,publish_consent,auto_flags) VALUES('www.example.org','Test',true,ARRAY['link']) RETURNING id")).rows;
+  if(!item)throw new Error('fixture');
+  expect((await review(tokenA,'decide','wish',item.id,'approved'))?.result).toBe('escalate');
+  expect((await review(tokenA,'decide','wish',item.id,'rejected'))?.result).toBe('rejected');
+  for(let i=0;i<20;i++)await review(tokenA,'decide','wish',item.id,'approved');
+  expect((await review(tokenA,'decide','wish',item.id,'approved'))?.result).toBe('rate_limited');
+  expect((await db.query<{id:string}>('SELECT * FROM public.public_wishes()')).rows.some(r=>r.id===item.id)).toBe(false);
+});
 
 it("opens a named session without any auth.users row", async () => {
   const [s] = await svc<{ display_name: string }>("SELECT * FROM public.volunteer_session_get($1)", [tokenA]);
