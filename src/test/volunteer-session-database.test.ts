@@ -38,7 +38,7 @@ afterAll(async () => { await db?.close(); });
 it("opens a named session without any auth.users row", async () => {
   const [s] = await svc<{ display_name: string }>("SELECT * FROM public.volunteer_session_get($1)", [tokenA]);
   expect(s?.display_name).toBe("Maria Rossi");
-  const [u] = await svc<{ n: number }>("SELECT count(*)::int n FROM auth.users");
+  const [u] = (await db.query<{ n: number }>("SELECT count(*)).rows::int n FROM auth.users");
   expect(u?.n).toBe(0);
   await expect(svc("SELECT * FROM public.volunteer_session_open($1,$2,12)", ["c".repeat(64), "Maria"])).rejects.toThrow();
 });
@@ -63,9 +63,9 @@ it("two concurrent confirmations create one ornament and audit the session name"
   expect(a![0]!.ornament_id).toBe(b![0]!.ornament_id);
   const [n] = (await db.query<{ n: number }>("SELECT count(*)::int n FROM public.demo_ornaments")).rows;
   expect(n?.n).toBe(1);
-  const audit = await svc<{ display_name: string; result: string }>("SELECT display_name,result FROM public.volunteer_audit WHERE action='confirm_cash_request' ORDER BY id");
+  const audit = (await db.query<{ display_name: string; result: string }>("SELECT display_name,result FROM public.volunteer_audit WHERE action='confirm_cash_request' ORDER BY id")).rows;
   expect(audit.map((x) => x.result).sort()).toEqual(["already_confirmed", "confirmed"]);
-  const [who] = await svc<{ display_name: string }>("SELECT s.display_name FROM public.cash_requests c JOIN public.volunteer_sessions s ON s.id=c.confirmed_by");
+  const [who] = (await db.query<{ display_name: string }>("SELECT s.display_name FROM public.cash_requests c JOIN public.volunteer_sessions s ON s.id=c.confirmed_by")).rows;
   expect(["Maria Rossi", "Luca Bianchi"]).toContain(who?.display_name);
 });
 
