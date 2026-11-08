@@ -1,4 +1,9 @@
 # CRI Monza demo — roadmap
+## TV 40-day audit — 8 November
+- [ ] Harden public-only polling, reconnect, arrival queue, reload/ceremony and Wake Lock cleanup.
+- [ ] Full tests, accelerated browser failure/scene/clock matrix and safe DEMO release verification.
+- [ ] Record evidence and physical kiosk checklist in docs/TV_40_DAY_QA_2026-11-08.md.
+- [ ] Physical TV soak / unattended endurance — requires on-site device and operator.
 ## Gmail manual QA correction — 8 November
 - [x] Verified existing Gmail identity and runtime credentials; linked exact owner account, gala untouched, no sends.
 - [x] Three fixed manual staff tests, independent QA gate and service-only durable audit/limits; 306 tests pass, build OK. Desktop/mobile confirms current account denied by role; authorized real UI flow awaits authorized account.
