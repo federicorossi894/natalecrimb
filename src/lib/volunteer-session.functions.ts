@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
-import { deleteCookie, getCookie, getRequestHeader, setCookie } from '@tanstack/react-start/server';
+import { deleteCookie, getCookie, getRequest, getRequestHeader, setCookie } from '@tanstack/react-start/server';
 import { z } from 'zod';
-import { assertCampaignRpc } from './campaign';
+import { assertCampaignRpc, CAMPAIGN } from './campaign';
+import { reviewDecision, reviewOriginAllowed, type ReviewList } from './volunteer-review-policy';
 import { b64url, makeVerifier, normalizeVolunteerName, sha256Hex, verifyPassword, VOLUNTEER_COOKIE, VOLUNTEER_SESSION_HOURS } from './volunteer-auth';
 
 /** The only operations reachable with the shared volunteer password. */
@@ -9,6 +10,25 @@ export const SHARED_VOLUNTEER_RPC = ['cash_request_lookup', 'confirm_cash_reques
 /** Plus one no-input operation: a one-time wish QR after a casetta sale (createSharedWishToken). */
 const GENERIC = 'Nome o password non corretti.';
 const cookieOpts = { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', maxAge: VOLUNTEER_SESSION_HOURS * 3600 };
+async function reviewSession() {
+  if (!CAMPAIGN.demo) throw new Error('Revisione volontari disponibile solo in DEMO.');
+  if (!reviewOriginAllowed(getRequestHeader('origin') ?? null, getRequest().url)) throw new Error('Origine non autorizzata.');
+  const h = await currentTokenHash();
+  if (!h) throw new Error('Sessione scaduta: accedi di nuovo.');
+  return h;
+}
+export const volunteerReviewList = createServerFn({ method: 'POST' }).handler(async (): Promise<ReviewList> => {
+  const h = await reviewSession();
+  const {data,error} = await (await admin()).rpc('volunteer_demo_review', { _token_hash:h, _action:'list' });
+  if (error) throw new Error('Lista non disponibile o sessione scaduta.');
+  return data as unknown as ReviewList;
+});
+export const volunteerReviewDecide = createServerFn({ method:'POST' }).inputValidator(d=>reviewDecision.parse(d)).handler(async ({data}) => {
+  const h=await reviewSession();
+  const {data:r,error}=await (await admin()).rpc('volunteer_demo_review',{_token_hash:h,_action:'decide',_type:data.type,_id:data.id,_decision:data.decision});
+  if(error)throw new Error('Decisione non completata o sessione scaduta.');
+  return r as unknown as {result:string};
+});
 
 async function admin() {
   return (await import('@/integrations/supabase/client.server')).supabaseAdmin;

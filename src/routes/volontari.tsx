@@ -30,6 +30,7 @@ import {
   type DeskLookup,
 } from "@/lib/volunteer-demo";
 import { WishTokenDesk } from "@/components/xmas/WishWall";
+import { VolunteerReview } from '@/components/xmas/VolunteerReview';
 import { createDemoWishApi, realWishApi } from "@/lib/wishes";
 import {
   DESK_METHOD_LABEL,
@@ -166,6 +167,7 @@ function Volontari() {
                 </p>
               </div>
             )}
+            {CAMPAIGN.demo && <VolunteerReview />}
             {view === "home" && (
               <div className="mt-5 grid gap-3">
                 <button
