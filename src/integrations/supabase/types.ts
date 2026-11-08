@@ -185,7 +185,20 @@ export type Database = {
           created_at: string
           currency: string
           dedica: string | null
+          donor_email_attempts: number
+          donor_email_audit: Json
+          donor_email_claim: string | null
+          donor_email_private: string | null
+          donor_email_requested: boolean
+          donor_email_state: string
           firma: string | null
+          gift_email_attempts: number
+          gift_email_audit: Json
+          gift_email_claim: string | null
+          gift_email_data: Json | null
+          gift_email_due_at: string | null
+          gift_email_private: string | null
+          gift_email_state: string
           id: string
           kind: string
           paid_at: string | null
@@ -208,7 +221,20 @@ export type Database = {
           created_at?: string
           currency?: string
           dedica?: string | null
+          donor_email_attempts?: number
+          donor_email_audit?: Json
+          donor_email_claim?: string | null
+          donor_email_private?: string | null
+          donor_email_requested?: boolean
+          donor_email_state?: string
           firma?: string | null
+          gift_email_attempts?: number
+          gift_email_audit?: Json
+          gift_email_claim?: string | null
+          gift_email_data?: Json | null
+          gift_email_due_at?: string | null
+          gift_email_private?: string | null
+          gift_email_state?: string
           id?: string
           kind: string
           paid_at?: string | null
@@ -231,7 +257,20 @@ export type Database = {
           created_at?: string
           currency?: string
           dedica?: string | null
+          donor_email_attempts?: number
+          donor_email_audit?: Json
+          donor_email_claim?: string | null
+          donor_email_private?: string | null
+          donor_email_requested?: boolean
+          donor_email_state?: string
           firma?: string | null
+          gift_email_attempts?: number
+          gift_email_audit?: Json
+          gift_email_claim?: string | null
+          gift_email_data?: Json | null
+          gift_email_due_at?: string | null
+          gift_email_private?: string | null
+          gift_email_state?: string
           id?: string
           kind?: string
           paid_at?: string | null
@@ -421,6 +460,10 @@ export type Database = {
         }[]
       }
       cash_request_status: { Args: { _code: string }; Returns: string }
+      claim_donation_email: {
+        Args: { _id: string; _kind: string; _retry?: boolean }
+        Returns: string
+      }
       claim_live_capture: {
         Args: { _id: string; _provider_id: string }
         Returns: boolean
@@ -435,7 +478,20 @@ export type Database = {
           created_at: string
           currency: string
           dedica: string | null
+          donor_email_attempts: number
+          donor_email_audit: Json
+          donor_email_claim: string | null
+          donor_email_private: string | null
+          donor_email_requested: boolean
+          donor_email_state: string
           firma: string | null
+          gift_email_attempts: number
+          gift_email_audit: Json
+          gift_email_claim: string | null
+          gift_email_data: Json | null
+          gift_email_due_at: string | null
+          gift_email_private: string | null
+          gift_email_state: string
           id: string
           kind: string
           paid_at: string | null
@@ -497,6 +553,10 @@ export type Database = {
           code: string
           expires_at: string
         }[]
+      }
+      finish_donation_email: {
+        Args: { _claim: string; _id: string; _kind: string; _state: string }
+        Returns: boolean
       }
       hang_ornament: {
         Args: {

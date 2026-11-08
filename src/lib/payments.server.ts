@@ -320,6 +320,11 @@ export async function reconcileDonation(d: Donation, capture = false) {
   });
   if (error || !ornamentId)
     throw new Error("Pagamento da riconciliare: riprova senza effettuare una nuova donazione.");
+  // Independent donor opt-in. Email failure must never roll back a paid donation or its ornament.
+  try {
+    const { processDonationEmail } = await import('./donation-email.server');
+    await processDonationEmail(d.id, 'receipt');
+  } catch { console.error('Donor confirmation requires review'); }
   return { status: "paid", ornamentId };
 }
 export async function handleSumupWebhook(request: Request) {

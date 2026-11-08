@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { type OnlineProvider } from './campaign';
+import { donorConfirmationSchema } from './donation-email-policy';
 
 // Browser-safe input rules; never accept provider evidence from the browser.
 export const donationCheckoutSchema = z.object({
@@ -8,6 +9,7 @@ export const donationCheckoutSchema = z.object({
   amount: z.number().int().min(5).max(1000),
   accessToken: z.string().regex(/^[a-f0-9]{64}$/),
   requestId: z.string().uuid(),
+  donorConfirmation: donorConfirmationSchema.default({ requested: false }),
 });
 export const donationAccessSchema = z.object({ id: z.string().uuid(), accessToken: donationCheckoutSchema.shape.accessToken });
 export type PaymentEvidence = { provider: OnlineProvider; providerId: string; paymentId: string; reference: string; amountCents: number; currency: string; paid: boolean };

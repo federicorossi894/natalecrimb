@@ -9,6 +9,9 @@ import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { GiftBox } from "@/components/xmas/GiftBox";
 import { CityThanks, EmailStudio, PostcardStudio } from "@/components/xmas/PostDonation";
 import { LiveCheckout } from "@/components/xmas/LiveCheckout";
+import { DonorConfirmationChoice } from '@/components/xmas/DonorConfirmation';
+import { donorConfirmationSchema, type DonorConfirmation } from '@/lib/donation-email-policy';
+import { Button } from '@/components/ui/button';
 import { CRI, getProject, type Project } from "@/lib/data";
 import { addOrnament, dedicaSchema } from "@/lib/tree-store";
 import { QRCodeSVG } from "qrcode.react";
@@ -49,6 +52,7 @@ function Detail() {
   const [preset, setPreset] = useState(5);
   const [custom, setCustom] = useState("");
   const [hung, setHung] = useState<Hung | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState(false);
   // A typed amount is used only when it passes the shared rule (whole euros, 5–1000); otherwise checkout stays closed.
   const parsed = custom ? amountSchema.safeParse(custom) : amountSchema.safeParse(preset);
   const amount = parsed.success ? parsed.data : 0;
@@ -84,9 +88,10 @@ function Detail() {
       </div>
       {step === "detail" && <DetailView p={p} preset={preset} setPreset={(v) => { setPreset(v); setCustom(""); }} custom={custom} setCustom={setCustom} amount={amount} error={amountError} onGo={toCheckout} />}
       {step === "checkout" && (parsed.success
-        ? <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m) => go(m === "cash" ? "cash" : "success")} />
+        ? <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m, requested) => { setReceiptPreview(Boolean(requested)); go(m === "cash" ? "cash" : "success"); }} />
         : <InvalidAmount error={amountError} onEdit={() => go("detail")} />)}
       {step === "cash" && CAMPAIGN.volunteerCashDonations && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
+      {receiptPreview && step !== 'checkout' && step !== 'detail' && <div className="mx-auto mt-5 max-w-lg px-4 text-sm" role="status"><p className="font-semibold text-gold">SIMULAZIONE, NON VALIDA COME RICEVUTA</p><p>{p.title} · importo scelto {amount} € · nessun importo incassato. La conferma al donatore è separata dal regalo; nessuna email inviata e nessun indirizzo conservato.</p></div>}
       {step === "success" && CAMPAIGN.simulators && <Success p={p} onPick={go} />}
       {step === "mine" && <Mine p={p} hung={hung} hang={hang} />}
       {step === "dedica" && <Dedica p={p} hung={hung} hang={hang} onEmail={() => go("sorpresa")} />}
@@ -199,11 +204,12 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
   );
 }
 
-function Checkout(props: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
+function Checkout(props: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice, requested?: boolean) => void }) {
   return CAMPAIGN.simulators ? <DemoCheckout {...props} /> : <LiveCheckout project={props.p} amount={props.amount} onEdit={props.onEdit} />;
 }
-function DemoCheckout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice) => void }) {
+function DemoCheckout({ p, amount, onEdit, onConfirm }: { p: Project; amount: number; onEdit: () => void; onConfirm: (m: PaymentChoice, requested?: boolean) => void }) {
   const [method, setMethod] = useState<PaymentChoice>("sumup");
+  const [confirmation, setConfirmation] = useState<DonorConfirmation>({ requested: false });
   const methods: { id: PaymentChoice; label: string; sub: string; icon: ReactNode }[] = [
     { id: "sumup", label: "SumUp online", sub: "Carta · simulatore", icon: <CreditCard className="h-5 w-5" /> },
     { id: "paypal", label: "PayPal online", sub: "Simulatore", icon: <span className="font-bold italic">P</span> },
@@ -240,9 +246,10 @@ function DemoCheckout({ p, amount, onEdit, onConfirm }: { p: Project; amount: nu
           <p className="mt-1 text-muted-foreground">Ricevi un QR con l'importo. Alla casetta un volontario lo scansiona: solo allora l'addobbo compare sull'albero.</p>
         </div>
       )}
-      <button onClick={() => { assertCampaignPayment(method, 'demo'); onConfirm(method); }} className="mt-6 w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">
+      <DonorConfirmationChoice value={confirmation} onChange={setConfirmation} demo />
+      <Button disabled={!donorConfirmationSchema.safeParse(confirmation).success} onClick={() => { const parsed = donorConfirmationSchema.parse(confirmation); assertCampaignPayment(method, 'demo'); setConfirmation({ requested: false }); onConfirm(method, parsed.requested); }} className="mt-6 h-auto w-full rounded-full py-4 font-semibold shadow-deep">
         {method === "cash" ? "Continua · prepara il QR" : `Simula pagamento di ${amount} €`}
-      </button>
+      </Button>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: nessun pagamento verrà effettuato. Nessun dato di pagamento viene raccolto.</p>
     </section>
   );

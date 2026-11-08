@@ -1,13 +1,18 @@
 # CRI Monza demo — roadmap
+## Email preparation and afternoon checks — 8 November
+- [x] Independent donor confirmation opt-in, private intent/atomic attempt audit and paid-only trigger; no real send.
+- [x] Gift email templates, paid-record ownership, disabled sender state, central LIVE initialization gate and mock tests; Christmas single-event callback prepared but not scheduled.
+- [x] DEMO desktop/mobile regression, read-only TV/content checks and executable two-phone checklist; published comparison blocked by HTTP 403, physical hardware and authorized moderation remain unverified.
+- [ ] Configure official Natale mailbox/domain and managed email scaffold — requires owner setup; confirm exact QA recipient before any future send.
 ## Campaign modes architecture
 - [x] 8 November preflight code/tests: foreign webhook no-op, effective return origin, paid postcard, PayPal missing custom_id fallback, SumUp transaction identity, isolated PostgreSQL validation and read-only listener/accessibility audit; see docs/PAYMENT_PREFLIGHT.md.
 - [x] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery endpoint, mock-only regression suite and manual procedure; all LIVE readiness unchanged/false.
 - [x] Securely connect SumUp and store PayPal credentials; verify authentication without payments, retain DEMO and deny LIVE execution.
 - [x] Implement SumUp/PayPal real checkout, server verification, idempotent isolated LIVE ornaments and tree reads for all three LIVE modes; DEMO unchanged, no charges/publication.
-- [ ] Payment operational verification — blocked by verified isolated HTTPS staging/access/callbacks and recovery execution budget, coordinated shared-key rotation, then authorized 5 EUR per provider + two-phone/TV test. No staging, listener or schedule falsely marked ready; paid postcard-return completed.
+- [ ] Payment operational verification — STOP by owner: no staging/second project; future dedicated PayPal app after President meeting and authorized 5 EUR/provider test on main project. Preserve existing code; no listener, rotation or schedule now.
 - [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
-- [ ] Real single-event email delivery/scheduling — blocked by sender-domain setup and paid-gift implementation; no sender, queue or schedule fabricated.
+- [ ] Real single-event email delivery/scheduling and QA sends — blocked by official mailbox/domain setup, generated managed send adapter, verified per-event scheduling and confirmed QA address/rate-audit implementation; no sender, queue, actual schedule or QA success fabricated.
 - [ ] Optional home visits and courtesy biscuit activation — blocked by Committee approval; Santa also needs real availability/contribution and booking operations.
 - [x] Central typed capabilities, readiness and route gates; DEMO remains active.
 - [x] Server and direct RPC protections; DEMO data denied outside DEMO (LIVE storage/services not implemented).
