@@ -25,9 +25,10 @@ class FakeMedia {
 function setup(){contexts=[];media=[];vi.stubGlobal('AudioContext',FakeContext);vi.stubGlobal('Audio',FakeMedia);}
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
 describe('TV audio safety and four-hour scheduler',()=>{
-  it('keeps the actual zero-track catalogue unavailable, not disguised as complete music',()=>{
-    expect(TV_TRACKS).toHaveLength(0);expect(uniqueSeconds(TV_TRACKS)).toBe(0);expect(catalogueReady(TV_TRACKS)).toBe(false);
-    expect(catalogueReady(tracks,{embeddedFiles:true,venue:false})).toBe(false);
+  it('requires fifteen distinct acquired tracks and sixty minutes, independently of unverified venue rights',()=>{
+    expect(TV_TRACKS).toHaveLength(15);expect(uniqueSeconds(TV_TRACKS)).toBeGreaterThanOrEqual(3600);expect(catalogueReady(TV_TRACKS)).toBe(true);
+    expect(catalogueReady(tracks,{embeddedFiles:true,venue:false})).toBe(true);
+    expect(catalogueReady(tracks,{embeddedFiles:false,venue:true})).toBe(false);
     expect(catalogueReady(tracks,{embeddedFiles:true,venue:true})).toBe(true);
     expect(catalogueReady(tracks.slice(0,12),{embeddedFiles:true,venue:true})).toBe(false);
   });
@@ -58,9 +59,9 @@ describe('TV audio safety and four-hour scheduler',()=>{
   });
   it('creates no context before click, resumes synchronously, never restarts on a new page or six-hour reload',async()=>{
     setup();const cue={arrival:null,dedication:null,ceremony:null};let view=render(<TvAudio cue={cue}/>);
-    expect(contexts).toHaveLength(0);expect(screen.getByText('Musica in preparazione')).toBeDefined();
+    expect(contexts).toHaveLength(0);
     fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));expect(contexts[0]?.resumes).toBe(1);
-    await act(async()=>{});expect(media.every(m=>m.plays===0)).toBe(true);
+    await act(async()=>{});expect(media.filter(m=>m.plays>0)).toHaveLength(1);
     view.unmount();expect(contexts[0]?.state).toBe('closed');
     view=render(<TvAudio cue={cue}/>);expect(screen.getByTestId('tv-audio').getAttribute('data-audio')).toBe('silent');expect(contexts).toHaveLength(1);view.unmount();
   });
