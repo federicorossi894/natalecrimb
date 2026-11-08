@@ -38,7 +38,7 @@ afterAll(async () => { await db?.close(); });
 it("opens a named session without any auth.users row", async () => {
   const [s] = await svc<{ display_name: string }>("SELECT * FROM public.volunteer_session_get($1)", [tokenA]);
   expect(s?.display_name).toBe("Maria Rossi");
-  const [u] = (await db.query<{ n: number }>("SELECT count(*)).rows::int n FROM auth.users");
+  const [u] = (await db.query<{ n: number }>("SELECT count(*)::int n FROM auth.users")).rows;
   expect(u?.n).toBe(0);
   await expect(svc("SELECT * FROM public.volunteer_session_open($1,$2,12)", ["c".repeat(64), "Maria"])).rejects.toThrow();
 });
