@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { assertCampaignPayment } from './campaign';
 import { donationAccessSchema, donationCheckoutSchema } from './payment-policy';
-import { createProviderCheckout, handlePaypalWebhook, handleSumupWebhook, liveTreeEnabled, loadDonation, reconcileDonation, tokenHash } from './payments.server';
+import { createProviderCheckout, liveTreeEnabled, loadDonation, reconcileDonation, tokenHash } from './payments.server';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 export const startDonationCheckout = createServerFn({ method: 'POST' })
@@ -67,6 +67,3 @@ export const liveDedicationModeration = createServerFn({ method: 'POST' })
     if (error) throw new Error('Lettura non disponibile.');
     return rows ?? [];
   });
-// Raw webhooks stay behind a server function boundary; no server-only module import in route files.
-export const sumupPaymentNotification = createServerFn({ method: 'POST' }).inputValidator((data: Request) => data).handler(async ({ data }) => handleSumupWebhook(data));
-export const paypalPaymentNotification = createServerFn({ method: 'POST' }).inputValidator((data: Request) => data).handler(async ({ data }) => handlePaypalWebhook(data));

@@ -1,4 +1,5 @@
 import { CAMPAIGN } from "./campaign";
+import { livePublicTree } from './payments.functions';
 import { campaignRpc } from "@/lib/campaign-rpc";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
@@ -36,7 +37,16 @@ export function useTreeStore() {
   const [mine, setMine] = useState<MyOrnament[]>([]);
   const [error, setError] = useState(false);
   const sync = useCallback(async () => {
-    if (!CAMPAIGN.sharedDemoData) { setRemote([]); setMine([]); setError(false); return; }
+    if (!CAMPAIGN.sharedDemoData) {
+      setMine([]);
+      if (!CAMPAIGN.liveData) { setRemote([]); setError(false); return; }
+      try {
+        const rows = await livePublicTree();
+        setRemote(rows.reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })));
+        setError(false);
+      } catch { setError(true); }
+      return;
+    }
     const [t, m] = await Promise.all([campaignRpc("public_tree"), campaignRpc("my_ornaments", { _client: clientId() })]);
     if (t.error) { setError(true); return; }
     setError(false);
