@@ -147,6 +147,9 @@ export async function handlePaypalWebhook(request: Request) {
     const c = z.object({ id: z.string(), status: z.string(), amount: z.object({ currency_code: z.string(), value: z.string() }), supplementary_data: z.object({ related_ids: z.object({ order_id: z.string() }) }) }).parse(await paypal(`/v2/payments/captures/${encodeURIComponent(event.resource.id)}`));
     if (c.id !== event.resource.id || c.supplementary_data.related_ids.order_id !== d.provider_id || c.amount.currency_code !== 'EUR' || decimalCents(c.amount.value) !== d.amount_cents) throw new Error('Capture PayPal non corrispondente.');
     if (['DENIED','DECLINED','FAILED','REFUNDED','REVERSED'].includes(c.status)) {
+      const parent = paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(orderId)}`));
+      const unit = parent.purchase_units[0];
+      if (parent.id !== d.provider_id || parent.purchase_units.length !== 1 || unit?.custom_id !== d.id || unit.amount?.currency_code !== 'EUR' || decimalCents(unit.amount.value) !== d.amount_cents || !unit.payments?.captures.some(capture => capture.id === c.id)) throw new Error('Ordine PayPal non corrispondente.');
       await recordSettlement(d, ['REFUNDED','REVERSED'].includes(c.status) ? 'reversed' : 'denied');
       return;
     }

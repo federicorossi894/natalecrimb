@@ -51,7 +51,7 @@ beforeEach(() => {
     if (url.endsWith('verify-webhook-signature')) return response({ verification_status: 'SUCCESS' });
     if (url.endsWith('/capture')) { completed = true; return response(order('COMPLETED','COMPLETED')); }
     if (url.includes('/v2/payments/captures/')) return response({ id: 'capture-1', status: terminal || 'COMPLETED', amount: { currency_code: 'EUR', value: '5.00' }, supplementary_data: { related_ids: { order_id: 'order-1' } } });
-    return response(order(completed ? 'COMPLETED' : 'APPROVED', completed ? 'COMPLETED' : undefined));
+    return response(order(completed || terminal ? 'COMPLETED' : 'APPROVED', terminal || (completed ? 'COMPLETED' : undefined)));
   });
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); Object.assign(CAMPAIGN, campaignCapabilities('DEMO')); });
@@ -153,5 +153,16 @@ describe('Mock-only pre-live hardening', () => {
     fetchMock.mockResolvedValue(response(Array.from({ length: count }, () => ({ id: 'sumup-1', status: 'PENDING', checkout_reference: id, amount: 5, currency: 'EUR' }))));
     expect((await recoverLivePayments()).manual).toBe(1);
     expect(fetchMock.mock.calls.every(([,init]) => init.method === 'GET')).toBe(true);
+  });
+  it('unique SumUp reference restores an orphan checkout and confirms via trusted status', async () => {
+    db.rpc.mockImplementation(async name => name === 'claim_live_recovery' ? { data: [{ ...d, provider: 'sumup', provider_id: null, status: 'creating' }] } : { data: 'ornament-1' });
+    const found = { id: 'sumup-1', status: 'PAID', checkout_reference: id, amount: 5, currency: 'EUR', transaction_id: 'tx-1', hosted_checkout_url: 'https://checkout.sumup.com/test' };
+    fetchMock.mockImplementation(async url => response(String(url).includes('?') ? [found] : found));
+    expect(await recoverLivePayments()).toEqual({ checked: 1, paid: 1, manual: 0, errors: 0 });
+    expect(fetchMock.mock.calls.every(([,init]) => init.method === 'GET')).toBe(true);
+  });
+  it('database capture claim failure prevents capture', async () => {
+    db.rpc.mockResolvedValue({ error: {} });
+    await expect(reconcileDonation(d,true)).rejects.toThrow('registro'); expect(captures()).toHaveLength(0);
   });
 });
