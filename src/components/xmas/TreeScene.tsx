@@ -26,7 +26,7 @@ function TreeStar({height,palette}:{height:number;palette:Palette}) {
 function Decorations(props:Props & {height:number;palette:Palette}) {
   return <ArtTree ornaments={props.ornaments} height={props.height} palette={props.palette} selected={props.selected} onPick={props.onPick} arrivingId={props.arrivingId} reduced={props.reduced} />;
 }
-function CameraRig({height,selected,index,count,tv,reduced,resetKey,editorialFocus,cameraSuspended}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined;editorialFocus?:boolean;cameraSuspended?:boolean}) {
+function CameraRig({height,selected,index,count,tv,reduced,resetKey,editorialFocus,cameraSuspended}: {height:number;selected:TreeOrnament|null;index:number;count:number;tv?:boolean|undefined;reduced:boolean;resetKey?:number|undefined;editorialFocus?:boolean|undefined;cameraSuspended?:boolean|undefined}) {
   const controls=useRef<OrbitControlsType>(null);
   const { camera, gl, size }=useThree();
   const moving=useRef(false);
@@ -62,7 +62,7 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey,editorialFoc
     if(probeAt.current>=0.5){
       probeAt.current=0;
       const stage=gl.domElement.closest<HTMLElement>('.tree-stage');
-      if(stage){stage.dataset.cameraPosition=camera.position.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset.cameraLook=look.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset.cameraSelected=String(selected?.id??'');stage.dataset.cameraMode=cameraSuspended?'suspended':reduced?'reduced':editorialFocus?'editorial':selected?'selected':'panorama';}
+      if(stage){stage.dataset['cameraPosition']=camera.position.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset['cameraLook']=look.toArray().map(n=>n.toFixed(4)).join(',');stage.dataset['cameraSelected']=String(selected?.id??'');stage.dataset['cameraMode']=cameraSuspended?'suspended':reduced?'reduced':editorialFocus?'editorial':selected?'selected':'panorama';}
     }
   });
   return tv?null:<OrbitControls ref={controls} makeDefault enablePan={false} enableDamping minDistance={1.5} maxDistance={10} minPolarAngle={0.22} maxPolarAngle={Math.PI*0.63} />;

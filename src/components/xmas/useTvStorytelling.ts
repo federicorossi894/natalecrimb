@@ -9,6 +9,11 @@ export function useTvStorytelling(rows: TreeOrnament[], priority: StoryPriority,
   const inputs = useRef({ rows, priority, error });
   inputs.current = { rows, priority, error };
   useEffect(() => {
+    if (!enabled) return;
+    const time = performance.now();
+    setState(s => advanceStory(s, time, rows, priority, error, tempo));
+  }, [rows, priority, error, enabled, tempo]);
+  useEffect(() => {
     setState(initialStory(performance.now(), 20261108, tempo));
     if (!enabled) return;
     const tick = () => {
