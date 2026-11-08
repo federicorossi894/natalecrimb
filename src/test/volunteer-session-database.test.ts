@@ -36,7 +36,6 @@ beforeAll(async () => {
 afterAll(async () => { await db?.close(); });
 const review=(token:string,action:string,type:string|null=null,id:string|null=null,decision:string|null=null)=>svc<{r:{result:string;count:number;items:{id:string;body:string}[]}}>('SELECT public.volunteer_demo_review($1,$2,$3,$4::uuid,$5) r',[token,action,type,id,decision]).then(r=>r[0]?.r);
 it('shared review: customer code submits pending, two reviewers atomically decide, public reads only approved and audit keeps wish ID',async()=>{
-  await svc('SELECT * FROM public.volunteer_session_open($1,$2,12)',[tokenB,'Luca Bianchi']);
   const code=(await vol(tokenA,'create_wish_token',{})) as {code:string}[];
   const c=code[0]?.code;if(!c)throw new Error('No code');
   await db.query('SELECT * FROM public.submit_wish($1,$2,$3,true)',[c,'Buon Natale ai volontari','Famiglia']);
