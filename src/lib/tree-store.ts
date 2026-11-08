@@ -1,9 +1,9 @@
 import { CAMPAIGN } from "./campaign";
 import { livePublicTree } from './payments.functions';
 import { campaignRpc } from "@/lib/campaign-rpc";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useResilientPoll } from './resilient-poll';
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { TREE_ORNAMENTS, MOCK_TOTAL_GIFTS, type OrnamentKind, type TreeOrnament } from "./data";
 
 /** DEMO tree shared across devices via Lovable Cloud. Donations are always simulated. */
@@ -17,10 +17,17 @@ export const dedicaSchema = z.object({
 
 const CLIENT_KEY = "cri-demo-client-id";
 export function clientId() {
-  let id = localStorage.getItem(CLIENT_KEY);
-  if (!id) { id = crypto.randomUUID(); localStorage.setItem(CLIENT_KEY, id); }
-  return id;
+  try {
+    let id = localStorage.getItem(CLIENT_KEY);
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem(CLIENT_KEY, id); }
+    return id;
+  } catch {
+    // Restricted storage: preserve a page-local identity rather than crashing the public tree.
+    transientClient ??= crypto.randomUUID();
+    return transientClient;
+  }
 }
+let transientClient: string | undefined;
 
 const EVT = "cri-demo-tree";
 export const POLL_MS = 15000;
@@ -32,33 +39,27 @@ export async function addOrnament(kind: OrnamentKind, amountEuro: number, firma:
   return data?.[0] ?? null;
 }
 
-export function useTreeStore() {
-  const [remote, setRemote] = useState<TreeOrnament[]>([]);
-  const [mine, setMine] = useState<MyOrnament[]>([]);
-  const [error, setError] = useState(false);
-  const sync = useCallback(async () => {
+export function useTreeStore(options: { publicOnly?: boolean } = {}) {
+  const publicOnly = options.publicOnly ?? false;
+  const poll = useResilientPoll(async (signal) => {
     if (!CAMPAIGN.sharedDemoData) {
-      setMine([]);
-      if (!CAMPAIGN.liveData) { setRemote([]); setError(false); return; }
-      try {
-        const rows = await livePublicTree();
-        setRemote(rows.reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })));
-        setError(false);
-      } catch { setError(true); }
-      return;
+      if (!CAMPAIGN.liveData) return { remote: [] as TreeOrnament[], mine: [] as MyOrnament[] };
+      const rows = await livePublicTree({ signal });
+      return { remote: [...rows].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: [] as MyOrnament[] };
     }
-    const [t, m] = await Promise.all([campaignRpc("public_tree"), campaignRpc("my_ornaments", { _client: clientId() })]);
-    if (t.error) { setError(true); return; }
-    setError(false);
-    setRemote((t.data ?? []).reverse().map((o) => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })));
-    setMine(m.data ?? []);
-  }, []);
+    const [t, m] = await Promise.all([
+      campaignRpc('public_tree', undefined, signal),
+      publicOnly ? Promise.resolve({ data: [] as MyOrnament[], error: null }) : campaignRpc('my_ornaments', { _client: clientId() }, signal),
+    ]);
+    if (t.error) throw new Error(t.error.message);
+    return { remote: [...(t.data ?? [])].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: m.data ?? [] };
+  }, { remote: [] as TreeOrnament[], mine: [] as MyOrnament[] }, POLL_MS);
+  const sync = poll.refresh;
   useEffect(() => {
-    void sync();
-    const t = setInterval(() => void sync(), POLL_MS);
     const h = () => void sync();
     window.addEventListener(EVT, h);
-    return () => { clearInterval(t); window.removeEventListener(EVT, h); };
+    return () => window.removeEventListener(EVT, h);
   }, [sync]);
-  return { mine, error, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: CAMPAIGN.demo ? [...TREE_ORNAMENTS, ...remote] : remote, total: (CAMPAIGN.demo ? MOCK_TOTAL_GIFTS : 0) + remote.length, refresh: sync };
+  const { remote, mine } = poll.data;
+  return { mine, error: poll.error || poll.stale, loaded: poll.loaded, lastSuccess: poll.lastSuccess, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: CAMPAIGN.demo ? [...TREE_ORNAMENTS, ...remote] : remote, total: (CAMPAIGN.demo ? MOCK_TOTAL_GIFTS : 0) + remote.length, refresh: sync };
 }
