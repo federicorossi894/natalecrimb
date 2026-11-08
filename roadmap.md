@@ -1,10 +1,14 @@
 # CRI Monza demo — roadmap
+## Priority Gmail real QA — 8 November 18:36 UTC
+- [ ] Verify runtime Gmail identity, published staff access and exact blocker for zero QA attempts; never change roles or bypass product limits.
+- [ ] Send three fixed Federico-to-Federico templates only if existing site permissions/10-minute/three-day limits permit; verify Sent/Inbox IDs separately from acceptance.
+- [ ] Report each category honestly; preserve audio work without publishing it and all QR/volunteer flows.
 ## TV audio — 8 November
 - [x] Research and document actual 0 acquired tracks / 0 seconds; explicit preparation state, no fake assets.
 - [x] Scoped consented TV player, two-stream crossfade and visible-event original effects; camera unchanged.
 - [x] 359 tests/build OK; real Chromium generated audio, mute/reload/no-GPU and virtual four-hour handovers verified; report delivered.
 - [ ] Music catalogue activation — awaits >=15 acquired individually licensed tracks / >=55–60 minutes and Committee venue-rights clearance; no complete soundtrack claimed.
-- [ ] Confirm safe DEMO audio deployment — publication completion checked separately.
+- [ ] Audio deployment paused — owner explicitly stopped publication while prioritizing Gmail QA; audio work retained.
 ## TV cinematic storytelling — 8 November
 - [x] Add public-only fair narrative focus, smooth TV camera and safe scene priorities; no audio or other services.
 - [x] 347 tests, 1920×1080 camera/fallback/priority checks and 246-second browser soak; short optical check on the physical TV remains with the operator.
