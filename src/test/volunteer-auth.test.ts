@@ -46,7 +46,8 @@ describe("boundaries", () => {
     const src = await readFile("src/lib/volunteer-session.functions.ts", "utf8");
     expect(src).toContain("['cash_request_lookup', 'confirm_cash_request', 'volunteer_add_ornament']");
     expect(src).toMatch(/httpOnly: true, secure: true, sameSite: 'lax'/);
-    expect(src).not.toMatch(/moderate_wish|create_wish_token|requireSupabaseAuth|signUp|auth\.admin/);
+    expect(src).not.toMatch(/moderate_wish|staff_gmail|requireSupabaseAuth|signUp|auth\.admin|paypal|sumup/i);
+    expect(src.match(/'create_wish_token'/g)?.length).toBe(2); // only inside createSharedWishToken, no client args
   });
   it("the volunteer page no longer uses account auth", async () => {
     const page = await readFile("src/routes/volontari.tsx", "utf8");
