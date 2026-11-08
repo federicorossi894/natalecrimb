@@ -1,8 +1,10 @@
 # CRI Monza demo — roadmap
 ## Final TV, soundtrack and web identity — 8 November 19:42 UTC
-- [ ] Verify TV wish event / dedication reveal / approved arrival at 1920×1080 with isolated fixtures and public read-only observation; do not change working staff review.
-- [ ] Acquire and verify >=15 distinct instrumental tracks / >=60 unique minutes, publish credits and retain one-click/venue-rights safety.
-- [ ] Replace favicon and create static institutional CRI social banner; verify SSR metadata, assets, full tests and safe DEMO publication.
+- [x] TV wish / dedication reveal / approved arrival verified in 1920×1080 isolated fixtures, WebGL and illustrated fallback; public read-only observation, no staff-review edits.
+- [x] 15 official CC BY 4.0 recordings acquired, 64:03.915 unique minutes, normalized, all streamed files decode; public credits and one-click/mute/restart verified. Italian venue rights remain unverified.
+- [x] Bauble favicon and static intact-CRI social image created; SSR head/MIME/200, 365 tests and automatic build OK.
+- [ ] Safe DEMO publication and public URL verification — release requested next.
+- [ ] Public venue music use / physical listening soak — Committee SIAE/related-rights and event-programme attribution check required; no legal exemption claimed.
 - [x] Owner confirms real shared-password approval works; no further back-office edits authorized in this task.
 ## Dedication / wish staff review and TV reveals — 8 November 18:39 UTC
 - [x] Shared-session DEMO pending-only review migration applied, atomic/audit/rate/origin protections and persistent 4-second queue.
@@ -18,8 +20,8 @@
 - [x] Research and document actual 0 acquired tracks / 0 seconds; explicit preparation state, no fake assets.
 - [x] Scoped consented TV player, two-stream crossfade and visible-event original effects; camera unchanged.
 - [x] 359 tests/build OK; real Chromium generated audio, mute/reload/no-GPU and virtual four-hour handovers verified; report delivered.
-- [ ] Music catalogue activation — awaits >=15 acquired individually licensed tracks / >=55–60 minutes and Committee venue-rights clearance; no complete soundtrack claimed.
-- [ ] Audio deployment paused — owner explicitly stopped publication while prioritizing Gmail QA; audio work retained.
+- [x] Music catalogue acquired and licensed DEMO listening activated in final mandate: 15 distinct tracks, 64:03.915; separate Committee venue clearance remains pending above.
+- [x] Earlier audio pause superseded by explicit final DEMO publication mandate; no Gmail/payment/volunteer changes.
 ## TV cinematic storytelling — 8 November
 - [x] Add public-only fair narrative focus, smooth TV camera and safe scene priorities; no audio or other services.
 - [x] 347 tests, 1920×1080 camera/fallback/priority checks and 246-second browser soak; short optical check on the physical TV remains with the operator.
