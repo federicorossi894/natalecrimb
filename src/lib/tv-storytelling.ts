@@ -80,11 +80,13 @@ export function advanceStory(state: StoryState, now: number, publicRows: readonl
   if (now < state.nextAt) return state;
   const recent = new Map([...state.recent].filter(([id, at]) => now - at < STORY_ID_COOLDOWN_MS * tempo && publicRows.some(o => o.id === id)));
   const candidates = storyOrnaments(publicRows, false).filter(o => !recent.has(o.id) && (publicRows.length === 1 || o.id !== state.lastId));
-  let kinds = STORY_KINDS.filter(k => candidates.some(o => o.kind === k));
+  let kinds = STORY_KINDS.filter(k => publicRows.some(o => o.kind === k));
   if (kinds.length > 1) kinds = kinds.filter(k => k !== state.lastKind);
   if (!kinds.length) return schedule({ ...state, recent });
   const min = Math.min(...kinds.map(k => state.kindTurns[k]));
-  kinds = kinds.filter(k => state.kindTurns[k] === min);
+  kinds = kinds.filter(k => state.kindTurns[k] === min && candidates.some(o => o.kind === k));
+  // When a rare cause is cooling down, wait rather than letting a populous cause monopolize the screen.
+  if (!kinds.length) return schedule({ ...state, recent });
   const r = random(state.seed);
   const kind = kinds[Math.floor(r.value * kinds.length)];
   const choices = candidates.filter(o => o.kind === kind);

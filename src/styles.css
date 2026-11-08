@@ -251,7 +251,7 @@
 .tv-story-signature span { display: block; margin-top: .3cqw; font-size: .95cqw; color: var(--muted-foreground); }
 .tv-story-invite { margin-top: 1.2cqw; font-size: 1.2cqw; color: var(--scene-gold); }
 .tv-scene[data-story] .tv-card { opacity: 0; transition-delay: 0s; }
-.tv-scene[data-story="leaving"] .tv-card.is-active { opacity: 1; transition-delay: .8s; }
+.tv-scene[data-story="leaving"] .tv-card.is-active { opacity: 0; transition-delay: 0s; }
 .tv-scene[data-story="focus"] .tv-kindness { opacity: 0; transition: opacity 1s ease; }
 .tv-scene[data-beat="auguri"] .tv-story, .tv-scene[data-ceremony="true"] .tv-story { display: none; }
 @keyframes tv-story-in { from { opacity: 0; } to { opacity: 1; } }
