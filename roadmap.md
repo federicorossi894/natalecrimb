@@ -1,5 +1,6 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
+- [ ] Complete autonomous BASIC capabilities, independent Santa/biscuit options, email fail-closed preparation, tests and documentation (current request).
 - [x] Central typed capabilities, readiness and route gates; DEMO remains active.
 - [x] Server and direct RPC protections; DEMO data denied outside DEMO (LIVE storage/services not implemented).
 - [x] Mode-coherent navigation, checkout, wishes, volunteers, TV and previews; discreet fiscal information under current readiness.

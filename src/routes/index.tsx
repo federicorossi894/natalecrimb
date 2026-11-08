@@ -123,7 +123,7 @@ function Home() {
         </div>
       </section>
 
-      <SantaChimneySection />
+      {CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection />}
     </Shell>
   );
 }

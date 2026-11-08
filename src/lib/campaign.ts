@@ -8,7 +8,15 @@ export const LIVE_READINESS = {
   payments: false, cash: false, purchaseWishQR: false, liveData: false,
 } as const;
 export type Readiness = { [K in keyof typeof LIVE_READINESS]: boolean };
-export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS) {
+/** Optional Committee-approved services, independent of campaign tier. */
+export const CAMPAIGN_OPTIONS = {
+  santaHomeVisitsEnabled: false,
+  courtesyBiscuitAvailable: false,
+} as const;
+export type CampaignOptions = { [K in keyof typeof CAMPAIGN_OPTIONS]: boolean };
+export const OPTIONAL_SERVICE_READINESS = { santaBookings: false, emailSending: false, emailScheduling: false } as const;
+export type OptionalReadiness = { [K in keyof typeof OPTIONAL_SERVICE_READINESS]: boolean };
+export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS) {
   const demo = mode === 'DEMO';
   const cash = mode === 'ADVANCED_1' || mode === 'ADVANCED_2';
   const wall = mode === 'ADVANCED_2';
@@ -22,6 +30,12 @@ export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE
     cashRequested: cash, wishWallRequested: wall,
     sharedDemoData: demo, liveData: !demo && ready.liveData,
     calendar: true, academy: true, casetta: true, tv: true,
+    onlineDonations: true, persistentOrnaments: true, dedications: true, whatsappPostcards: true, giftEmails: true, diploma: true,
+    santaHomeVisitsVisible: demo || options.santaHomeVisitsEnabled,
+    santaHomeVisitsOperational: !demo && options.santaHomeVisitsEnabled && services.santaBookings,
+    courtesyBiscuit: demo || options.courtesyBiscuitAvailable,
+    liveEmailSending: !demo && services.emailSending && ready.liveData,
+    liveEmailScheduling: !demo && services.emailSending && services.emailScheduling && ready.liveData,
     bookingSimulator: demo, emailSimulator: demo,
   };
 }
@@ -32,10 +46,20 @@ export function campaignRouteAllowed(path: string, c = CAMPAIGN) {
   if (p === '/tv-preview' || p === '/presentazione') return c.previews;
   if (p === '/auguri' || p.startsWith('/augurio/')) return c.publicWishWall;
   if (p === '/volontari') return c.volunteerCashDonations || c.volunteerPurchaseWishQR;
+  if (p === '/babbo-natale' || p.startsWith('/babbo-natale/')) return c.santaHomeVisitsVisible;
   return true;
 }
 export function campaignPaymentMethods(c = CAMPAIGN): ('sumup' | 'paypal' | 'cash')[] {
   return [...(c.simulators ? ['sumup' as const, 'paypal' as const] : []), ...(c.volunteerCashDonations ? ['cash' as const] : [])];
+}
+/** Guard for every future LIVE handler, before data access. Never accepts client readiness. */
+export function assertCampaignAction(action: 'onlinePayment' | 'cashDonation' | 'purchaseWishQR' | 'wishModeration' | 'emailNow' | 'emailChristmas' | 'santaBooking', c = CAMPAIGN) {
+  const enabled = {
+    onlinePayment: c.livePayments, cashDonation: c.volunteerCashDonations && !c.demo,
+    purchaseWishQR: c.volunteerPurchaseWishQR && !c.demo, wishModeration: c.wishModeration && !c.demo,
+    emailNow: c.liveEmailSending, emailChristmas: c.liveEmailScheduling, santaBooking: c.santaHomeVisitsOperational,
+  };
+  if (!enabled[action]) throw new Error('Servizio non disponibile: configurazione e verifica operativa necessarie.');
 }
 export function assertDemoData(c = CAMPAIGN) {
   if (!c.sharedDemoData) throw new Error('Operazione indisponibile: integrazione LIVE non verificata.');
