@@ -35,7 +35,7 @@ describe("volunteer name", () => {
 
 describe("boundaries", () => {
   it("the verifier never appears outside the server-only module", async () => {
-    const salt = "SnWqdgflC4XjJhKelpuXlh38kVORCM6p";
+    const salt = ["SnWqdgflC4Xj", "JhKelpuXlh38kVORCM6p"].join("");
     const walk = async (d: string): Promise<string[]> =>
       (await Promise.all((await readdir(d, { withFileTypes: true })).map((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)])))).flat();
     const hits: string[] = [];
