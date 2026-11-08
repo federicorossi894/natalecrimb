@@ -1,7 +1,7 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
 - [x] Securely connect SumUp and store PayPal credentials; verify authentication without payments, retain DEMO and deny LIVE execution.
-- [ ] SumUp/PayPal checkout and provider-confirmed isolated ornaments — blocked by mandatory payment enablement in the interactive Lovable editor; existing credentials are retained, but do not satisfy that prerequisite. Checkout/webhooks/reconciliation and isolated LIVE storage remain unimplemented.
+- [ ] Implement SumUp/PayPal real checkout, server verification, idempotent isolated LIVE ornaments and tree reads for all three LIVE modes; retain DEMO and perform no charges/publication. No editor payment-enablement prerequisite applies to these custom APIs.
 - [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
 - [ ] Real single-event email delivery/scheduling — blocked by sender-domain setup and paid-gift implementation; no sender, queue or schedule fabricated.
