@@ -388,6 +388,105 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_audit: {
+        Row: {
+          action: string
+          created_at: string
+          display_name: string
+          id: number
+          ornament_id: string | null
+          result: string | null
+          session_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          display_name: string
+          id?: number
+          ornament_id?: string | null
+          result?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          display_name?: string
+          id?: number
+          ornament_id?: string | null
+          result?: string | null
+          session_id?: string | null
+        }
+        Relationships: []
+      }
+      volunteer_login_attempts: {
+        Row: {
+          client_key: string
+          created_at: string
+          id: number
+          ok: boolean
+        }
+        Insert: {
+          client_key: string
+          created_at?: string
+          id?: number
+          ok: boolean
+        }
+        Update: {
+          client_key?: string
+          created_at?: string
+          id?: number
+          ok?: boolean
+        }
+        Relationships: []
+      }
+      volunteer_password_cache: {
+        Row: {
+          created_at: string
+          source: string
+          verifier: string
+        }
+        Insert: {
+          created_at?: string
+          source: string
+          verifier: string
+        }
+        Update: {
+          created_at?: string
+          source?: string
+          verifier?: string
+        }
+        Relationships: []
+      }
+      volunteer_sessions: {
+        Row: {
+          created_at: string
+          display_name: string
+          expires_at: string
+          id: string
+          last_seen_at: string
+          revoked_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          expires_at: string
+          id?: string
+          last_seen_at?: string
+          revoked_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          expires_at?: string
+          id?: string
+          last_seen_at?: string
+          revoked_at?: string | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
       wish_tokens: {
         Row: {
           created_at: string
@@ -469,6 +568,10 @@ export type Database = {
     Functions: {
       campaign_demo_dispatch: {
         Args: { _actor?: string; _args: Json; _name: string }
+        Returns: Json
+      }
+      campaign_volunteer_dispatch: {
+        Args: { _args: Json; _name: string; _token_hash: string }
         Returns: Json
       }
       cash_code_hash: { Args: { _code: string }; Returns: string }
@@ -709,6 +812,34 @@ export type Database = {
         Returns: {
           id: string
           status: string
+        }[]
+      }
+      volunteer_login_allowed: {
+        Args: { _client_key: string }
+        Returns: boolean
+      }
+      volunteer_login_record: {
+        Args: { _client_key: string; _ok: boolean }
+        Returns: undefined
+      }
+      volunteer_session_close: {
+        Args: { _token_hash: string }
+        Returns: undefined
+      }
+      volunteer_session_get: {
+        Args: { _token_hash: string }
+        Returns: {
+          display_name: string
+          expires_at: string
+          session_id: string
+        }[]
+      }
+      volunteer_session_open: {
+        Args: { _display_name: string; _hours: number; _token_hash: string }
+        Returns: {
+          display_name: string
+          expires_at: string
+          session_id: string
         }[]
       }
       wish_flags: { Args: { _body: string; _nick: string }; Returns: string[] }
