@@ -1,4 +1,5 @@
 # CRI Monza — pre-collaudo 8 novembre 2026
+> Aggiornamento vincolante successivo del proprietario: **STOP pagamenti; nessuno staging/secondo progetto, rotazione o listener ora**. Il runbook storico sotto non è più un'autorizzazione operativa. Eventuale futuro test 5 €/provider sul progetto principale solo dopo autorizzazione e app PayPal dedicata dopo riunione. Vedi EMAIL_PREFLIGHT_2026-11-08.md per lo stato corrente.
 
 ## Esito effettivo
 DEMO resta attiva. BASIC e ADVANCED_1/2 non sono operativi; readiness globale e webhook restano false. Nessuna pubblicazione, capture, ordine, rimborso, messaggio o modifica del progetto cena. Nessuna chiave ruotata.
