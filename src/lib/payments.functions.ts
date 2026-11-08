@@ -34,15 +34,13 @@ export const startDonationCheckout = createServerFn({ method: "POST" })
       if (!d.checkout_url) throw new Error("Richiesta in verifica. Non ripetere il pagamento.");
       return { id: d.id, url: d.checkout_url };
     }
-    const { error } = await supabaseAdmin
-      .from("live_donations")
-      .insert({
-        id: data.requestId,
-        access_hash: accessHash,
-        provider: data.provider,
-        kind: data.kind,
-        amount_cents: data.amount * 100,
-      });
+    const { error } = await supabaseAdmin.from("live_donations").insert({
+      id: data.requestId,
+      access_hash: accessHash,
+      provider: data.provider,
+      kind: data.kind,
+      amount_cents: data.amount * 100,
+    });
     if (error) throw new Error("Richiesta già in corso o non disponibile.");
     const checkout = await createProviderCheckout(
       data.provider,

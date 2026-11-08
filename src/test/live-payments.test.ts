@@ -178,15 +178,13 @@ describe("Real payment adapters, no external requests", () => {
     expect(fetchMock.mock.calls[3]?.[1].headers["PayPal-Request-Id"]).toBe(`capture-${id}`);
   });
   it("PayPal amount mismatch is rejected BEFORE capture", async () => {
-    fetchMock
-      .mockResolvedValueOnce(response({ access_token: "test-token" }))
-      .mockResolvedValueOnce(
-        response({
-          id: "order-1",
-          status: "APPROVED",
-          purchase_units: [{ custom_id: id, amount: { currency_code: "EUR", value: "4.00" } }],
-        }),
-      );
+    fetchMock.mockResolvedValueOnce(response({ access_token: "test-token" })).mockResolvedValueOnce(
+      response({
+        id: "order-1",
+        status: "APPROVED",
+        purchase_units: [{ custom_id: id, amount: { currency_code: "EUR", value: "4.00" } }],
+      }),
+    );
     await expect(
       reconcileDonation({ ...donation, provider: "paypal", provider_id: "order-1" }, true),
     ).rejects.toThrow();
