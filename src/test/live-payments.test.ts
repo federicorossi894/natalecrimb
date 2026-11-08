@@ -5,7 +5,11 @@ import { createProviderCheckout, handlePaypalWebhook, reconcileDonation } from '
 
 const db = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn() }));
 vi.mock('@/integrations/supabase/client.server', () => ({ supabaseAdmin: db }));
-vi.mock('@/lib/campaign', async original => { const actual = await original<typeof import('@/lib/campaign')>(); return { ...actual, CAMPAIGN: { ...actual.CAMPAIGN } }; });
+vi.mock('@/lib/campaign', async original => {
+  const actual = await original<typeof import('@/lib/campaign')>();
+  const campaign = { ...actual.CAMPAIGN };
+  return { ...actual, CAMPAIGN: campaign, assertCampaignPayment: (method: string, execution: 'demo' | 'live') => actual.assertCampaignPayment(method, execution, campaign) };
+});
 const providers: ProviderReadiness = { sumup: { implemented: true, configured: true, webhookVerified: true }, paypal: { implemented: true, configured: true, webhookVerified: true } };
 const ready = { payments: true, liveData: true, cash: false, purchaseWishQR: false };
 const id = '00000000-0000-4000-8000-000000000001';
@@ -13,7 +17,7 @@ const donation = { id, provider: 'sumup', provider_id: 'checkout-1', amount_cent
 const fetchMock = vi.fn();
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 beforeEach(() => {
-  vi.stubGlobal('fetch', fetchMock); vi.clearAllMocks();
+  vi.stubGlobal('fetch', fetchMock); vi.clearAllMocks(); fetchMock.mockReset();
   // Dummy test-only values, never contact providers or read real credentials.
   vi.stubEnv('UDC_SUMUP_API_KEY', 'test-only'); vi.stubEnv('LOVABLE_API_KEY', 'test-only'); vi.stubEnv('PAYPAL_CLIENT_ID', 'test-only'); vi.stubEnv('PAYPAL_CLIENT_SECRET', 'test-only');
   Object.assign(CAMPAIGN, campaignCapabilities('BASIC', ready, undefined, undefined, providers));
