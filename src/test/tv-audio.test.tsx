@@ -78,7 +78,7 @@ describe('TV audio safety and four-hour scheduler',()=>{
     vi.spyOn(document,'hidden','get').mockReturnValue(true);fireEvent(document,new Event('visibilitychange'));expect(contexts[0]?.state).toBe('suspended');
     view.rerender(<TvAudio cue={{arrival:'hidden',dedication:null,ceremony:null}}/>);expect(contexts[0]?.effects).toBe(0);
     vi.spyOn(document,'hidden','get').mockReturnValue(false);fireEvent(document,new Event('visibilitychange'));await act(async()=>{});expect(contexts[0]?.state).toBe('running');expect(contexts[0]?.effects).toBe(0);
-    view.unmount();expect(vi.getTimerCount()).toBe(0);vi.restoreAllMocks();
+    view.unmount();act(()=>vi.advanceTimersByTime(1000));expect(vi.getTimerCount()).toBe(0);vi.restoreAllMocks();
   });
   it('preloads only two streams and crossfades for four seconds without restarting the next track',async()=>{
     vi.useFakeTimers();setup();const engine=new TvAudioEngine(tracks);engine.activate();await Promise.resolve();await Promise.resolve();

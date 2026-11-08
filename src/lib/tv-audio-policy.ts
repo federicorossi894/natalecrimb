@@ -26,7 +26,7 @@ export class AudioBag {
   }
 }
 export const AUDIO_CROSSFADE_SECONDS = 4;
-export type TvAudioEvent = { type: 'arrival' | 'dedication'; key: string } | { type: 'ceremony'; key: string; phase: string };
+export type TvAudioEvent = { type: 'arrival'; key: string } | { type: 'dedication'; key: string } | { type: 'ceremony'; key: string; phase: string };
 /** Tiny bounded event gate. No retained dedications, no replay on consent/visibility. */
 export class AudioEventGate {
   private last = new Map<string, string>();

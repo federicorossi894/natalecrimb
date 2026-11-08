@@ -20,7 +20,7 @@ export class TvAudioEngine {
   onBlocked: (() => void) | undefined;
   onUnavailable: (() => void) | undefined;
   constructor(private tracks: readonly TvTrack[]) {
-    const Browser = window as Window & { webkitAudioContext?: typeof AudioContext };
+    const Browser = window as Window & { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
     const Constructor = Browser.AudioContext ?? Browser.webkitAudioContext;
     if (!Constructor) throw new Error('Web Audio unavailable');
     this.context = new Constructor();
@@ -36,6 +36,14 @@ export class TvAudioEngine {
       return { el, source, gain };
     });
     this.bag = new AudioBag(tracks.map(t => t.id));
+    this.decks.forEach((deck, index) => {
+      deck.el.onended = () => {
+        if (!this.enabled || this.disposed || index !== this.current) return;
+        this.current = 1 - this.current;
+        this.fadedUntil = 0;
+        this.start();
+      };
+    });
     this.timer = setInterval(() => this.tick(), 250);
   }
   /** Invoke resume synchronously in the click stack, not after importing/fetching. */
@@ -113,9 +121,10 @@ export class TvAudioEngine {
       const at = this.context.currentTime;
       this.music.gain.cancelScheduledValues(at); this.music.gain.setTargetAtTime(0.065, at, 0.35);
       if (event.phase === 'lit') [261.63, 392, 523.25].forEach(f => this.tone(f, 0, 3, 0.018));
-      if (event.phase === 'focus') [659.25, 783.99].forEach((f, i) => this.tone(f, i * 0.3, 1.6, 0.022));
+      if (event.phase === 'focus') [659.25, 783.99].forEach((f, i) => this.tone(f, i * 0.3, 3, 0.022));
       if (event.phase === 'open') [783.99, 1046.5, 1318.5, 1568].forEach((f, i) => this.tone(f, i * 0.14, 1.6, 0.028));
-      if (event.phase === 'message') [261.63, 329.63, 392].forEach(f => this.tone(f, 0, 4, 0.012));
+      if (event.phase === 'message') [261.63, 329.63, 392].forEach(f => this.tone(f, 0, 14, 0.012));
+      if (event.phase === 'out') [523.25, 783.99].forEach(f => this.tone(f, 0, 1.4, 0.009));
     }
   }
   endCeremony() { const at = this.context.currentTime; this.music.gain.cancelScheduledValues(at); this.music.gain.setTargetAtTime(0.24, at, 1); }
@@ -128,7 +137,7 @@ export class TvAudioEngine {
   }
   dispose() {
     this.disposed = true; this.silence(); clearInterval(this.timer);
-    this.decks.forEach(d => { d.el.onerror = null; d.el.removeAttribute('src'); d.el.load(); d.source.disconnect(); d.gain.disconnect(); });
+    this.decks.forEach(d => { d.el.onerror = null; d.el.onended = null; d.el.removeAttribute('src'); d.el.load(); d.source.disconnect(); d.gain.disconnect(); });
     this.music.disconnect(); this.master.disconnect(); void this.context.close().catch(() => {});
   }
 }
