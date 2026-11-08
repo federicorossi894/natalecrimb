@@ -88,3 +88,11 @@
 - [x] TV: cerimonia delle 12:00 (zoom, apertura, messaggio, ritorno), una volta al giorno
 - [x] /tv-preview?modo=calendario: giorno 1–24, simula/pausa/salti di fase
 - [ ] Prova su TV fisica della cerimonia — awaits the casetta screen
+
+## Area volontari con password condivisa (8 nov 2026)
+- [x] Login Nome e cognome + password comune verificata solo sul server (PBKDF2), cookie HttpOnly 12h, logout, rate limit, registro nomi
+- [x] Solo lettura QR, conferma QR e pallina manuale; moderazione, Gmail QA e pagamenti restano fuori
+- [x] volontari.natale.crimonza.org → / apre /volontari (solo quell'host)
+- [ ] Collegare il sottodominio in Impostazioni → Domini (NON primario) e far creare i record DNS a chi gestisce crimonza.org — attende il Comitato
+- [ ] Prova reale con la password vera su due telefoni + TV — attende il proprietario (unico a conoscere la password)
+- [ ] QR auguri con password condivisa — non approvato

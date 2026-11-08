@@ -1,9 +1,7 @@
 import { CAMPAIGN } from "@/lib/campaign";
-import { campaignRpc } from "@/lib/campaign-rpc";
-import { createFileRoute } from "@tanstack/react-router";
-import { ClientOnly } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
 import {
   Camera,
   CheckCircle2,
@@ -16,10 +14,10 @@ import {
   RotateCcw,
   ScanLine,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
-import { AuthBox } from "@/components/xmas/AuthBox";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS, type OrnamentKind } from "@/lib/data";
 import { EmailStudio } from "@/components/xmas/PostDonation";
@@ -32,7 +30,7 @@ import {
   type DeskLookup,
 } from "@/lib/volunteer-demo";
 import { WishTokenDesk } from "@/components/xmas/WishWall";
-import { createDemoWishApi, createWishToken, realWishApi } from "@/lib/wishes";
+import { createDemoWishApi } from "@/lib/wishes";
 import {
   DESK_METHOD_LABEL,
   euro,
@@ -43,23 +41,20 @@ import {
   projectForKind,
   type DeskMethod,
 } from "@/lib/cash";
+import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc } from "@/lib/volunteer-session.functions";
 
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
 
 export const Route = createFileRoute("/volontari")({
   head: () => ({
     meta: [
-      { title: "Area volontari (demo) – CRI Monza" },
+      { title: "Area volontari · CRI Monza" },
       {
         name: "description",
-        content:
-          "Area riservata ai volontari della casetta CRI per confermare i regali in contanti (demo).",
+        content: "Area riservata ai volontari della casetta CRI Monza per confermare i regali alla casetta.",
       },
-      { property: "og:title", content: "Area volontari · demo" },
-      {
-        property: "og:description",
-        content: "Area riservata ai volontari della casetta CRI Monza.",
-      },
+      { property: "og:title", content: "Area volontari · CRI Monza" },
+      { property: "og:description", content: "Area riservata ai volontari della casetta CRI Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
@@ -68,53 +63,65 @@ export const Route = createFileRoute("/volontari")({
   component: Volontari,
 });
 
+type Me = { name: string; expiresAt: string } | null;
+
 function Volontari() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [ready, setReady] = useState(false);
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const me = useServerFn(volunteerMe);
+  const login = useServerFn(volunteerLogin);
+  const logout = useServerFn(volunteerLogout);
+  const rpc = useServerFn(volunteerRpc);
+  const [user, setUser] = useState<Me | undefined>(undefined);
   const [localPresentation, setLocalPresentation] = useState(false);
-  const [view, setView] = useState<"home" | "scan" | "manual" | "wish">("home");
+  const [view, setView] = useState<"home" | "scan" | "manual">("home");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setReady(true);
-    });
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
-  useEffect(() => {
-    if (!session) {
-      setAllowed(null);
-      return;
+    me().then(setUser, () => setUser(null));
+  }, [me]);
+  const api = useMemo(() => sharedApi((n, a) => rpc({ data: { name: n, args: a } }), () => setUser(null)), [rpc]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setErr("");
+    try {
+      const r = await login({ data: { name, password } });
+      if (r.ok) {
+        setPassword("");
+        setUser({ name: r.name, expiresAt: r.expiresAt });
+      } else setErr(r.error);
+    } catch {
+      setErr("Accesso momentaneamente non disponibile.");
+    } finally {
+      setBusy(false);
     }
-    setAllowed(null);
-    let active = true;
-    void supabase.rpc("is_volunteer").then(({ data, error }) => {
-      if (active) setAllowed(!error && !!data);
-    });
-    return () => {
-      active = false;
-    };
-  }, [session]);
+  };
 
   return (
     <Shell hidePiazzaPill>
-      <PageHead kicker="DEMO · Area riservata" title="Casetta CRI · volontari" />
+      <PageHead kicker={CAMPAIGN.demo ? "DEMO · nessun incasso reale" : "Area riservata"} title="Area volontari · CRI Monza" />
       <section className="mx-auto max-w-lg px-4 pb-16">
-        {!ready ? null : !session ? (
+        {user === undefined ? null : !user ? (
           <>
-            <div className="mb-5 border-b pb-5">
-              <h2 className="font-display text-2xl">DEMO condivisa · due telefoni + TV</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Contanti e POS simulati, palline salvate sull’albero DEMO condiviso. Accesso
-                riservato ai volontari abilitati dal Comitato.
-              </p>
-            </div>
-            <AuthBox
-              title="Accedi alla DEMO condivisa"
-              returnPath="/volontari"
-              roleName="volontario"
-            />
+            <form onSubmit={submit} className="glass grid gap-4 rounded-3xl p-5" data-testid="volunteer-login">
+              <div className="grid gap-1.5">
+                <Label htmlFor="vol-name">Nome e cognome</Label>
+                <Input id="vol-name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="vol-pass">Password</Label>
+                <Input id="vol-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} maxLength={200} required />
+              </div>
+              {err && <p className="text-sm text-destructive" role="alert">{err}</p>}
+              <Button type="submit" size="lg" disabled={busy}>{busy ? "Verifica…" : "Entra"}</Button>
+              {CAMPAIGN.demo && (
+                <p className="text-xs text-muted-foreground">
+                  DEMO condivisa · due telefoni + TV: contanti e POS simulati, nessun incasso reale.
+                </p>
+              )}
+            </form>
             {CAMPAIGN.demo && (
               <div className="mt-8 border-t pt-5">
                 <Button
@@ -123,9 +130,7 @@ function Volontari() {
                   className="h-auto w-full whitespace-normal py-3"
                 >
                   <Presentation />
-                  {localPresentation
-                    ? "Chiudi presentazione locale"
-                    : "Presentazione locale · un solo telefono"}
+                  {localPresentation ? "Chiudi presentazione locale" : "Presentazione locale · un solo telefono"}
                 </Button>
                 {localPresentation && (
                   <div className="mt-4">
@@ -135,34 +140,31 @@ function Volontari() {
               </div>
             )}
           </>
-        ) : allowed === null ? null : !allowed ? (
-          <div className="glass rounded-2xl p-5 text-sm">
-            <p>
-              Sei connesso come <b>{session.user.email}</b>, ma il tuo account non ha ancora il
-              ruolo di volontario.
-            </p>
-            <p className="mt-2 text-muted-foreground">
-              Chiedi a un amministratore del Comitato di abilitarti.
-            </p>
-            <button onClick={() => supabase.auth.signOut()} className="mt-3 text-xs underline">
-              Esci
-            </button>
-          </div>
         ) : (
           <>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Volontario: {session.user.email}</span>
-              <button onClick={() => supabase.auth.signOut()} className="underline">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span data-testid="volunteer-name">Accesso come <b>{user.name}</b></span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await logout().catch(() => undefined);
+                  setUser(null);
+                  setView("home");
+                }}
+              >
                 Esci
-              </button>
+              </Button>
             </div>
-            <div className="mt-4 border-b pb-4">
-              <h2 className="font-display text-2xl">DEMO condivisa · due telefoni + TV</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Nessun incasso reale, nessun POS collegato. Le conferme aggiungono una sola pallina
-                persistente all’albero DEMO condiviso.
-              </p>
-            </div>
+            {CAMPAIGN.demo && (
+              <div className="mt-4 border-b pb-4">
+                <h2 className="font-display text-2xl">DEMO condivisa · due telefoni + TV</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Nessun incasso reale, nessun POS collegato. Le conferme aggiungono una sola pallina
+                  persistente all’albero DEMO condiviso.
+                </p>
+              </div>
+            )}
             {view === "home" && (
               <div className="mt-5 grid gap-3">
                 <button
@@ -172,55 +174,25 @@ function Volontari() {
                   <ScanLine className="h-9 w-9 shrink-0" />
                   <span>
                     <span className="block font-display text-2xl">Scansiona QR</span>
-                    <span className="text-sm opacity-90">
-                      Regalo in contanti prenotato dal telefono
-                    </span>
+                    <span className="text-sm opacity-90">Regalo in contanti prenotato dal telefono</span>
                   </span>
                 </button>
-                <button
-                  onClick={() => setView("manual")}
-                  className="glass flex items-center gap-4 rounded-3xl p-6 text-left"
-                >
+                <button onClick={() => setView("manual")} className="glass flex items-center gap-4 rounded-3xl p-6 text-left">
                   <PlusCircle className="h-9 w-9 shrink-0 text-gold" />
                   <span>
-                    <span className="block font-display text-2xl">
-                      Inserisci pallina manualmente
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      Per chi dona alla casetta senza telefono
-                    </span>
+                    <span className="block font-display text-2xl">Inserisci pallina</span>
+                    <span className="text-sm text-muted-foreground">Per chi dona alla casetta senza telefono</span>
                   </span>
                 </button>
-                {CAMPAIGN.volunteerPurchaseWishQR && (
-                  <button
-                    onClick={() => setView("wish")}
-                    className="glass flex items-center gap-4 rounded-3xl p-6 text-left"
-                    data-testid="desk-wish"
-                  >
-                    <PenLine className="h-9 w-9 shrink-0 text-gold" />
-                    <span>
-                      <span className="block font-display text-2xl">Acquisto alla casetta</span>
-                      <span className="text-sm text-muted-foreground">
-                        QR monouso per un augurio sul Muro
-                      </span>
-                    </span>
-                  </button>
-                )}
               </div>
             )}
             {view !== "home" && (
-              <button
-                onClick={() => setView("home")}
-                className="mt-5 text-sm text-muted-foreground underline"
-              >
+              <button onClick={() => setView("home")} className="mt-5 text-sm text-muted-foreground underline">
                 ← Torna alla dashboard
               </button>
             )}
-            {view === "scan" && <ScanFlow api={realApi} />}
-            {view === "manual" && <ManualFlow api={realApi} />}
-            {view === "wish" && CAMPAIGN.volunteerPurchaseWishQR && (
-              <WishTokenDesk create={createWishToken} api={realWishApi} />
-            )}
+            {view === "scan" && <ScanFlow api={api} />}
+            {view === "manual" && <ManualFlow api={api} />}
           </>
         )}
       </section>
@@ -229,36 +201,40 @@ function Volontari() {
 }
 
 type Lookup = DeskLookup;
-const realApi: DeskApi = {
-  async lookup(code) {
-    const { data, error } = await campaignRpc("cash_request_lookup", {
-      _code: normalizeCode(code),
-    });
-    if (error) throw new Error(error.message);
-    return data?.[0] ?? null;
-  },
-  async confirm(code, method) {
-    const { data, error } = await campaignRpc("confirm_cash_request", {
-      _code: normalizeCode(code),
-      _method: method,
-    });
-    if (error) throw new Error(error.message);
-    const r = data?.[0];
-    return { result: r?.result ?? "not_found", ornament_status: r?.ornament_status ?? null };
-  },
-  async add(i) {
-    const { data, error } = await campaignRpc("volunteer_add_ornament", {
-      _kind: i.kind,
-      _amount_cents: i.amount_cents,
-      _method: i.method,
-      _firma: i.consent ? i.firma : "",
-      _dedica: i.consent ? i.dedica : "",
-      _consent: i.consent,
-    });
-    if (error) throw new Error(error.message);
-    return { status: data?.[0]?.status ?? "pending", id: data?.[0]?.id ?? null };
-  },
-};
+type Call = (name: "cash_request_lookup" | "confirm_cash_request" | "volunteer_add_ornament", args: Record<string, string | number | boolean>) => Promise<unknown>;
+/** Shared-password session API: identity comes from the HttpOnly cookie on the server, never from args. */
+export function sharedApi(call: Call, onExpired: () => void): DeskApi {
+  const run = async <T,>(n: Parameters<Call>[0], a: Parameters<Call>[1]) => {
+    try {
+      return (await call(n, a)) as T;
+    } catch (e) {
+      if (e instanceof Error && /Sessione scaduta/.test(e.message)) onExpired();
+      throw e;
+    }
+  };
+  return {
+    async lookup(code) {
+      const data = await run<Lookup[]>("cash_request_lookup", { _code: normalizeCode(code) });
+      return data?.[0] ?? null;
+    },
+    async confirm(code, method) {
+      const data = await run<{ result: string; ornament_status: string | null }[]>("confirm_cash_request", { _code: normalizeCode(code), _method: method });
+      const r = data?.[0];
+      return { result: r?.result ?? "not_found", ornament_status: r?.ornament_status ?? null };
+    },
+    async add(i) {
+      const data = await run<{ id: string; status: string }[]>("volunteer_add_ornament", {
+        _kind: i.kind,
+        _amount_cents: i.amount_cents,
+        _method: i.method,
+        _firma: i.consent ? i.firma : "",
+        _dedica: i.consent ? i.dedica : "",
+        _consent: i.consent,
+      });
+      return { status: data?.[0]?.status ?? "pending", id: data?.[0]?.id ?? null };
+    },
+  };
+}
 const RESULT_TEXT = {
   confirmed: "Regalo confermato: la pallina è stata appesa all'albero condiviso.",
   already_confirmed:
