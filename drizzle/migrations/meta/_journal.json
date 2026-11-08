@@ -71,6 +71,13 @@
       "when": 1794062627713,
       "tag": "0009_campaign_demo_moderation_server_only",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794131854384,
+      "tag": "0010_live_donation_checkout_and_atomic_ornaments",
+      "breakpoints": true
     }
   ]
 }
