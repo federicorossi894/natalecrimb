@@ -1,5 +1,5 @@
 import { CAMPAIGN } from "@/lib/campaign";
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
 import { useCasettaEventsStatus, formatEventWhen } from '@/lib/events';
@@ -16,6 +16,8 @@ import { usePublicWishes, wallWishes, DEMO_WISHES, type PublicWish } from '@/lib
 import { layoutWall, DEFAULT_SIGNATURE } from '@/lib/tv-wall';
 import { storyOrnaments, storyPriority } from '@/lib/tv-storytelling';
 import { useTvStorytelling } from './useTvStorytelling';
+import { TvAudio } from './TvAudio';
+import type { CeremonyPhase } from './AdventCeremony';
 
 /** Silent director: every scene keeps the tree, the QR and the CRI signature on screen. */
 export type TvScene = 'invito' | 'passi' | 'attivita' | 'casetta' | 'dedica' | 'auguri';
@@ -44,6 +46,8 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const { wishes, loaded: wishesLoaded, error: wishesError } = usePublicWishes(60_000);
   const [calendarError, setCalendarError] = useState(false);
   const [ceremonyPlaying, setCeremonyPlaying] = useState(false);
+  const [audioPhase, setAudioPhase] = useState<{ key: string; phase: string } | null>(null);
+  const onAudioPhase = useCallback((day: number, phase: CeremonyPhase) => setAudioPhase({ key: `door-${day}`, phase }), []);
   const ceremonyRef = useRef(false);
   const arrivalQueue = useRef<TreeOrnament[]>([]);
   const wishesRef = useRef<PublicWish[]>(wishes);
@@ -244,7 +248,12 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
       </header>
 
-      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} onPlayingChange={playing => { ceremonyRef.current = playing; setCeremonyPlaying(playing); }} onHealthChange={setCalendarError} />
+      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} onPlayingChange={playing => { ceremonyRef.current = playing; setCeremonyPlaying(playing); }} onHealthChange={setCalendarError} onAudioPhase={onAudioPhase} />
+      <TvAudio cue={{
+        arrival: priority === 'arrival' && currentArrival ? String(currentArrival.id) : null,
+        dedication: priority === 'dedication' && dedication ? String(dedication.id) : story.content?.dedication && story.focusing ? String(story.content.ornament.id) : null,
+        ceremony: priority === 'ceremony' ? audioPhase : null,
+      }} />
 
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>

@@ -241,6 +241,12 @@
 @keyframes tv-arrive-pulse { 0% { opacity: 0; transform: scale(.6); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes tv-arrive-pop { 0% { opacity: 0; transform: translateY(-3cqw) scale(.4) rotate(-12deg); } 70% { opacity: 1; transform: translateY(0) scale(1.08) rotate(4deg); } 100% { transform: none; } }
 .tv-scene, .tv-scene * { cursor: none; }
+.tv-audio { position: absolute; z-index: 12; left: 3cqw; bottom: 7.5cqw; display: flex; align-items: center; gap: .7cqw; }
+.tv-scene .tv-audio-button, .tv-scene .tv-audio-button * { cursor: pointer; }
+.tv-audio-button { height: auto; min-height: 2.6cqw; padding: .65cqw 1cqw; font-size: 1.25cqw; background: var(--scene-night); color: var(--snow); border-color: var(--scene-gold); }
+.tv-audio-button svg { width: 1.5cqw; height: 1.5cqw; }
+.tv-audio-status { font-size: .95cqw; padding: .4cqw .65cqw; background: var(--scene-night); color: var(--scene-gold); border-radius: 4px; }
+.tv-audio.is-compact .tv-audio-button span { display: none; }
 /* Editorial stories occupy only the existing right scene slot: never the permanent QR or brand. */
 .tv-story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; z-index: 2; pointer-events: none; animation: tv-story-in 1.6s ease backwards; transition: opacity 1.8s ease; }
 .tv-story.is-leaving { opacity: 0; animation: tv-story-out 1.8s ease both; }

@@ -74,6 +74,13 @@ export class TvAudioEngine {
   }
   private tick() {
     if (!this.enabled || this.disposed || this.starting) return;
+    if (this.fadedUntil && this.context.currentTime >= this.fadedUntil) {
+      this.fadedUntil = 0;
+      const old = 1 - this.current, deck = this.decks[old];
+      if (deck) { deck.el.pause(); deck.gain.gain.setValueAtTime(0, this.context.currentTime); }
+      this.trackIds[old] = undefined;
+      this.load(old);
+    }
     const a = this.decks[this.current], next = 1 - this.current, b = this.decks[next];
     if (!a || !b || !this.trackIds[next] || !Number.isFinite(a.el.duration) || a.el.paused) return;
     if (a.el.duration - a.el.currentTime > AUDIO_CROSSFADE_SECONDS || this.context.currentTime < this.fadedUntil) return;
