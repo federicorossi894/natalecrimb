@@ -1,10 +1,10 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
-- [ ] Complete 8 November payment preflight: safe foreign webhook handling, effective return origin, bounded recovery, isolated-access feasibility and read-only PayPal listener audit; blockers must be evidenced, no charges/publication.
+- [x] 8 November preflight code/tests: foreign webhook no-op, effective return origin, paid postcard, PayPal missing custom_id fallback, SumUp transaction identity, isolated PostgreSQL validation and read-only listener/accessibility audit; see docs/PAYMENT_PREFLIGHT.md.
 - [x] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery endpoint, mock-only regression suite and manual procedure; all LIVE readiness unchanged/false.
 - [x] Securely connect SumUp and store PayPal credentials; verify authentication without payments, retain DEMO and deny LIVE execution.
 - [x] Implement SumUp/PayPal real checkout, server verification, idempotent isolated LIVE ornaments and tree reads for all three LIVE modes; DEMO unchanged, no charges/publication.
-- [ ] Payment operational verification — awaits authorized publication, PayPal events/webhook setup, provider validation and authorized payment/TV test; recovery schedule activation/execution-budget validation and LIVE postcard-return integration remain blocked.
+- [ ] Payment operational verification — blocked by verified isolated HTTPS staging/access/callbacks and recovery execution budget, coordinated shared-key rotation, then authorized 5 EUR per provider + two-phone/TV test. No staging, listener or schedule falsely marked ready; paid postcard-return completed.
 - [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
 - [ ] Real single-event email delivery/scheduling — blocked by sender-domain setup and paid-gift implementation; no sender, queue or schedule fabricated.

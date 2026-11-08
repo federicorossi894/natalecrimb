@@ -350,7 +350,12 @@ export async function handlePaypalWebhook(request: Request) {
       resource: z.object({
         id: z.string().min(1).max(100).optional(),
         supplementary_data: z
-          .object({ related_ids: z.object({ order_id: z.string().max(100).optional(), capture_id: z.string().max(100).optional() }) })
+          .object({
+            related_ids: z.object({
+              order_id: z.string().max(100).optional(),
+              capture_id: z.string().max(100).optional(),
+            }),
+          })
           .optional(),
       }),
     })
@@ -379,9 +384,13 @@ export async function handlePaypalWebhook(request: Request) {
   if (!orderId && !approved && !approvalReversed && captureId) {
     // Foreign shared-app refund/capture payloads need not contain an order ID.
     // Only our persisted capture identity can authorize any further provider read.
-    const { data: own, error: lookupError } = await supabaseAdmin.from('live_donations')
-      .select('provider_id').eq('provider','paypal').eq('provider_payment_id',captureId).maybeSingle();
-    if (lookupError) throw new Error('Registro non disponibile.');
+    const { data: own, error: lookupError } = await supabaseAdmin
+      .from("live_donations")
+      .select("provider_id")
+      .eq("provider", "paypal")
+      .eq("provider_payment_id", captureId)
+      .maybeSingle();
+    if (lookupError) throw new Error("Registro non disponibile.");
     orderId = own?.provider_id ?? undefined;
   }
   if (!orderId) return;

@@ -155,15 +155,25 @@ afterEach(() => {
 const captures = () => fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/capture"));
 
 describe("Mock-only pre-live hardening", () => {
-  it('foreign refunded capture without an order ID is acknowledged without any settlement read/write', async () => {
+  it("foreign refunded capture without an order ID is acknowledged without any settlement read/write", async () => {
     db.from.mockImplementation(() => {
-      const q = { select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn(async () => ({ data: null, error: null })) };
-      q.select.mockReturnValue(q); q.eq.mockReturnValue(q); return q;
+      const q = {
+        select: vi.fn(),
+        eq: vi.fn(),
+        maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      };
+      q.select.mockReturnValue(q);
+      q.eq.mockReturnValue(q);
+      return q;
     });
-    const req = webhook('PAYMENT.CAPTURE.REFUNDED');
-    const event = await req.json(); delete event.resource.supplementary_data;
-    await handlePaypalWebhook(new Request(req.url, { method: 'POST', headers: req.headers, body: JSON.stringify(event) }));
-    expect(db.rpc).not.toHaveBeenCalled(); expect(captures()).toHaveLength(0);
+    const req = webhook("PAYMENT.CAPTURE.REFUNDED");
+    const event = await req.json();
+    delete event.resource.supplementary_data;
+    await handlePaypalWebhook(
+      new Request(req.url, { method: "POST", headers: req.headers, body: JSON.stringify(event) }),
+    );
+    expect(db.rpc).not.toHaveBeenCalled();
+    expect(captures()).toHaveLength(0);
     expect(fetchMock.mock.calls).toHaveLength(2);
   });
   it("capture without custom_id is confirmed only after a fresh matching order GET", async () => {

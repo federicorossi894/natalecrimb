@@ -41,13 +41,15 @@ Dati separati `live_donations` e `live_ornaments`, conferma service-only con loc
 
 **Stato:** DEMO attiva. `implemented=true`, `configured=true` per entrambi i provider; `liveData=true`; `payments=false` e `webhookVerified=false` finché manca verifica operativa. Tutte e tre le modalità LIVE usano il medesimo checkout verificato, non simulatori. Nessun pagamento reale, ordine reale, pubblicazione o nuova credenziale richiesta.
 
+**Aggiornamento vincolante 8 novembre:** vedere [PAYMENT_PREFLIGHT.md](./PAYMENT_PREFLIGHT.md) per evidenze attuali, indirizzi non raggiungibili e runbook. I passi seguenti non costituiscono staging già disponibile.
+
 **Passaggi manuali prima degli incassi:**
-1. Ruotare le chiavi incollate in chat e aggiornare i collegamenti protetti, prima della pubblicazione autorizzata.
-2. Pubblicare gli endpoint solo con autorizzazione. SumUp riceve automaticamente return_url `https://natalecrimb.lovable.app/api/public/sumup-webhook`; verificare abilitazione checkout online/hosted e conto destinatario. Merchant code letto dal conto autenticato, non inventato.
-3. PayPal Developer → app LIVE collegata → Webhooks: URL `https://natalecrimb.lovable.app/api/public/paypal-webhook`, eventi `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.PENDING`, `PAYMENT.CAPTURE.DENIED`, `PAYMENT.CAPTURE.REVERSED`; salvare il suo ID nel secret `PAYPAL_WEBHOOK_ID`. Nessuna credenziale letta o modificata in questo intervento.
+1. Coordinare la rotazione delle chiavi incollate in chat in Natale **e gala**, senza revocarle unilateralmente.
+2. Rendere raggiungibile un'origine isolata solo con autorizzazione. SumUp riceve automaticamente return_url sull'origine effettiva validata; nessuna registrazione globale. Merchant code letto dal conto autenticato, non inventato.
+3. Registrare un listener PayPal Natale solo su URL verificato raggiungibile; non riusare ID gala. Includere anche `CHECKOUT.PAYMENT-APPROVAL.REVERSED`, separato dagli eventi capture reversal/refund; salvare ID esatto in `PAYPAL_WEBHOOK_ID`. Al controllo API esiste soltanto listener gala.
 4. Prova finale autorizzata ≥5 €: checkout, ritorno/capture, webhook, replay, annullamento, stessa pallina su telefono B e TV. Solo dopo aggiornare readiness globale e provider verificati e attivare la modalità richiesta. I mock non dimostrano operatività in produzione.
 
-**Limiti residui:** nessun addebito/test provider reale; replay e concorrenza applicativa testati con mock, non con incassi né concorrenza DB reale. Recupero implementato ma non schedulato/operativo; creazioni PayPal senza ID e capture ambigue richiedono revisione manuale come sotto. Cartolina esistente ancora da collegare al ritorno LIVE; email reale resta non configurata. Cancellare lo storage perde accesso privato ma non la pallina persistente. Nessuna ricevuta fiscale inventata. Minimo 5 €, euro interi fino a 1000 €.
+**Limiti residui:** nessun addebito/test provider reale; conferma SQL verificata anche con PostgreSQL in memoria, non contesa multi-worker Cloud. Recupero implementato ma non schedulato/operativo; creazioni PayPal senza ID e capture ambigue richiedono revisione manuale come sotto. Cartolina collegata al ritorno LIVE verificato; email reale resta non configurata. Cancellare lo storage perde accesso privato ma non la pallina persistente. Nessuna ricevuta fiscale inventata. Minimo 5 €, euro interi fino a 1000 €.
 
 ### Hardening pre-LIVE: capture e recupero (8 novembre 2026)
 **BASIC non pronto.** DEMO attiva, `LIVE_READINESS.payments=false`, entrambi i `webhookVerified=false`. Non sono state chiamate API reali, creati ordini, letti/ruotati segreti o attivati job.
