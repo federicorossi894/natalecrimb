@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { advanceStory, initialStory, storyContent, storyDelay, storyOrnaments, storyPriority, STORY_ID_COOLDOWN_MS, STORY_KINDS, STORY_MS } from '@/lib/tv-storytelling';
-import { tvCameraFrame } from '@/lib/tv-camera';
+import { easeTvCamera, tvCameraFrame } from '@/lib/tv-camera';
 import { useTvStorytelling } from '@/components/xmas/useTvStorytelling';
 import type { TreeOrnament } from '@/lib/data';
 
@@ -96,9 +96,8 @@ describe('public TV cinematic director', () => {
   it('cleans the hook timer and immediately clears content on priority/error changes with fake clocks', () => {
     vi.useFakeTimers();
     const hook=renderHook(({priority,error})=>useTvStorytelling(rows,priority,error,true,false),{initialProps:{priority:'editorial' as 'editorial'|'wall',error:false}});
-    act(()=>vi.advanceTimersByTime(60_000));
-    // Inspect within the first focus instead of after its 10-second ending.
-    act(()=>vi.advanceTimersByTime(45_000));
+    act(()=>vi.advanceTimersByTime(initialStory(0).nextAt+500));
+    expect(hook.result.current.content).not.toBeNull();
     hook.rerender({priority:'wall',error:false});
     expect(hook.result.current.content).toBeNull();
     hook.rerender({priority:'editorial',error:true});
@@ -113,7 +112,17 @@ describe('public TV cinematic director', () => {
     const legacy=tvCameraFrame(h,0,[0,1,1],false);
     const editorial=tvCameraFrame(h,0,[0,1,1],true);
     expect(legacy.position[2]-1).toBe(4);
-    expect(editorial.position[2]-1).toBeCloseTo(2.1);
+    expect(editorial.position[2]-1).toBeCloseTo(2.8);
     expect(editorial.look).toEqual([0,1,1]);
+  });
+  it('travels around rather than through the canopy and converges smoothly on return', () => {
+    let p: [number,number,number]=[0,2,6];
+    for(let i=0;i<180;i++) {
+      const next=easeTvCamera(p,[0,1,-3],1/60);
+      expect(Math.hypot(next[0],next[2])).toBeGreaterThanOrEqual(3);
+      expect(Math.hypot(next[0]-p[0],next[1]-p[1],next[2]-p[2])).toBeLessThan(0.5);
+      p=next;
+    }
+    expect(p[2]).toBeLessThan(-2.9);
   });
 });

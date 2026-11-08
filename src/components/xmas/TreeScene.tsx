@@ -8,7 +8,7 @@ import type { TreeOrnament } from '@/lib/data';
 import { ornamentAnchor, treeHeight } from '@/lib/tree-layout';
 import { IllustratedTree } from './TreeStage';
 import { TV_GPU_RECOVERY } from '@/lib/tv-reliability';
-import { tvCameraFrame, type CameraPoint } from '@/lib/tv-camera';
+import { easeTvCamera, tvCameraFrame, type CameraPoint } from '@/lib/tv-camera';
 
 type Palette = ScenePalette;
 const PALETTE_KEYS = ['night','fir','needle','bark','gold','red','snow','ground','rim','ivory','burgundy','forest','crimson'] as const;
@@ -47,15 +47,15 @@ function CameraRig({height,selected,index,count,tv,reduced,resetKey,editorialFoc
   useEffect(()=>{ const stop=()=>{moving.current=true;};gl.domElement.addEventListener('pointerdown',stop);return()=>gl.domElement.removeEventListener('pointerdown',stop);},[gl]);
   useFrame((_,delta)=>{
     if(!tv)return;
-    const dt=Math.min(delta,0.05);
+    const dt=Math.min(delta,0.25);
     if(!reduced && !cameraSuspended){
       if(!selected)clock.current+=dt;
       const p=selected?ornamentAnchor(selected,height,index,count) as CameraPoint:null;
       const frame=tvCameraFrame(height,clock.current,p,!!editorialFocus);
       target.fromArray(frame.position);lookDesired.fromArray(frame.look);
       // Both position AND lookAt ease, including return; no selection-change effect can snap the TV camera.
-      const ease=1-Math.exp(-1.15*dt);
-      camera.position.lerp(target,ease);look.lerp(lookDesired,ease);camera.lookAt(look);
+      const ease=1-Math.exp(-1.35*dt);
+      camera.position.fromArray(easeTvCamera(camera.position.toArray() as CameraPoint,frame.position,dt));look.lerp(lookDesired,ease);camera.lookAt(look);
     }
     // Public numeric diagnostics, sampled without React renders, for camera/soak verification.
     probeAt.current+=dt;
