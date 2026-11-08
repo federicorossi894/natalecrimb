@@ -83,6 +83,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
           <p className="font-display text-xl">Il Natale <em className="text-gold">che fa bene</em></p>
           <p className="text-sm text-muted-foreground">Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</p>
           <a href={CRI.site} target="_blank" rel="noreferrer" className="text-sm text-gold underline-offset-4 hover:underline">crimonza.org</a>
+          <Link to="/crediti-musica" className="text-sm text-gold underline-offset-4 hover:underline">Crediti musicali</Link>
           <ul className="mt-1 flex items-center gap-1">
             {CRI.social.map((s) => {
               const I = SOCIAL_ICON[s.name as keyof typeof SOCIAL_ICON];

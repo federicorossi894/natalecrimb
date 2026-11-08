@@ -1,5 +1,5 @@
-# TV audio assets — not ready
+# Licensed TV music assets
 
-There are **zero music files** here, not silent placeholder tracks. The manifest is `src/lib/tv-audio-manifest.ts` and is intentionally empty and inactive. The UI says “Musica in preparazione”; only original synthesized visible-event effects can be enabled with the explicit audio button.
+15 distinct Kevin MacLeod recordings, 64:03.915 measured duration, actually acquired from official Incompetech downloads on 2026-11-08. The `.mp3.asset.json` files point to project-owned immutable static files, not external composer hotlinks. This platform stores binary media outside the repository; no pretend MP3 files or short repeated loops are used.
 
-Before adding any track: acquire its actual file, verify artist/title/runtime, listen for voices/watermarks/imitated well-known melodies, retain source and licence evidence and Committee physical-venue approval, normalize loudness with true-peak headroom, record the manifest entry, and verify the actual served file. No hotlinks or competing music-library redistribution. At least 15 distinct tracks and 55–60 minutes must be verified before the catalogue gate can open. See docs/TV_AUDIO_2026-11-08.md.
+The manifest is src/lib/tv-audio-manifest.ts. Public title-by-title attribution and CC BY 4.0 links: /crediti-musica. Evidence and hashes: docs/music-evidence/CATALOGUE.md. Encoding/loudness normalization is disclosed. One explicit click starts the DEMO listening session; reload starts silent. Committee Italian public performance/related rights and printed event-programme attribution remain unverified; do not describe this as SIAE-exempt.

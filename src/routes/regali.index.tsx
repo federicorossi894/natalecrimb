@@ -18,7 +18,13 @@ export const Route = createFileRoute("/regali/")({
       { property: "og:description", content: "Quattro regali concreti per le persone che vivono a Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
+      { property: "og:url", content: "https://natalecrimb.lovable.app/regali" },
     ],
+    links: [{ rel: "canonical", href: "https://natalecrimb.lovable.app/regali" }],
   }),
   component: Regali,
 });

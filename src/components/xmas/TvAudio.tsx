@@ -68,6 +68,7 @@ export function TvAudio({ cue }: { cue: TvAudioCue }) {
       <span>{active ? ready ? 'Audio attivo' : 'Effetti attivi' : 'Attiva audio'}</span>
     </Button>
     {!ready && <span className="tv-audio-status" role="status">Musica in preparazione</span>}
+    {ready && <a href="/crediti-musica" target="_blank" rel="noreferrer" className="tv-audio-status" title="Crediti musicali e condizioni per la diffusione pubblica">Musica: Kevin MacLeod · CC BY 4.0</a>}
     {notice && <span className="tv-audio-status" role="status">{notice}</span>}
   </div>;
 }
