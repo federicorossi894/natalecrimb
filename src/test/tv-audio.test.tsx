@@ -102,4 +102,16 @@ describe('TV audio safety and four-hour scheduler',()=>{
     const internals=engine as unknown as {music:Node};expect(internals.music.gain.value).toBe(0.065);
     engine.endCeremony();expect(internals.music.gain.value).toBe(0.24);engine.dispose();
   });
+  it('keeps the engine at two media elements for four accelerated hours of track handovers',async()=>{
+    vi.useFakeTimers();setup();const engine=new TvAudioEngine(tracks);engine.activate();await Promise.resolve();await Promise.resolve();
+    const context=contexts[0];if(!context)throw new Error('missing context');
+    for(let seconds=0;seconds<14400;seconds+=236){
+      const state=engine as unknown as {current:number};const playing=media[state.current];if(!playing)throw new Error('missing deck');
+      playing.currentTime=236;vi.advanceTimersByTime(250);await Promise.resolve();
+      context.currentTime+=4.1;vi.advanceTimersByTime(250);await Promise.resolve();
+      expect(media).toHaveLength(2);expect(media.filter(m=>!m.paused)).toHaveLength(1);
+    }
+    expect(media.reduce((s,m)=>s+m.plays,0)).toBeGreaterThan(60);
+    engine.dispose();expect(vi.getTimerCount()).toBe(0);
+  });
 });
