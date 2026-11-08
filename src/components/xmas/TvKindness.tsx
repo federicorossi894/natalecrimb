@@ -17,8 +17,8 @@ export type AdventPreview = { day: number; elapsed: number };
  * A screen started or reloaded after 12:00 shows the message straight away, never the ceremony again.
  * In the preview the ceremony never starts by itself: it is driven by `advent`.
  */
-export function TvKindness({ reduced, preview = false, advent = null }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null }) {
-  const { doors, status, now, reload } = useKindnessCalendar(10 * 60_000);
+export function TvKindness({ reduced, preview = false, advent = null, onPlayingChange, onHealthChange }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null; onPlayingChange?: (playing: boolean) => void; onHealthChange?: (error: boolean) => void }) {
+  const { doors, status, error, now, reload } = useKindnessCalendar(10 * 60_000);
   const [state, setState] = useState<{ day: number; phase: CalendarPhase } | null>(null);
   const [ceremony, setCeremony] = useState<{ day: number; t0: number } | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -60,6 +60,8 @@ export function TvKindness({ reduced, preview = false, advent = null }: { reduce
   }, [ceremony, reduced]);
 
   const playing = advent ? { day: advent.day, elapsed: advent.elapsed } : ceremony ? { day: ceremony.day, elapsed } : null;
+  useEffect(() => { onPlayingChange?.(!!playing); return () => onPlayingChange?.(false); }, [!!playing, onPlayingChange]);
+  useEffect(() => { onHealthChange?.(!!error); }, [error, onHealthChange]);
   if (playing) {
     const real = doors.find((x) => x.day === playing.day);
     const door = real?.message ? real : preview ? demoDoor(playing.day) : { day: playing.day, title: null, message: null };

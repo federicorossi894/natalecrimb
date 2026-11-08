@@ -108,7 +108,7 @@ export const DEMO_UNTIL = 12;
 export const wallWishes = (real: PublicWish[]) => (!CAMPAIGN.demo || real.length >= DEMO_UNTIL ? real : [...real, ...DEMO_WISHES]);
 
 export function usePublicWishes(refreshMs = 60_000) {
-  const poll = useResilientPoll(async signal => {
+  const poll = useResilientPoll<PublicWish[]>(async signal => {
     if (!CAMPAIGN.publicWishWall) return [];
     const { data, error } = await campaignRpc('public_wishes', undefined, signal);
     if (error) throw new Error(error.message);
