@@ -146,7 +146,7 @@ export const sendDemoEmail = createServerFn({ method: "POST" })
       },
       send: (_recipient, attempt) => sendGmailQa(data.kind, attempt),
       finish: async (attempt, r) => {
-        const f = await supabaseAdmin.rpc("finish_staff_gmail_qa", { p_id: attempt, p_state: r.state, p_message: r.messageId, p_status: r.status });
+        const f = await supabaseAdmin.rpc("finish_staff_gmail_qa", { p_id: attempt, p_state: r.state, ...(r.messageId ? { p_message: r.messageId } : {}), ...(r.status !== undefined ? { p_status: r.status } : {}) });
         if (f.error) throw new Error("Esito non registrato: non ripetere, verificare la casella e il registro.");
       },
     });
