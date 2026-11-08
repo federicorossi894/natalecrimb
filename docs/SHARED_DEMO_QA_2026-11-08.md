@@ -18,24 +18,25 @@ Usare lo stesso sito/revisione su tutti i dispositivi: `https://natalecrimb.lova
 5. **A:** conferma recuperata tramite controllo ogni 5 s; aprire l’albero. **B:** aprire `/albero`. **TV:** albero/conteggio controllati ogni 15 s. Attendere un ciclo più il tempo rete; annotare qualsiasi ritardo oltre 15 s, che non può essere garantito su reti/dispositivi arbitrari.
 6. **Idempotenza:** B rilegge lo stesso QR: «già confermato», nessuna seconda pallina. Ricaricare A, B e TV: stessa pallina/conteggio. Dediche con consenso compaiono solo dopo moderazione; la prima prova anonima evita di confondere la pallina con l’approvazione del testo.
 
-## Email: autorizzazione setup oggi, invio ancora bloccato
-Destinazione unica confermata: `federico.rossi@crimonza.org`, solo nel modulo server `demo-email-qa.server.ts`; il browser non può scegliere destinatario o contenuto. `/moderazione` contiene verifica predisposizione e invio disabilitato. Endpoint richiede sessione e `is_moderator`; volontario semplice non basta.
+## Email QA Gmail — correzione 8 novembre
+- Connettore Gmail del workspace già esistente, identità verificata con GET profilo: `federico.rossi@crimonza.org`, collegato al progetto e credenziali runtime verificate HTTP 200. La seconda connessione è `grangala@crimonza.org`: non usata né modificata.
+- La connessione esistente ha send, readonly, compose e modify già concessi; nessun nuovo accesso richiesto, nessun messaggio letto. Per una nuova autorizzazione scegliere il solo scope `gmail.send` ove il modulo lo consente; il controllo profilo corrente usa il grant esistente. Non viene dichiarata una connessione send-only.
+- Nessuna nuova connessione è necessaria al momento. Se revocata/scaduta: https://lovable.dev/dashboard?connectors=&connector=google_mail&workspace=FqetqUBRBhlbcaE0ZRZ4 → Gmail → connessione di Federico → autorizzare Google con `federico.rossi@crimonza.org`, non gala. Questo account è stato verificato da Gmail, non dedotto dal dominio.
+- Da e a sempre `federico.rossi@crimonza.org`, fissati sul server. QA non richiede `natale@crimonza.org`, DNS né `officialEmailReady`; LIVE rimane bloccato dal proprio gate ufficiale.
+- Migrazione additiva 0014: audit privato staff, nessuna coda/email o schedulazione; claim globale atomico, minimo 10 minuti fra prove, massimo 3 al giorno Europe/Rome, request ID monouso, anche errori/esiti incerti consumano il budget. Tabelle/RPC solo service_role; ruolo moderator/admin ricontrollato dal server e dalla claim SQL.
 
-Il controllo Lovable Emails restituisce **nessun dominio configurato**. Non esiste mittente condiviso o di prova per le email dell’app; il mittente predefinito delle email di accesso non è utilizzabile per questa prova. `natale@crimonza.org` non è stato creato e non è verificato.
+### Procedura manuale, nessun invio eseguito durante preparazione
+1. Aprire `/moderazione` nella **anteprima aggiornata dell’editor**, con account già autorizzato moderator/admin. L’account corrente non ha tale ruolo: un amministratore del Comitato deve autorizzarlo esplicitamente; nessun ruolo assegnato qui.
+2. In «Prova email · DEMO», cliccare «Verifica Gmail». Non invia messaggi: verifica identità della connessione e accessibilità audit.
+3. Selezionare la prova: conferma informativa donazione DEMO (5 € fittizi, nessun record donazione), augurio immediato, oppure Natale **SIMULAZIONE ORARIO inviata SUBITO**. Nessuno scheduler reale viene attivato.
+4. Spuntare «Autorizzo questa email reale solo alla mia casella QA», poi «Invia prova al QA». Questo clic è l’autorizzazione manuale all’unico messaggio selezionato. Nessun From, To o contenuto arbitrario accettato dal browser.
+5. Gmail può rispondere **accettata**, non «consegnata». Controllare Posta in arrivo/spam dell’account QA e verificare From, To, soggetto `[DEMO — NESSUN PAGAMENTO]` e corpo; poi attendere almeno 10 minuti e selezionare il secondo tipo. Tre prove richiedono almeno 20 minuti.
+6. Esito incerto: non ripetere alla cieca; controllare casella e audit. Nessun reinvio automatico. La ricezione reale non è verificata finché il proprietario non la vede nella casella.
 
-Passaggi:
-1. Nell’editor usare **Configura dominio email** nella chat; il modulo avvia la configurazione effettiva, non un semplice consenso all’invio. Occorre autorizzazione del Comitato sull’uso del dominio posseduto `crimonza.org`.
-2. Seguire il modulo Lovable, poi **More → Emails** per stato e record DNS esatti. Nessun valore record è inventato qui. Il responsabile che gestisce DNS di `crimonza.org` deve inserire i record mostrati (la delega del sottodominio richiede record NS); la verifica deve completarsi. Non alterare i record email esistenti del Comitato.
-3. Il responsabile della posta del Comitato crea/approva la casella `natale@crimonza.org` separatamente: configurare il dominio d’invio non crea una casella. Verificare il From effettivo prima di dichiarare pronto il mittente ufficiale.
-4. Dopo completamento del modulo si può generare il collegamento ufficiale Lovable Emails e integrare il test fisso `demo-qa`; nessuna chiave da incollare in chat. Servono ancora adattatore gestito e limite/audit durevoli verificati prima di rendere cliccabile l’invio.
-5. Solo dopo verifica e nuova approvazione dell’invio manuale, un moderator/admin usa il test verso il destinatario unico. Oggetto e corpo `[DEMO — NESSUN PAGAMENTO]`, nessuna ricevuta fiscale, transazione, pallina o invio automatico.
-
-Preparata orchestrazione testabile con porte per claim atomica, invio e audit, massimo previsto 3 prove/giorno e intervallo 10 minuti. **Limite/audit durevoli non ancora operativi**: nessuna tabella email/queue fittizia creata e nessuna scrittura personale in produzione. Il gate resta spento anche dopo un semplice cambio flag, finché non esistono implementazione e verifica. Le porte mock non provano invii reali.
-
-## Blocchi residui
-1. Account volontario/moderatore autorizzato dal Comitato per la prova Cloud e QA: il richiedente attualmente non ha i ruoli. Nessuna promozione arbitraria.
-2. Dominio, casella/mittente e collegamento gestito email con limite/audit: il modulo va completato da chi può autorizzare il dominio e aggiornare DNS. Nessun invio effettuato.
-3. Collaudo sui due telefoni e TV fisici dopo aggiornamento pubblico: i test isolati/mocked non sostituiscono questa prova.
+### Limiti residui
+- Accesso reale alla UI staff bloccato dal ruolo mancante dell’account corrente: nessuna promozione arbitraria. UI e orchestration verificati con mock, browser desktop/mobile verifica il diniego reale.
+- Consegna/ricezione reale da verificare con i tre clic manuali autorizzati. Nessuna email inviata in questa attività.
+- Mittente ufficiale `natale@crimonza.org` e scheduler LIVE ancora separatamente non pronti; BASIC/ADVANCED restano bloccati. Nessuna pubblicazione in questa attività: la UI aggiornata è nell’anteprima, non automaticamente sul pubblico.
 
 ## Risultati automatici della release
 296 test in 26 file superati; compilazione automatica OK. Lint file modificati: zero errori, due avvisi preesistenti delle dipendenze useMemo della presentazione locale. Controlli sicurezza di base: nessun rilievo; non comprendono analisi approfondita del codice. Nessuna scrittura Cloud di prove/dati personali, nessuna email inviata, nessuna operazione provider reale.
