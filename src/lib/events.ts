@@ -1,6 +1,6 @@
 import { useResilientPoll } from './resilient-poll';
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { publicReadClient } from './public-read-client';
 
 /** Casetta events shared through Lovable Cloud. Only visible + confirmed + upcoming rows are public (RLS). */
 export type CasettaEvent = { id: string; title: string; description: string; starts_at: string; ends_at: string | null };
@@ -42,7 +42,7 @@ export function formatEventWhen(e: Pick<CasettaEvent, "starts_at" | "ends_at">) 
 
 export async function fetchUpcomingEvents(limit = 3, signal?: AbortSignal): Promise<CasettaEvent[]> {
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  const { data, error } = await publicReadClient()
     .from("casetta_events")
     .select("id,title,description,starts_at,ends_at")
     .eq("visible", true)

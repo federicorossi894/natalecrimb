@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useResilientPoll } from './resilient-poll';
-import { supabase } from "@/integrations/supabase/client";
+import { publicReadClient } from './public-read-client';
 
 /**
  * Calendario della Gentilezza. The server decides which doors are open (public.kindness_calendar uses the
@@ -84,7 +84,7 @@ export const demoDoor = (day: number): Door => ({
 export function useKindnessCalendar(refreshMs = 10 * 60_000) {
   const poll = useResilientPoll(async signal => {
     const t0 = Date.now();
-    const { data, error } = await supabase.rpc("kindness_calendar").abortSignal(signal);
+    const { data, error } = await publicReadClient().rpc("kindness_calendar").abortSignal(signal);
     const t1 = Date.now();
     if (error || !data) throw new Error('Calendar unavailable');
     const srv = data[0]?.server_now ? new Date(data[0].server_now).getTime() : t1;
