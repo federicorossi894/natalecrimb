@@ -54,6 +54,14 @@ export function ceremonyDue(prevDay: number | null, nowDay: number, phase: Calen
   return prevDay !== null && phase === "open" && nowDay >= 1 && nowDay > prevDay && lastShown !== key;
 }
 
+/** No replay after suspension or a large clock correction; only a continuously observed noon boundary. */
+export function crossedNoon(previous: Date | null, now: Date) {
+  if (!previous) return false;
+  const gap = now.getTime() - previous.getTime();
+  const r = romeParts(now);
+  return gap > 0 && gap <= 15_000 && r.month === 12 && r.day <= 24 && r.hour === CEREMONY_HOUR && r.minute === 0 && tvDay(now) > tvDay(previous);
+}
+
 
 /** Shown before 1 December so the page can be presented; clearly an example, never one of the 24 doors. */
 export const EXAMPLE_DOOR = {

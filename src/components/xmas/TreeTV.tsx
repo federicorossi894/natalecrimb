@@ -173,9 +173,12 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
 
   const active = arriving ? 'arrivo' : scene;
   const on = (s: TvScene | 'arrivo') => (active === s ? 'is-active' : '');
-  const dedication = scene === 'dedica' ? selected : null;
+  // Successful moderation refreshes redact snapshots immediately, not at the next director beat.
+  const currentSelected = publicDedications.find(o => o.id === selected?.id) ?? null;
+  const dedication = scene === 'dedica' ? currentSelected : null;
+  const currentArrival = ornaments.find(o => o.id === arriving?.id) ?? null;
   const arrivingProject = arriving ? projectOf(arriving) : undefined;
-  const wall = useMemo(() => layoutWall(wishPage, newWishIds), [wishPage, newWishIds]);
+  const wall = useMemo(() => layoutWall(wishPage.filter(w => wallSource.some(current => current.id === w.id)), newWishIds), [wishPage, wallSource, newWishIds]);
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
   // Once a fresh wish has been shown on the wall it becomes an ordinary note.
   useEffect(() => {
@@ -323,7 +326,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
                   <h2 className="font-display text-[3.2cqw] leading-[1.05]">Una nuova pallina è stata appesa!</h2>
                 </div>
                 <p className="tv-lead">{arrivingProject ? `${arrivingProject.title}: grazie!` : 'Grazie!'} La prossima potrebbe essere la tua.</p>
-                {arriving.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{arriving.dedica}”</p>}
+                {currentArrival?.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{currentArrival.dedica}”</p>}
               </div>
             )}
           </section>
