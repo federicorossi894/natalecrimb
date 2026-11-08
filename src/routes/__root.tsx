@@ -85,7 +85,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: CAMPAIGN.demo ? "Demo della campagna natalizia di Croce Rossa Italiana – Comitato di Monza." : "Campagna natalizia di Croce Rossa Italiana – Comitato di Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:locale", content: "it_IT" },
+      { property: "og:site_name", content: "Il Natale che fa bene · CRI Monza" },
     ],
     links: [
       {
@@ -94,7 +95,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico?v=20261108", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon-32.png?v=20261108", type: "image/png", sizes: "32x32" },
+      { rel: "apple-touch-icon", href: "/favicon-180.png?v=20261108", sizes: "180x180" },
     ],
   }),
   shellComponent: RootShell,

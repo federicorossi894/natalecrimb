@@ -1,4 +1,9 @@
 # CRI Monza demo — roadmap
+## Final TV, soundtrack and web identity — 8 November 19:42 UTC
+- [ ] Verify TV wish event / dedication reveal / approved arrival at 1920×1080 with isolated fixtures and public read-only observation; do not change working staff review.
+- [ ] Acquire and verify >=15 distinct instrumental tracks / >=60 unique minutes, publish credits and retain one-click/venue-rights safety.
+- [ ] Replace favicon and create static institutional CRI social banner; verify SSR metadata, assets, full tests and safe DEMO publication.
+- [x] Owner confirms real shared-password approval works; no further back-office edits authorized in this task.
 ## Dedication / wish staff review and TV reveals — 8 November 18:39 UTC
 - [x] Shared-session DEMO pending-only review migration applied, atomic/audit/rate/origin protections and persistent 4-second queue.
 - [x] Public postcards, same-ID reveal, bounded 4-second new-wish wall events and optional original snap; stories/camera preserved.
