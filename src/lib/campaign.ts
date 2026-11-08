@@ -19,10 +19,10 @@ export type OptionalReadiness = { [K in keyof typeof OPTIONAL_SERVICE_READINESS]
 export const ONLINE_PROVIDERS = ['sumup', 'paypal'] as const;
 export type OnlineProvider = typeof ONLINE_PROVIDERS[number];
 export type ProviderReadiness = Record<OnlineProvider, { implemented: boolean; configured: boolean; webhookVerified: boolean }>;
-/** All OFF: simulator labels and credential presence are not operational verification. */
+/** Credentials authenticated on 2026-11-08; checkout and confirmation remain unimplemented/unverified. */
 export const LIVE_PROVIDER_READINESS: ProviderReadiness = {
-  sumup: { implemented: false, configured: false, webhookVerified: false },
-  paypal: { implemented: false, configured: false, webhookVerified: false },
+  sumup: { implemented: false, configured: true, webhookVerified: false },
+  paypal: { implemented: false, configured: true, webhookVerified: false },
 };
 export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS, providers: ProviderReadiness = LIVE_PROVIDER_READINESS) {
   const demo = mode === 'DEMO';
