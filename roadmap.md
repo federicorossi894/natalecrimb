@@ -1,13 +1,13 @@
 # CRI Monza demo — roadmap
 ## Shared cash DEMO and authorized email preparation — 8 November
-- [ ] Make shared Cloud volunteer access primary, retain explicitly optional local presentation; verify authorization, idempotence and three-client refresh without LIVE/provider calls.
-- [ ] Confirm server-only QA recipient and prepare protected manual QA policy/template; start Lovable email domain setup, never send before setup and approval.
+- [x] Shared Cloud volunteer access primary, optional local presentation explicitly separate; isolated SQL idempotence/three fresh reads and three-reader 15-second DEMO polling/remount tests, browser role denial verified. Physical Cloud test remains blocked by authorized account below.
+- [x] Owner-confirmed server-only QA recipient, protected preparation endpoint, fixed manual template and mocked claim/audit orchestration; no real send. Domain setup form is the next owner action below.
 - [ ] Check current public release and safe DEMO publishing; report exact remaining access/setup blockers and two-phone/TV steps.
 ## Email preparation and afternoon checks — 8 November
 - [x] Independent donor confirmation opt-in, private intent/atomic attempt audit and paid-only trigger; no real send.
 - [x] Gift email templates, paid-record ownership, disabled sender state, central LIVE initialization gate and mock tests; Christmas single-event callback prepared but not scheduled.
 - [x] DEMO desktop/mobile regression, read-only TV/content checks and executable two-phone checklist; published comparison blocked by HTTP 403, physical hardware and authorized moderation remain unverified.
-- [ ] Configure official Natale mailbox/domain and managed email scaffold — requires owner setup; confirm exact QA recipient before any future send.
+- [ ] Configure official Natale mailbox/domain and managed email scaffold, durable manual QA limit/audit adapter — requires owner/domain DNS authorization; exact QA recipient confirmed, no sends before setup and approval.
 ## Campaign modes architecture
 - [x] 8 November preflight code/tests: foreign webhook no-op, effective return origin, paid postcard, PayPal missing custom_id fallback, SumUp transaction identity, isolated PostgreSQL validation and read-only listener/accessibility audit; see docs/PAYMENT_PREFLIGHT.md.
 - [x] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery endpoint, mock-only regression suite and manual procedure; all LIVE readiness unchanged/false.

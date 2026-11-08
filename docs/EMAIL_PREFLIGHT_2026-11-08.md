@@ -1,5 +1,7 @@
 # CRI Monza — email e prove pomeridiane, 8 novembre 2026
 
+> Aggiornamento successivo: vedere `SHARED_DEMO_QA_2026-11-08.md`. Il destinatario QA è ora confermato nel solo server; il pubblico risponde 200 ma ha la vecchia presentazione locale, ed è autorizzato un aggiornamento solo DEMO. Restano mancanti dominio/mittente e collegamento invio/limite/audit. Nessuna email inviata; l’account del richiedente verificato non ha ruolo volontario/moderatore.
+
 ## Stato reale
 DEMO attiva; LIVE e pagamenti provider restano OFF. Nessun invio, ordine, capture, rotazione, listener, pubblicazione o secondo progetto. Non modificato il gala. Nessuna credenziale letta in questa sessione.
 
