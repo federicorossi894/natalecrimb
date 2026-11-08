@@ -165,4 +165,8 @@ describe('Mock-only pre-live hardening', () => {
     db.rpc.mockResolvedValue({ error: {} });
     await expect(reconcileDonation(d,true)).rejects.toThrow('registro'); expect(captures()).toHaveLength(0);
   });
+  it('approved order with an already pending capture cannot emit another capture', async () => {
+    fetchMock.mockImplementation(async url => String(url).endsWith('/token') ? response({ access_token: 'test' }) : response(order('APPROVED','PENDING')));
+    expect((await reconcileDonation(d,true)).status).toBe('pending'); expect(captures()).toHaveLength(0); expect(claimed).toBe(false);
+  });
 });

@@ -86,7 +86,7 @@ export async function reconcileDonation(d: Donation, capture = false) {
   } else {
     let result = paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(d.provider_id)}`));
     if (result.id !== d.provider_id || result.purchase_units.length !== 1 || result.purchase_units[0]?.custom_id !== d.id) throw new Error('Ordine PayPal non corrispondente.');
-    if (capture && result.status === 'APPROVED') {
+    if (capture && result.status === 'APPROVED' && !result.purchase_units[0]?.payments?.captures.length) {
       // Re-check the trusted amount/reference BEFORE capture, not just after it.
       const unit = result.purchase_units[0];
       if (result.id !== d.provider_id || result.purchase_units.length !== 1 || unit?.custom_id !== d.id || unit.amount?.currency_code !== 'EUR' || decimalCents(unit.amount.value) !== d.amount_cents) throw new Error('Ordine PayPal non corrispondente.');
@@ -188,7 +188,7 @@ export async function recoverLivePayments() {
       if (!d.provider_id) throw new Error('manual');
       const result = await reconcileDonation(d, true);
       if (result.status === 'paid') counts.paid++;
-      const { error: saveError } = await supabaseAdmin.from('live_donations').update({ recovery_lease_until: null, recovery_note: result.status === 'failed' ? 'provider_terminal_review' : null }).eq('id', d.id);
+      const { error: saveError } = await supabaseAdmin.from('live_donations').update({ recovery_lease_until: null, recovery_note: result.status === 'failed' ? 'provider_terminal_review' : result.status === 'pending' && row.capture_claimed_at ? 'capture_claim_requires_review' : null }).eq('id', d.id);
       if (saveError) throw new Error('Registro non disponibile.');
     } catch (e) {
       const manual = e instanceof Error && e.message === 'manual';

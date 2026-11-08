@@ -70,6 +70,8 @@ Dati separati `live_donations` e `live_ornaments`, conferma service-only con loc
 
 Migrazione additiva `0012_live_payment_capture_claim_and_recovery.sql`: colonne di claim/recovery/esito, indice e RPC service-only; nessun record DEMO mutato, nessuna cancellazione. Mock non provano il comportamento effettivo dei provider o del runtime pubblicato: prova operativa autorizzata, configurazione eventi e verifica tempi restano obbligatorie.
 
+**Verifiche di questo hardening:** 195 test in 16 file (41 nuovi test di recupero/protezione), soltanto mock provider. Compilazione automatica verificata; browser DEMO senza chiamate provider, entrambi webhook 503, endpoint recupero senza autorizzazione 401. Schema e permessi RPC verificati in lettura: anon/autenticati esclusi, servizio autorizzato; zero donazioni/palline LIVE. Concorrenza SQL effettiva e schedule pubblicato non collaudati.
+
 ## Confini e stato realmente implementato
 - Le azioni DEMO esistenti passano da `campaign-rpc.ts` alle funzioni server; il server controlla modalità e allowlist. Le operazioni staff verificano sessione e ruolo con il client dell'operatore; il dispatcher DB ripete la verifica dell'attore.
 - La migrazione `0008_campaign_demo_server_boundary.sql` revoca l'esecuzione diretta a pubblico/anon/autenticati di tutte le RPC albero, contanti e auguri, senza eliminarle né cambiare righe. Il dispatcher è eseguibile solo dal servizio server; mantiene validazioni, consenso, scadenze e lock originali.
