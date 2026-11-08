@@ -17,6 +17,7 @@ export class TvAudioEngine {
   private fadedUntil = 0;
   private oscillators = new Set<OscillatorNode>();
   private trackIds: (string | undefined)[] = [];
+  private loadAt: number[] = [];
   onBlocked: (() => void) | undefined;
   onUnavailable: (() => void) | undefined;
   constructor(private tracks: readonly TvTrack[]) {
@@ -57,11 +58,14 @@ export class TvAudioEngine {
   private load(index: number) {
     const id = this.bag.next(this.failed), track = this.tracks.find(t => t.id === id), deck = this.decks[index];
     if (!deck || !track) return false;
+    deck.el.onerror = null;
     deck.el.pause(); deck.el.removeAttribute('src'); deck.el.load();
     this.trackIds[index] = track.id;
+    this.loadAt[index] = performance.now();
     deck.el.src = track.src;
     deck.el.onerror = () => {
       this.failed.add(track.id); this.trackIds[index] = undefined;
+      deck.el.onerror = null;
       deck.el.pause(); deck.el.removeAttribute('src'); deck.el.load();
       if (this.failed.size >= this.tracks.length) this.onUnavailable?.();
       else if (index === this.current) { this.load(index); this.start(); }
@@ -82,6 +86,9 @@ export class TvAudioEngine {
   }
   private tick() {
     if (!this.enabled || this.disposed || this.starting) return;
+    this.decks.forEach((deck, index) => {
+      if (this.trackIds[index] && deck.el.readyState < 3 && performance.now() - (this.loadAt[index] ?? 0) > 15000) deck.el.onerror?.(new Event('error'));
+    });
     if (this.fadedUntil && this.context.currentTime >= this.fadedUntil) {
       this.fadedUntil = 0;
       const old = 1 - this.current, deck = this.decks[old];
@@ -128,11 +135,12 @@ export class TvAudioEngine {
     }
   }
   endCeremony() { const at = this.context.currentTime; this.music.gain.cancelScheduledValues(at); this.music.gain.setTargetAtTime(0.24, at, 1); }
+  stopEffects() { this.oscillators.forEach(o => { try { o.stop(); } catch { /* already ended */ } }); }
   silence() {
     this.enabled = false;
     this.master.gain.cancelScheduledValues(this.context.currentTime); this.master.gain.setValueAtTime(0, this.context.currentTime);
     this.decks.forEach(d => d.el.pause());
-    this.oscillators.forEach(o => { try { o.stop(); } catch { /* already ended */ } });
+    this.stopEffects();
     void this.context.suspend().catch(() => {});
   }
   dispose() {

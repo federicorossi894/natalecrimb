@@ -32,6 +32,8 @@ export function TvAudio({ cue }: { cue: TvAudioCue }) {
   // Cue changes alone trigger sounds. Enabling/returning to the tab never replays a current beat.
   useEffect(() => {
     const audible = consent.current && !document.hidden;
+    // Revocation, scene interruption and priority changes must stop the old tail, not merely prevent new notes.
+    engine.current?.stopEffects();
     const send = (event: TvAudioEvent) => {
       if (gate.current.accept(event, performance.now(), audible)) engine.current?.effect(event);
     };

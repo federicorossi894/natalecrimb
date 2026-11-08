@@ -18,7 +18,7 @@ class FakeContext {
   suspend(){this.state='suspended';return Promise.resolve();} close(){this.state='closed';return Promise.resolve();}
 }
 class FakeMedia {
-  src=''; preload=''; duration=240; currentTime=0; paused=true; readyState=4; onerror:(()=>void)|null=null; plays=0;
+  src=''; preload=''; duration=240; currentTime=0; paused=true; readyState=4; onerror:((event?:Event)=>void)|null=null; onended:(()=>void)|null=null; plays=0;
   constructor(){media.push(this);}
   play(){this.paused=false;this.plays++;return Promise.resolve();} pause(){this.paused=true;} load(){} removeAttribute(){this.src='';}
 }
@@ -87,5 +87,19 @@ describe('TV audio safety and four-hour scheduler',()=>{
     first.currentTime=236;vi.advanceTimersByTime(250);await Promise.resolve();expect(media[1]?.plays).toBe(1);
     context.currentTime=4.1;vi.advanceTimersByTime(250);expect(first.paused).toBe(true);expect(media).toHaveLength(2);
     engine.dispose();expect(vi.getTimerCount()).toBe(0);expect(media.every(m=>m.src==='')).toBe(true);
+  });
+  it('recovers from real media error callbacks and terminates retries when every asset fails',async()=>{
+    vi.useFakeTimers();setup();const engine=new TvAudioEngine(tracks.slice(0,3));const unavailable=vi.fn();engine.onUnavailable=unavailable;
+    engine.activate();await Promise.resolve();await Promise.resolve();
+    for(let i=0;i<5;i++){media[0]?.onerror?.();media[1]?.onerror?.();await Promise.resolve();}
+    expect(unavailable).toHaveBeenCalled();expect(media).toHaveLength(2);expect(media.every(m=>m.src==='')).toBe(true);
+    engine.dispose();expect(vi.getTimerCount()).toBe(0);
+  });
+  it('ducks music through actual noon phases and restores softly after the visual ceremony',()=>{
+    setup();const engine=new TvAudioEngine([]);engine.activate();
+    engine.effect({type:'ceremony',key:'day1',phase:'dark'});
+    // Music bus is tested by concrete target values, independent of missing real catalogue.
+    const internals=engine as unknown as {music:Node};expect(internals.music.gain.value).toBe(0.065);
+    engine.endCeremony();expect(internals.music.gain.value).toBe(0.24);engine.dispose();
   });
 });
