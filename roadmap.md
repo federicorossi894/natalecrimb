@@ -1,4 +1,8 @@
 # CRI Monza demo — roadmap
+## TV audio — 8 November
+- [ ] Verify real music catalogue/licensing and record exact count/duration or honest preparation blocker.
+- [ ] Add scoped consented TV playback, bounded crossfade and visible-event original effects without altering camera.
+- [ ] Test consent, mute/background, failures and virtual long-run; document and publish safe DEMO.
 ## TV cinematic storytelling — 8 November
 - [x] Add public-only fair narrative focus, smooth TV camera and safe scene priorities; no audio or other services.
 - [x] 347 tests, 1920×1080 camera/fallback/priority checks and 246-second browser soak; short optical check on the physical TV remains with the operator.
