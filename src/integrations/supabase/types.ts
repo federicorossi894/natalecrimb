@@ -334,6 +334,42 @@ export type Database = {
           },
         ]
       }
+      staff_qa_attempts: {
+        Row: {
+          actor_id: string
+          created_at: string
+          finished_at: string | null
+          id: string
+          kind: string
+          provider_message_id: string | null
+          provider_status: number | null
+          request_id: string
+          state: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          kind: string
+          provider_message_id?: string | null
+          provider_status?: number | null
+          request_id: string
+          state?: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          provider_message_id?: string | null
+          provider_status?: number | null
+          request_id?: string
+          state?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -513,6 +549,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_staff_gmail_qa: {
+        Args: { p_actor: string; p_kind: string; p_request: string }
+        Returns: string
+      }
       confirm_cash_request: {
         Args: { _code: string; _method: string }
         Returns: {
@@ -557,6 +597,15 @@ export type Database = {
       finish_donation_email: {
         Args: { _claim: string; _id: string; _kind: string; _state: string }
         Returns: boolean
+      }
+      finish_staff_gmail_qa: {
+        Args: {
+          p_id: string
+          p_message?: string
+          p_state: string
+          p_status?: number
+        }
+        Returns: undefined
       }
       hang_ornament: {
         Args: {
