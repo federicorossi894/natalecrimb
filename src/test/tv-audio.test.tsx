@@ -65,13 +65,13 @@ describe('TV audio safety and four-hour scheduler',()=>{
     view.unmount();expect(contexts[0]?.state).toBe('closed');
     view=render(<TvAudio cue={cue}/>);expect(screen.getByTestId('tv-audio').getAttribute('data-audio')).toBe('silent');expect(contexts).toHaveLength(1);view.unmount();
   });
-  it('synthesizes only visible consented beats and fully mutes them',async()=>{
+  it('keeps consented beats active with no on-site mute control after activation',async()=>{
     setup();const view=render(<TvAudio cue={{arrival:'initial',dedication:null,ceremony:null}}/>);
     expect(contexts).toHaveLength(0);fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));await act(async()=>{});
     expect(contexts[0]?.effects).toBe(0);
     view.rerender(<TvAudio cue={{arrival:'fresh',dedication:null,ceremony:null}}/>);expect(contexts[0]?.effects).toBe(3);
-    fireEvent.click(screen.getByRole('button',{name:'Disattiva audio'}));
-    view.rerender(<TvAudio cue={{arrival:null,dedication:'moderated',ceremony:null}}/>);expect(contexts[0]?.effects).toBe(3);expect(contexts[0]?.state).toBe('suspended');view.unmount();
+    expect(screen.queryByTestId('tv-audio')).toBeNull();
+    view.rerender(<TvAudio cue={{arrival:null,dedication:'moderated',ceremony:null}}/>);expect(contexts[0]?.effects).toBe(7);expect(contexts[0]?.state).toBe('running');view.unmount();
   });
   it('pauses hidden tabs, retains consent without replaying a beat, and disposes timers',async()=>{
     vi.useFakeTimers();setup();const view=render(<TvAudio cue={{arrival:null,dedication:null,ceremony:null}}/>);
@@ -79,7 +79,36 @@ describe('TV audio safety and four-hour scheduler',()=>{
     vi.spyOn(document,'hidden','get').mockReturnValue(true);fireEvent(document,new Event('visibilitychange'));expect(contexts[0]?.state).toBe('suspended');
     view.rerender(<TvAudio cue={{arrival:'hidden',dedication:null,ceremony:null}}/>);expect(contexts[0]?.effects).toBe(0);
     vi.spyOn(document,'hidden','get').mockReturnValue(false);fireEvent(document,new Event('visibilitychange'));await act(async()=>{});expect(contexts[0]?.state).toBe('running');expect(contexts[0]?.effects).toBe(0);
+    expect(screen.queryByTestId('tv-audio')).toBeNull();
     view.unmount();act(()=>vi.advanceTimersByTime(1000));expect(vi.getTimerCount()).toBe(0);vi.restoreAllMocks();
+  });
+  it('keeps the engine mounted across 90 seconds and all TV cue priorities without reconsent',async()=>{
+    vi.useFakeTimers();setup();const view=render(<TvAudio cue={{arrival:null,dedication:null,ceremony:null}}/>);
+    fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));await act(async()=>{});
+    for(const cue of [
+      {arrival:'new',dedication:null,ceremony:null},
+      {arrival:null,dedication:'approved',ceremony:null},
+      {arrival:null,dedication:null,wish:'approved',ceremony:null},
+      {arrival:null,dedication:null,ceremony:{key:'noon',phase:'open'}},
+    ]) {view.rerender(<TvAudio cue={cue}/>);expect(contexts).toHaveLength(1);expect(contexts[0]?.state).toBe('running');}
+    await act(async()=>{vi.advanceTimersByTime(90000);});
+    expect(screen.queryByTestId('tv-audio')).toBeNull();expect(media[0]?.paused).toBe(false);view.unmount();
+  });
+  it('allows retry after blocked resume without falsely claiming activation',async()=>{
+    setup();vi.spyOn(FakeContext.prototype,'resume').mockRejectedValueOnce(new Error('blocked'));
+    const view=render(<TvAudio cue={{arrival:null,dedication:null,ceremony:null}}/>);
+    fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));await act(async()=>{});
+    expect(contexts[0]?.state).toBe('suspended');expect(media.some(m=>m.plays>0)).toBe(false);
+    expect(screen.getByRole('status').textContent).toBe('Audio bloccato. Riprova.');
+    fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));await act(async()=>{});
+    expect(contexts[0]?.state).toBe('running');expect(screen.queryByTestId('tv-audio')).toBeNull();view.unmount();vi.restoreAllMocks();
+  });
+  it('restores retry after a rejected media play',async()=>{
+    setup();vi.spyOn(FakeMedia.prototype,'play').mockRejectedValueOnce(new Error('not allowed'));
+    const view=render(<TvAudio cue={{arrival:null,dedication:null,ceremony:null}}/>);
+    fireEvent.click(screen.getByRole('button',{name:'Attiva audio'}));await act(async()=>{});
+    expect(contexts[0]?.state).toBe('suspended');expect(screen.getByRole('button',{name:'Attiva audio'})).toBeDefined();
+    view.unmount();vi.restoreAllMocks();
   });
   it('preloads only two streams and crossfades for four seconds without restarting the next track',async()=>{
     vi.useFakeTimers();setup();const engine=new TvAudioEngine(tracks);engine.activate();await Promise.resolve();await Promise.resolve();
