@@ -3,7 +3,7 @@
 - [x] TV wish / dedication reveal / approved arrival verified in 1920×1080 isolated fixtures, WebGL and illustrated fallback; public read-only observation, no staff-review edits.
 - [x] 15 official CC BY 4.0 recordings acquired, 64:03.915 unique minutes, normalized, all streamed files decode; public credits and one-click/mute/restart verified. Italian venue rights remain unverified.
 - [x] Bauble favicon and static intact-CRI social image created; SSR head/MIME/200, 365 tests and automatic build OK.
-- [ ] Safe DEMO publication and public URL verification — release requested next.
+- [ ] Safe DEMO publication completion — publish tool scheduled release; public check at 19:59 UTC still served old head (@Lovable), credits/social asset 404. Await deployment service; no live-update claim.
 - [ ] Public venue music use / physical listening soak — Committee SIAE/related-rights and event-programme attribution check required; no legal exemption claimed.
 - [x] Owner confirms real shared-password approval works; no further back-office edits authorized in this task.
 ## Dedication / wish staff review and TV reveals — 8 November 18:39 UTC

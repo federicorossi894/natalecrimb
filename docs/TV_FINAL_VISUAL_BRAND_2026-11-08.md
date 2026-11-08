@@ -21,4 +21,6 @@ Root only holds icons/site locale/site name; homepage and /regali leaf heads hol
 Actual post-click music bus RMS 0.003602967 in Chromium; mute suspended AudioContext. Limitations: human critical listening/HDMI and physical four-hour playback unverified; Italian public-performance/SIAE/related-right obligations and audience-facing programme credits must be checked by Committee. No exemption claimed. No third-party approval, purchase, LIVE payment/email or DNS action.
 
 ## Release
+Publish tool scheduled DEMO release; **19:59 UTC public check still showed the previous version**: @Lovable remains on public HTML and /crediti-musica plus new social image returned 404. Local SSR/assets/browser checks passed. Deployment completion is not confirmed and no public-update success is claimed.
+
 365 tests pass, automatic build OK before publication. Publication and public asset/head status are verified separately after the release tool returns. WhatsApp/TG can retain old scraped preview: first publish new metadata, then share fresh URL with harmless `?v=20261108` for a fresh fetch when needed. Existing message previews may remain cached; no claim cache clears immediately.
