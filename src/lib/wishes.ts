@@ -1,8 +1,7 @@
 import { CAMPAIGN } from "./campaign";
 import { campaignRpc } from "@/lib/campaign-rpc";
-import { useEffect, useState } from "react";
+import { useResilientPoll } from './resilient-poll';
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { normalizeCode } from "./cash";
 
 /**
@@ -109,21 +108,13 @@ export const DEMO_UNTIL = 12;
 export const wallWishes = (real: PublicWish[]) => (!CAMPAIGN.demo || real.length >= DEMO_UNTIL ? real : [...real, ...DEMO_WISHES]);
 
 export function usePublicWishes(refreshMs = 60_000) {
-  const [wishes, setWishes] = useState<PublicWish[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    if (!CAMPAIGN.publicWishWall) { setLoaded(true); return; }
-    let alive = true;
-    const load = () => campaignRpc("public_wishes").then(({ data, error }) => {
-      if (!alive) return;
-      if (!error) setWishes((data ?? []).map((w) => ({ id: w.id, body: w.body, nickname: w.nickname ?? null })));
-      setLoaded(true);
-    });
-    void load();
-    const t = setInterval(load, refreshMs);
-    return () => { alive = false; clearInterval(t); };
-  }, [refreshMs]);
-  return { wishes, loaded };
+  const poll = useResilientPoll<PublicWish[]>(async signal => {
+    if (!CAMPAIGN.publicWishWall) return [];
+    const { data, error } = await campaignRpc('public_wishes', undefined, signal);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(w => ({ id: w.id, body: w.body, nickname: w.nickname ?? null }));
+  }, [] as PublicWish[], refreshMs);
+  return { wishes: poll.data, loaded: poll.loaded, error: poll.error || poll.stale };
 }
 
 /** Deterministic "hand-pinned" look per note: same tilt and paper for everyone, no randomness at render. */

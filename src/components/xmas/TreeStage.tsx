@@ -62,12 +62,12 @@ function StageInner(props: TreeStageProps) {
   const [gl, setGl] = useState<boolean | null>(null);
   useEffect(() => { setGl(hasWebGL()); }, []);
   const fallback = <IllustratedTree ornaments={props.ornaments} selected={props.selected} {...(props.onPick ? { onPick: props.onPick } : {})} {...(props.tv ? { tv: true } : {})} arrivingId={props.arrivingId ?? null} />;
-  if (gl === null) return <div className="tree-stage" aria-busy="true" />;
+  if (gl === null) return fallback;
   // No WebGL: never download the 3D engine, go straight to the illustrated tree.
   if (!gl) return fallback;
   return (
     <SceneBoundary fallback={fallback}>
-      <Suspense fallback={<div className="tree-stage flex items-center justify-center text-gold">{props.tv ? null : "L’albero si accende…"}</div>}>
+      <Suspense fallback={fallback}>
         <Scene {...props} />
       </Suspense>
     </SceneBoundary>

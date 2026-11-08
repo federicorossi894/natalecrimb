@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import {
-  calendarPhase, ceremonyDue, ceremonyKey, demoDoor, tvDay, useKindnessCalendar, type CalendarPhase,
+  calendarPhase, ceremonyDue, ceremonyKey, crossedNoon, demoDoor, tvDay, useKindnessCalendar, type CalendarPhase,
 } from "@/lib/kindness";
 import { AdventCeremony, ceremonyLength } from "./AdventCeremony";
 
@@ -17,12 +17,13 @@ export type AdventPreview = { day: number; elapsed: number };
  * A screen started or reloaded after 12:00 shows the message straight away, never the ceremony again.
  * In the preview the ceremony never starts by itself: it is driven by `advent`.
  */
-export function TvKindness({ reduced, preview = false, advent = null }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null }) {
-  const { doors, status, now, reload } = useKindnessCalendar(10 * 60_000);
+export function TvKindness({ reduced, preview = false, advent = null, onPlayingChange, onHealthChange }: { reduced: boolean; preview?: boolean; advent?: AdventPreview | null; onPlayingChange?: (playing: boolean) => void; onHealthChange?: (error: boolean) => void }) {
+  const { doors, status, error, now, reload } = useKindnessCalendar(10 * 60_000);
   const [state, setState] = useState<{ day: number; phase: CalendarPhase } | null>(null);
   const [ceremony, setCeremony] = useState<{ day: number; t0: number } | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const prev = useRef<number | null>(null);
+  const previousTime = useRef<Date | null>(null);
 
   useEffect(() => {
     if (status !== "ready") return;
@@ -33,13 +34,14 @@ export function TvKindness({ reduced, preview = false, advent = null }: { reduce
       const key = ceremonyKey(d, day);
       let last: string | null = null;
       try { last = localStorage.getItem(LAST_KEY); } catch { last = null; }
-      if (!preview && ceremonyDue(prev.current, day, phase, last, key)) {
+      if (!preview && crossedNoon(previousTime.current, d) && ceremonyDue(prev.current, day, phase, last, key)) {
         try { localStorage.setItem(LAST_KEY, key); } catch { /* ignore */ }
         setElapsed(0);
-        setCeremony({ day, t0: Date.now() });
+        setCeremony({ day, t0: performance.now() });
         void reload();
       }
       prev.current = day;
+      previousTime.current = d;
       setState((s) => (s && s.day === day && s.phase === phase ? s : { day, phase }));
     };
     tick();
@@ -52,7 +54,7 @@ export function TvKindness({ reduced, preview = false, advent = null }: { reduce
     if (!ceremony) return;
     const total = ceremonyLength(reduced);
     const id = setInterval(() => {
-      const ms = Date.now() - ceremony.t0;
+      const ms = performance.now() - ceremony.t0;
       if (ms >= total) setCeremony(null);
       else setElapsed(ms);
     }, 200);
@@ -60,6 +62,10 @@ export function TvKindness({ reduced, preview = false, advent = null }: { reduce
   }, [ceremony, reduced]);
 
   const playing = advent ? { day: advent.day, elapsed: advent.elapsed } : ceremony ? { day: ceremony.day, elapsed } : null;
+  const playingCallback = useRef(onPlayingChange);
+  playingCallback.current = onPlayingChange;
+  useEffect(() => { playingCallback.current?.(!!playing); return () => playingCallback.current?.(false); }, [!!playing]);
+  useEffect(() => { onHealthChange?.(!!error); }, [error, onHealthChange]);
   if (playing) {
     const real = doors.find((x) => x.day === playing.day);
     const door = real?.message ? real : preview ? demoDoor(playing.day) : { day: playing.day, title: null, message: null };

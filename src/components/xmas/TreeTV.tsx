@@ -2,7 +2,8 @@ import { CAMPAIGN } from "@/lib/campaign";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { useTreeStore } from '@/lib/tree-store';
-import { useCasettaEvents, formatEventWhen } from '@/lib/events';
+import { useCasettaEventsStatus, formatEventWhen } from '@/lib/events';
+import { ARRIVAL_MS, queueArrivals, startTvReliability } from '@/lib/tv-reliability';
 import { PROJECTS, type TreeOrnament } from '@/lib/data';
 import { CASETTA } from '@/lib/casetta';
 import { CasettaPoster } from './CasettaMedia';
@@ -23,9 +24,6 @@ export const tvSequence = (hasPublicDedication: boolean, hasApprovedWishes = fal
   ...(hasPublicDedication ? (['dedica'] as const) : []),
   ...(capabilities.publicWishWall && hasApprovedWishes ? (['auguri'] as const) : []),
 ];
-const ARRIVAL_MS = 10000;
-const SAFETY_RELOAD_MS = 6 * 60 * 60 * 1000;
-type WakeNavigator = Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } };
 
 const projectOf = (o: TreeOrnament) => PROJECTS.find((p) => p.ornament === o.kind);
 
@@ -39,9 +37,13 @@ const PREVIEW_DEDICATION = { dedica: 'Per chi ogni sera porta un tè caldo e un 
 
 /** Autonomous, silent 24/7 casetta screen: big tree on the left, warm invitation + large QR on the right. */
 export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
-  const { addedOrnaments: ornaments, addedCount, error } = useTreeStore();
-  const events = useCasettaEvents();
-  const { wishes, loaded: wishesLoaded } = usePublicWishes(60_000);
+  const { addedOrnaments: ornaments, addedCount, error, loaded } = useTreeStore({ publicOnly: true });
+  const { events, error: eventsError } = useCasettaEventsStatus();
+  const { wishes, loaded: wishesLoaded, error: wishesError } = usePublicWishes(60_000);
+  const [calendarError, setCalendarError] = useState(false);
+  const [ceremonyPlaying, setCeremonyPlaying] = useState(false);
+  const ceremonyRef = useRef(false);
+  const arrivalQueue = useRef<TreeOrnament[]>([]);
   const wishesRef = useRef<PublicWish[]>(wishes);
   const wishCursor = useRef(0);
   const [wishPage, setWishPage] = useState<PublicWish[]>([]);
@@ -56,11 +58,12 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const step = useRef(0);
   const cursor = useRef(0);
   const reduced = useReducedMotion();
-  const realDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
+  const realDedications = useMemo(() => error ? [] : ornaments.filter((o) => o.dedica), [ornaments, error]);
   // Preview only: when no public dedication exists yet, one ornament carries a clearly labelled fictitious example.
   const previewDedication = useMemo(() => {
-    if (!preview || realDedications.length || !ornaments.length) return null;
-    return { ...ornaments[ornaments.length - 1]!, ...PREVIEW_DEDICATION };
+    const last = ornaments[ornaments.length - 1];
+    if (!preview || realDedications.length || !last) return null;
+    return { ...last, ...PREVIEW_DEDICATION };
   }, [preview, realDedications.length, ornaments]);
   const shownOrnaments = useMemo(
     () => (previewDedication ? ornaments.map((o) => (o.id === previewDedication.id ? previewDedication : o)) : ornaments),
@@ -69,7 +72,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const publicDedications = previewDedication ? [previewDedication] : realDedications;
   const hasDedications = publicDedications.length > 0;
   // The wall lists approved wishes only; while they are few it adds the "Esempio · DEMO" notes, like /auguri.
-  const wallSource = useMemo(() => (wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, preview]);
+  const wallSource = useMemo(() => (wishesError ? [] : wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, wishesError, preview]);
   const sequence = preview ? tvSequence(true, true) : tvSequence(hasDedications, wishes.length > 0);
 
   useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
@@ -84,7 +87,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
     // The first load is the wall as it already is, not a batch of new notes.
     if (prev) {
       const fresh = wishes.filter((w) => !prev.has(w.id)).map((w) => w.id);
-      if (fresh.length) setNewWishIds((cur) => new Set([...cur, ...fresh]));
+      setNewWishIds((cur) => new Set([...cur].filter(id => ids.has(id)).concat(fresh)));
     }
     knownWishes.current = ids;
   }, [wishes, wishesLoaded]);
@@ -105,17 +108,24 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
 
   // New gift detection (polling via useTreeStore). The first non-empty load is the existing tree, not an arrival.
   useEffect(() => {
+    if (!loaded) return;
     const ids = new Set(ornaments.map((o) => o.id));
     const prev = previous.current;
-    if (!preview && prev && !(prev.size === 0 && ornaments.length > 1)) {
-      const next = ornaments.find((o) => !prev.has(o.id));
-      if (next) { setArriving(next); setSelected(next); }
+    if (!preview && prev) {
+      arrivalQueue.current = queueArrivals(arrivalQueue.current, ornaments.filter(o => !prev.has(o.id)));
+      if (!arrivingRef.current) {
+        const next = arrivalQueue.current.shift();
+        if (next) { arrivingRef.current = next; setArriving(next); setSelected(next); }
+      }
     }
     previous.current = ids;
-  }, [ornaments]);
+  }, [ornaments, loaded, preview]);
   useEffect(() => {
     if (!arriving || preview) return;
-    const t = setTimeout(() => { setArriving(null); setSelected(null); }, ARRIVAL_MS);
+    const t = setTimeout(() => {
+      const next = arrivalQueue.current.shift() ?? null;
+      arrivingRef.current = next; setArriving(next); setSelected(next);
+    }, ARRIVAL_MS);
     return () => clearTimeout(t);
   }, [arriving]);
 
@@ -127,9 +137,9 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
       const pub = ornamentsRef.current.filter((o) => o.dedica);
       const w = wishesRef.current;
       const seq = tvSequence(pub.length > 0, w.length > 0);
-      const s = seq[step.current % seq.length]!;
-      step.current++;
-      if (s === 'dedica') setSelected(pub[cursor.current++ % pub.length] ?? null);
+      const s = seq[step.current % seq.length] ?? 'invito';
+      step.current = (step.current + 1) % seq.length;
+      if (s === 'dedica') { setSelected(pub[cursor.current % pub.length] ?? null); cursor.current = (cursor.current + 1) % pub.length; }
       else setSelected(null);
       if (s === 'auguri') setWishPage(nextWishRef.current(w));
       setScene(s);
@@ -159,20 +169,17 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   // Unattended screen: keep it awake and refresh periodically to clear any long-run drift.
   useEffect(() => {
     if (preview) return;
-    let lock: { release: () => Promise<void> } | null = null;
-    const req = async () => { try { lock = (await (navigator as WakeNavigator).wakeLock?.request('screen')) ?? null; } catch { lock = null; } };
-    void req();
-    const vis = () => { if (document.visibilityState === 'visible') void req(); };
-    document.addEventListener('visibilitychange', vis);
-    const reload = setInterval(() => { if (!arrivingRef.current && navigator.onLine) window.location.reload(); }, SAFETY_RELOAD_MS);
-    return () => { document.removeEventListener('visibilitychange', vis); clearInterval(reload); void lock?.release().catch(() => {}); };
+    return startTvReliability(() => !!arrivingRef.current || ceremonyRef.current);
   }, [preview]);
 
   const active = arriving ? 'arrivo' : scene;
   const on = (s: TvScene | 'arrivo') => (active === s ? 'is-active' : '');
-  const dedication = scene === 'dedica' ? selected : null;
+  // Successful moderation refreshes redact snapshots immediately, not at the next director beat.
+  const currentSelected = publicDedications.find(o => o.id === selected?.id) ?? null;
+  const dedication = scene === 'dedica' ? currentSelected : null;
+  const currentArrival = error ? null : ornaments.find(o => o.id === arriving?.id) ?? null;
   const arrivingProject = arriving ? projectOf(arriving) : undefined;
-  const wall = useMemo(() => layoutWall(wishPage, newWishIds), [wishPage, newWishIds]);
+  const wall = useMemo(() => layoutWall(wishPage.filter(w => wallSource.some(current => current.id === w.id)), newWishIds), [wishPage, wallSource, newWishIds]);
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
   // Once a fresh wish has been shown on the wall it becomes an ordinary note.
   useEffect(() => {
@@ -182,7 +189,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   }, [scene, newWishIds.size]);
 
   return (
-    <div className="tv-scene" data-beat={active} data-testid="tv-scene">
+    <div className="tv-scene" data-beat={active} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
       <div className="tv-tree">
         <TreeStage ornaments={shownOrnaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
         {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
@@ -220,13 +227,13 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
       </header>
 
-      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} />
+      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} onPlayingChange={playing => { ceremonyRef.current = playing; setCeremonyPlaying(playing); }} onHealthChange={setCalendarError} />
 
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>
         <span className="text-[1.35cqw]">{addedCount === 1 ? 'gesto' : 'gesti'} di solidarietà</span>
         {CAMPAIGN.demo && <span className="tv-demo-tag">dato DEMO</span>}
-        {error && <span className="text-[1.1cqw] text-gold">· connessione in ripristino</span>}
+        {(error || eventsError || wishesError || calendarError) && <span className="text-[1.1cqw] text-gold">· connessione in ripristino</span>}
       </div>
 
       <aside className="tv-panel">
@@ -320,7 +327,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
                   <h2 className="font-display text-[3.2cqw] leading-[1.05]">Una nuova pallina è stata appesa!</h2>
                 </div>
                 <p className="tv-lead">{arrivingProject ? `${arrivingProject.title}: grazie!` : 'Grazie!'} La prossima potrebbe essere la tua.</p>
-                {arriving.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{arriving.dedica}”</p>}
+                {currentArrival?.dedica && <p className="mt-[1cqw] font-display text-[1.7cqw] italic text-gold">“{currentArrival.dedica}”</p>}
               </div>
             )}
           </section>

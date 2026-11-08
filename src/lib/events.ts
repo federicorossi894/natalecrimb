@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useResilientPoll } from './resilient-poll';
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { publicReadClient } from './public-read-client';
 
 /** Casetta events shared through Lovable Cloud. Only visible + confirmed + upcoming rows are public (RLS). */
 export type CasettaEvent = { id: string; title: string; description: string; starts_at: string; ends_at: string | null };
@@ -40,30 +40,29 @@ export function formatEventWhen(e: Pick<CasettaEvent, "starts_at" | "ends_at">) 
   return `${day} · ${time(e.starts_at)}${e.ends_at ? `–${time(e.ends_at)}` : ""}`;
 }
 
-export async function fetchUpcomingEvents(limit = 3): Promise<CasettaEvent[]> {
+export async function fetchUpcomingEvents(limit = 3, signal?: AbortSignal): Promise<CasettaEvent[]> {
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  const { data, error } = await publicReadClient()
     .from("casetta_events")
     .select("id,title,description,starts_at,ends_at")
     .eq("visible", true)
     .eq("confirmed", true)
     .or(`starts_at.gt.${now},ends_at.gt.${now}`)
     .order("starts_at", { ascending: true })
-    .limit(limit);
+    .limit(limit)
+    .abortSignal(signal ?? new AbortController().signal);
   if (error) throw new Error(error.message);
   return data ?? [];
 }
 
 export function useCasettaEvents(refreshMs = 5 * 60 * 1000) {
-  const [events, setEvents] = useState<CasettaEvent[]>([]);
-  useEffect(() => {
-    let alive = true;
-    const load = () => fetchUpcomingEvents().then((e) => { if (alive) setEvents(e); }).catch(() => {});
-    load();
-    const t = setInterval(load, refreshMs);
-    return () => { alive = false; clearInterval(t); };
-  }, [refreshMs]);
-  return events;
+  return useCasettaEventsStatus(refreshMs).events;
+}
+
+export function useCasettaEventsStatus(refreshMs = 5 * 60 * 1000) {
+  const poll = useResilientPoll(signal => fetchUpcomingEvents(3, signal), [] as CasettaEvent[], refreshMs);
+  // Even offline, never continue advertising an appointment after its actual end.
+  return { events: poll.data.filter(e => new Date(e.ends_at ?? e.starts_at).getTime() > Date.now()), error: poll.error || poll.stale };
 }
 
 /** Illustrative examples only: shown on TV, labelled DEMO, when no confirmed event exists. */
