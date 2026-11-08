@@ -30,7 +30,7 @@ import {
   type DeskLookup,
 } from "@/lib/volunteer-demo";
 import { WishTokenDesk } from "@/components/xmas/WishWall";
-import { createDemoWishApi } from "@/lib/wishes";
+import { createDemoWishApi, realWishApi } from "@/lib/wishes";
 import {
   DESK_METHOD_LABEL,
   euro,
@@ -41,7 +41,7 @@ import {
   projectForKind,
   type DeskMethod,
 } from "@/lib/cash";
-import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc } from "@/lib/volunteer-session.functions";
+import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc, createSharedWishToken } from "@/lib/volunteer-session.functions";
 
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
 
