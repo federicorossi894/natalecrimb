@@ -7,6 +7,7 @@ import { TreeGrowthLab } from "@/components/xmas/TreeGrowthLab";
 import { useReducedMotion } from "@/components/xmas/TreeExperience";
 import { ceremonyLength, ceremonySteps, type CeremonyPhase } from "@/components/xmas/AdventCeremony";
 import { DOORS } from "@/lib/kindness";
+import { Button } from '@/components/ui/button';
 
 /**
  * Internal presentation page (not linked anywhere): the real casetta TV component, with buttons that jump
@@ -43,6 +44,7 @@ const ALL_PREVIEW_SCENES: { id: SceneId; label: string; note: string }[] = [
   { id: "auguri", label: "Muro degli auguri", note: "Approvati + esempi DEMO" },
   { id: "calendario", label: "Calendario della Gentilezza", note: "Apertura delle 12:00" },
   { id: "arrivo", label: "Nuova pallina", note: "Arrivo di un regalo" },
+  { id: "racconto", label: "Racconti delle palline", note: "Regia autonoma · dati pubblici" },
 ];
 const PREVIEW_SCENES = ALL_PREVIEW_SCENES.filter(s => s.id !== "auguri" || CAMPAIGN.publicWishWall);
 /** Quick run: each scene 4.5 s; the calendar gets a condensed version of its 12:00 opening (see quickCeremony). */
@@ -102,6 +104,7 @@ function TvPreviewPage() {
   const reduced = useReducedMotion();
   const [scene, setScene] = useState<SceneId>("invito");
   const [quick, setQuick] = useState(false);
+  const [acceleratedStory, setAcceleratedStory] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [calDay, setCalDay] = useState(1);
   const frame = useRef<HTMLDivElement>(null);
@@ -138,7 +141,7 @@ function TvPreviewPage() {
       : { beat: seg.id }
     : scene === "calendario"
       ? { beat: "invito" as TvBeat, advent: cal.done ? null : { day: calDay, elapsed: cal.elapsed } }
-      : { beat: scene };
+      : { beat: scene, acceleratedStory };
   const calPhase = ceremonySteps(reduced).reduce<CeremonyPhase>((p, s) => (cal.elapsed >= s.at ? s.id : p), "dark");
 
   const pick = (s: SceneId) => {
@@ -184,6 +187,11 @@ function TvPreviewPage() {
             <span className="tv-preview-chip">Anteprima · DEMO</span>
           </div>
         </div>
+        {!quick && scene === 'racconto' && <div className="mt-3 flex gap-2">
+          <Button variant={acceleratedStory ? 'default' : 'outline'} onClick={() => setAcceleratedStory(v => !v)} aria-pressed={acceleratedStory} data-testid="story-accelerate">
+            <Play className="h-4 w-4" /> {acceleratedStory ? 'Ritmo accelerato · ¼ attesa' : 'Accelera attese di prova'}
+          </Button>
+        </div>}
         <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
           <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${quick ? (elapsed / total) * 100 : 0}%` }} />
         </div>

@@ -1,0 +1,2 @@
+- TV editorial focus uses the bounded pure scheduler in tv-storytelling.ts and only the server public ornament projection, re-resolved every render, so stale snapshots cannot retain revoked text. Noon, arrivals, wall and existing dedication preempt it.
+- TV camera position and lookAt ease together through tv-camera.ts without selection-change resets; interactive cameras on other pages stay unchanged. Preview acceleration changes local waiting times only, never Cloud data or production cadence.

@@ -1,4 +1,9 @@
 # CRI Monza demo — roadmap
+## TV cinematic storytelling — 8 November
+- [x] Add public-only fair narrative focus, smooth TV camera and safe scene priorities; no audio or other services.
+- [x] 347 tests, 1920×1080 camera/fallback/priority checks and 246-second browser soak; short optical check on the physical TV remains with the operator.
+- [x] Document evidence and verify automatic build OK; safe DEMO publication requested.
+- [ ] Confirm deployed storytelling revision — public URL returns HTTP 200 but the new preview control was not yet present at the post-request check; awaits deployment completion.
 ## TV 40-day audit — 8 November
 - [x] Harden public-only polling, exact count beyond 300, reconnect, arrival queue, reload/ceremony, QR visibility and Wake Lock cleanup.
 - [x] 335 tests, build OK, 15min accelerated browser fault/scene/clock matrix, 308.8s real WebGL soak and safe DEMO release HTTP 200/new asset verified.
