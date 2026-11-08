@@ -27,6 +27,7 @@ import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
+import { Route as ApiPublicChristmasGiftEmailRouteImport } from './routes/api/public/christmas-gift-email'
 import { Route as ApiPublicPaymentReconciliationRouteImport } from './routes/api/public/payment-reconciliation'
 import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal-webhook'
 import { Route as ApiPublicSumupWebhookRouteImport } from './routes/api/public/sumup-webhook'
@@ -121,6 +122,12 @@ const RegaliIdRoute = RegaliIdRouteImport.update({
   path: '/regali/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicChristmasGiftEmailRoute =
+  ApiPublicChristmasGiftEmailRouteImport.update({
+    id: '/api/public/christmas-gift-email',
+    path: '/api/public/christmas-gift-email',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentReconciliationRoute =
   ApiPublicPaymentReconciliationRouteImport.update({
     id: '/api/public/payment-reconciliation',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
   '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
@@ -180,6 +188,7 @@ export interface FileRoutesByTo {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
+  '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
   '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
@@ -204,6 +213,7 @@ export interface FileRoutesById {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
   '/api/public/sumup-webhook': typeof ApiPublicSumupWebhookRoute
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
     | '/api/public/sumup-webhook'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali'
+    | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
     | '/api/public/sumup-webhook'
@@ -275,6 +287,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
     | '/api/public/sumup-webhook'
@@ -299,6 +312,7 @@ export interface RootRouteChildren {
   AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
+  ApiPublicChristmasGiftEmailRoute: typeof ApiPublicChristmasGiftEmailRoute
   ApiPublicPaymentReconciliationRoute: typeof ApiPublicPaymentReconciliationRoute
   ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
   ApiPublicSumupWebhookRoute: typeof ApiPublicSumupWebhookRoute
@@ -432,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegaliIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/christmas-gift-email': {
+      id: '/api/public/christmas-gift-email'
+      path: '/api/public/christmas-gift-email'
+      fullPath: '/api/public/christmas-gift-email'
+      preLoaderRoute: typeof ApiPublicChristmasGiftEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payment-reconciliation': {
       id: '/api/public/payment-reconciliation'
       path: '/api/public/payment-reconciliation'
@@ -475,6 +496,7 @@ const rootRouteChildren: RootRouteChildren = {
   AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
+  ApiPublicChristmasGiftEmailRoute: ApiPublicChristmasGiftEmailRoute,
   ApiPublicPaymentReconciliationRoute: ApiPublicPaymentReconciliationRoute,
   ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
   ApiPublicSumupWebhookRoute: ApiPublicSumupWebhookRoute,
