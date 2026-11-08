@@ -13,25 +13,26 @@ export function normalizeVolunteerName(raw: string): string | null {
   return /^[\p{L}'’.-]+( [\p{L}'’.-]+)+$/u.test(n) ? n : null;
 }
 
-export type Verifier = { iterations: number; salt: string; hash: Uint8Array };
+export type Verifier = { iterations: number; salt: Uint8Array; hash: Uint8Array };
 const b64 = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (s.length % 4)) % 4)), (c) => c.charCodeAt(0));
 export const b64url = (b: Uint8Array) => btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 export function parseVerifier(v: string): Verifier | null {
   const m = /^pbkdf2_sha256\$(\d{4,7})\$([A-Za-z0-9._\-/+]{8,128})\$([A-Za-z0-9_\-/+=]{20,128})$/.exec(v.trim());
   if (!m) return null;
-  try { return { iterations: Number(m[1]), salt: m[2]!, hash: b64(m[3]!) }; } catch { return null; }
+  try { return { iterations: Number(m[1]), salt: b64(m[2]!), hash: b64(m[3]!) }; } catch { return null; }
 }
 
-async function derive(password: string, salt: string, iterations: number, len: number): Promise<Uint8Array> {
+// salt = raw bytes (base64url-decoded from the verifier), never the literal text.
+async function derive(password: string, salt: Uint8Array, iterations: number, len: number): Promise<Uint8Array> {
   const enc = new TextEncoder();
   try {
     const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations }, key, len * 8);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt as BufferSource, iterations }, key, len * 8);
     return new Uint8Array(bits);
   } catch {
     // Workers reject >100k iterations in WebCrypto; fall back to audited pure-JS PBKDF2.
-    return pbkdf2Async(sha256, enc.encode(password), enc.encode(salt), { c: iterations, dkLen: len, asyncTick: 20 });
+    return pbkdf2Async(sha256, enc.encode(password), salt, { c: iterations, dkLen: len, asyncTick: 20 });
   }
 }
 
@@ -48,8 +49,8 @@ export async function verifyPassword(password: string, verifier: string): Promis
 }
 
 export async function makeVerifier(password: string, iterations = FAST_ITERATIONS): Promise<string> {
-  const salt = b64url(crypto.getRandomValues(new Uint8Array(18)));
-  return `pbkdf2_sha256$${iterations}$${salt}$${b64url(await derive(password, salt, iterations, 32))}`;
+  const salt = crypto.getRandomValues(new Uint8Array(18));
+  return `pbkdf2_sha256$${iterations}$${b64url(salt)}$${b64url(await derive(password, salt, iterations, 32))}`;
 }
 
 export async function sha256Hex(s: string): Promise<string> {

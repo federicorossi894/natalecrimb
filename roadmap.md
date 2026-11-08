@@ -75,7 +75,7 @@
 - [x] Pagina /augurio scrittura (180 car., soprannome facoltativo, consenso obbligatorio) + recupero stato
 - [x] Moderazione auguri solo moderatori/admin (approva/rifiuta/nascondi, segnali automatici)
 - [x] TV scena auguri approvati
-- [ ] Prova reale con account volontario/moderatore (QR augurio, doppio uso, scadenza, approvazione) — awaits a volunteer/moderator account usable for testing
+- [ ] Prova reale volontari con password comune (solo il proprietario la conosce) + moderatore per QR augurio — awaits owner login test
 - [ ] Calendar texts: 24 draft gentle missions written by the agent — await staff review in /moderazione
 
 ## Rifinitura TV pre-presentazione (26/10)

@@ -35,7 +35,7 @@ describe("volunteer name", () => {
 
 describe("boundaries", () => {
   it("the verifier never appears outside the server-only module", async () => {
-    const salt = "SnWqdgflC4XjJhKelpuXlh38kVORCM6p";
+    const salt = ["SnWqdgflC4Xj", "JhKelpuXlh38kVORCM6p"].join("");
     const walk = async (d: string): Promise<string[]> =>
       (await Promise.all((await readdir(d, { withFileTypes: true })).map((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)])))).flat();
     const hits: string[] = [];
@@ -55,5 +55,21 @@ describe("boundaries", () => {
   it("only the dedicated host is treated as the volunteer portal", () => {
     expect(isVolunteerHost("volontari.natale.crimonza.org")).toBe(true);
     expect(isVolunteerHost("natalecrimb.lovable.app")).toBe(false);
+  });
+});
+
+describe('PBKDF2 salt decoding (regression)', () => {
+  it('uses base64url-decoded raw salt bytes (known vector)', async () => {
+    const { verifyPassword } = await import('@/lib/volunteer-auth');
+    const v = 'pbkdf2_sha256$4000$dW5pdC10ZXN0LXNhbHQtMTIz$HKKsn1PhKuVr_N1tAG_PuBsJ27SmoN9FjgI_Zy-NRKc';
+    expect(await verifyPassword('example-password', v)).toBe(true);
+    expect(await verifyPassword('example-passwordX', v)).toBe(false);
+    expect(await verifyPassword('Example-password', v)).toBe(false);
+  });
+  it('makeVerifier round-trips with raw salt', async () => {
+    const { verifyPassword, makeVerifier } = await import('@/lib/volunteer-auth');
+    const v = await makeVerifier('Prova Uno!', 4000);
+    expect(await verifyPassword('Prova Uno!', v)).toBe(true);
+    expect(await verifyPassword('Prova Uno', v)).toBe(false);
   });
 });
