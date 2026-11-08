@@ -20,7 +20,7 @@ class FakeContext {
 class FakeMedia {
   src=''; preload=''; duration=240; currentTime=0; paused=true; readyState=4; onerror:((event?:Event)=>void)|null=null; onended:(()=>void)|null=null; plays=0;
   constructor(){media.push(this);}
-  play(){this.paused=false;this.plays++;return Promise.resolve();} pause(){this.paused=true;} load(){} removeAttribute(){this.src='';}
+  play(){this.paused=false;this.plays++;return Promise.resolve();} pause(){this.paused=true;} load(){this.currentTime=0;} removeAttribute(){this.src='';}
 }
 function setup(){contexts=[];media=[];vi.stubGlobal('AudioContext',FakeContext);vi.stubGlobal('Audio',FakeMedia);}
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
