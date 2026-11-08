@@ -243,7 +243,7 @@
 .tv-scene, .tv-scene * { cursor: none; }
 /* Editorial stories occupy only the existing right scene slot: never the permanent QR or brand. */
 .tv-story { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; z-index: 2; pointer-events: none; animation: tv-story-in 1.6s ease backwards; transition: opacity 1.8s ease; }
-.tv-story.is-leaving { opacity: 0; }
+.tv-story.is-leaving { opacity: 0; animation: tv-story-out 1.8s ease both; }
 .tv-story-heading { display: flex; align-items: center; gap: 1.2cqw; margin-top: 1.2cqw; }
 .tv-story-heading h2 { font-size: 2.8cqw; line-height: 1.08; }
 .tv-story-text { margin-top: 1.3cqw; font-size: 2.05cqw; line-height: 1.32; overflow-wrap: anywhere; }
@@ -255,6 +255,7 @@
 .tv-scene[data-story="focus"] .tv-kindness { opacity: 0; transition: opacity 1s ease; }
 .tv-scene[data-beat="auguri"] .tv-story, .tv-scene[data-ceremony="true"] .tv-story { display: none; }
 @keyframes tv-story-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tv-story-out { from { opacity: 1; } to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tv-story { animation: tv-story-in .6s ease backwards; transition: opacity .6s ease; } }
 @media (min-width: 768px) { .tree-stage { height: 76vh; min-height: 620px; } }
 
