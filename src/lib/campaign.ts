@@ -1,3 +1,4 @@
+import { assertOfficialEmailReady, officialEmailReady } from './email-readiness';
 /** Single deployment setting. Never derive this from URL, storage or browser input. */
 export const ACTIVE_CAMPAIGN_MODE: CampaignMode = 'DEMO';
 export const CAMPAIGN_MODES = ['DEMO', 'BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const;
@@ -51,6 +52,12 @@ export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE
   };
 }
 export const CAMPAIGN = campaignCapabilities(ACTIVE_CAMPAIGN_MODE);
+/** Module initialization fails closed in browser, SSR and server handlers on a mode-only edit. */
+export function assertCampaignDeployment(mode: CampaignMode) {
+  if (mode !== 'DEMO') assertOfficialEmailReady();
+}
+assertCampaignDeployment(ACTIVE_CAMPAIGN_MODE);
+export const EMAIL_PREFLIGHT = { officialReady: officialEmailReady(), receiptRequiredCapability: true, giftNowRequiredCapability: true, giftChristmasRequiredCapability: true } as const;
 export type CampaignCapabilities = ReturnType<typeof campaignCapabilities>;
 export function campaignRouteAllowed(path: string, c = CAMPAIGN) {
   const p = path.replace(/\/$/, '') || '/';
