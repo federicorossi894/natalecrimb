@@ -155,6 +155,21 @@ afterEach(() => {
 const captures = () => fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/capture"));
 
 describe("Mock-only pre-live hardening", () => {
+  it('capture without custom_id is confirmed only after a fresh matching order GET', async () => {
+    const implementation = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation(async (...args) => {
+      if (String(args[0]).endsWith('/capture')) {
+        completed = true;
+        const captured = order('COMPLETED', 'COMPLETED');
+        delete (captured.purchase_units[0] as { custom_id?: string }).custom_id;
+        return response(captured);
+      }
+      return implementation?.(...args);
+    });
+    expect(await reconcileDonation(d,true)).toEqual({ status: 'paid', ornamentId: 'ornament-1' });
+    expect(captures()).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/order-1'))).toHaveLength(2);
+  });
   it.each(["BASIC", "ADVANCED_1", "ADVANCED_2"] as const)(
     "%s captures verified APPROVED webhook without a browser",
     async (mode) => {

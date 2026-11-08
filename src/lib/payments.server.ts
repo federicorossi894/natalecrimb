@@ -265,7 +265,7 @@ export async function reconcileDonation(d: Donation, capture = false) {
       });
       if (claimError) throw new Error("Capture non autorizzata dal registro.");
       if (!claimed) return { status: "pending", ornamentId: null };
-      result = paypalOrder.parse(
+      const captured = paypalOrder.parse(
         await paypal(
           `/v2/checkout/orders/${encodeURIComponent(d.provider_id)}/capture`,
           "POST",
@@ -273,6 +273,11 @@ export async function reconcileDonation(d: Donation, capture = false) {
           `capture-${d.id}`,
         ),
       );
+      // Capture representations need not echo custom_id. Re-read the complete
+      // order if absent; never manufacture the missing reference from browser data.
+      result = captured.purchase_units[0]?.custom_id
+        ? captured
+        : paypalOrder.parse(await paypal(`/v2/checkout/orders/${encodeURIComponent(d.provider_id)}`));
     }
     const unit = result.purchase_units[0];
     const paidCapture = unit?.payments?.captures?.[0];
