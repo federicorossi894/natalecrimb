@@ -8,6 +8,7 @@ import { INVITE_LINE, postcardText, renderPostcardImage } from "@/lib/postcard-s
 import { CHRISTMAS_DELIVERY, MODE_LABEL, confirmationText, giftEmailSchema, type EmailAudience, type EmailMode } from "@/lib/email-demo";
 import { emailSubject, giftEmailHtml } from "@/lib/email-template";
 import { CAMPAIGN } from "@/lib/campaign";
+import { Button } from '@/components/ui/button';
 
 export function downloadBlob(blob: Blob, name: string) {
   const a = document.createElement("a");
@@ -259,9 +260,10 @@ export function EmailStudio({ project, audience = "recipient", ornamentId, defau
           </div>
           {consentSlot}
           {error && <p role="alert" className="text-sm text-gold">{error}</p>}
-          <button disabled={busy || !CAMPAIGN.emailSimulator} onClick={confirm} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">
+          <Button disabled={busy || !CAMPAIGN.emailSimulator} onClick={confirm} className="h-auto w-full rounded-full py-4 font-semibold disabled:opacity-60">
             {!CAMPAIGN.emailSimulator ? "Invio email non ancora disponibile" : busy ? "Un attimo…" : audience === "donor" ? "Invia cartolina al donatore (demo)" : effMode === "now" ? "Invia ora (demo)" : "Invia a Natale (demo)"}
-          </button>
+          </Button>
+          <p className="text-xs text-muted-foreground">Email regalo distinta dalla conferma della donazione. In questa DEMO non parte alcun messaggio reale, nemmeno a terzi.</p>
           <p className="text-center text-[11px] text-muted-foreground">{CAMPAIGN.emailSimulator ? "Demo: nessuna email viene inviata o programmata, nessun indirizzo viene salvato." : "Invio email in attivazione: nessuna email inviata o programmata. Il mittente non è ancora configurato."}</p>
           {done && <SentNotice key={done} text={audience === "donor" ? "Invio simulato: la cartolina partirebbe ora verso il donatore." : confirmationText(done)} onClose={() => setDone(null)} />}
         </div>

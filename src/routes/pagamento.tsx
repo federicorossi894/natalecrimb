@@ -13,6 +13,7 @@ import { PROJECTS, type Project } from "@/lib/data";
 import { loadDonationAccess } from "@/lib/payment-device";
 import { Button } from "@/components/ui/button";
 import { Shell } from "@/components/xmas/Shell";
+import { PaidGiftEmail } from '@/components/xmas/PaidGiftEmail';
 export const Route = createFileRoute("/pagamento")({
   validateSearch: z.object({
     id: z.string().uuid().optional(),
@@ -192,6 +193,10 @@ function PaymentReturn() {
           </section>
         )}
         <Button asChild variant="outline" className="mt-6">
+          <Link to="/regali">Torna ai progetti</Link>
+        </Button>
+        {!CAMPAIGN.demo && ornament && status === 'paid' && id && <PaidGiftEmail donationId={id} />}
+        <Button asChild variant="outline" className="mt-6 hidden">
           <Link to="/regali">Torna ai progetti</Link>
         </Button>
       </section>
