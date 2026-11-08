@@ -7,4 +7,4 @@
 - Disabled/DEMO webhook routes acknowledge with a no-op before loading payment handlers; shared-app foreign orders in LIVE cannot capture or mutate Natale records.
 - Email intents/audit stay on private donation rows, never in email queues; service-only permanent claims and stable purpose keys prevent duplicate acceptance. Unknown acceptance requires managed-log reconciliation, not blind retry, and email failure never rolls back a paid ornament.
 - Campaign initialization rejects a mode-only LIVE switch until dedicated sender and both email paths are verified; the absent send adapter stays disabled until domain setup and managed scaffolding.
-- DEMO QA recipient/policy stay in a dynamically imported .server module; preparation accepts no destination and never sends until managed sender and durable rate/audit integration are verified, preventing client-controlled destinations or readiness bypass.
+- Manual DEMO QA uses a dynamically imported server-only Gmail adapter, fixed identity/recipient and templates, authenticated moderator checks and service-only durable audit claims; it is independent of official LIVE readiness and never schedules or auto-retries.
