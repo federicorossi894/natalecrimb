@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ACTIVE_CAMPAIGN_MODE, CAMPAIGN_MODES, assertCampaignRpc, campaignCapabilities, campaignPaymentMethods, campaignRouteAllowed } from '@/lib/campaign';
+import { ACTIVE_CAMPAIGN_MODE, CAMPAIGN_MODES, CAMPAIGN_OPTIONS, assertCampaignAction, assertCampaignRpc, campaignCapabilities, campaignPaymentMethods, campaignRouteAllowed } from '@/lib/campaign';
 import { tvSequence } from '@/components/xmas/TreeTV';
 
 describe('Campaign modes and fail-closed actions', () => {
@@ -54,5 +54,42 @@ describe('Campaign modes and fail-closed actions', () => {
       expect(campaignRouteAllowed('/tv-preview/', c)).toBe(false);
       expect(campaignRouteAllowed('/presentazione', c)).toBe(false);
     }
+  });
+  it.each(CAMPAIGN_MODES)('%s retains the complete autonomous experience', mode => {
+    const c = campaignCapabilities(mode);
+    for (const feature of ['onlineDonations', 'persistentOrnaments', 'dedications', 'whatsappPostcards', 'giftEmails', 'calendar', 'academy', 'diploma', 'casetta', 'tv'] as const) expect(c[feature]).toBe(true);
+  });
+  it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s hides unapproved home visits without removing academy', mode => {
+    const c = campaignCapabilities(mode);
+    expect(c.santaHomeVisitsVisible).toBe(false);
+    expect(campaignRouteAllowed('/babbo-natale', c)).toBe(false);
+    expect(campaignRouteAllowed('/babbo-natale/prenota', c)).toBe(false);
+    expect(campaignRouteAllowed('/piccoli-volontari', c)).toBe(true);
+    expect(() => assertCampaignAction('santaBooking', c)).toThrow();
+    expect(c.courtesyBiscuit).toBe(false);
+  });
+  it('keeps optional services off until approval while DEMO remains visible', () => {
+    expect(CAMPAIGN_OPTIONS).toEqual({ santaHomeVisitsEnabled: false, courtesyBiscuitAvailable: false });
+    expect(campaignCapabilities('DEMO').courtesyBiscuit).toBe(true);
+    expect(campaignRouteAllowed('/babbo-natale', campaignCapabilities('DEMO'))).toBe(true);
+  });
+  it('Santa approval is independent of tier and not booking readiness', () => {
+    for (const mode of ['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const) {
+      const c = campaignCapabilities(mode, undefined, { santaHomeVisitsEnabled: true, courtesyBiscuitAvailable: true });
+      expect(c.santaHomeVisitsVisible).toBe(true);
+      expect(c.courtesyBiscuit).toBe(true);
+      expect(c.santaHomeVisitsOperational).toBe(false);
+      expect(() => assertCampaignAction('santaBooking', c)).toThrow();
+    }
+  });
+  it.each(CAMPAIGN_MODES)('%s denies all unready LIVE server actions', mode => {
+    const c = campaignCapabilities(mode);
+    for (const action of ['onlinePayment', 'cashDonation', 'purchaseWishQR', 'wishModeration', 'emailNow', 'emailChristmas', 'santaBooking'] as const) expect(() => assertCampaignAction(action, c)).toThrow();
+  });
+  it('approved biscuit in BASIC never enables cash or wall', () => {
+    const c = campaignCapabilities('BASIC', undefined, { santaHomeVisitsEnabled: false, courtesyBiscuitAvailable: true });
+    expect(c.courtesyBiscuit).toBe(true);
+    expect(c.volunteerCashDonations).toBe(false);
+    expect(c.publicWishWall).toBe(false);
   });
 });
