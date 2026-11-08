@@ -11,7 +11,7 @@
 
 ## Procedura pratica: due telefoni + TV
 Usare lo stesso sito/revisione su tutti i dispositivi: `https://natalecrimb.lovable.app` dopo pubblicazione verificata. Non mescolare la versione vecchia pubblica con l’anteprima.
-1. **Prima del test:** B apre `/volontari` (o, dopo l’attivazione DNS, https://volontari.natale.crimonza.org) e accede con Nome e cognome + password comune del Comitato. Nessun account, email o ruolo da creare per i volontari; gli account personali servono solo a moderatori e QA Gmail.
+1. **Prima del test:** B apre `/volontari` (o, dopo l’attivazione DNS, https://volontari.natale.crimonza.org) e accede con Nome e cognome + password comune del Comitato. Nessun account, email o ruolo da creare per i volontari; gli account personali servono solo a moderatori e QA Gmail. Con lo stesso accesso: Scansiona QR, Inserisci pallina e «Acquisto alla casetta» (QR augurio monouso, 7 giorni, registrato col nome dichiarato; il cliente lo usa su /augurio e l’augurio resta in attesa di moderazione).
 2. **TV:** aprire direttamente `/albero-live`, orientamento orizzontale, fullscreen; annotare il conteggio iniziale. Pagina non linkata dal menu pubblico.
 3. **A:** `/regali` → Calore → almeno 5 € → Contanti alla casetta → prepara QR. Generare senza nome/dedica per il primo test, poi lasciare aperta la pagina QR. Il codice scade dopo 2 ore. Nessun contante viene incassato.
 4. **B:** nella DEMO condivisa scegliere «Scansiona QR», fotocamera oppure codice di 16 caratteri copiato da A. Non usare QR di esempio della presentazione locale. Scegliere contanti simulati e «Conferma e appendi la pallina».
