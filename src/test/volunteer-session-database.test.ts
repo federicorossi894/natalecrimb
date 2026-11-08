@@ -61,7 +61,7 @@ it("two concurrent confirmations create one ornament and audit the session name"
   ])) as { result: string; ornament_id: string }[][];
   expect([a![0]!.result, b![0]!.result].sort()).toEqual(["already_confirmed", "confirmed"]);
   expect(a![0]!.ornament_id).toBe(b![0]!.ornament_id);
-  const [n] = await svc<{ n: number }>("SELECT count(*)::int n FROM public.demo_ornaments");
+  const [n] = (await db.query<{ n: number }>("SELECT count(*)::int n FROM public.demo_ornaments")).rows;
   expect(n?.n).toBe(1);
   const audit = await svc<{ display_name: string; result: string }>("SELECT display_name,result FROM public.volunteer_audit WHERE action='confirm_cash_request' ORDER BY id");
   expect(audit.map((x) => x.result).sort()).toEqual(["already_confirmed", "confirmed"]);
