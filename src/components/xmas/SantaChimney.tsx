@@ -178,6 +178,7 @@ const STEPS = [
 
 /** Home storytelling section: a short automatic teaser (Santa lands on the chimney); the full story plays on /babbo-natale. */
 export function SantaChimneySection() {
+  if (!CAMPAIGN.santaHomeVisitsVisible) return null;
   return (
     <section aria-labelledby="santa-title" className="mt-24">
       <div className="santa-stage overflow-clip">

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { CAMPAIGN } from "@/lib/campaign";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Hand, MapPin } from "lucide-react";
 import { CriMark } from "@/components/xmas/Ornament";
 import { MISSIONS, claimSurprise, type AcademyState } from "@/lib/kids-academy";
@@ -6,7 +7,7 @@ import { HelperBadge, Medal, Seal } from "./KidsArt";
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Rome" });
 
-/** "Diploma di Piccolo Aiutante": one diploma per device, one surprise per diploma (demo validation by a volunteer). */
+/** Local courtesy acknowledgement, independent of payments, login and campaign tier. */
 export function DiplomaView({ state, update, onExit }: { state: AcademyState; update: (fn: (s: AcademyState) => AcademyState) => void; onExit: () => void }) {
   const d = state.diploma;
   if (!d || !state.done.length) return null;
@@ -41,7 +42,7 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
         {claimed && (
           <div className="kid-stamp pointer-events-none absolute right-4 top-24 rounded-xl border-4 border-primary px-3 py-1 text-primary sm:right-8" data-testid="claimed-stamp">
             <p className="font-display text-lg font-bold uppercase leading-none">Sorpresa consegnata</p>
-            <p className="text-center text-xs font-semibold">{fmt(d.claimedAt!)}</p>
+            <p className="text-center text-xs font-semibold">{d.claimedAt ? fmt(d.claimedAt) : ""}</p>
           </div>
         )}
       </article>
@@ -51,51 +52,32 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
           <CheckCircle2 className="h-7 w-7 shrink-0 text-gold" />
           <p className="text-lg leading-relaxed">Hai già ritirato la tua sorpresa: grazie, piccolo aiutante! Puoi continuare a giocare tutte le missioni che vuoi.</p>
         </div>
-      ) : (
+      ) : CAMPAIGN.courtesyBiscuit ? (
         <div className="mt-5 rounded-3xl bg-primary p-5 text-primary-foreground shadow-deep">
           <div className="flex gap-3">
             <MapPin className="mt-1 h-7 w-7 shrink-0" />
-            <p className="font-display text-2xl leading-snug">Mostra questa schermata ai volontari della casetta in Piazza San Paolo per ritirare la tua sorpresa natalizia.</p>
+            <p className="font-display text-2xl leading-snug">Mostra questa schermata ai volontari della casetta CRI in Piazza San Paolo per ritirare il biscotto</p>
           </div>
-          <p className="mt-3 text-sm opacity-90">Una sorpresa per bambino, fino a esaurimento. Tipo di sorpresa (ad esempio un biscotto) e orari sono da confermare · DEMO.</p>
+          <p className="mt-3 text-sm opacity-90">{CAMPAIGN.demo ? "DEMO · ritiro simulato, disponibilità da approvare dal Comitato." : "Omaggio di cortesia, non legato a donazioni o acquisti, fino a esaurimento disponibilità."}</p>
         </div>
+      ) : (
+        <p className="mt-5 text-center text-sm text-muted-foreground">Il tuo diploma resta disponibile. Il biscotto è in attesa di approvazione del Comitato.</p>
       )}
-      {!claimed && <VolunteerCheck onConfirm={() => { const now = new Date(); update((s) => claimSurprise(s, now)); }} />}
+      {!claimed && CAMPAIGN.courtesyBiscuit && <VolunteerCheck onConfirm={() => { if (CAMPAIGN.courtesyBiscuit) update((s) => claimSurprise(s, new Date())); }} />}
       <p className="mt-4 text-center text-[11px] text-muted-foreground">Nessuna registrazione e nessun dato del bambino: il diploma resta solo su questo dispositivo.</p>
     </section>
   );
 }
 
-const HOLD_MS = 1500;
-/** Press-and-hold so a child cannot validate by accident; works with touch, mouse and keyboard. */
+/** The volunteer taps on the visitor's phone; no identity or QR verification. */
 function VolunteerCheck({ onConfirm }: { onConfirm: () => void }) {
-  const [p, setP] = useState(0);
-  const t0 = useRef<number | null>(null);
-  const raf = useRef(0);
-  useEffect(() => () => cancelAnimationFrame(raf.current), []);
-  const begin = () => {
-    if (t0.current !== null) return;
-    t0.current = performance.now();
-    const loop = (now: number) => {
-      const v = Math.min(1, (now - (t0.current ?? now)) / HOLD_MS);
-      setP(v);
-      if (v >= 1) { t0.current = null; onConfirm(); return; }
-      raf.current = requestAnimationFrame(loop);
-    };
-    raf.current = requestAnimationFrame(loop);
-  };
-  const end = () => { cancelAnimationFrame(raf.current); t0.current = null; setP(0); };
   return (
     <div className="mt-5 rounded-3xl border border-dashed hairline-gold p-4 text-center" data-testid="volunteer-check">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Riservato ai volontari · DEMO</p>
-      <button type="button" onPointerDown={begin} onPointerUp={end} onPointerLeave={end} onPointerCancel={end}
-        onKeyDown={(e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); begin(); } }} onKeyUp={end}
-        onContextMenu={(e) => e.preventDefault()} style={{ touchAction: "none" }}
-        className="relative mt-2 inline-flex min-h-14 w-full max-w-sm items-center justify-center gap-2 overflow-hidden rounded-full bg-fir px-6 font-semibold text-snow select-none">
-        <span className="absolute inset-y-0 left-0 bg-gold/50" style={{ width: `${p * 100}%` }} aria-hidden />
-        <Hand className="relative h-5 w-5" /><span className="relative">Tieni premuto: sorpresa consegnata</span>
-      </button>
-      <p className="mt-2 text-xs text-muted-foreground">Segna la consegna su questo telefono: il diploma non darà un'altra sorpresa. Nessun dato inviato.</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Conferma sulla schermata del visitatore{CAMPAIGN.demo && " · DEMO"}</p>
+      <Button type="button" onClick={onConfirm} className="mt-2 min-h-14 w-full max-w-sm rounded-full">
+        <Hand className="h-5 w-5" /> Biscotto ritirato
+      </Button>
+      <p className="mt-2 text-xs text-muted-foreground">Ritiro registrato solo su questo dispositivo. Il diploma resta. Nessun login, QR o dato inviato.</p>
     </div>
   );
 }

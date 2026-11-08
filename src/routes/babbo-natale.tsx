@@ -38,6 +38,7 @@ function Babbo() {
   const top = () => document.getElementById("prenota")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const review = () => {
+    if (!CAMPAIGN.bookingSimulator) return;
     const r = santaBookingSchema.safeParse(form);
     if (!r.success) {
       const next: Partial<Record<keyof SantaForm, string>> = {};
@@ -48,7 +49,7 @@ function Babbo() {
     }
     setStage("review"); top();
   };
-  const confirm = () => { setForm(emptySantaForm()); setStage("done"); top(); };
+  const confirm = () => { if (!CAMPAIGN.bookingSimulator) return; setForm(emptySantaForm()); setStage("done"); top(); };
 
   const field = (k: keyof SantaForm, label: string, extra: ReactNode) => (
     <label className={lbl}>
