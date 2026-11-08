@@ -1,5 +1,6 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
+- [ ] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery, mock-only regression suite and operational procedure; keep all LIVE readiness false.
 - [x] Securely connect SumUp and store PayPal credentials; verify authentication without payments, retain DEMO and deny LIVE execution.
 - [x] Implement SumUp/PayPal real checkout, server verification, idempotent isolated LIVE ornaments and tree reads for all three LIVE modes; DEMO unchanged, no charges/publication.
 - [ ] Payment operational verification — awaits authorized publication, PayPal webhook ID, provider readiness validation and final authorized payment/TV test; autonomous reconciliation and LIVE postcard-return integration remain to complete.
