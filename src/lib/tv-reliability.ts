@@ -28,10 +28,12 @@ export function startTvReliability(isBusy: () => boolean, reload = () => window.
   let alive = true;
   let pending = false;
   let lock: WakeLock | null = null;
+  let nextWakeAttempt = 0;
   let dueAt = Date.now() + SAFETY_RELOAD_MS;
   const released = () => { lock = null; };
   const request = async () => {
-    if (!alive || pending || lock || document.visibilityState !== 'visible') return;
+    if (!alive || pending || lock || Date.now() < nextWakeAttempt || document.visibilityState !== 'visible') return;
+    nextWakeAttempt = Date.now() + 60_000;
     pending = true;
     try {
       const grant = await (navigator as WakeNavigator).wakeLock?.request('screen');
@@ -42,7 +44,7 @@ export function startTvReliability(isBusy: () => boolean, reload = () => window.
     } catch { /* OS/browser refusal is not a screen error. */ }
     finally { pending = false; }
   };
-  const visible = () => { if (document.visibilityState === 'visible') void request(); };
+  const visible = () => { if (document.visibilityState === 'visible') { nextWakeAttempt = 0; void request(); } };
   const recovery = () => { dueAt = Math.min(dueAt, Date.now() + 8000); };
   const tick = () => {
     // Retry a revoked lock without building parallel requests.

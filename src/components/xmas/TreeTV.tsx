@@ -58,7 +58,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const step = useRef(0);
   const cursor = useRef(0);
   const reduced = useReducedMotion();
-  const realDedications = useMemo(() => ornaments.filter((o) => o.dedica), [ornaments]);
+  const realDedications = useMemo(() => error ? [] : ornaments.filter((o) => o.dedica), [ornaments, error]);
   // Preview only: when no public dedication exists yet, one ornament carries a clearly labelled fictitious example.
   const previewDedication = useMemo(() => {
     const last = ornaments[ornaments.length - 1];
@@ -72,7 +72,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const publicDedications = previewDedication ? [previewDedication] : realDedications;
   const hasDedications = publicDedications.length > 0;
   // The wall lists approved wishes only; while they are few it adds the "Esempio · DEMO" notes, like /auguri.
-  const wallSource = useMemo(() => (wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, preview]);
+  const wallSource = useMemo(() => (wishesError ? [] : wishes.length ? wallWishes(wishes) : preview ? DEMO_WISHES : []), [wishes, wishesError, preview]);
   const sequence = preview ? tvSequence(true, true) : tvSequence(hasDedications, wishes.length > 0);
 
   useEffect(() => { ornamentsRef.current = ornaments; }, [ornaments]);
@@ -177,7 +177,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   // Successful moderation refreshes redact snapshots immediately, not at the next director beat.
   const currentSelected = publicDedications.find(o => o.id === selected?.id) ?? null;
   const dedication = scene === 'dedica' ? currentSelected : null;
-  const currentArrival = ornaments.find(o => o.id === arriving?.id) ?? null;
+  const currentArrival = error ? null : ornaments.find(o => o.id === arriving?.id) ?? null;
   const arrivingProject = arriving ? projectOf(arriving) : undefined;
   const wall = useMemo(() => layoutWall(wishPage.filter(w => wallSource.some(current => current.id === w.id)), newWishIds), [wishPage, wallSource, newWishIds]);
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;

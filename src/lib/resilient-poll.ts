@@ -9,6 +9,7 @@ export function useResilientPoll<T>(read: (signal: AbortSignal) => Promise<T>, i
   const [error, setError] = useState(false);
   const [stale, setStale] = useState(false);
   const [lastSuccess, setLastSuccess] = useState<number | null>(null);
+  const [checkedAt, setCheckedAt] = useState(0);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
   const refresh = useCallback(() => refreshRef.current(), []);
   useEffect(() => {
@@ -52,7 +53,7 @@ export function useResilientPoll<T>(read: (signal: AbortSignal) => Promise<T>, i
     void load();
     const poll = setInterval(() => void load(), intervalMs);
     const health = setInterval(() => {
-      if (alive) setStale(success === null || Date.now() - success > intervalMs * 2 + timeoutMs);
+      if (alive) { setCheckedAt(Date.now()); setStale(success === null || Date.now() - success > intervalMs * 2 + timeoutMs); }
     }, Math.min(intervalMs, 15_000));
     window.addEventListener('online', online);
     window.addEventListener('offline', offline);
@@ -65,5 +66,5 @@ export function useResilientPoll<T>(read: (signal: AbortSignal) => Promise<T>, i
       refreshRef.current = async () => {};
     };
   }, [intervalMs, timeoutMs]);
-  return { data, loaded, error, stale, lastSuccess, refresh };
+  return { data, loaded, error, stale, lastSuccess, checkedAt, refresh };
 }
