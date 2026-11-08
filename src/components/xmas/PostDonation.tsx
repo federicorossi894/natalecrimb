@@ -260,7 +260,7 @@ export function EmailStudio({ project, audience = "recipient", ornamentId, defau
           {consentSlot}
           {error && <p role="alert" className="text-sm text-gold">{error}</p>}
           <button disabled={busy || !CAMPAIGN.emailSimulator} onClick={confirm} className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground disabled:opacity-60">
-            {busy ? "Un attimo…" : audience === "donor" ? "Invia cartolina al donatore (demo)" : effMode === "now" ? "Invia ora (demo)" : "Invia a Natale (demo)"}
+            {!CAMPAIGN.emailSimulator ? "Invio email non ancora disponibile" : busy ? "Un attimo…" : audience === "donor" ? "Invia cartolina al donatore (demo)" : effMode === "now" ? "Invia ora (demo)" : "Invia a Natale (demo)"}
           </button>
           <p className="text-center text-[11px] text-muted-foreground">{CAMPAIGN.emailSimulator ? "Demo: nessuna email viene inviata o programmata, nessun indirizzo viene salvato." : "Invio email in attivazione: nessuna email inviata o programmata. Il mittente non è ancora configurato."}</p>
           {done && <SentNotice key={done} text={audience === "donor" ? "Invio simulato: la cartolina partirebbe ora verso il donatore." : confirmationText(done)} onClose={() => setDone(null)} />}

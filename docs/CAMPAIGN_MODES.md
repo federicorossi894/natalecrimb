@@ -76,3 +76,10 @@ Solo dopo implementazione e prove dei servizi corrispondenti aggiornare `LIVE_RE
 
 ## Informazione fiscale
 Approfondimento generale espandibile vicino alle informazioni donazione, senza percentuali, massimali, IBAN o condizioni di altri Comitati. Le simulazioni non generano benefici/ricevute; per applicazione locale e gestione ricevute è necessaria verifica amministrativa. Nessuna promessa automatica per contanti o acquisti.
+
+## Verifiche del completamento — 8 novembre 2026
+- 118 test passati in 12 file, inclusi matrice completa, opzioni indipendenti, route/allowlist e guardie server, minimo 5 €, calendario/TV e ritiro persistente del biscotto.
+- Compilazione automatica OK. Browser 1280×1800 e smartphone simulato 390×844: home Santa DEMO presente, checkout simulatore accessibile senza confermarlo, otto scene preview incluse muro/calendario; ritiro biscotto su stato locale di prova, ricarica, pulsante assente e stesso diploma. Nessun overflow orizzontale o errore pagina osservato. Nessun dato personale inserito né scrittura Cloud effettuata.
+- Verificati i permessi correnti di dispatcher e RPC campione: pubblico/autenticato non possono invocare direttamente, servizio server sì. Le altre modalità sono test di capacità/policy, non attivazioni del sito; account staff autorizzati, due telefoni e TV fisica non esercitati.
+- Nessuna pubblicazione, modifica di modalità, nuova migrazione o transazione reale in questo intervento. I permessi Cloud modificati nel precedente intervento restano condivisi col pubblicato: permane il limite della vecchia versione pubblicata descritto sopra.
+- Restano da implementare i servizi LIVE, non soltanto da inserire credenziali: pagamento/provider→pallina separata, invio/programmazione email, donazioni volontari LIVE e vendita→QR auguri verificata. Non dichiarare BASIC LIVE pronto in base a questi test.
