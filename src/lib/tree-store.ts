@@ -1,5 +1,6 @@
 import { CAMPAIGN } from "./campaign";
 import { livePublicTree } from './payments.functions';
+import { publicTvTree } from './tv-tree.functions';
 import { campaignRpc } from "@/lib/campaign-rpc";
 import { useEffect } from "react";
 import { useResilientPoll } from './resilient-poll';
@@ -43,23 +44,27 @@ export function useTreeStore(options: { publicOnly?: boolean } = {}) {
   const publicOnly = options.publicOnly ?? false;
   const poll = useResilientPoll(async (signal) => {
     if (!CAMPAIGN.sharedDemoData) {
-      if (!CAMPAIGN.liveData) return { remote: [] as TreeOrnament[], mine: [] as MyOrnament[] };
+      if (!CAMPAIGN.liveData) return { remote: [] as TreeOrnament[], mine: [] as MyOrnament[], count: 0 };
       const rows = await livePublicTree({ signal });
-      return { remote: [...rows].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: [] as MyOrnament[] };
+      return { remote: [...rows].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: [] as MyOrnament[], count: rows.length };
+    }
+    if (publicOnly) {
+      const summary = await publicTvTree({ signal });
+      return { remote: [...summary.rows].reverse().map(o => ({ id:o.id,kind:o.kind as OrnamentKind,x:o.x,y:o.y,...(o.dedica ? {dedica:o.dedica} : {}),...(o.firma ? {firma:o.firma} : {}) })), mine: [] as MyOrnament[], count: summary.count };
     }
     const [t, m] = await Promise.all([
       campaignRpc('public_tree', undefined, signal),
       publicOnly ? Promise.resolve({ data: [] as MyOrnament[], error: null }) : campaignRpc('my_ornaments', { _client: clientId() }, signal),
     ]);
     if (t.error) throw new Error(t.error.message);
-    return { remote: [...(t.data ?? [])].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: m.data ?? [] };
-  }, { remote: [] as TreeOrnament[], mine: [] as MyOrnament[] }, POLL_MS);
+    return { remote: [...(t.data ?? [])].reverse().map(o => ({ id: o.id, kind: o.kind as OrnamentKind, x: o.x, y: o.y, ...(o.dedica ? { dedica: o.dedica } : {}), ...(o.firma ? { firma: o.firma } : {}) })), mine: m.data ?? [], count: t.data?.length ?? 0 };
+  }, { remote: [] as TreeOrnament[], mine: [] as MyOrnament[], count: 0 }, POLL_MS);
   const sync = poll.refresh;
   useEffect(() => {
     const h = () => void sync();
     window.addEventListener(EVT, h);
     return () => window.removeEventListener(EVT, h);
   }, [sync]);
-  const { remote, mine } = poll.data;
-  return { mine, error: poll.error || poll.stale, loaded: poll.loaded, lastSuccess: poll.lastSuccess, addedOrnaments: remote, addedCount: remote.length, publicOrnaments: CAMPAIGN.demo ? [...TREE_ORNAMENTS, ...remote] : remote, total: (CAMPAIGN.demo ? MOCK_TOTAL_GIFTS : 0) + remote.length, refresh: sync };
+  const { remote, mine, count } = poll.data;
+  return { mine, error: poll.error || poll.stale, loaded: poll.loaded, lastSuccess: poll.lastSuccess, addedOrnaments: remote, addedCount: count, publicOrnaments: CAMPAIGN.demo ? [...TREE_ORNAMENTS, ...remote] : remote, total: (CAMPAIGN.demo ? MOCK_TOTAL_GIFTS : 0) + count, refresh: sync };
 }

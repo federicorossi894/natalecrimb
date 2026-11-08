@@ -5,7 +5,8 @@ import { queueArrivals, reloadAllowed, SAFETY_RELOAD_MS, startTvReliability, TV_
 import { crossedNoon, romeParts, tvDay } from '@/lib/kindness';
 import { useTreeStore } from '@/lib/tree-store';
 
-const mocks = vi.hoisted(() => ({ demo: vi.fn(), live: vi.fn() }));
+const mocks = vi.hoisted(() => ({ demo: vi.fn(), live: vi.fn(), tv: vi.fn() }));
+vi.mock('@/lib/tv-tree.functions', () => ({ publicTvTree: mocks.tv }));
 vi.mock('@/lib/campaign-rpc', () => ({ campaignRpc: mocks.demo }));
 vi.mock('@/lib/payments.functions', () => ({ livePublicTree: mocks.live }));
 beforeEach(() => {
@@ -18,11 +19,11 @@ afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 describe('TV read reliability', () => {
   it('uses exactly one public read per 15 seconds and never touches blocked localStorage', async () => {
     const storage = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw Error('blocked'); });
-    mocks.demo.mockResolvedValue({ data: [{ id: 'one', kind: 'calore', x: 50, y: 50 }], error: null });
+    mocks.tv.mockResolvedValue({ rows: [{ id: 'one', kind: 'calore', x: 50, y: 50 }], count: 301 });
     const tv = renderHook(() => useTreeStore({ publicOnly: true }));
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
-    expect(mocks.demo.mock.calls.map(call => call[0])).toEqual(['public_tree','public_tree','public_tree']);
-    expect(storage).not.toHaveBeenCalled(); expect(tv.result.current.addedCount).toBe(1);
+    expect(mocks.tv).toHaveBeenCalledTimes(3); expect(mocks.demo).not.toHaveBeenCalled();
+    expect(storage).not.toHaveBeenCalled(); expect(tv.result.current.addedCount).toBe(301);
     tv.unmount(); expect(vi.getTimerCount()).toBe(0);
   });
   it('aborts delayed reads, ignores their late result and recovers immediately online', async () => {
