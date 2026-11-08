@@ -206,6 +206,10 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const isPreviewDedication = !!previewDedication && dedication?.id === previewDedication.id;
   const priority = storyPriority({ ceremony: ceremonyPlaying || !!preview?.advent, arrival: !!arriving, wall: scene === 'auguri', dedication: scene === 'dedica' });
   const specialAllowed=!arriving&&!ceremonyPlaying&&!preview?.advent;
+  useEffect(()=>{
+    if(!publicEvent)return;
+    if(error||wishesError||(publicEvent.type==='wish'?!wishes.some(w=>w.id===publicEvent.id):!safeOrnaments.some(o=>String(o.id)===publicEvent.id&&o.dedica)))setPublicEvent(null);
+  },[publicEvent,error,wishesError,wishes,safeOrnaments]);
   const specialWish=specialAllowed&&publicEvent?.type==='wish'&&!wishesError?wishes.find(w=>w.id===publicEvent.id)??null:null;
   const specialDedication=specialAllowed&&publicEvent?.type==='dedication'&&!error?safeOrnaments.find(o=>String(o.id)===publicEvent.id&&o.dedica)??null:null;
   const story = useTvStorytelling(safeOrnaments, specialWish?'wall':specialDedication?'dedication':priority, error, !preview || preview.beat === 'racconto', !!preview?.acceleratedStory);
