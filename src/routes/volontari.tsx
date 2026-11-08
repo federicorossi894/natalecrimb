@@ -8,6 +8,7 @@ import { Camera, CheckCircle2, Gift, Keyboard, Mail, PenLine, PlusCircle, Presen
 import { supabase } from "@/integrations/supabase/client";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { AuthBox } from "@/components/xmas/AuthBox";
+import { Button } from "@/components/ui/button";
 import { OrnamentIcon } from "@/components/xmas/Ornament";
 import { PROJECTS, type OrnamentKind } from "@/lib/data";
 import { EmailStudio } from "@/components/xmas/PostDonation";
@@ -38,6 +39,7 @@ function Volontari() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [localPresentation, setLocalPresentation] = useState(false);
   const [view, setView] = useState<"home" | "scan" | "manual" | "wish">("home");
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
@@ -46,7 +48,10 @@ function Volontari() {
   }, []);
   useEffect(() => {
     if (!session) { setAllowed(null); return; }
-    void supabase.rpc("is_volunteer").then(({ data }) => setAllowed(!!data));
+    setAllowed(null);
+    let active = true;
+    void supabase.rpc("is_volunteer").then(({ data, error }) => { if (active) setAllowed(!error && !!data); });
+    return () => { active = false; };
   }, [session]);
 
   return (
@@ -55,11 +60,15 @@ function Volontari() {
       <section className="mx-auto max-w-lg px-4 pb-16">
         {!ready ? null : !session ? (
           <>
-            {CAMPAIGN.demo && <DemoMode />}
-            <div className="mt-10 border-t pt-8">
-              <p className="mb-3 text-center text-xs text-muted-foreground">Operazioni reali sull'albero condiviso: solo per volontari abilitati</p>
-              <AuthBox title="Accesso volontari" returnPath="/volontari" roleName="volontario" />
+            <div className="mb-5 border-b pb-5">
+              <h2 className="font-display text-2xl">DEMO condivisa · due telefoni + TV</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Contanti e POS simulati, palline salvate sull’albero DEMO condiviso. Accesso riservato ai volontari abilitati dal Comitato.</p>
             </div>
+            <AuthBox title="Accedi alla DEMO condivisa" returnPath="/volontari" roleName="volontario" />
+            {CAMPAIGN.demo && <div className="mt-8 border-t pt-5">
+              <Button variant="outline" onClick={() => setLocalPresentation((v) => !v)} className="h-auto w-full whitespace-normal py-3"><Presentation />{localPresentation ? "Chiudi presentazione locale" : "Presentazione locale · un solo telefono"}</Button>
+              {localPresentation && <div className="mt-4"><DemoMode /></div>}
+            </div>}
           </>
         ) : allowed === null ? null : !allowed ? (
           <div className="glass rounded-2xl p-5 text-sm">
@@ -73,7 +82,10 @@ function Volontari() {
               <span>Volontario: {session.user.email}</span>
               <button onClick={() => supabase.auth.signOut()} className="underline">Esci</button>
             </div>
-            <p className="mt-3 rounded-2xl border hairline-gold px-4 py-3 text-xs text-gold">DEMO · Contanti e POS sono passaggi simulati: nessun incasso reale, nessun POS collegato.</p>
+            <div className="mt-4 border-b pb-4">
+              <h2 className="font-display text-2xl">DEMO condivisa · due telefoni + TV</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Nessun incasso reale, nessun POS collegato. Le conferme aggiungono una sola pallina persistente all’albero DEMO condiviso.</p>
+            </div>
             {view === "home" && (
               <div className="mt-5 grid gap-3">
                 <button onClick={() => setView("scan")} className="flex items-center gap-4 rounded-3xl bg-primary p-6 text-left text-primary-foreground shadow-deep">
@@ -270,7 +282,8 @@ function ManualFlow({ api, demo = false }: { api: DeskApi; demo?: boolean }) {
 /** After a manual entry: finish, or send the donor a (simulated) email postcard, or gift it to someone by email. */
 function DeskAfter({ kind, firma, dedica, id, text, demo, onEnd }: { kind: OrnamentKind; firma: string; dedica: string; id: string | null; text: string; demo: boolean; onEnd: () => void }) {
   const [mode, setMode] = useState<"choose" | "donor" | "recipient">("choose");
-  const p = projectForKind(kind) ?? PROJECTS[0]!;
+  const p = projectForKind(kind) ?? PROJECTS[0];
+  if (!p) return null;
   return (
     <div className="mt-4 space-y-4" data-testid="desk-after">
       <p role="status" className="flex items-start gap-2 rounded-2xl border hairline-gold p-4 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-gold" />{text}</p>
@@ -304,8 +317,8 @@ function DemoMode() {
   return (
     <div data-testid="demo-mode">
       <div className="rounded-3xl border-2 border-dashed hairline-gold p-5">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold"><Presentation className="h-4 w-4" /> Modalità presentazione · DEMO</p>
-        <p className="mt-2 text-sm text-muted-foreground">Prova l'area volontari senza account. Tutto avviene solo in questa pagina: nessun dato salvato, nessuna pallina sull'albero vero, nessun incasso.</p>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold"><Presentation className="h-4 w-4" /> Presentazione locale · un solo telefono</p>
+        <p className="mt-2 text-sm text-muted-foreground">Solo su questo telefono, azzerata al refresh: nessun dato salvato o condiviso con altri telefoni o TV, nessuna pallina sull’albero condiviso, nessun incasso.</p>
       </div>
       {view === "home" ? (
         <div className="mt-5 grid gap-3">

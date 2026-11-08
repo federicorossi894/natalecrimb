@@ -3,7 +3,7 @@ import { z } from "zod";
 import { assertGiftEmailService, type GiftEmailOutcome } from "./gift-email-policy";
 import { donationAccessSchema } from "./payment-policy";
 import { giftDeliverySchema, giftDeliveryTime } from "./donation-email-policy";
-import { assertOfficialEmailReady, DEMO_EMAIL_QA } from "./email-readiness";
+import { assertOfficialEmailReady } from "./email-readiness";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CAMPAIGN } from "./campaign";
 
@@ -110,7 +110,7 @@ export const retryDonationEmail = createServerFn({ method: "POST" })
     return processDonationEmail(data.id, data.kind, true);
   });
 
-/** Recipient is never accepted from the browser; allowlist remains empty pending owner's confirmation. */
+/** Preparation only: no recipient input, no sends, no fake donation used for a QA audit. */
 export const testDemoEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({}).strict().parse(data))
@@ -118,9 +118,15 @@ export const testDemoEmail = createServerFn({ method: "POST" })
     const allowed = await context.supabase.rpc("is_moderator");
     if (allowed.error || !allowed.data)
       throw new Error("Prova riservata al personale autorizzato.");
-    if (!CAMPAIGN.demo || !DEMO_EMAIL_QA.enabled || DEMO_EMAIL_QA.confirmedRecipients.length !== 1)
-      return { state: "unavailable" as const, reason: "qa_recipient_not_confirmed" };
-    assertOfficialEmailReady();
-    // No real QA adapter before domain setup. No arbitrary public send endpoint exists.
-    return { state: "unavailable" as const, reason: "managed_sender_not_configured" };
+    const { DEMO_EMAIL_QA } = await import("./demo-email-qa.server");
+    return {
+      state: "unavailable" as const,
+      reason: "managed_sender_not_configured",
+      recipientConfirmed: DEMO_EMAIL_QA.confirmedRecipients.length === 1,
+      manualOnly: true,
+      senderVerified: DEMO_EMAIL_QA.senderVerified,
+      rateAuditReady: DEMO_EMAIL_QA.durableRateAuditVerified,
+      minIntervalSeconds: DEMO_EMAIL_QA.minIntervalSeconds,
+      maximumPerDay: DEMO_EMAIL_QA.maximumPerDay,
+    };
   });
