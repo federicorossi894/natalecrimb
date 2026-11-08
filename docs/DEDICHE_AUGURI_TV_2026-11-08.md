@@ -28,3 +28,5 @@ La password reale del proprietario non è disponibile all’agente: **nessun log
 
 ## Pubblicazione
 Nuova DEMO autorizzata dal piano: richiesta soltanto dopo test/build; verifica della versione sul dominio pubblico riportata separatamente. Include pulsante effetti opzionali e stato musica in preparazione già approvati nel piano, mai attivazione musicale. Gmail QA resta bloccato per ruolo e non è stato modificato.
+
+Controllo successivo della TV pubblica: HTTP 200, nuovo controllo audio opzionale e stato musica in preparazione presenti, conteggio Cloud37. Questo conferma la nuova revisione pubblica, non un’approvazione eseguita con cookie volontario reale.
