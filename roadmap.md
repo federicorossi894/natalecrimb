@@ -1,4 +1,8 @@
 # CRI Monza demo — roadmap
+## Shared cash DEMO and authorized email preparation — 8 November
+- [ ] Make shared Cloud volunteer access primary, retain explicitly optional local presentation; verify authorization, idempotence and three-client refresh without LIVE/provider calls.
+- [ ] Confirm server-only QA recipient and prepare protected manual QA policy/template; start Lovable email domain setup, never send before setup and approval.
+- [ ] Check current public release and safe DEMO publishing; report exact remaining access/setup blockers and two-phone/TV steps.
 ## Email preparation and afternoon checks — 8 November
 - [x] Independent donor confirmation opt-in, private intent/atomic attempt audit and paid-only trigger; no real send.
 - [x] Gift email templates, paid-record ownership, disabled sender state, central LIVE initialization gate and mock tests; Christmas single-event callback prepared but not scheduled.
