@@ -3,7 +3,7 @@
 - [x] Shared-session DEMO pending-only review migration applied, atomic/audit/rate/origin protections and persistent 4-second queue.
 - [x] Public postcards, same-ID reveal, bounded 4-second new-wish wall events and optional original snap; stories/camera preserved.
 - [x] 365 tests/build OK, isolated SQL flow and browser TV/phone screenshots; runbook documents real-cookie/physical limitations.
-- [ ] Confirm published DEMO revision after safe deploy request.
+- [x] Public TV verified HTTP 200, new optional audio control/preparation state present, real Cloud count37; authenticated review flow still requires owner-device check.
 - [ ] Actual two-phone shared-cookie Cloud review → TV soak — requires owner password/device session; no ghost records or synthetic public writes.
 ## Priority Gmail real QA — 8 November 18:36 UTC
 - [x] App credential-path profile HTTP 200/exact Federico; published personal session denied moderator; CRI app account volunteer-only; audit 0 and no matching QA Gmail messages. Deployed protected Gmail runtime remains unreachable without moderator authorization.
