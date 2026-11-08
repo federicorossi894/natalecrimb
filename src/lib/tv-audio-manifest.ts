@@ -39,7 +39,7 @@ export const TV_TRACKS: readonly TvTrack[] = [
 export const TV_AUDIO_CLEARANCE = { embeddedFiles: true, venue: false };
 export const uniqueSeconds = (tracks: readonly TvTrack[]) => tracks.reduce((s, t) => s + t.seconds, 0);
 export function catalogueReady(tracks: readonly TvTrack[], clearance = TV_AUDIO_CLEARANCE) {
-  return clearance.embeddedFiles && tracks.length >= 15 && uniqueSeconds(tracks) >= 3300
+  return clearance.embeddedFiles && tracks.length >= 15 && uniqueSeconds(tracks) >= 3600
     && new Set(tracks.map(t => t.id)).size === tracks.length
     && tracks.every(t => t.seconds > 0 && t.source.startsWith('https://') && t.license && t.checkedOn && (t.src.startsWith('/audio/tv/') || t.src.startsWith('/__l5e/assets-v1/')));
 }
