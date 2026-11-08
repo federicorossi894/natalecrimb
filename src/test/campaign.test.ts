@@ -22,7 +22,7 @@ describe('Campaign modes and fail-closed actions', () => {
   });
   it('BASIC excludes cash and wishes even with all prerequisites', () => {
     const c = campaignCapabilities('BASIC', { payments: true, cash: true, purchaseWishQR: true, liveData: true });
-    expect(c.livePayments).toBe(true);
+    expect(c.livePayments).toBe(false); // Global readiness alone does not verify any provider.
     expect(c.volunteerCashDonations).toBe(false);
     expect(c.publicWishWall).toBe(false);
     expect(campaignRouteAllowed('/augurio/a-code', c)).toBe(false);

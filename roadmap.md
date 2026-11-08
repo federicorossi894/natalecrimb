@@ -1,5 +1,6 @@
 # CRI Monza demo — roadmap
 ## Campaign modes architecture
+- [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
 - [ ] Real single-event email delivery/scheduling — blocked by sender-domain setup and paid-gift implementation; no sender, queue or schedule fabricated.
 - [ ] Optional home visits and courtesy biscuit activation — blocked by Committee approval; Santa also needs real availability/contribution and booking operations.
