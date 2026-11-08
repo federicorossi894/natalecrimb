@@ -169,4 +169,22 @@ describe('Mock-only pre-live hardening', () => {
     fetchMock.mockImplementation(async url => String(url).endsWith('/token') ? response({ access_token: 'test' }) : response(order('APPROVED','PENDING')));
     expect((await reconcileDonation(d,true)).status).toBe('pending'); expect(captures()).toHaveLength(0); expect(claimed).toBe(false);
   });
+  it('verified foreign order is a no-op, never captured or written', async () => {
+    db.from.mockImplementation(() => {
+      const q = { select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn(async () => ({ data: null, error: null })) };
+      q.select.mockReturnValue(q); q.eq.mockReturnValue(q); return q;
+    });
+    await handlePaypalWebhook(webhook()); expect(captures()).toHaveLength(0); expect(db.rpc).not.toHaveBeenCalled();
+    expect(fetchMock.mock.calls.map(([url]) => String(url).split('/').pop())).toEqual(['token','verify-webhook-signature']);
+  });
+  it('official approval reversal reads an order, never a capture or POST capture', async () => {
+    const implementation = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation(async (...args) => String(args[0]).includes('/v2/checkout/orders/') ? response(order('VOIDED')) : implementation?.(...args));
+    const req = webhook('CHECKOUT.PAYMENT-APPROVAL.REVERSED');
+    const event = await req.json(); event.resource.id = 'order-1';
+    await handlePaypalWebhook(new Request(req.url, { method: 'POST', headers: req.headers, body: JSON.stringify(event) }));
+    expect(captures()).toHaveLength(0); expect(confirmations).toBe(0);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/v2/payments/captures/'))).toBe(false);
+    expect(db.from).toHaveBeenCalledWith('live_donations');
+  });
 });

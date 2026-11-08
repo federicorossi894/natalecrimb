@@ -83,6 +83,26 @@ describe('Real payment adapters, no external requests', () => {
     expect(donationCheckoutSchema.safeParse(input).success).toBe(true);
     for (const amount of [0,4,4.99,5.01,1001]) expect(donationCheckoutSchema.safeParse({ ...input, amount }).success).toBe(false);
   });
+  it.each(['BASIC','ADVANCED_1','ADVANCED_2'] as const)('%s PayPal checkout uses verified EUR amount and effective return/cancel origin', async mode => {
+    Object.assign(CAMPAIGN, campaignCapabilities(mode, ready, undefined, undefined, providers));
+    fetchMock.mockResolvedValueOnce(response({ access_token: 'test-only' })).mockResolvedValueOnce(response({ id: 'order-1', links: [{ rel: 'payer-action', href: 'https://www.paypal.com/checkoutnow?token=order-1' }] }));
+    await createProviderCheckout('paypal', id, 500, 'https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/start');
+    const init = fetchMock.mock.calls[1]?.[1];
+    expect(JSON.parse(init.body)).toMatchObject({ intent: 'CAPTURE', purchase_units: [{ custom_id: id, amount: { currency_code: 'EUR', value: '5.00' } }], payment_source: { paypal: { experience_context: { return_url: `https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/pagamento?id=${id}`, cancel_url: `https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/pagamento?id=${id}&annullato=1` } } } });
+    expect(init.headers['PayPal-Request-Id']).toBe(id);
+  });
+  it('SumUp PAID without a transaction identity cannot create an ornament', async () => {
+    fetchMock.mockResolvedValue(response({ id: 'checkout-1', status: 'PAID', checkout_reference: id, amount: 5, currency: 'EUR' }));
+    await expect(reconcileDonation(donation)).rejects.toThrow('Transazione'); expect(db.rpc).not.toHaveBeenCalled();
+  });
+  it('SumUp PAID with a failed transaction cannot override transaction state', async () => {
+    fetchMock.mockResolvedValue(response({ id: 'checkout-1', status: 'PAID', checkout_reference: id, amount: 5, currency: 'EUR', transaction_id: 'tx', transactions: [{ id: 'tx', status: 'FAILED' }] }));
+    await expect(reconcileDonation(donation)).rejects.toThrow('Transazione'); expect(db.rpc).not.toHaveBeenCalled();
+  });
+  it('unverified preview checkout is rejected before any provider call', async () => {
+    await expect(createProviderCheckout('paypal', id, 500, 'https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app')).rejects.toThrow('Dominio');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('does not accept a browser success marker as payment evidence', () => {
     expect(() => validatePaymentEvidence(donation, { provider: 'sumup', providerId: 'checkout-1', paymentId: '', reference: id, amountCents: 500, currency: 'EUR', paid: true })).toThrow();
   });
