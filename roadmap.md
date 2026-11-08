@@ -1,17 +1,17 @@
 # CRI Monza demo — roadmap
 ## Gmail manual QA correction — 8 November
-- [ ] Verify available Gmail identity/scopes and link only the exact owner account; no send during preparation.
-- [ ] Three fixed staff-only manual tests, independent QA gate, durable audit/limits, mock regression and desktop/mobile verification.
+- [x] Verified existing Gmail identity and runtime credentials; linked exact owner account, gala untouched, no sends.
+- [x] Three fixed manual staff tests, independent QA gate and service-only durable audit/limits; 306 tests pass, build OK. Desktop/mobile confirms current account denied by role; authorized real UI flow awaits authorized account.
 - [ ] Actual reception check — awaits explicit manual send and mailbox confirmation; LIVE unchanged.
 ## Shared cash DEMO and authorized email preparation — 8 November
 - [x] Shared Cloud volunteer access primary, optional local presentation explicitly separate; isolated SQL idempotence/three fresh reads and three-reader 15-second DEMO polling/remount tests, browser role denial verified. Physical Cloud test remains blocked by authorized account below.
-- [x] Owner-confirmed server-only QA recipient, protected preparation endpoint, fixed manual template and mocked claim/audit orchestration; no real send. Domain setup form is the next owner action below.
+- [x] Owner-confirmed server-only QA recipient, protected preparation endpoint, fixed manual template and mocked claim/audit orchestration; no real send. Superseded for QA by the Gmail path above; official LIVE setup remains separate.
 - [x] Public legacy version verified HTTP 200 and old local-first desk; safe DEMO release tested (296 tests, build OK, basic security checks without findings); publish authorized by owner, no LIVE/payment/provider changes. Practical steps and blockers in docs/SHARED_DEMO_QA_2026-11-08.md.
 ## Email preparation and afternoon checks — 8 November
 - [x] Independent donor confirmation opt-in, private intent/atomic attempt audit and paid-only trigger; no real send.
 - [x] Gift email templates, paid-record ownership, disabled sender state, central LIVE initialization gate and mock tests; Christmas single-event callback prepared but not scheduled.
 - [x] DEMO desktop/mobile regression, read-only TV/content checks and executable two-phone checklist; published comparison blocked by HTTP 403, physical hardware and authorized moderation remain unverified.
-- [ ] Configure official Natale mailbox/domain and managed email scaffold, durable manual QA limit/audit adapter — requires owner/domain DNS authorization; exact QA recipient confirmed, no sends before setup and approval.
+- [ ] Configure official LIVE Natale mailbox/domain and managed email scaffold — requires owner/domain DNS authorization; exact QA recipient confirmed, no sends before setup and approval.
 ## Campaign modes architecture
 - [x] 8 November preflight code/tests: foreign webhook no-op, effective return origin, paid postcard, PayPal missing custom_id fallback, SumUp transaction identity, isolated PostgreSQL validation and read-only listener/accessibility audit; see docs/PAYMENT_PREFLIGHT.md.
 - [x] Pre-live payment hardening: verified PayPal APPROVED capture without browser, cross-request capture exclusion, bounded recovery endpoint, mock-only regression suite and manual procedure; all LIVE readiness unchanged/false.
@@ -20,7 +20,7 @@
 - [ ] Payment operational verification — STOP by owner: no staging/second project; future dedicated PayPal app after President meeting and authorized 5 EUR/provider test on main project. Preserve existing code; no listener, rotation or schedule now.
 - [x] Correct online method selection with per-provider readiness; verify DEMO/LIVE execution separation and biscuit OFF regression.
 - [x] Autonomous BASIC capability contract, independent Santa/biscuit options, email fail-closed preparation, tests and documentation; real services remain explicitly blocked below.
-- [ ] Real single-event email delivery/scheduling and QA sends — blocked by official mailbox/domain setup, generated managed send adapter, verified per-event scheduling and durable QA rate/audit implementation; QA address now confirmed, no sender, queue, actual schedule or QA success fabricated.
+- [ ] Real LIVE single-event email delivery/scheduling — blocked by official mailbox/domain setup, managed send adapter and verified per-event scheduling. Manual QA Gmail implemented separately above; no reception or schedule fabricated.
 - [ ] Optional home visits and courtesy biscuit activation — blocked by Committee approval; Santa also needs real availability/contribution and booking operations.
 - [x] Central typed capabilities, readiness and route gates; DEMO remains active.
 - [x] Server and direct RPC protections; DEMO data denied outside DEMO (LIVE storage/services not implemented).

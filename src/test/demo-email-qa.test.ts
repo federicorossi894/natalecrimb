@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { DEMO_EMAIL_QA, runDemoEmailQa, type QaPorts, qaRawMessage, sendGmailQa } from "@/lib/demo-email-qa.server";
+import {
+  DEMO_EMAIL_QA,
+  runDemoEmailQa,
+  type QaPorts,
+  qaRawMessage,
+  sendGmailQa,
+} from "@/lib/demo-email-qa.server";
 
 function ports(): QaPorts {
   let claimed = false;
@@ -49,12 +55,16 @@ describe("Manual DEMO QA, mocked delivery only", () => {
     expect(p.finish).toHaveBeenCalledWith("mock-attempt", { state: "accepted" });
   });
   it("definite refusal is audited, not automatically retried", async () => {
-    const p = ports(); p.send = vi.fn(async () => ({ state: "failed" as const, status: 403 }));
+    const p = ports();
+    p.send = vi.fn(async () => ({ state: "failed" as const, status: 403 }));
     expect((await runDemoEmailQa(p)).state).toBe("failed");
     expect(p.finish).toHaveBeenCalledWith("mock-attempt", { state: "failed", status: 403 });
   });
   it("ambiguous send retains claim and reports unknown", async () => {
-    const p = ports(); p.send = vi.fn(async () => { throw new Error("timeout"); });
+    const p = ports();
+    p.send = vi.fn(async () => {
+      throw new Error("timeout");
+    });
     expect((await runDemoEmailQa(p)).state).toBe("unknown");
     expect(p.finish).toHaveBeenCalledWith("mock-attempt", { state: "unknown" });
     expect((await runDemoEmailQa(p)).state).toBe("rate_limited");
@@ -64,18 +74,30 @@ describe("Manual DEMO QA, mocked delivery only", () => {
     expect(DEMO_EMAIL_QA.sender).toBe("federico.rossi@crimonza.org");
     expect(DEMO_EMAIL_QA.enabled).toBe(true);
   });
-  it.each(["receipt", "gift_now", "christmas_simulation"] as const)("fixed sender and recipient for %s", kind => {
-    const raw = Buffer.from(qaRawMessage(kind, "mock-id"), "base64url").toString("utf8");
-    expect(raw).toContain("From: federico.rossi@crimonza.org\r\nTo: federico.rossi@crimonza.org");
-    const body = Buffer.from(raw.split("\r\n\r\n")[1] ?? "", "base64").toString("utf8");
-    expect(body).toContain("[DEMO — NESSUN PAGAMENTO]");
-    if(kind === "christmas_simulation") expect(body).toContain("SIMULAZIONE ORARIO");
-  });
+  it.each(["receipt", "gift_now", "christmas_simulation"] as const)(
+    "fixed sender and recipient for %s",
+    (kind) => {
+      const raw = Buffer.from(qaRawMessage(kind, "mock-id"), "base64url").toString("utf8");
+      expect(raw).toContain("From: federico.rossi@crimonza.org\r\nTo: federico.rossi@crimonza.org");
+      const body = Buffer.from(raw.split("\r\n\r\n")[1] ?? "", "base64").toString("utf8");
+      expect(body).toContain("[DEMO — NESSUN PAGAMENTO]");
+      if (kind === "christmas_simulation") expect(body).toContain("SIMULAZIONE ORARIO");
+    },
+  );
   it("provider acceptance is not labelled delivery", async () => {
-    vi.stubEnv("GOOGLE_MAIL_API_KEY", "mock"); vi.stubEnv("LOVABLE_API_KEY", "mock");
-    const f = vi.fn(async () => new Response(JSON.stringify({ id: "mock-provider-id" }), {status:200})); vi.stubGlobal("fetch", f);
-    expect(await sendGmailQa("gift_now", "mock-id")).toEqual({state:"accepted",messageId:"mock-provider-id",status:200});
+    vi.stubEnv("GOOGLE_MAIL_API_KEY", "mock");
+    vi.stubEnv("LOVABLE_API_KEY", "mock");
+    const f = vi.fn(
+      async () => new Response(JSON.stringify({ id: "mock-provider-id" }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", f);
+    expect(await sendGmailQa("gift_now", "mock-id")).toEqual({
+      state: "accepted",
+      messageId: "mock-provider-id",
+      status: 200,
+    });
     expect(f).toHaveBeenCalledTimes(1);
-    vi.unstubAllGlobals(); vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 });

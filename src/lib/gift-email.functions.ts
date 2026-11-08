@@ -119,35 +119,68 @@ export const testDemoEmail = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({}).strict().parse(data))
   .handler(async ({ context }) => {
     const allowed = await context.supabase.rpc("is_moderator");
-    if (allowed.error || !allowed.data) throw new Error("Prova riservata al personale autorizzato.");
+    if (allowed.error || !allowed.data)
+      throw new Error("Prova riservata al personale autorizzato.");
     const { gmailQaIdentity } = await import("./demo-email-qa.server");
-    const identity = CAMPAIGN.demo && await gmailQaIdentity();
+    const identity = CAMPAIGN.demo && (await gmailQaIdentity());
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const audit = await supabaseAdmin.from("staff_qa_attempts").select("id", { count: "exact", head: true });
-    return { ready: identity && !audit.error, identityVerified: identity, auditReady: !audit.error };
+    const audit = await supabaseAdmin
+      .from("staff_qa_attempts")
+      .select("id", { count: "exact", head: true });
+    return {
+      ready: identity && !audit.error,
+      identityVerified: identity,
+      auditReady: !audit.error,
+    };
   });
 
 /** Manual staff consent, fixed three templates; never callable by public DEMO flows. */
 export const sendDemoEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ kind: z.enum(["receipt", "gift_now", "christmas_simulation"]), requestId: z.string().uuid(), approved: z.literal(true) }).strict().parse(data))
+  .inputValidator((data) =>
+    z
+      .object({
+        kind: z.enum(["receipt", "gift_now", "christmas_simulation"]),
+        requestId: z.string().uuid(),
+        approved: z.literal(true),
+      })
+      .strict()
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const allowed = await context.supabase.rpc("is_moderator");
-    if (allowed.error || !allowed.data) throw new Error("Prova riservata al personale autorizzato.");
-    const { DEMO_EMAIL_QA, gmailQaIdentity, runDemoEmailQa, sendGmailQa } = await import("./demo-email-qa.server");
-    const identity = CAMPAIGN.demo && await gmailQaIdentity();
+    if (allowed.error || !allowed.data)
+      throw new Error("Prova riservata al personale autorizzato.");
+    const { DEMO_EMAIL_QA, gmailQaIdentity, runDemoEmailQa, sendGmailQa } =
+      await import("./demo-email-qa.server");
+    const identity = CAMPAIGN.demo && (await gmailQaIdentity());
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     return runDemoEmailQa({
-      authorized: true, demo: CAMPAIGN.demo, enabled: DEMO_EMAIL_QA.enabled, senderVerified: identity,
+      authorized: true,
+      demo: CAMPAIGN.demo,
+      enabled: DEMO_EMAIL_QA.enabled,
+      senderVerified: identity,
       claim: async () => {
-        const r = await supabaseAdmin.rpc("claim_staff_gmail_qa", { p_actor: context.userId, p_request: data.requestId, p_kind: data.kind });
+        const r = await supabaseAdmin.rpc("claim_staff_gmail_qa", {
+          p_actor: context.userId,
+          p_request: data.requestId,
+          p_kind: data.kind,
+        });
         if (r.error) throw new Error("Registro QA non disponibile: nessun invio.");
         return r.data;
       },
       send: (_recipient, attempt) => sendGmailQa(data.kind, attempt),
       finish: async (attempt, r) => {
-        const f = await supabaseAdmin.rpc("finish_staff_gmail_qa", { p_id: attempt, p_state: r.state, ...(r.messageId ? { p_message: r.messageId } : {}), ...(r.status !== undefined ? { p_status: r.status } : {}) });
-        if (f.error) throw new Error("Esito non registrato: non ripetere, verificare la casella e il registro.");
+        const f = await supabaseAdmin.rpc("finish_staff_gmail_qa", {
+          p_id: attempt,
+          p_state: r.state,
+          ...(r.messageId ? { p_message: r.messageId } : {}),
+          ...(r.status !== undefined ? { p_status: r.status } : {}),
+        });
+        if (f.error)
+          throw new Error(
+            "Esito non registrato: non ripetere, verificare la casella e il registro.",
+          );
       },
     });
   });
