@@ -7,6 +7,6 @@ export const Route = createFileRoute('/api/public/sumup-webhook')({
       const { handleSumupWebhook } = await import('@/lib/payments.server');
       await handleSumupWebhook(request);
       return new Response(null, { status: 204 });
-    } catch { return new Response('Notification not verified', { status: 400 }); }
+    } catch { return new Response('Notification not processed; retry required', { status: 503 }); }
   } } },
 });

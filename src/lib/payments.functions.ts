@@ -11,7 +11,8 @@ export const startDonationCheckout = createServerFn({ method: 'POST' })
     assertCampaignPayment(data.provider, 'live');
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const accessHash = await tokenHash(data.accessToken);
-    const { data: existing } = await supabaseAdmin.from('live_donations').select('id').eq('id', data.requestId).maybeSingle();
+    const { data: existing, error: lookupError } = await supabaseAdmin.from('live_donations').select('id').eq('id', data.requestId).maybeSingle();
+    if (lookupError) throw new Error('Registro non disponibile. Non ripetere il pagamento.');
     if (existing) {
       const d = await loadDonation(existing.id, data.accessToken);
       if (d.provider !== data.provider || d.amount_cents !== data.amount * 100) throw new Error('Richiesta non corrispondente.');

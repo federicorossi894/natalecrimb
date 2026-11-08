@@ -180,6 +180,7 @@ export type Database = {
         Row: {
           access_hash: string
           amount_cents: number
+          capture_claimed_at: string | null
           checkout_url: string | null
           created_at: string
           currency: string
@@ -192,11 +193,17 @@ export type Database = {
           provider_id: string | null
           provider_payment_id: string | null
           publish_consent: boolean
+          recovery_after: string
+          recovery_attempts: number
+          recovery_lease_until: string | null
+          recovery_note: string | null
+          settlement_state: string
           status: string
         }
         Insert: {
           access_hash: string
           amount_cents: number
+          capture_claimed_at?: string | null
           checkout_url?: string | null
           created_at?: string
           currency?: string
@@ -209,11 +216,17 @@ export type Database = {
           provider_id?: string | null
           provider_payment_id?: string | null
           publish_consent?: boolean
+          recovery_after?: string
+          recovery_attempts?: number
+          recovery_lease_until?: string | null
+          recovery_note?: string | null
+          settlement_state?: string
           status?: string
         }
         Update: {
           access_hash?: string
           amount_cents?: number
+          capture_claimed_at?: string | null
           checkout_url?: string | null
           created_at?: string
           currency?: string
@@ -226,6 +239,11 @@ export type Database = {
           provider_id?: string | null
           provider_payment_id?: string | null
           publish_consent?: boolean
+          recovery_after?: string
+          recovery_attempts?: number
+          recovery_lease_until?: string | null
+          recovery_note?: string | null
+          settlement_state?: string
           status?: string
         }
         Relationships: []
@@ -403,6 +421,42 @@ export type Database = {
         }[]
       }
       cash_request_status: { Args: { _code: string }; Returns: string }
+      claim_live_capture: {
+        Args: { _id: string; _provider_id: string }
+        Returns: boolean
+      }
+      claim_live_recovery: {
+        Args: never
+        Returns: {
+          access_hash: string
+          amount_cents: number
+          capture_claimed_at: string | null
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          dedica: string | null
+          firma: string | null
+          id: string
+          kind: string
+          paid_at: string | null
+          provider: string
+          provider_id: string | null
+          provider_payment_id: string | null
+          publish_consent: boolean
+          recovery_after: string
+          recovery_attempts: number
+          recovery_lease_until: string | null
+          recovery_note: string | null
+          settlement_state: string
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "live_donations"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       confirm_cash_request: {
         Args: { _code: string; _method: string }
         Returns: {

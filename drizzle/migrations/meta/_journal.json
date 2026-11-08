@@ -85,6 +85,13 @@
       "when": 1794131871232,
       "tag": "0011_lock_live_payment_tables_to_server",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794132938628,
+      "tag": "0012_live_payment_capture_claim_and_recovery",
+      "breakpoints": true
     }
   ]
 }
