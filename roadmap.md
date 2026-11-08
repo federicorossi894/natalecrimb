@@ -2,7 +2,7 @@
 ## TV audio prompt only — 8 November 20:08 UTC
 - [x] Prompt completely removed after activation; engine/effects/catalogue unchanged, remote-only mute, public credits retained.
 - [x] 368 tests pass; Chromium 1920×1080 scene soak >240s with real RMS, track handover, no reappearing prompt; blocked retry/reload silent/mobile preview verified.
-- [ ] Publish safe DEMO prompt fix and verify public click flow — deployment service pending.
+- [x] DEMO published and actual public /albero-live Chromium verified HTTP 200: music playing, no audio prompt/status after click, reload CTA restored.
 ## Final TV, soundtrack and web identity — 8 November 19:42 UTC
 - [x] TV wish / dedication reveal / approved arrival verified in 1920×1080 isolated fixtures, WebGL and illustrated fallback; public read-only observation, no staff-review edits.
 - [x] 15 official CC BY 4.0 recordings acquired, 64:03.915 unique minutes, normalized, all streamed files decode; public credits and one-click/mute/restart verified. Italian venue rights remain unverified.
