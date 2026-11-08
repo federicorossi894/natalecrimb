@@ -38,6 +38,18 @@ export const checkDonationPayment = createServerFn({ method: 'POST' })
     assertCampaignPayment(d.provider, 'live');
     return reconcileDonation(d, data.capture);
   });
+/** Private paid-gift details only for the originating device; never public text. */
+export const paidDonationDetails = createServerFn({ method: 'POST' })
+  .inputValidator(data => donationAccessSchema.parse(data))
+  .handler(async ({ data }) => {
+    liveTreeEnabled();
+    const d = await loadDonation(data.id, data.accessToken);
+    if (d.status !== 'paid') throw new Error('Pagamento non confermato.');
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    const { data: row, error } = await supabaseAdmin.from('live_ornaments').select('id,kind').eq('donation_id', d.id).single();
+    if (error || !row) throw new Error('Addobbo non disponibile.');
+    return row;
+  });
 export const livePublicTree = createServerFn({ method: 'GET' }).handler(async () => {
   liveTreeEnabled();
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
