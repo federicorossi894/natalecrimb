@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import { assertCampaignPayment } from './campaign';
+import { assertCampaignAction, assertCampaignPayment } from './campaign';
 import { donationAccessSchema, donationCheckoutSchema } from './payment-policy';
 import { createProviderCheckout, liveTreeEnabled, loadDonation, reconcileDonation, tokenHash } from './payments.server';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
@@ -28,6 +28,7 @@ export const startDonationCheckout = createServerFn({ method: 'POST' })
 export const checkDonationPayment = createServerFn({ method: 'POST' })
   .inputValidator(data => donationAccessSchema.extend({ capture: z.boolean().default(false) }).parse(data))
   .handler(async ({ data }) => {
+    assertCampaignAction('onlinePayment');
     const d = await loadDonation(data.id, data.accessToken);
     assertCampaignPayment(d.provider, 'live');
     return reconcileDonation(d, data.capture);

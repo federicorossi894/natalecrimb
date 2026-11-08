@@ -23,7 +23,7 @@ async function sumup(path: string, method = 'GET', body?: object) {
   const key = process.env['UDC_SUMUP_API_KEY'];
   const gatewayKey = process.env['LOVABLE_API_KEY'];
   if (!key || !gatewayKey) throw new Error('Collegamento SumUp non disponibile.');
-  return providerJson(await fetch(`${SUMUP}${path}`, { method, headers: { Authorization: `Bearer ${gatewayKey}`, 'X-Connection-Api-Key': key, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }));
+  return providerJson(await fetch(`${SUMUP}${path}`, { method, headers: { Authorization: `Bearer ${gatewayKey}`, 'X-Connection-Api-Key': key, 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) }));
 }
 async function paypalToken() {
   const id = process.env['PAYPAL_CLIENT_ID'];
@@ -34,7 +34,7 @@ async function paypalToken() {
 }
 async function paypal(path: string, method = 'GET', body?: object, requestId?: string) {
   const token = await paypalToken();
-  return providerJson(await fetch(`${PAYPAL}${path}`, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(requestId ? { 'PayPal-Request-Id': requestId } : {}) }, body: body ? JSON.stringify(body) : undefined }));
+  return providerJson(await fetch(`${PAYPAL}${path}`, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(requestId ? { 'PayPal-Request-Id': requestId } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }));
 }
 const sumupCheckout = z.object({ id: z.string(), status: z.string(), checkout_reference: z.string(), amount: z.union([z.string(), z.number()]), currency: z.string(), transaction_id: z.string().optional(), transactions: z.array(z.object({ id: z.string(), status: z.string() })).optional() });
 const paypalOrder = z.object({ id: z.string(), status: z.string(), purchase_units: z.array(z.object({ custom_id: z.string().optional(), amount: z.object({ currency_code: z.string(), value: z.string() }).optional(), payments: z.object({ captures: z.array(z.object({ id: z.string(), status: z.string(), amount: z.object({ currency_code: z.string(), value: z.string() }) })) }).optional() })) });
@@ -110,10 +110,11 @@ export async function handlePaypalWebhook(request: Request) {
   assertCampaignPayment('paypal', 'live');
   const webhookId = process.env['PAYPAL_WEBHOOK_ID'];
   if (!webhookId) throw new Error('Webhook PayPal non configurato.');
-  const event = z.object({ id: z.string().max(100), event_type: z.string().max(100), resource: z.object({ supplementary_data: z.object({ related_ids: z.object({ order_id: z.string().max(100) }) }).optional() }) }).passthrough().parse(await limitedJson(request));
+  const rawEvent = await limitedJson(request);
+  const event = z.object({ id: z.string().max(100), event_type: z.string().max(100), resource: z.object({ supplementary_data: z.object({ related_ids: z.object({ order_id: z.string().max(100) }) }).optional() }) }).parse(rawEvent);
   const header = (name: string) => z.string().min(1).max(2048).parse(request.headers.get(name));
   const result = z.object({ verification_status: z.string() }).parse(await paypal('/v1/notifications/verify-webhook-signature', 'POST', {
-    auth_algo: header('paypal-auth-algo'), cert_url: header('paypal-cert-url'), transmission_id: header('paypal-transmission-id'), transmission_sig: header('paypal-transmission-sig'), transmission_time: header('paypal-transmission-time'), webhook_id: webhookId, webhook_event: event,
+    auth_algo: header('paypal-auth-algo'), cert_url: header('paypal-cert-url'), transmission_id: header('paypal-transmission-id'), transmission_sig: header('paypal-transmission-sig'), transmission_time: header('paypal-transmission-time'), webhook_id: webhookId, webhook_event: rawEvent,
   }));
   if (result.verification_status !== 'SUCCESS') throw new Error('Notifica non verificata.');
   if (event.event_type !== 'PAYMENT.CAPTURE.COMPLETED') return;

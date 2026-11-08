@@ -1,3 +1,4 @@
 - Optional Santa visits and courtesy biscuit availability are independent central capabilities; never gate academy/diploma access on either, to preserve the autonomous campaign.
 - gift-email-policy.ts defines timing, event idempotency and typed outcomes only; live delivery must use configured managed email templates, never a local email queue or success from readiness flags alone.
 - Payment methods require global and per-provider implementation/configuration/webhook readiness; assertCampaignPayment takes explicit demo/live execution to prevent simulator identifiers authorizing LIVE work.
+- SumUp uses the existing connector gateway; PayPal uses protected server credentials. Provider checkout/capture ids are persisted and confirmation is row-locked in the database; readiness evidence must never be inferred from mock tests alone.
