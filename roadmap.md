@@ -1,4 +1,8 @@
 # CRI Monza demo — roadmap
+## Dedication / wish staff review and TV reveals — 8 November 18:39 UTC
+- [ ] Extend DEMO shared-session staff review for consented wishes/dedications only, atomic decisions, audit/rate/CSRF, phone polling including QR view.
+- [ ] Add approved-only TV postcards, same-ID dedication reveal and bounded new-wish wall event queue with consented clothespin sound.
+- [ ] Validate isolated end-to-end/concurrency/privacy and browser screenshots; document and publish safe DEMO while music remains inactive and Gmail untouched.
 ## Priority Gmail real QA — 8 November 18:36 UTC
 - [x] App credential-path profile HTTP 200/exact Federico; published personal session denied moderator; CRI app account volunteer-only; audit 0 and no matching QA Gmail messages. Deployed protected Gmail runtime remains unreachable without moderator authorization.
 - [ ] Send three fixed Federico-to-Federico templates only if existing site permissions/10-minute/three-day limits permit; verify Sent/Inbox IDs separately from acceptance.
