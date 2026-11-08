@@ -1,0 +1,9 @@
+# TV audio prompt — 8 November 2026
+
+Scope: TvAudio visibility and focused tests only. Owner confirms physical TV music already plays. No catalogue, engine, crossfade, effects, license, volunteer, payment or email changes.
+
+Inactive: one Attiva audio prompt, silence before gesture. Running context after consent: component returns null (no wrapper, icon, link, title, status). Component remains mounted; cues/ref/gate and music survive. Hidden tab pauses as before; visible tab resumes consented engine without prompt. Blocked resume/play restores brief retry; no automatic consent on reload. All-files-unavailable callback restores retry rather than claiming music works. Public credits page/footer retained.
+
+Evidence: 368 tests / 35 files pass; automatic build OK. Chromium 1920×1080 actual MP3 audio RMS >0, prompt absent; reload restores prompt. Preview twelve scene selections, 20-second holds (>240s real wall time plus camera rendering): arrival, dedication, wish wall, noon, panorama, steps, causes, shop, story. Context stayed running, music time advanced, two-deck handover occurred with no further gesture, no audio UI or page errors. Read-only public Cloud queries, no test inserts/approvals. Separate isolated rejected resume shows retry; 390×844 preview initial prompt visible. Unit tests cover hidden/visible consent and asynchronous resume/media-play rejection. Test-harness networkidle was replaced by domcontentloaded plus hydration wait because perpetual TV polling is not an idle page; no product change.
+
+Publication completion must be checked on actual public URL separately; requested release alone is not evidence of live update.
