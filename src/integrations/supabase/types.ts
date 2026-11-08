@@ -397,6 +397,7 @@ export type Database = {
           ornament_id: string | null
           result: string | null
           session_id: string | null
+          wish_id: string | null
         }
         Insert: {
           action: string
@@ -406,6 +407,7 @@ export type Database = {
           ornament_id?: string | null
           result?: string | null
           session_id?: string | null
+          wish_id?: string | null
         }
         Update: {
           action?: string
@@ -415,6 +417,7 @@ export type Database = {
           ornament_id?: string | null
           result?: string | null
           session_id?: string | null
+          wish_id?: string | null
         }
         Relationships: []
       }
@@ -813,6 +816,16 @@ export type Database = {
           id: string
           status: string
         }[]
+      }
+      volunteer_demo_review: {
+        Args: {
+          _action: string
+          _decision?: string
+          _id?: string
+          _token_hash: string
+          _type?: string
+        }
+        Returns: Json
       }
       volunteer_login_allowed: {
         Args: { _client_key: string }
