@@ -150,3 +150,17 @@ it("anon and authenticated cannot see addresses or acquire claims", async () => 
     await db.exec("RESET ROLE");
   }
 });
+it('accepted donor receipt erases address; reversed and future gifts cannot claim', async () => {
+  const other = '00000000-0000-4000-8000-000000000011';
+  await db.query(`INSERT INTO public.live_donations(id,access_hash,provider,provider_id,kind,amount_cents,status,donor_email_requested,donor_email_private,donor_email_state) VALUES($1,'mock','paypal','mock-other-email','calore',500,'pending',true,'donor@example.org','blocked')`, [other]);
+  await db.query(`SELECT public.confirm_live_donation($1,'paypal','mock-other-email','mock-other-payment',500,'EUR')`, [other]);
+  const c = (await db.query<{ c: string }>(`SELECT public.claim_donation_email($1,'receipt',false) c`, [other])).rows[0]?.c;
+  await db.query(`SELECT public.finish_donation_email($1,'receipt',$2,'accepted')`, [other, c]);
+  const d = (await db.query<{ donor_email_private: string | null; donor_email_requested: boolean; donor_email_state: string }>('SELECT donor_email_private,donor_email_requested,donor_email_state FROM public.live_donations WHERE id=$1', [other])).rows[0];
+  expect(d).toEqual({ donor_email_private: null, donor_email_requested: false, donor_email_state: 'accepted' });
+  expect((await db.query<{ c: string | null }>(`SELECT public.claim_donation_email($1,'receipt',true) c`, [other])).rows[0]?.c).toBeNull();
+  await db.query(`UPDATE public.live_donations SET gift_email_private='future@example.org',gift_email_state='blocked',gift_email_due_at=now()+interval '1 day' WHERE id=$1`, [other]);
+  expect((await db.query<{ c: string | null }>(`SELECT public.claim_donation_email($1,'gift',false) c`, [other])).rows[0]?.c).toBeNull();
+  await db.query(`UPDATE public.live_donations SET gift_email_due_at=NULL,settlement_state='reversed' WHERE id=$1`, [other]);
+  expect((await db.query<{ c: string | null }>(`SELECT public.claim_donation_email($1,'gift',false) c`, [other])).rows[0]?.c).toBeNull();
+});
