@@ -11,6 +11,7 @@ import { EventsAdmin } from "@/components/xmas/EventsAdmin";
 import { WishesAdmin } from "@/components/xmas/WishesAdmin";
 import { KindnessAdmin } from "@/components/xmas/KindnessAdmin";
 import { AuthBox } from "@/components/xmas/AuthBox";
+import { EmailQa } from "@/components/xmas/EmailQa";
 import type { OrnamentKind } from "@/lib/data";
 import { SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES } from "@/lib/santa";
 
@@ -94,6 +95,7 @@ function Mod() {
             {CAMPAIGN.wishModeration && <WishesAdmin />}
             <KindnessAdmin />
             <EventsAdmin />
+            {CAMPAIGN.demo && <EmailQa />}
             {/* Internal benchmark for the Comitato: removed from the public Santa page, kept here for staff only. */}
             <div className="glass mt-8 rounded-2xl p-5 text-sm" data-testid="santa-internal-note">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Nota interna · Babbo Natale</p>
