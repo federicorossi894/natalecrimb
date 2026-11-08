@@ -350,7 +350,7 @@ export async function handlePaypalWebhook(request: Request) {
       resource: z.object({
         id: z.string().min(1).max(100).optional(),
         supplementary_data: z
-          .object({ related_ids: z.object({ order_id: z.string().max(100) }) })
+          .object({ related_ids: z.object({ order_id: z.string().max(100).optional(), capture_id: z.string().max(100).optional() }) })
           .optional(),
       }),
     })
@@ -371,11 +371,20 @@ export async function handlePaypalWebhook(request: Request) {
   const approved = event.event_type === "CHECKOUT.ORDER.APPROVED";
   const approvalReversed = event.event_type === "CHECKOUT.PAYMENT-APPROVAL.REVERSED";
   if (!PAYPAL_WEBHOOK_EVENTS.some((type) => type === event.event_type)) return;
-  const orderId =
+  let orderId =
     approved || approvalReversed
       ? event.resource.id
       : event.resource.supplementary_data?.related_ids.order_id;
-  if (!orderId) throw new Error("Riferimento ordine mancante.");
+  const captureId = event.resource.supplementary_data?.related_ids.capture_id ?? event.resource.id;
+  if (!orderId && !approved && !approvalReversed && captureId) {
+    // Foreign shared-app refund/capture payloads need not contain an order ID.
+    // Only our persisted capture identity can authorize any further provider read.
+    const { data: own, error: lookupError } = await supabaseAdmin.from('live_donations')
+      .select('provider_id').eq('provider','paypal').eq('provider_payment_id',captureId).maybeSingle();
+    if (lookupError) throw new Error('Registro non disponibile.');
+    orderId = own?.provider_id ?? undefined;
+  }
+  if (!orderId) return;
   const { data, error } = await supabaseAdmin
     .from("live_donations")
     .select("id")
@@ -406,7 +415,7 @@ export async function handlePaypalWebhook(request: Request) {
   }
   if (!approved) {
     // Event status/amount are never evidence: independently read this capture.
-    if (!event.resource.id) throw new Error("Riferimento capture mancante.");
+    if (!captureId) throw new Error("Riferimento capture mancante.");
     const c = z
       .object({
         id: z.string(),
@@ -414,9 +423,9 @@ export async function handlePaypalWebhook(request: Request) {
         amount: z.object({ currency_code: z.string(), value: z.string() }),
         supplementary_data: z.object({ related_ids: z.object({ order_id: z.string() }) }),
       })
-      .parse(await paypal(`/v2/payments/captures/${encodeURIComponent(event.resource.id)}`));
+      .parse(await paypal(`/v2/payments/captures/${encodeURIComponent(captureId)}`));
     if (
-      c.id !== event.resource.id ||
+      c.id !== captureId ||
       c.supplementary_data.related_ids.order_id !== d.provider_id ||
       c.amount.currency_code !== "EUR" ||
       decimalCents(c.amount.value) !== d.amount_cents
