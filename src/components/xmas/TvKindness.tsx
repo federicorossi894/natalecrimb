@@ -62,7 +62,9 @@ export function TvKindness({ reduced, preview = false, advent = null, onPlayingC
   }, [ceremony, reduced]);
 
   const playing = advent ? { day: advent.day, elapsed: advent.elapsed } : ceremony ? { day: ceremony.day, elapsed } : null;
-  useEffect(() => { onPlayingChange?.(!!playing); return () => onPlayingChange?.(false); }, [!!playing, onPlayingChange]);
+  const playingCallback = useRef(onPlayingChange);
+  playingCallback.current = onPlayingChange;
+  useEffect(() => { playingCallback.current?.(!!playing); return () => playingCallback.current?.(false); }, [!!playing]);
   useEffect(() => { onHealthChange?.(!!error); }, [error, onHealthChange]);
   if (playing) {
     const real = doors.find((x) => x.day === playing.day);

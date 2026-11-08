@@ -41,6 +41,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   const { events, error: eventsError } = useCasettaEventsStatus();
   const { wishes, loaded: wishesLoaded, error: wishesError } = usePublicWishes(60_000);
   const [calendarError, setCalendarError] = useState(false);
+  const [ceremonyPlaying, setCeremonyPlaying] = useState(false);
   const ceremonyRef = useRef(false);
   const arrivalQueue = useRef<TreeOrnament[]>([]);
   const wishesRef = useRef<PublicWish[]>(wishes);
@@ -188,7 +189,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
   }, [scene, newWishIds.size]);
 
   return (
-    <div className="tv-scene" data-beat={active} data-testid="tv-scene">
+    <div className="tv-scene" data-beat={active} data-ceremony={ceremonyPlaying ? 'true' : undefined} data-testid="tv-scene">
       <div className="tv-tree">
         <TreeStage ornaments={shownOrnaments} selected={selected} tv arrivingId={arriving?.id ?? null} reduced={reduced} />
         {arriving && <div key={`glow-${arriving.id}`} className="tv-arrival-glow" aria-hidden />}
@@ -226,7 +227,7 @@ export function TreeTV({ preview }: { preview?: TvPreview } = {}) {
         <p className="mt-[1.3cqw] font-display text-[1.9cqw] leading-tight">L’Albero dei Regali di Monza</p>
       </header>
 
-      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} onPlayingChange={playing => { ceremonyRef.current = playing; }} onHealthChange={setCalendarError} />
+      <TvKindness reduced={reduced} preview={!!preview} advent={preview?.advent ?? null} onPlayingChange={playing => { ceremonyRef.current = playing; setCeremonyPlaying(playing); }} onHealthChange={setCalendarError} />
 
       <div className="tv-counter" data-testid="tv-count-box">
         <span className="font-display text-[2.2cqw] leading-none text-gold" data-testid="tv-count">{addedCount}</span>

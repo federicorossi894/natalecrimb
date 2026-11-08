@@ -415,8 +415,14 @@ button.advent-plaque.is-available:hover .advent-plaque-leaf, button.advent-plaqu
 .tv-adv-foot { margin-top: 1.4cqw; font-size: 1.05cqw; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in oklab, var(--ink) 62%, transparent); }
 .tv-adv.is-reduced .tv-adv-stage, .tv-adv.is-reduced .advent-plaque-leaf { transition: none; }
 @media (prefers-reduced-motion: reduce) { .tv-adv-stage { transition: none; } .tv-adv-note { transform: translateY(-50%); } }
-.tv-brand { z-index: 5; }
-.tv-qr-block { z-index: 6; transition: background 1s ease; }
+.tv-brand { z-index: 10; }
+.tv-counter { z-index: 10; }
+.tv-qr-block { z-index: 10; transition: background 1s ease; }
+/* Keep the existing QR in its place, above the daily full-frame ceremony. */
+.tv-scene[data-ceremony="true"] .tv-qr-block { background: var(--scene-night); }
+.tv-scene[data-ceremony="true"] .tv-adv-note { top: 13cqw; max-height: 23cqw; transform: none; padding: 1.4cqw 1.8cqw; }
+.tv-scene[data-ceremony="true"] .tv-adv-note > p:nth-of-type(2) { font-size: 2.1cqw; }
+.tv-scene[data-ceremony="true"] .tv-adv-note > p:nth-of-type(3) { font-size: 1.3cqw; }
 .tv-scene[data-beat="auguri"] .tv-qr-block { background: color-mix(in oklab, var(--scene-night) 90%, transparent); }
 /* Panoramic wish wall (TV): wooden boards across the whole 16:9 frame, twine lines, clothespins. */
 .tv-wall { position: absolute; inset: 0; z-index: 4; opacity: 0; visibility: hidden; transition: opacity 1.2s ease, visibility 0s linear 1.2s; color: var(--snow);

@@ -76,5 +76,5 @@ function StageInner(props: TreeStageProps) {
 
 /** 3D tree when the device supports it, illustrated tree otherwise. Client-only (WebGL and canvas). */
 export function TreeStage(props: TreeStageProps) {
-  return <ClientOnly fallback={<IllustratedTree {...props} />}><StageInner {...props} /></ClientOnly>;
+  return <ClientOnly fallback={<div className="tree-stage" />}><StageInner {...props} /></ClientOnly>;
 }
