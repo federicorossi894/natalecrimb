@@ -196,9 +196,6 @@ function PaymentReturn() {
           <Link to="/regali">Torna ai progetti</Link>
         </Button>
         {!CAMPAIGN.demo && ornament && status === 'paid' && id && <PaidGiftEmail donationId={id} />}
-        <Button asChild variant="outline" className="mt-6 hidden">
-          <Link to="/regali">Torna ai progetti</Link>
-        </Button>
       </section>
     </Shell>
   );

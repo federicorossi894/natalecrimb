@@ -5,3 +5,5 @@
 - All PayPal capture entry points share a durable one-shot database claim and stable provider request ID; never automatically clear an ambiguous claim or recreate a checkout. Bounded recovery uses managed cron authentication and remains unscheduled until its deployed target and execution budget are verified.
 - Payment callbacks derive from the actual request origin after exact server allowlist validation, never forwarded headers or client QA flags; unverified preview hosts cannot start a checkout.
 - Disabled/DEMO webhook routes acknowledge with a no-op before loading payment handlers; shared-app foreign orders in LIVE cannot capture or mutate Natale records.
+- Email intents/audit stay on private donation rows, never in email queues; service-only permanent claims and stable purpose keys prevent duplicate acceptance. Unknown acceptance requires managed-log reconciliation, not blind retry, and email failure never rolls back a paid ornament.
+- Campaign initialization rejects a mode-only LIVE switch until dedicated sender and both email paths are verified; the absent send adapter stays disabled until domain setup and managed scaffolding.

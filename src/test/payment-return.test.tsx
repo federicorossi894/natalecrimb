@@ -32,6 +32,7 @@ vi.mock("@/components/xmas/PostDonation", () => ({
     <output aria-label="private postcard">{ornamentId}</output>
   ),
 }));
+vi.mock('@/components/xmas/PaidGiftEmail', () => ({ PaidGiftEmail: () => null }));
 const Component = (Route.options as unknown as { component: () => React.ReactNode }).component;
 const original = { ...CAMPAIGN };
 beforeEach(() => {
