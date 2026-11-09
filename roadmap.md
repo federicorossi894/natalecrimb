@@ -1,5 +1,5 @@
 # Online gift DEMO — 9 November 2026
-- [ ] 14:41 separate donor completion banner from recipient email; add recipient solidarity invitation; verify acceptance vs WhatsApp completion and regressions.
+- [x] 14:41 donor completion banner separated from recipient email and solidarity invitation; 459 tests/50 files, build OK, real Cloud gift/PNG1080×1350/WhatsApp fallback/reload Chromium390+1280 verified; no emails sent. Publication checked separately.
 - [x] 14:20 donor thank-you postcard expanded, project impact on final screen/email form, ONLINE_GIFT find-my-ornament controls removed; 450 tests/build OK, Chromium390/1280 recovered-flow/email/card/tree verified. Publication requested separately.
 - [x] 14:08 shared public dedication without local override; AI Gateway donor thank-you per completed gift; concrete email project explanation; 449 tests/build OK, actual Gateway + PNG1080×1350 Chromium390 and independent Chromium1280 public-tree read verified. No emails sent by this task.
 - [x] 13:28 repeated ONLINE_GIFT DEMO/QA copy removed in favor of one top disclosure; normal email wording, one optional guest access control, linked Federico Gmail profile verified; 437 tests pass. Shared text and unrestricted normal email are not implemented; require safe tester-access decision, not anonymous mailbox access.

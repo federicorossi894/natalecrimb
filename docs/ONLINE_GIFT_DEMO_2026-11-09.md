@@ -1,5 +1,12 @@
 # ONLINE_GIFT DEMO — 9 November 2026
 
+## 14:41 clarification — donor versus recipient (supersedes 14:20 placement)
+The AI-generated thank-you belongs to the donor completion banner, not the gift recipient's postcard. For gifts it appears only after Gmail acceptance or completed native sharing; WhatsApp external-composer fallback offers “Ho concluso la condivisione”, since opening WhatsApp does not prove delivery. Cancellation, unknown/blocked/failed email do not complete the gift. Completion persists in the current attempt across reload, without new sending or AI generation. Donation-only completion keeps its existing donor postcard and banner. Removed the duplicate donor postcard and immediate recipient explanation from the gift final screen.
+
+The recipient gift email retains the project-specific factual explanation, personal message and bauble link, and now adds “Metti in circolo la solidarietà” with an optional invitation and link to /regali. This recipient invitation is absent from donor confirmation email. Email sender, permanent claims, anti-abuse limits, payments, FULL/TV and other sections are unchanged.
+
+Verification: 459 tests / 50 files pass (two workers; an earlier highly parallel run timed out an unchanged database test). Automatic build OK. Real Cloud DEMO gift creation at Chromium390, recipient PNG downloaded at 1080×1350, WhatsApp fallback completion and donor banner checked, reload persisted completion, desktop1280 checked without overflow/runtime errors. No emails sent by this task: email acceptance/unknown/limits/failure callbacks and outgoing MIME are tested in isolation; native device delivery remains unverified.
+
 ## 14:20 visibility correction
 The gift donor postcard was inside a closed disclosure and the explanation was only in outgoing email HTML. Donor thanks and concrete project impact now appear directly below completion; the donor postcard is expanded and the same project explanation/message appears before the email controls. Recovered old attempts without AI output get a factual immediate thank-you, without new inference or sending. ONLINE_GIFT find-my-ornament controls removed from tree/postcard; direct ID links and FULL retained. Final embedded tree receives the actual ornament ID. 450 regressions pass; automatic build OK; Chromium390/1280 recovered-gift rendering, email selection, loaded PNG and tree control removal verified with no overflow/runtime errors. No mail was sent.
 
