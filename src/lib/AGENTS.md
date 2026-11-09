@@ -12,4 +12,5 @@
 
 - SITE_EXPERIENCE is an independent build-time UX axis; ONLINE_GIFT blocks legacy routes and server operations, while FULL restores preserved flows without changing campaign/payment readiness.
 - Online DEMO gift requests use service-only row/advisory-lock idempotency and store no private message, recipient or signature on ornaments.
+- Online DEMO dedication overlays and the current attempt live in validated session storage and merge only into the visitor tree; explicit restart rotates the request while retries preserve it, preventing public spam and accidental duplicates.
 - Online gift mail reuses QA auth/ledger/Gmail with fixed recipient, validates completed ornament against its request/client, derives immutable per-ornament/purpose claims, and uses server-derived project/amount; private fields are escaped and never persisted on public ornaments.

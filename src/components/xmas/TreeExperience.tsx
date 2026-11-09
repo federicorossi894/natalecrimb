@@ -5,12 +5,13 @@ import { LocateFixed, RotateCcw, ChevronLeft, ChevronRight, X, Gift } from 'luci
 import { Button } from '@/components/ui/button';
 import { useTreeStore } from '@/lib/tree-store';
 import type { TreeOrnament } from '@/lib/data';
+import type { SessionOrnament } from '@/lib/online-gift-session';
 import { OrnamentIcon } from './Ornament';
 import { TreeStage } from './TreeStage';
 export function useReducedMotion(){const [reduced,setReduced]=useState(false);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(m.matches);update();m.addEventListener('change',update);return()=>m.removeEventListener('change',update);},[]);return reduced;}
 export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focusId?:string}={}){
   const {addedOrnaments:ornaments,addedCount,mine,error}=useTreeStore();
-  const [selected,setSelected]=useState<TreeOrnament|null>(null);
+  const [selected,setSelected]=useState<SessionOrnament|null>(null);
   const [reset,setReset]=useState(0);
   const [notice,setNotice]=useState('');
   const reduced=useReducedMotion();
@@ -23,7 +24,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
   useEffect(()=>{if(!autoFind||autoDone.current||!mine.length||!ornaments.length)return;const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));const last=own[own.length-1];if(last){autoDone.current=true;pick(last);}},[autoFind,mine,ornaments]);
   // Stable deep link (/albero?addobbo=<id>) from postcards and emails: focus that ornament once it is loaded.
   const focusDone=useRef(false);
-  useEffect(()=>{if(!focusId||focusDone.current)return;if(error){setNotice('Albero momentaneamente non raggiungibile: riproviamo tra poco.');return;}if(!ornaments.length)return;const o=ornaments.find(x=>String(x.id)===focusId);focusDone.current=true;if(o)pick(o);else setNotice('Questo addobbo non è (ancora) visibile sull’albero. Riprova tra qualche istante.');},[focusId,ornaments,error]);
+  useEffect(()=>{if(!focusId||focusDone.current)return;const o=ornaments.find(x=>String(x.id)===focusId);if(o){focusDone.current=true;pick(o);return;}if(error)setNotice('Albero momentaneamente non raggiungibile: riproviamo tra poco.');},[focusId,ornaments,error]);
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">
@@ -44,8 +45,9 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
       <div role="dialog" aria-modal="true" aria-label="Dedica del regalo" className="tree-tag dedication-panel animate-rise w-full max-w-md" onClick={e=>e.stopPropagation()}>
       <Button variant="outline" size="icon" autoFocus className="dedication-close absolute right-3 top-3 h-11 w-11 border-ink/30 bg-paper text-ink hover:bg-gold hover:text-ink" aria-label="Chiudi dedica" onClick={close}><X className="h-6 w-6" /></Button>
       <div className="flex items-center gap-3 pr-12"><OrnamentIcon kind={selected.kind} className="w-10 shrink-0" /><p className="text-xs font-semibold uppercase text-primary">Un regalo per Monza {CAMPAIGN.demo && "· DEMO"}</p></div>
-      <p className="mt-4 font-display text-2xl leading-snug">{ONLINE_GIFT ? 'Una pallina digitale per un regalo solidale.' : selected.dedica?`“${selected.dedica}”`:'Un gesto di vicinanza, un regalo per la città.'}</p>
-      {!ONLINE_GIFT && <p className="mt-3 text-sm font-semibold">— {selected.firma??'Anonimo'}</p>}
+      <p className="mt-4 font-display text-2xl leading-snug">{selected.dedica?`“${selected.dedica}”`:'Un gesto di vicinanza, un regalo per la città.'}</p>
+      <p className="mt-3 text-sm font-semibold">— {selected.firma??'Anonimo'}</p>
+      {selected.sessionOnly && <p className="mt-3 text-xs">DEMO · Dedica visibile soltanto in questa sessione del browser, non sugli altri dispositivi.</p>}
       {!selected.dedica&&<p className="mt-3 text-xs">Nessuna dedica pubblica.</p>}
       </div>
     </div>}

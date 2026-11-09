@@ -13,8 +13,9 @@ import { Button } from '@/components/ui/button';
 
 export function downloadBlob(blob: Blob, name: string) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  const url = URL.createObjectURL(blob);
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
 /** Exports an on-screen preview as PNG (for slides / PowerPoint). */
@@ -94,20 +95,26 @@ export function WhatsAppMock({ contact, imageUrl, text, refEl }: { contact: stri
 }
 
 /** Postcard image + WhatsApp preview with share/export actions. */
-export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode }) {
+export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [renderError, setRenderError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const chat = useRef<HTMLDivElement>(null);
-  const text = useMemo(() => postcardText(project, to, from, msg, ornamentId), [project, to, from, msg, ornamentId]);
+  const text = useMemo(() => postcardText(project, to, from, msg, ornamentId, selfThanks), [project, to, from, msg, ornamentId, selfThanks]);
   useEffect(() => {
     let on = true, made: string | null = null;
-    renderPostcardImage(project, to, from, msg, ornamentId).then((f) => {
-      if (!on || !f) return;
+    setFile(null); setUrl(null); setRenderError(false);
+    const timer = setTimeout(() => { if(on) { on=false; setRenderError(true); } }, 15000);
+    renderPostcardImage(project, to, from, msg, ornamentId, selfThanks).then((f) => {
+      if (!on) return;
+      if (!f) throw new Error('PNG unavailable');
+      clearTimeout(timer);
       made = URL.createObjectURL(f); setFile(f); setUrl(made);
-    }).catch(() => undefined);
-    return () => { on = false; if (made) URL.revokeObjectURL(made); };
-  }, [project, to, from, msg, ornamentId]);
+    }).catch(() => { clearTimeout(timer); if(on) setRenderError(true); });
+    return () => { on = false; clearTimeout(timer); if (made) URL.revokeObjectURL(made); };
+  }, [project, to, from, msg, ornamentId, selfThanks, retry]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: CAMPAIGN.demo ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
@@ -123,7 +130,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
       <div className="grid items-start gap-8 md:grid-cols-2">
         <figure>
           <figcaption className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gold">La cartolina · immagine</figcaption>
-          {url ? <img src={url} alt={`Cartolina ${project.title} per ${to}`} className="w-full rounded-2xl shadow-deep" data-testid="postcard-image" /> : <div className="glass aspect-[4/5] w-full animate-pulse rounded-2xl" />}
+          {url ? <img src={url} alt={`Cartolina ${project.title} per ${to || 'il tuo gesto solidale'}`} className="w-full rounded-2xl shadow-deep" data-testid="postcard-image" /> : renderError ? <div className="flex aspect-[4/5] flex-col items-center justify-center gap-4 border p-5 text-center"><p role="alert">La cartolina non è stata generata. Puoi riprovare o condividere il testo con il link.</p><Button variant="outline" onClick={()=>setRetry(n=>n+1)}>Riprova cartolina</Button></div> : <div role="status" className="glass flex aspect-[4/5] w-full items-center justify-center animate-pulse rounded-2xl">Preparo la cartolina…</div>}
         </figure>
         <figure>
           <figcaption className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gold">Anteprima del messaggio WhatsApp</figcaption>
@@ -131,11 +138,11 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </figure>
       </div>
       <div className="mx-auto mt-6 max-w-lg space-y-2">
-        <button onClick={share} aria-describedby="wa-how" className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> {ONLINE_GIFT ? "Regala su WhatsApp" : "Apri WhatsApp con il messaggio"}</button>
-        <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Non invia nulla da solo: apre WhatsApp con il testo e il link già scritti, scegli tu a chi mandarlo. L'immagine della cartolina va scaricata e allegata a parte.</p>
+        <Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 shadow-deep"><MessageCircle className="h-5 w-5" /> {ONLINE_GIFT ? "Condividi su WhatsApp" : "Apri WhatsApp con il messaggio"}</Button>
+        <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Sul telefono, se supportato, scegli WhatsApp per condividere il PNG e il testo. Altrimenti si apre il testo con il link: scarica la cartolina e allegala a parte. Nulla parte automaticamente.</p>
         <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-50"><Download className="h-4 w-4" /> Scarica cartolina</button>
-          <button onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`)} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Download className="h-4 w-4" /> Scarica anteprima</button>
+          <Button variant="outline" onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica cartolina</Button>
+          <Button variant="outline" disabled={!file} onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`).catch(()=>setNote('Anteprima non scaricata. Usa Scarica cartolina.'))} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica anteprima</Button>
           <button onClick={copy} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Copy className="h-4 w-4" /> Copia messaggio</button>
           {demo ? <span className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold opacity-80"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</span>
             : <Link to="/albero" search={ornamentId ? { addobbo: ornamentId } : { trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</Link>}

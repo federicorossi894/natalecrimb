@@ -5,13 +5,14 @@ vi.mock('@tanstack/react-start',()=>({useServerFn:()=>call}));
 vi.mock('@tanstack/react-router',()=>({Link:({children}: {children:React.ReactNode})=><a>{children}</a>}));
 vi.mock('@/lib/demo-gift-mail.functions',()=>({sendDemoGiftMail:vi.fn()}));
 import { DemoGiftMail } from '@/components/xmas/DemoGiftMail';
-const props={ornamentId:'00000000-0000-4000-8000-000000000001',giftRequestId:'00000000-0000-4000-8000-000000000002',client:'00000000-0000-4000-8000-000000000003',donor:'Federico',toName:'Giulia',msg:'Privata'};
+const props={authorized:true,ornamentId:'00000000-0000-4000-8000-000000000001',giftRequestId:'00000000-0000-4000-8000-000000000002',client:'00000000-0000-4000-8000-000000000003',donor:'Federico',toName:'Giulia',msg:'Privata'};
 afterEach(()=>{cleanup();vi.clearAllMocks();});
+it('guest cannot send even with consent and whitelisted email',()=>{render(<DemoGiftMail {...props} authorized={false}/>);fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});
 it('receipt never sends on mount or without optin; accepted is not delivered and repeated click blocked',async()=>{
   call.mockResolvedValue({state:'accepted'});render(<DemoGiftMail {...props} receipt/>);
   expect(call).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Invia ora email di prova'})).toBeDisabled();
   fireEvent.click(screen.getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Invia ora email di prova'}));
-  await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({...props,kind:'receipt',approved:true,recipient:'federico.rossi@crimonza.org'});
+  await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({ornamentId:props.ornamentId,giftRequestId:props.giftRequestId,client:props.client,donor:props.donor,toName:props.toName,msg:props.msg,kind:'receipt',approved:true,recipient:'federico.rossi@crimonza.org'});
   expect(await screen.findByRole('status')).toHaveTextContent('ricezione in casella non ancora verificata');expect(screen.getByRole('button',{name:'Invia ora email di prova'})).toBeDisabled();
 });
 it('foreign recipient blocks before send',()=>{render(<DemoGiftMail {...props}/>);fireEvent.change(screen.getByLabelText('Email regalo DEMO'),{target:{value:'other@example.org'}});fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});

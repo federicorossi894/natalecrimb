@@ -19,6 +19,16 @@ vi.mock('@/lib/campaign', async importOriginal => {
 
 afterEach(() => { cleanup(); localStorage.clear(); Object.assign(CAMPAIGN, campaignCapabilities('DEMO')); vi.mocked(experience).ONLINE_GIFT = false; });
 describe('Local biscuit acknowledgement', () => {
+  it.each(['stella','pupazzo','lanterna','pettirosso'] as const)('ONLINE_GIFT name stays page-only and chosen instructor %s is explicit',helper=>{
+    vi.mocked(experience).ONLINE_GIFT=true;
+    const state={...completeMission(EMPTY_ACADEMY,'citta',new Date('2026-12-01T10:00:00Z'),new Uint8Array([1,2,3,4,5,6])),helper};
+    const update=vi.fn();const view=render(<DiplomaView state={state} update={update} onExit={()=>undefined}/>);
+    fireEvent.change(screen.getByLabelText('Nome del bambino'),{target:{value:'Giulia <123>'}});
+    expect(screen.getByTestId('diploma-name')).toHaveTextContent('Giulia');expect(screen.getByTestId('diploma-name')).not.toHaveTextContent('123');
+    expect(screen.getByText(`Il mio istruttore: ${helper==='stella'?'Stellina':helper==='pupazzo'?'Pupazzo di neve':helper==='lanterna'?'Lanterna':'Pettirosso'}`)).toBeInTheDocument();
+    expect(update).not.toHaveBeenCalled();expect(localStorage.length).toBe(0);expect(JSON.stringify(state)).not.toContain('Giulia');
+    view.unmount();render(<DiplomaView state={state} update={update} onExit={()=>undefined}/>);expect(screen.getByLabelText('Nome del bambino')).toHaveValue('');
+  });
   it.each([null, '2026-12-02T10:00:00Z'])('ONLINE_GIFT cannot redeem or replay physical rewards (%s)', claimedAt => {
     vi.mocked(experience).ONLINE_GIFT = true;
     const state = completeMission(EMPTY_ACADEMY, 'citta', new Date('2026-12-01T10:00:00Z'), new Uint8Array([1, 2, 3, 4, 5, 6]));
