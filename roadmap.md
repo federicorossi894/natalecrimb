@@ -4,9 +4,10 @@
 - [x] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
 - [x] Online gift/cartolina flow and privacy, isolated mobile/desktop four-project QA.
 - [x] Protected email QA; authentic owner session denied staff access, Gmail matching messages zero.
-- [ ] Three real QA emails and private-cartolina binding — requires approved moderator/admin authorization; no sends attempted.
+- [ ] Three real QA emails — owner must sign in using CRI account; minting its browser session requires unavailable approval. No sends attempted.
 - [x] 392 tests/37 files, documentation and automatic build OK.
-- [ ] Safe DEMO publication completion and public release verification.
+- [x] Previous ONLINE_GIFT release verified public HTTP 200 on follow-up.
+- [ ] Scoped QA_OWNER release publication completion/verification.
 
 # CRI Monza demo — roadmap
 ## TV audio prompt only — 8 November 20:08 UTC
