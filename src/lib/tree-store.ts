@@ -1,4 +1,4 @@
-import { ONLINE_GIFT, projectOnly } from './site-experience';
+import { ONLINE_GIFT } from './site-experience';
 import { CAMPAIGN } from "./campaign";
 import { livePublicTree } from './payments.functions';
 import { publicTvTree } from './tv-tree.functions';
@@ -75,7 +75,7 @@ export function useTreeStore(options: { publicOnly?: boolean } = {}) {
     return () => window.removeEventListener(EVT, h);
   }, [sync]);
   const { mine, count } = poll.data;
-  const remote = ONLINE_GIFT && CAMPAIGN.demo ? poll.data.remote.map(projectOnly) : poll.data.remote;
+  const remote = poll.data.remote;
   const visible = ONLINE_GIFT && CAMPAIGN.demo && !publicOnly ? mergeSessionOrnaments(remote, local) : remote;
   return { mine, error: poll.error || poll.stale, loaded: poll.loaded, lastSuccess: poll.lastSuccess, addedOrnaments: visible, addedCount: Math.max(count, visible.length), publicOrnaments: CAMPAIGN.demo && !ONLINE_GIFT ? [...TREE_ORNAMENTS, ...remote] : visible, total: (CAMPAIGN.demo && !ONLINE_GIFT ? MOCK_TOTAL_GIFTS : 0) + Math.max(count, visible.length), refresh: sync };
 }
