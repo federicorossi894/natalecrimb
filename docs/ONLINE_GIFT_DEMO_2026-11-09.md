@@ -1,5 +1,10 @@
 # ONLINE_GIFT DEMO — 9 November 2026
 
+## 13:28 request — normal wording, one disclosure
+Removed repeated ONLINE_GIFT demo/payment/session/QA disclaimers from home, project selection, composition, final screen, tree panels and postcard PNG/text. One top disclosure states the actual current limits. FULL copy is preserved. Guest sees one optional email access control, not two disabled email forms and repeated login warnings; authorized users see normal confirmation/gift controls. Normal opt-in remains, server authorization, fixed recipient, budget and permanent claims unchanged. Accepted means Gmail accepted the message, not independently verified delivery.
+
+The existing linked Gmail was verified in chat via profile HTTP200 for federico.rossi@crimonza.org; no reconnection or credentials needed. This verifies sender access, **not website user identity**. No actual emails sent by this patch. User's broader request for globally visible dedications and arbitrary-recipient production-equivalent sending is **not implemented** by removing copy: dedication remains session-only; email requires the existing verified app account and fixed recipient. A single Gmail authorization in chat cannot safely authorize anonymous website visitors to use that mailbox. These limitations remain in the single banner and are not represented as working globally.
+
 ## Deployment axes and rollback
 `src/lib/site-experience.ts`: SITE_EXPERIENCE=ONLINE_GIFT. Independent campaign mode remains DEMO. To restore FULL, change SITE_EXPERIENCE to FULL, test and publish; do not change payment/email readiness. All old TV/audio/volunteer/review/cash/wall code and Cloud records remain intact. No second project, DNS change or record deletion.
 

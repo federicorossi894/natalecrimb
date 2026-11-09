@@ -61,7 +61,7 @@ function Regali() {
             </Link>
           ))}
         </div>
-        {CAMPAIGN.demo && <p className="mt-16 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>}
+        {CAMPAIGN.demo && !ONLINE_GIFT && <p className="mt-16 text-center text-xs text-muted-foreground">Demo: nessun pagamento verrà effettuato.</p>}
       </section>
     </Shell>
   );

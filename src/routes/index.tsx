@@ -67,7 +67,7 @@ function Home() {
             {ONLINE_GIFT ? <>Quest’anno regala qualcosa <em className="text-gold not-italic">che non si scarta.</em></> : <>Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.</>}
           </h1>
           <p className="animate-rise mt-5 max-w-md text-lg text-foreground/85" style={{ animationDelay: "0.2s" }}>
-            {ONLINE_GIFT ? "Fai un regalo solidale a qualcuno che ami. Scegli uno dei quattro progetti CRI, accendi una pallina sull’albero digitale, crea una cartolina e condividila. Da 5 € · in questa DEMO nessun pagamento reale." : CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi." : "Scopri i progetti di Croce Rossa Italiana — Comitato di Monza. Le donazioni online saranno disponibili dopo l’attivazione dei pagamenti."}
+            {ONLINE_GIFT ? "Fai un regalo solidale a qualcuno che ami. Scegli uno dei quattro progetti CRI, accendi una pallina sull’albero digitale, crea una cartolina e condividila. Da 5 €." : CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi." : "Scopri i progetti di Croce Rossa Italiana — Comitato di Monza. Le donazioni online saranno disponibili dopo l’attivazione dei pagamenti."}
           </p>
           <div className="animate-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.3s" }}>
             <Button onClick={() => setOpening(true)} className="group h-auto rounded-full px-7 py-4 text-base shadow-deep transition hover:scale-[1.03]">
@@ -94,7 +94,7 @@ function Home() {
         <ol className="mt-14 grid gap-3 sm:grid-cols-3">
           {[
             { n: "1", t: "Scegli un regalo", d: "Quattro progetti di Croce Rossa Monza." },
-            { n: "2", t: "Dona in pochi tocchi", d: ONLINE_GIFT ? "Da 5 €. Pagamento solo simulato." : CAMPAIGN.volunteerCashDonations ? "Bastano 5 €. Online o alla casetta." : CAMPAIGN.livePayments ? "Bastano 5 €. Online." : "Pagamenti online in attivazione." },
+            { n: "2", t: "Dona in pochi tocchi", d: ONLINE_GIFT ? "Da 5 €. Scegli il tuo contributo." : CAMPAIGN.volunteerCashDonations ? "Bastano 5 €. Online o alla casetta." : CAMPAIGN.livePayments ? "Bastano 5 €. Online." : "Pagamenti online in attivazione." },
             { n: "3", t: "Accendi l'Albero di Monza", d: "Il tuo regalo diventa un addobbo. Puoi dedicarlo a chi vuoi." },
           ].map((s) => (
             <li key={s.n} className="glass flex items-start gap-4 rounded-2xl p-5">

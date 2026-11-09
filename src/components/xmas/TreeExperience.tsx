@@ -30,7 +30,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
     <div className="relative">
       <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} />
       <div className="pointer-events-none absolute inset-x-0 top-5 flex items-start justify-between gap-4 px-5">
-        <div><p className="text-xs font-semibold uppercase text-gold">{CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{addedCount} regali appesi</p></div>
+        <div><p className="text-xs font-semibold uppercase text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{addedCount} regali appesi</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{close();setReset(s=>s+1);}}><RotateCcw /></Button>
       </div>
       <div className="flex min-h-20 items-center justify-center gap-2 px-3">
@@ -44,18 +44,18 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
     {selected&&<div className="dedication-scrim fixed inset-0 z-[65] flex items-end justify-center px-4 pb-5 sm:items-center" onClick={close} data-testid="dedication-backdrop">
       <div role="dialog" aria-modal="true" aria-label="Dedica del regalo" className="tree-tag dedication-panel animate-rise w-full max-w-md" onClick={e=>e.stopPropagation()}>
       <Button variant="outline" size="icon" autoFocus className="dedication-close absolute right-3 top-3 h-11 w-11 border-ink/30 bg-paper text-ink hover:bg-gold hover:text-ink" aria-label="Chiudi dedica" onClick={close}><X className="h-6 w-6" /></Button>
-      <div className="flex items-center gap-3 pr-12"><OrnamentIcon kind={selected.kind} className="w-10 shrink-0" /><p className="text-xs font-semibold uppercase text-primary">Un regalo per Monza {CAMPAIGN.demo && "· DEMO"}</p></div>
+      <div className="flex items-center gap-3 pr-12"><OrnamentIcon kind={selected.kind} className="w-10 shrink-0" /><p className="text-xs font-semibold uppercase text-primary">Un regalo per Monza {!ONLINE_GIFT && CAMPAIGN.demo && "· DEMO"}</p></div>
       <p className="mt-4 font-display text-2xl leading-snug">{selected.dedica?`“${selected.dedica}”`:'Un gesto di vicinanza, un regalo per la città.'}</p>
       <p className="mt-3 text-sm font-semibold">— {selected.firma??'Anonimo'}</p>
-      {selected.sessionOnly && <p className="mt-3 text-xs">DEMO · Dedica visibile soltanto in questa sessione del browser, non sugli altri dispositivi.</p>}
+      
       {!selected.dedica&&<p className="mt-3 text-xs">Nessuna dedica pubblica.</p>}
       </div>
     </div>}
     <p className="mx-auto max-w-lg px-5 pt-6 text-center font-display text-xl text-gold">L’albero cresce con i regali.<br />Monza cresce con la solidarietà.</p>
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <h2 className="font-display text-2xl">{CAMPAIGN.demo ? "I regali di questa demo" : "I regali per Monza"}</h2>
+      <h2 className="font-display text-2xl">{!ONLINE_GIFT && CAMPAIGN.demo ? "I regali di questa demo" : "I regali per Monza"}</h2>
       {!ornaments.length&&<p className="mt-3 text-muted-foreground">Il primo regalo accenderà l’albero.</p>}
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{ornaments.map((o,i)=><Button key={o.id} variant={selected?.id===o.id?'secondary':'outline'} className="h-auto min-h-16 justify-start whitespace-normal py-2 text-left" aria-label={`Seleziona addobbo ${i+1}`} onClick={()=>pick(o)}><OrnamentIcon kind={o.kind} className="h-9 w-8 shrink-0" /><span className="min-w-0 text-xs">{o.firma??`Regalo ${i+1}`}<span className="mt-1 block text-muted-foreground">{o.dedica?'Dedica pubblica':CAMPAIGN.demo?'DEMO':'Addobbo'}</span></span></Button>)}</div>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{ornaments.map((o,i)=><Button key={o.id} variant={selected?.id===o.id?'secondary':'outline'} className="h-auto min-h-16 justify-start whitespace-normal py-2 text-left" aria-label={`Seleziona addobbo ${i+1}`} onClick={()=>pick(o)}><OrnamentIcon kind={o.kind} className="h-9 w-8 shrink-0" /><span className="min-w-0 text-xs">{o.firma??`Regalo ${i+1}`}<span className="mt-1 block text-muted-foreground">{o.dedica?'Dedica pubblica':!ONLINE_GIFT && CAMPAIGN.demo?'DEMO':'Addobbo'}</span></span></Button>)}</div>
       {!ONLINE_GIFT&&mine.length>0&&<div className="mt-8 border-t pt-5"><h3 className="font-display text-xl">I tuoi addobbi</h3>{mine.map(o=><p key={o.id} className="mt-2 text-sm text-muted-foreground"><Gift className="mr-2 inline h-4 w-4 text-gold" />{o.dedica?`“${o.dedica}”`:'Senza dedica'} · {o.status==='approved'?'approvato':o.status==='pending'?'in moderazione':'testo non pubblicato'}</p>)}</div>}
     </div>
   </>;

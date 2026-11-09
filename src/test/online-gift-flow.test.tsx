@@ -23,10 +23,10 @@ it.each([true,false])('gift=%s keeps dedicated text on own bauble and makes post
   fireEvent.click(screen.getByLabelText('Acconsento alla pubblicazione di dedica e firma'));
   expect(screen.queryByTestId('card')).toBeNull();
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));
-  const pay=screen.getByRole('button',{name:'Simula pagamento di 5 €'});fireEvent.click(pay);fireEvent.click(pay);
+  const pay=screen.getByRole('button',{name:'Conferma 5 €'});fireEvent.click(pay);fireEvent.click(pay);
   await screen.findByTestId('card');expect(call).toHaveBeenCalledOnce();expect(sessionOrnaments()[0]?.dedica).toBe('Per Monza');expect(screen.getByTestId('card')).toHaveTextContent(gift?'gift:Per Monza':'thanks:Per Monza');
   const previous=call.mock.calls[0]?.[0]?.data.requestId;
   fireEvent.click(screen.getByRole('button',{name:'Nuovo regalo o donazione'}));
-  fireEvent.click(screen.getByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Simula pagamento di 5 €'}));
+  fireEvent.click(screen.getByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Conferma 5 €'}));
   await waitFor(()=>expect(call).toHaveBeenCalledTimes(2));expect(call.mock.calls[1]?.[0]?.data.requestId).not.toBe(previous);
 });
