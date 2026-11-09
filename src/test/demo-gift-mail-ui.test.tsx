@@ -7,6 +7,7 @@ vi.mock('@/lib/demo-gift-mail.functions',()=>({sendDemoGiftMail:vi.fn()}));
 import { DemoGiftMail } from '@/components/xmas/DemoGiftMail';
 const props={authorized:true,ornamentId:'00000000-0000-4000-8000-000000000001',giftRequestId:'00000000-0000-4000-8000-000000000002',client:'00000000-0000-4000-8000-000000000003',donor:'Federico',toName:'Giulia',msg:'Privata'};
 afterEach(()=>{cleanup();vi.clearAllMocks();});
+it('guest cannot send even with consent and whitelisted email',()=>{render(<DemoGiftMail {...props} authorized={false}/>);fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});
 it('receipt never sends on mount or without optin; accepted is not delivered and repeated click blocked',async()=>{
   call.mockResolvedValue({state:'accepted'});render(<DemoGiftMail {...props} receipt/>);
   expect(call).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Invia ora email di prova'})).toBeDisabled();
