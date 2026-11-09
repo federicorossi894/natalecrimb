@@ -41,7 +41,7 @@ const b64 = (s: string) =>
 export function qaRawMessage(kind: QaKind, attempt: string) {
   const labels = {
     receipt: "Conferma informativa donazione DEMO",
-    gift_now: "Un augurio per te",
+    gift_now: "Ti hanno fatto un regalo · DEMO",
     christmas_simulation: "SIMULAZIONE ORARIO · Auguri di Natale",
   };
   const common =
@@ -51,11 +51,13 @@ export function qaRawMessage(kind: QaKind, attempt: string) {
       ? "Conferma informativa di una donazione SIMULATA di 5,00 € per il progetto Calore. Metodo: pagamento online SIMULATO. Nessun incasso, nessuna transazione. SIMULAZIONE, NON VALIDA COME RICEVUTA. Nessun beneficio fiscale è attestato."
       : kind === "gift_now"
         ? "Un gesto di gentilezza illumina il Natale di Monza. Questo augurio è una prova del regalo email immediato: nessuna donazione o pagamento è avvenuto."
-        : "SIMULAZIONE ORARIO: questa prova viene inviata SUBITO. Simula l'augurio previsto per il 25 dicembre alle 00:05 Europe/Rome; non è stata programmata alcuna email per Natale. Buon Natale dal Comitato di Monza!";
+        : "SIMULAZIONE ORARIO: questa prova viene inviata SUBITO. In produzione sarebbe programmato per il 25/12 alle 00:05 Europe/Rome; non è stata programmata alcuna email per Natale. Buon Natale dal Comitato di Monza!";
   const body =
     common +
     content +
     `\r\n\r\nData prova: ${new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Rome" }).format(new Date())}\r\nRiferimento prova: ${attempt}\r\nAlbero digitale: https://natalecrimb.lovable.app/albero\r\nProva tecnica riservata, nessuna iscrizione a comunicazioni promozionali.`;
+  const escape = (s: string) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] ?? c));
+  const html = `<!doctype html><html lang="it"><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto"><div style="background:#183b2c;color:#fffdf8;padding:30px"><p>Croce Rossa Italiana · Comitato di Monza</p><h1 style="font-family:Georgia,serif">Il Natale che fa bene</h1><p style="color:#e8c37a">[DEMO — NESSUN PAGAMENTO]</p></div><div style="padding:30px"><h2>${escape(labels[kind])}</h2><p style="line-height:1.6">${escape(content)}</p><p>Regala calore · un gesto di gentilezza, un regalo digitale.</p><a href="https://natalecrimb.lovable.app/albero" style="display:inline-block;padding:16px;background:#c8102e;color:#ffffff;text-decoration:none">Apri l’albero digitale</a><p style="font-size:12px">${escape(body)}</p></div></div></body></html>`;
   return b64(
     [
       `From: ${DEMO_EMAIL_QA.sender}`,
@@ -63,10 +65,10 @@ export function qaRawMessage(kind: QaKind, attempt: string) {
       `Subject: =?UTF-8?B?${b64(`[DEMO — NESSUN PAGAMENTO] ${labels[kind]}`)}?=`,
       `Message-ID: <qa-${attempt}@crimonza.org>`,
       "MIME-Version: 1.0",
-      'Content-Type: text/plain; charset="UTF-8"',
+      'Content-Type: text/html; charset="UTF-8"',
       "Content-Transfer-Encoding: base64",
       "",
-      b64(body),
+      b64(html),
     ].join("\r\n"),
   )
     .replace(/\+/g, "-")
