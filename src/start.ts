@@ -2,6 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { isVolunteerHost } from "./lib/volunteer-host";
+import { experienceRouteAllowed, ONLINE_GIFT } from './lib/site-experience';
 import { supabase } from '@/integrations/supabase/client';
 
 // The public kiosk never waits for an account or storage. Other pages retain bearer attachment;
@@ -40,7 +41,8 @@ const csrfMiddleware = createCsrfMiddleware({
 // The dedicated volunteer host opens the portal at "/"; every other host is untouched.
 const volunteerHostMiddleware = createMiddleware().server(async ({ next, request }) => {
   const url = new URL(request.url);
-  if (isVolunteerHost(url.hostname) && url.pathname === "/") {
+  if (!experienceRouteAllowed(url.pathname)) return Response.redirect(new URL('/', url), 302);
+  if (!ONLINE_GIFT && isVolunteerHost(url.hostname) && url.pathname === "/") {
     return Response.redirect(new URL("/volontari", url), 302);
   }
   return next();

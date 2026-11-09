@@ -1,4 +1,5 @@
 import { assertOfficialEmailReady, officialEmailReady } from './email-readiness';
+import { experienceRouteAllowed } from './site-experience';
 /** Single deployment setting. Never derive this from URL, storage or browser input. */
 export const ACTIVE_CAMPAIGN_MODE: CampaignMode = 'DEMO';
 export const CAMPAIGN_MODES = ['DEMO', 'BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const;
@@ -60,6 +61,7 @@ assertCampaignDeployment(ACTIVE_CAMPAIGN_MODE);
 export const EMAIL_PREFLIGHT = { officialReady: officialEmailReady(), receiptRequiredCapability: true, giftNowRequiredCapability: true, giftChristmasRequiredCapability: true } as const;
 export type CampaignCapabilities = ReturnType<typeof campaignCapabilities>;
 export function campaignRouteAllowed(path: string, c = CAMPAIGN) {
+  if (!experienceRouteAllowed(path)) return false;
   const p = path.replace(/\/$/, '') || '/';
   if (p === '/tv-preview' || p === '/presentazione') return c.previews;
   if (p === '/auguri' || p.startsWith('/augurio/')) return c.publicWishWall;
