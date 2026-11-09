@@ -81,7 +81,7 @@ export function WhatsAppMock({ contact, imageUrl, text, refEl }: { contact: stri
       <div className="wa-header flex items-center gap-3 px-4 py-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold font-display text-lg text-ink">{(contact.trim()[0] ?? "?").toUpperCase()}</span>
         <div className="min-w-0 leading-tight"><p className="truncate font-semibold">{contact.trim() || "Destinatario"}</p><p className="wa-meta text-[11px]">online</p></div>
-        {CAMPAIGN.demo && <span className="ml-auto rounded-full border border-current px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest opacity-70">Demo</span>}
+        {CAMPAIGN.demo && !ONLINE_GIFT && <span className="ml-auto rounded-full border border-current px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest opacity-70">Demo</span>}
       </div>
       <div className="wa-chat px-3 py-4">
         <div className="wa-bubble ml-auto max-w-[88%] p-1.5 text-[13px] leading-snug">
@@ -117,7 +117,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   }, [project, to, from, msg, ornamentId, selfThanks, retry]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: CAMPAIGN.demo ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
+      try { await navigator.share({ files: [file], title: CAMPAIGN.demo && !ONLINE_GIFT ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
       catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
@@ -149,7 +149,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </div>
         {note && <p role="status" className="text-center text-xs text-muted-foreground">{note}</p>}
         <PiazzaInvite />
-        <p className="text-center text-[11px] text-muted-foreground">{CAMPAIGN.demo && "Cartolina DEMO: il messaggio lo dichiara. "}Il nome del destinatario non viene salvato.</p>
+        <p className="text-center text-[11px] text-muted-foreground">{CAMPAIGN.demo && !ONLINE_GIFT && "Cartolina DEMO: il messaggio lo dichiara. "}Il nome del destinatario non viene salvato.</p>
       </div>
     </div>
   );

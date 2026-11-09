@@ -24,7 +24,7 @@ export function DemoBanner() {
   if (!CAMPAIGN.demo) return null;
   return (
     <div className="bg-ink/80 px-4 py-1.5 text-center text-[10.5px] leading-snug text-paper/80 sm:text-xs">
-      <strong className="tracking-widest text-gold">PROTOTIPO DIMOSTRATIVO</strong> · {ONLINE_GIFT ? "Pagamenti simulati: nessun incasso. Cartoline condivisibili; email reali solo nel test riservato a Federico." : "Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita."}
+      <strong className="tracking-widest text-gold">DEMO</strong> · {ONLINE_GIFT ? "Pagamenti simulati · email da Federico, Natale invia subito. Dediche visibili nel tuo browser; email riservate all’account autorizzato." : "Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita."}
     </div>
   );
 }
@@ -98,7 +98,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
             })}
           </ul>
         </div>
-        {CAMPAIGN.demo && <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">{ONLINE_GIFT ? "DEMO · Nessun pagamento reale. Messaggi privati nelle cartoline, non nell’albero pubblico." : "Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale."}</p>}
+        {CAMPAIGN.demo && !ONLINE_GIFT && <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">{ONLINE_GIFT ? "DEMO · Nessun pagamento reale. Messaggi privati nelle cartoline, non nell’albero pubblico." : "Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale."}</p>}
       </footer>
     </div>
   );
