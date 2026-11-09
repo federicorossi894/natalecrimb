@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { TreeOrnament } from './data';
 
 const text = (max: number) => z.string().trim().max(max).refine(v => !/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/u.test(v), 'Caratteri non ammessi');
-export const onlineDedication = z.object({ dedica: text(90), firma: text(40).regex(/^[\p{L}\p{N} .,'’!-]*$/u), consent: z.boolean() });
+export const onlineDedication = z.object({ dedica: text(90), firma: text(40).refine(v=>/^[\p{L}\p{N} .,'’!-]*$/u.test(v), 'Caratteri non ammessi nella firma'), consent: z.boolean() });
 export const giftSessionSchema = z.object({
   project: z.string().max(40), amount: z.number().int().min(5).max(1000), request: z.string().uuid(), client: z.string().uuid(),
   id: z.string().uuid().nullable(), kind: z.enum(['calore', 'dae', 'prossimita', 'cuore']),
@@ -30,7 +30,7 @@ export function clearGiftSession() {
 }
 const rowSchema = z.object({ id: z.string().uuid(), kind: giftSessionSchema.shape.kind, x: z.number(), y: z.number(), dedica: text(90).optional(), firma: text(40).optional(), sessionOnly: z.literal(true) });
 export function sessionOrnaments(): SessionOrnament[] {
-  try { const parsed = z.array(rowSchema).max(48).safeParse(JSON.parse(sessionStorage.getItem(TREE) || '[]')); if (parsed.success) localRows = parsed.data; } catch { /* page-memory fallback */ }
+  try { const parsed = z.array(rowSchema).max(48).safeParse(JSON.parse(sessionStorage.getItem(TREE) || '[]')); if (parsed.success) localRows = parsed.data.map(o=>({id:o.id,kind:o.kind,x:o.x,y:o.y,sessionOnly:true,...(o.dedica?{dedica:o.dedica}:{}),...(o.firma?{firma:o.firma}:{})})); } catch { /* page-memory fallback */ }
   return localRows;
 }
 export function rememberSessionOrnament(value: GiftSession) {
@@ -45,5 +45,5 @@ export function rememberSessionOrnament(value: GiftSession) {
 /** Only the visitor tree receives this local overlay; never public-only/TV data. */
 export function mergeSessionOrnaments(remote: TreeOrnament[], local: SessionOrnament[]): SessionOrnament[] {
   const map = new Map(local.map(o => [o.id, o]));
-  return [...remote.map(o => { const own = map.get(o.id); map.delete(o.id); return own ? { ...o, dedica: own.dedica, firma: own.firma, sessionOnly: true } : o; }), ...map.values()];
+  return [...remote.map(o => { const own = map.get(o.id); map.delete(o.id); return own ? { id:o.id,kind:o.kind,x:o.x,y:o.y,sessionOnly:true,...(own.dedica?{dedica:own.dedica}:{}),...(own.firma?{firma:own.firma}:{}) } : o; }), ...map.values()];
 }

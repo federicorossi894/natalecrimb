@@ -1,6 +1,7 @@
 import { CAMPAIGN, assertCampaignPayment, campaignPaymentMethods } from "@/lib/campaign";
 import { ONLINE_GIFT } from '@/lib/site-experience';
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
+import { loadGiftSession } from '@/lib/online-gift-session';
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
@@ -55,6 +56,7 @@ function Detail() {
   const [custom, setCustom] = useState("");
   const [hung, setHung] = useState<Hung | null>(null);
   const [receiptPreview, setReceiptPreview] = useState(false);
+  useEffect(()=>{if(!ONLINE_GIFT)return;const saved=loadGiftSession(id);if(saved){setPreset(saved.amount);setStep('checkout');}},[id]);
   // A typed amount is used only when it passes the shared rule (whole euros, 5–1000); otherwise checkout stays closed.
   const parsed = custom ? amountSchema.safeParse(custom) : amountSchema.safeParse(preset);
   const amount = parsed.success ? parsed.data : 0;
