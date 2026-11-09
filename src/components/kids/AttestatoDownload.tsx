@@ -19,8 +19,8 @@ export function AttestatoDownload({ target, code, revision }: { target: RefObjec
         await Promise.all(Array.from(node.querySelectorAll('img')).map(img => img.decode()));
         const { toBlob } = await import('html-to-image');
         const blob = await toBlob(node, {
-          pixelRatio: 3, width: 794, cacheBust: false, fontEmbedCSS: '',
-          style: { width: '794px', maxWidth: 'none', animation: 'none', opacity: '1', transform: 'none', margin: '0' },
+          pixelRatio: Math.max(3, 2382 / node.getBoundingClientRect().width), cacheBust: false, fontEmbedCSS: '',
+          style: { animation: 'none', opacity: '1', transform: 'none' },
         });
         if (!blob) throw new Error('PNG unavailable');
         if (!cancelled) setFile(new File([blob], `attestato-cri-monza-${code}.png`, { type: 'image/png' }));
