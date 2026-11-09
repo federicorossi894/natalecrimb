@@ -6,8 +6,8 @@ vi.mock('@tanstack/react-router',()=>({Link:({children}:{children:React.ReactNod
 vi.mock('@/lib/online-gift.functions',()=>({createOnlineGift:()=>undefined}));
 vi.mock('@/lib/tree-store',()=>({clientId:()=> '00000000-0000-4000-8000-000000000001'}));
 vi.mock('@/components/xmas/TreeExperience',()=>({TreeExperience:()=>null}));
-vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg,thankYou}:{selfThanks:boolean;msg:string;thankYou?:string})=><div data-testid={selfThanks?'thanks-card':'card'}>{selfThanks?'thanks':'gift'}:{thankYou || msg}</div>}));
-vi.mock('@/components/xmas/GiftMailForm',()=>({GiftMailForm:({receipt}:{receipt?:boolean})=><div data-testid={receipt?'receipt':'mail'}/>}));
+vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg,thankYou,onShared}:{selfThanks:boolean;msg:string;thankYou?:string;onShared?:()=>void})=><div data-testid={selfThanks?'thanks-card':'card'}>{selfThanks?'thanks':'gift'}:{thankYou || msg}{onShared && <button onClick={onShared}>Complete sharing</button>}</div>}));
+vi.mock('@/components/xmas/GiftMailForm',()=>({GiftMailForm:({receipt,onAccepted}:{receipt?:boolean;onAccepted?:()=>void})=><div data-testid={receipt?'receipt':'mail'}>{onAccepted && <button onClick={onAccepted}>Accept email</button>}</div>}));
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { PROJECTS } from '@/lib/data';
 import { clearGiftSession, loadGiftSession } from '@/lib/online-gift-session';
@@ -26,10 +26,29 @@ it.each([true,false])('gift=%s sends consented dedication to shared server and p
   await screen.findByTestId('receipt');expect(call).toHaveBeenCalledOnce();expect(call.mock.calls[0]?.[0]?.data).toMatchObject({dedica:'Per Monza',consent:true});
   if(gift){expect(screen.queryByTestId('card')).toBeNull();fireEvent.click(screen.getByRole('radio',{name:'Email'}));expect(screen.getByTestId('mail')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'WhatsApp'}));}
   expect(loadGiftSession('calore')?.thankYou).toBe('Grazie, il tuo gesto porta vicinanza a Monza.');
-  expect(screen.getByTestId('thanks-card')).toHaveTextContent('Grazie, il tuo gesto porta vicinanza a Monza.');
-  if(gift)expect(screen.getByTestId('card')).toHaveTextContent('gift:Per Monza');
+  if(gift){
+    expect(loadGiftSession('calore')?.sharingComplete).not.toBe(true);
+    expect(screen.queryByTestId('donor-thanks')).toBeNull();
+    expect(screen.queryByTestId('thanks-card')).toBeNull();
+    expect(screen.getByTestId('card')).toHaveTextContent('gift:Per Monza');
+    fireEvent.click(screen.getByRole('button',{name:'Complete sharing'}));
+    expect(loadGiftSession('calore')?.sharingComplete).toBe(true);
+    expect(screen.getByTestId('donor-thanks')).toHaveTextContent('Grazie, il tuo gesto porta vicinanza a Monza.');
+  }else expect(screen.getByTestId('thanks-card')).toHaveTextContent('Grazie, il tuo gesto porta vicinanza a Monza.');
   const previous=call.mock.calls[0]?.[0]?.data.requestId;
   fireEvent.click(screen.getByRole('button',{name:'Nuovo regalo o donazione'}));
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Conferma 5 €'}));
   await waitFor(()=>expect(call).toHaveBeenCalledTimes(2));expect(call.mock.calls[1]?.[0]?.data.requestId).not.toBe(previous);
+});
+it('email acceptance completes the gift and restores completion after reload',async()=>{
+  const project=PROJECTS[0];if(!project)throw Error('project');
+  call.mockResolvedValue({id:'00000000-0000-4000-8000-000000000002',thankYou:'Grazie per Monza.'});
+  const view=render(<OnlineGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Conferma 5 €'}));
+  await screen.findByTestId('receipt');fireEvent.click(screen.getByRole('radio',{name:'Email'}));
+  expect(loadGiftSession('calore')?.sharingComplete).not.toBe(true);
+  fireEvent.click(screen.getByRole('button',{name:'Accept email'}));
+  expect(loadGiftSession('calore')?.sharingComplete).toBe(true);
+  view.unmount();render(<OnlineGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
+  expect(await screen.findByTestId('donor-thanks')).toHaveTextContent('Grazie per Monza.');expect(call).toHaveBeenCalledOnce();
 });

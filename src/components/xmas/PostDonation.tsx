@@ -95,7 +95,7 @@ export function WhatsAppMock({ contact, imageUrl, text, refEl }: { contact: stri
 }
 
 /** Postcard image + WhatsApp preview with share/export actions. */
-export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false, thankYou, onShared }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean; thankYou?: string | undefined; onShared?: () => void }) {
+export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false, thankYou, onShared }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean; thankYou?: string | undefined; onShared?: (() => void) | undefined }) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState("");
