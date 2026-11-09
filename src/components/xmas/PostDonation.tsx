@@ -95,12 +95,13 @@ export function WhatsAppMock({ contact, imageUrl, text, refEl }: { contact: stri
 }
 
 /** Postcard image + WhatsApp preview with share/export actions. */
-export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false, thankYou }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean; thankYou?: string | undefined }) {
+export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false, thankYou, onShared }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean; thankYou?: string | undefined; onShared?: () => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [renderError, setRenderError] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [composerOpened, setComposerOpened] = useState(false);
   const chat = useRef<HTMLDivElement>(null);
   const cardMessage = selfThanks && thankYou ? thankYou : msg;
   const text = useMemo(() => postcardText(project, to, from, cardMessage, ornamentId, selfThanks), [project, to, from, cardMessage, ornamentId, selfThanks]);
@@ -118,11 +119,12 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   }, [project, to, from, cardMessage, ornamentId, selfThanks, retry]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: CAMPAIGN.demo && !ONLINE_GIFT ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
+      try { await navigator.share({ files: [file], title: CAMPAIGN.demo && !ONLINE_GIFT ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); onShared?.(); return; }
       catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
     setNote("Si apre WhatsApp con il messaggio già scritto: scegli tu il contatto e premi invio. La cartolina va allegata a parte, dopo averla scaricata.");
+    setComposerOpened(true);
   };
   const copy = async () => { try { await navigator.clipboard.writeText(text); setNote("Messaggio copiato."); } catch { setNote("Copia non disponibile su questo dispositivo."); } };
   return (
@@ -149,6 +151,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
             : <Link to="/albero" search={ornamentId ? { addobbo: ornamentId } : { trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</Link>)}
         </div>
         {note && <p role="status" className="text-center text-xs text-muted-foreground">{note}</p>}
+        {composerOpened && onShared && <Button variant="outline" className="w-full" onClick={()=>{setComposerOpened(false);onShared();}}>Ho concluso la condivisione</Button>}
         <PiazzaInvite />
         <p className="text-center text-[11px] text-muted-foreground">{CAMPAIGN.demo && !ONLINE_GIFT && "Cartolina DEMO: il messaggio lo dichiara. "}Il nome del destinatario non viene salvato.</p>
       </div>
