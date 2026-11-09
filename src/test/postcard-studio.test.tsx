@@ -22,7 +22,20 @@ it('prepared native share carries PNG and text; unsupported fallback opens compo
   const share=vi.fn().mockResolvedValue(undefined),canShare=vi.fn(()=>true);
   Object.defineProperty(navigator,'share',{value:share,configurable:true});Object.defineProperty(navigator,'canShare',{value:canShare,configurable:true});
   const open=vi.spyOn(window,'open').mockImplementation(()=>null);
-  render(<PostcardStudio project={project} to="" from="" msg="" selfThanks/>);await screen.findByTestId('postcard-image');
+  const completed=vi.fn();
+  render(<PostcardStudio project={project} to="" from="" msg="" selfThanks onShared={completed}/>);await screen.findByTestId('postcard-image');
   fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));await waitFor(()=>expect(share).toHaveBeenCalledWith(expect.objectContaining({files:[file],text:expect.stringContaining('https://')})));expect(open).not.toHaveBeenCalled();
+  await waitFor(()=>expect(completed).toHaveBeenCalledOnce());completed.mockClear();
   canShare.mockReturnValue(false);fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));expect(open).toHaveBeenCalledWith(expect.stringContaining('https://wa.me/?text='),'_blank','noopener,noreferrer');
+  expect(completed).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Ho concluso la condivisione'}));expect(completed).toHaveBeenCalledOnce();
+});
+it('cancelled native sharing does not complete the gift',async()=>{
+  renderer.mockResolvedValue(new File(['png'],'card.png',{type:'image/png'}));
+  URL.createObjectURL=vi.fn(()=> 'blob:card');URL.revokeObjectURL=vi.fn();
+  Object.defineProperty(navigator,'canShare',{value:()=>true,configurable:true});
+  Object.defineProperty(navigator,'share',{value:vi.fn().mockRejectedValue(new DOMException('Cancelled','AbortError')),configurable:true});
+  const completed=vi.fn(),open=vi.spyOn(window,'open').mockImplementation(()=>null);
+  render(<PostcardStudio project={project} to="Anna" from="Luca" msg="Buone feste" onShared={completed}/>);await screen.findByTestId('postcard-image');
+  fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));await waitFor(()=>expect(navigator.share).toHaveBeenCalled());
+  expect(completed).not.toHaveBeenCalled();expect(open).not.toHaveBeenCalled();
 });
