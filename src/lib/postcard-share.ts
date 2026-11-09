@@ -11,11 +11,11 @@ export const ornamentUrl = (id?: string | null) => (id ? `${SITE_URL}/albero?add
 export const giftLink = (p: Project, ornamentId?: string | null) => (ornamentId ? ornamentUrl(ornamentId) : projectUrl(p));
 export const INVITE_LINE = ONLINE_GIFT ? "Un regalo solidale, una pallina digitale. Condividi questo gesto con chi ami." : `Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta CRI in Piazza San Paolo, fino al ${TREE_UNTIL}.`;
 
-export function postcardText(p: Project, to: string, from: string, msg: string, ornamentId?: string | null) {
+export function postcardText(p: Project, to: string, from: string, msg: string, ornamentId?: string | null, selfThanks = false) {
   const dedica = msg.trim() || p.postcardLine;
   const firma = from.trim() ? `\n— ${from.trim()}` : "";
   const link = ornamentId ? `Il tuo addobbo è sull'Albero di Monza digitale: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
-  return `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
+  return `${selfThanks ? '🎄 Grazie per il tuo gesto solidale!\nHo scelto di sostenere' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Cartolina DEMO: nessuna donazione reale; la dedica sull’albero resta nella sessione del donatore)" : ""}`;
 }
 
 /** Resolves a CSS custom property (any colour syntax) to #rrggbb, so canvases and email HTML get plain sRGB. */
@@ -108,14 +108,16 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLine
 function loadImage(src: string) {
   return new Promise<HTMLImageElement | null>((res) => {
     const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
+    const timeout = setTimeout(() => { img.onload = null; img.onerror = null; res(null); }, 8000);
+    img.crossOrigin = 'anonymous'; // Asset redirects must never taint the export canvas.
+    img.onload = () => { clearTimeout(timeout); res(img); };
+    img.onerror = () => { clearTimeout(timeout); res(null); };
     img.src = src;
   });
 }
 
 /** Draws a 1080×1350 shareable postcard image locally (nothing is uploaded). */
-export async function renderPostcardImage(p: Project, to: string, from: string, msg: string, ornamentId?: string | null): Promise<File | null> {
+export async function renderPostcardImage(p: Project, to: string, from: string, msg: string, ornamentId?: string | null, selfThanks = false): Promise<File | null> {
   const W = 1080, H = 1350;
   const c = document.createElement("canvas");
   c.width = W; c.height = H;
@@ -152,21 +154,23 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   // headline
   ctx.fillStyle = ink;
   ctx.font = "600 80px Fraunces, Georgia, serif";
-  const head = wrap(ctx, `Per te, ${to.trim() || "…"}`, 900, 2);
+  const heading = selfThanks ? 'Grazie di cuore!' : `Per te, ${to.trim() || "con affetto"}`;
+  ctx.font = "600 66px Fraunces, Georgia, serif";
+  const head = wrap(ctx, heading, 900, 2);
   head.forEach((l, i) => ctx.fillText(l, W / 2, 735 + i * 86));
   const after = 735 + (head.length - 1) * 86;
   ctx.globalAlpha = 0.92; ctx.font = "italic 400 40px Fraunces, Georgia, serif";
   ctx.fillText(`un regalo solidale: ${p.title}`, W / 2, after + 62); ctx.globalAlpha = 1;
   // paper card
-  const top = Math.max(890, after + 110);
+  const top = 890;
   ctx.fillStyle = paper; ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(70, top, W - 140, H - top - 70, 26); else ctx.rect(70, top, W - 140, H - top - 70);
   ctx.fill();
-  ctx.fillStyle = inkDark; ctx.font = "italic 400 40px Fraunces, Georgia, serif";
+  ctx.fillStyle = inkDark; ctx.font = "italic 400 32px Fraunces, Georgia, serif";
   const lines = wrap(ctx, `“${msg.trim() || p.postcardLine}”`, 820, 3);
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 78 + i * 52));
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 52 + i * 38, 820));
   ctx.fillStyle = red; ctx.font = "700 32px Manrope, system-ui, sans-serif";
-  ctx.fillText(`— ${from.trim() || "Un amico"}`, W / 2, top + 92 + lines.length * 52);
+  ctx.fillText(`— ${from.trim() || "Un amico"}`, W / 2, top + 72 + lines.length * 38, 820);
   // footer row: official mark (unaltered) + invite
   const fy = H - 70 - 104;
   ctx.strokeStyle = inkDark; ctx.globalAlpha = 0.12; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(110, fy - 10); ctx.lineTo(W - 110, fy - 10); ctx.stroke(); ctx.globalAlpha = 1;
