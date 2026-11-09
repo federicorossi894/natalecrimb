@@ -55,7 +55,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
         <div className="space-y-4">
           <label className="block">Dedica pubblica sull’albero (facoltativa)<textarea aria-label="Dedica pubblica sull'albero" maxLength={90} rows={3} value={dedica} onChange={e=>setDedica(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
           <label className="block">Firma pubblica facoltativa<input aria-label="Firma pubblica facoltativa" maxLength={40} value={firma} onChange={e=>setFirma(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
-          <label className="flex items-start gap-3"><input type="checkbox" aria-label="Acconsento alla pubblicazione di dedica e firma" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>Pubblica dedica e firma sull’albero, visibili a tutti.</span></label>
+          <label className="flex items-start gap-3"><input type="checkbox" aria-label="Pubblica dedica e firma sull’albero" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>Pubblica dedica e firma sull’albero, visibili a tutti.</span></label>
           <p className="text-sm text-muted-foreground">Senza consenso la pallina resta senza testo. Non inserire dati personali di altre persone.</p>
         </div>
         {gift && <div className="mt-5 space-y-4">
