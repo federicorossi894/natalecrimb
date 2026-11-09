@@ -114,6 +114,7 @@ export type Database = {
           firma: string | null
           id: string
           kind: string
+          online_request_id: string | null
           payment_method: string | null
           publish_consent: boolean
           status: string
@@ -129,6 +130,7 @@ export type Database = {
           firma?: string | null
           id?: string
           kind: string
+          online_request_id?: string | null
           payment_method?: string | null
           publish_consent?: boolean
           status?: string
@@ -144,6 +146,7 @@ export type Database = {
           firma?: string | null
           id?: string
           kind?: string
+          online_request_id?: string | null
           payment_method?: string | null
           publish_consent?: boolean
           status?: string
@@ -712,6 +715,18 @@ export type Database = {
           p_status?: number
         }
         Returns: undefined
+      }
+      hang_online_gift: {
+        Args: {
+          _amount: number
+          _client: string
+          _kind: string
+          _request: string
+        }
+        Returns: {
+          id: string
+          status: string
+        }[]
       }
       hang_ornament: {
         Args: {
