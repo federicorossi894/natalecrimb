@@ -8,7 +8,7 @@ const req='00000000-0000-4000-8000-000000000001',client='00000000-0000-4000-8000
 beforeAll(async()=>{
   db=new PGlite({extensions:{pgcrypto}});
   await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;CREATE SCHEMA auth;CREATE SCHEMA extensions;CREATE TABLE auth.users(id uuid PRIMARY KEY);CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT null::uuid $$;CREATE EXTENSION pgcrypto WITH SCHEMA extensions;`);
-  for(const name of ['0000_migration','0005_minimum_donation_5_euro','0018_online_gift_idempotency'])await db.exec(await readFile(`drizzle/migrations/${name}.sql`,'utf8'));
+  for(const name of ['0000_migration','0002_add_volunteer_role','0003_cash_requests_and_volunteers','0004_cash_request_result','0005_minimum_donation_5_euro','0006_restore_cash_request_min_5','0008_campaign_demo_server_boundary','0018_online_gift_idempotency'])await db.exec(await readFile(`drizzle/migrations/${name}.sql`,'utf8'));
 },30000);
 afterAll(async()=>await db.close());
 const call=(r=req,c=client,amount=500)=>db.transaction(async tx=>{
