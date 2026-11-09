@@ -14,10 +14,8 @@ export const publicDemoRpc = createServerFn({ method: 'POST' })
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const { data: result, error } = await supabaseAdmin.rpc('campaign_demo_dispatch', { _name: data.name, _args: data.args });
     if (error) throw new Error('Operazione non completata. Controlla i dati e riprova.');
-    return ONLINE_GIFT && Array.isArray(result) ? result.map(row => {
-      if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
-      return {...row, firma: null, dedica: null};
-    }) : result;
+    // public_tree already publishes only approved, consented text in the database.
+    return result;
   });
 export const staffDemoRpc = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
