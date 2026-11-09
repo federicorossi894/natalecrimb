@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 const cred = z.object({ email: z.string().trim().email("Email non valida").max(255), password: z.string().min(8, "Almeno 8 caratteri").max(72) });
 
 /** Individual email/password sign-in for reserved areas; roles are assigned separately by an administrator. */
-export function AuthBox({ title, returnPath, roleName }: { title: string; returnPath: string; roleName: string }) {
+export function AuthBox({ title, returnPath, roleName, loginOnly = false }: { title: string; returnPath: string; roleName: string; loginOnly?: boolean }) {
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,9 +30,9 @@ export function AuthBox({ title, returnPath, roleName }: { title: string; return
       <input type="password" autoComplete={mode === "in" ? "current-password" : "new-password"} aria-label="Password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="glass w-full rounded-xl px-4 py-3 outline-none" />
       {msg && <p role="status" className="text-sm text-gold">{msg}</p>}
       <button disabled={busy} className="w-full rounded-full bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-60">{mode === "in" ? "Accedi" : "Registrati"}</button>
-      <button type="button" onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="w-full text-xs underline">
+      {!loginOnly && <button type="button" onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="w-full text-xs underline">
         {mode === "in" ? "Non hai un account? Registrati" : "Hai già un account? Accedi"}
-      </button>
+      </button>}
     </form>
   );
 }

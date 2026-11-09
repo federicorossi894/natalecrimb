@@ -118,9 +118,8 @@ export const testDemoEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({}).strict().parse(data))
   .handler(async ({ context }) => {
-    const allowed = await context.supabase.rpc("is_moderator");
-    if (allowed.error || !allowed.data)
-      throw new Error("Prova riservata al personale autorizzato.");
+    const { requireEmailQa } = await import('./email-qa-auth.server');
+    await requireEmailQa(context.supabase, context.userId);
     const { gmailQaIdentity } = await import("./demo-email-qa.server");
     const identity = CAMPAIGN.demo && (await gmailQaIdentity());
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -148,9 +147,8 @@ export const sendDemoEmail = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
-    const allowed = await context.supabase.rpc("is_moderator");
-    if (allowed.error || !allowed.data)
-      throw new Error("Prova riservata al personale autorizzato.");
+    const { requireEmailQa } = await import('./email-qa-auth.server');
+    await requireEmailQa(context.supabase, context.userId);
     const { DEMO_EMAIL_QA, gmailQaIdentity, runDemoEmailQa, sendGmailQa } =
       await import("./demo-email-qa.server");
     const identity = CAMPAIGN.demo && (await gmailQaIdentity());

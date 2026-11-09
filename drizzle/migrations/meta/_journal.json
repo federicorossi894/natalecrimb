@@ -134,6 +134,13 @@
       "when": 1794216830339,
       "tag": "0018_online_gift_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794217802504,
+      "tag": "0019_email_qa_verified_owner",
+      "breakpoints": true
     }
   ]
 }
