@@ -2,7 +2,9 @@
 export const GIFT_MAIL_SENDER = 'federico.rossi@crimonza.org';
 export const GIFT_MAIL_SITE = 'https://natalecrimb.lovable.app';
 export type GiftMailKind = 'receipt' | 'gift_now' | 'gift_christmas';
-export type GiftMailContent = { kind: GiftMailKind; to: string; projectTitle: string; amount: number; ornamentId: string; from: string; toName: string; msg: string };
+import { PROJECTS, type OrnamentKind } from './data';
+import { GIFT_IMPACT } from './gift-impact';
+export type GiftMailContent = { kind: GiftMailKind; to: string; projectTitle: string; projectKind?: OrnamentKind; amount: number; ornamentId: string; from: string; toName: string; msg: string };
 
 const b64 = (s: string) => btoa(Array.from(new TextEncoder().encode(s), b => String.fromCharCode(b)).join(''));
 const header = (v: string) => (/^[\x20-\x7E]*$/.test(v) ? v : `=?UTF-8?B?${b64(v)}?=`);
@@ -12,10 +14,12 @@ const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export function giftMailParts(c: GiftMailContent) {
   const from = oneLine(c.from), toName = oneLine(c.toName), msg = oneLine(c.msg);
   const euro = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(c.amount);
+  const kind = c.projectKind ?? PROJECTS.find(p => p.title === c.projectTitle)?.ornament;
+  const impact = kind ? GIFT_IMPACT[kind] : 'Il gesto sostiene le attività sanitarie e sociali di Croce Rossa Monza, per una città più vicina a chi ha bisogno.';
   if (c.kind === 'receipt') return {
     subject: `Grazie per la tua donazione · ${c.projectTitle}`,
     title: 'Grazie di cuore',
-    lines: [`Abbiamo ricevuto la tua donazione di ${euro} per il progetto «${c.projectTitle}».`, 'La tua pallina è appesa sull’albero digitale del Natale che fa bene.', 'Questa email è una conferma informativa e non costituisce ricevuta fiscale.'],
+    lines: [`Grazie per il tuo gesto di ${euro} per il progetto «${c.projectTitle}».`, impact, 'La tua pallina è appesa sull’albero digitale del Natale che fa bene.', 'Questa email è una conferma informativa e non costituisce ricevuta fiscale.'],
     cta: 'Guarda la tua pallina',
   };
   const opener = from ? `${from} ti ha fatto un regalo solidale` : 'Hai ricevuto un regalo solidale';
@@ -25,6 +29,7 @@ export function giftMailParts(c: GiftMailContent) {
     lines: [
       ...(c.kind === 'gift_christmas' ? [`${opener}.`] : []),
       `Al posto di un regalo qualunque, ha scelto di sostenere «${c.projectTitle}» della Croce Rossa di Monza, e ha appeso una pallina per te sull’albero digitale.`,
+      impact,
       ...(msg ? [`«${msg}»`] : []),
     ],
     cta: 'Apri la tua pallina',
