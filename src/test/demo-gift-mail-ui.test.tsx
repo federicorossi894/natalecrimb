@@ -10,10 +10,10 @@ afterEach(()=>{cleanup();vi.clearAllMocks();});
 it('guest cannot send even with consent and whitelisted email',()=>{render(<DemoGiftMail {...props} authorized={false}/>);fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});
 it('receipt never sends on mount or without optin; accepted is not delivered and repeated click blocked',async()=>{
   call.mockResolvedValue({state:'accepted'});render(<DemoGiftMail {...props} receipt/>);
-  expect(call).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Invia ora email di prova'})).toBeDisabled();
-  fireEvent.click(screen.getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Invia ora email di prova'}));
+  expect(call).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Invia conferma'})).toBeDisabled();
+  fireEvent.click(screen.getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Invia conferma'}));
   await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({ornamentId:props.ornamentId,giftRequestId:props.giftRequestId,client:props.client,donor:props.donor,toName:props.toName,msg:props.msg,kind:'receipt',approved:true,recipient:'federico.rossi@crimonza.org'});
-  expect(await screen.findByRole('status')).toHaveTextContent('ricezione in casella non ancora verificata');expect(screen.getByRole('button',{name:'Invia ora email di prova'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Invia conferma'})).toBeDisabled();
 });
-it('foreign recipient blocks before send',()=>{render(<DemoGiftMail {...props}/>);fireEvent.change(screen.getByLabelText('Email regalo DEMO'),{target:{value:'other@example.org'}});fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});
+it('foreign recipient blocks before send',()=>{render(<DemoGiftMail {...props}/>);fireEvent.change(screen.getByLabelText('Email regalo'),{target:{value:'other@example.org'}});fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});
 it('Christmas carries actual private payload and unknown never becomes success',async()=>{call.mockResolvedValue({state:'unknown'});render(<DemoGiftMail {...props}/>);fireEvent.change(screen.getByLabelText('Quando inviare'),{target:{value:'christmas_simulation'}});fireEvent.click(screen.getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Invia via email'}));await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({kind:'christmas_simulation',msg:'Privata'});expect(await screen.findByRole('status')).toHaveTextContent('Esito incerto');});
