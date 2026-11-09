@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, CheckCheck, Copy, Download, ExternalLink, Home, LocateFixed, MapPin, MessageCircle, Printer, Send, X } from "lucide-react";
@@ -35,6 +36,7 @@ export async function exportNode(node: HTMLElement | null, name: string) {
 
 /** Invitation shown at the end of every post-donation path. */
 export function PiazzaInvite() {
+  if (ONLINE_GIFT) return null;
   return (
     <div className="mt-6 flex items-start gap-3 rounded-2xl border hairline-gold p-4 text-left">
       <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
@@ -129,7 +131,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </figure>
       </div>
       <div className="mx-auto mt-6 max-w-lg space-y-2">
-        <button onClick={share} aria-describedby="wa-how" className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> Apri WhatsApp con il messaggio</button>
+        <button onClick={share} aria-describedby="wa-how" className="flex w-full items-center justify-center gap-2 rounded-full bg-fir py-4 font-semibold text-snow shadow-deep"><MessageCircle className="h-5 w-5" /> {ONLINE_GIFT ? "Regala su WhatsApp" : "Apri WhatsApp con il messaggio"}</button>
         <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Non invia nulla da solo: apre WhatsApp con il testo e il link già scritti, scegli tu a chi mandarlo. L'immagine della cartolina va scaricata e allegata a parte.</p>
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-50"><Download className="h-4 w-4" /> Scarica cartolina</button>

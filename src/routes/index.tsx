@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
@@ -17,9 +18,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Il Natale che fa bene – Croce Rossa Monza" },
-      { name: "description", content: `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
+      { name: "description", content: ONLINE_GIFT ? "Fai un regalo solidale a qualcuno che ami. Quattro progetti CRI Monza, una pallina digitale e una cartolina. DEMO senza pagamento reale." : `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
       { property: "og:title", content: "Il Natale che fa bene – Croce Rossa Monza" },
-      { property: "og:description", content: "Scegli un regalo concreto per le persone che vivono a Monza." },
+      { property: "og:description", content: "Quest’anno regala qualcosa che non si scarta. Un regalo solidale a qualcuno che ami." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
@@ -42,7 +43,7 @@ function GiftOpening({ onDone }: { onDone: () => void }) {
   }, [onDone]);
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/90 backdrop-blur-md">
-      <GiftBox project={PROJECTS[0]!} open={open} className="animate-rise w-56" />
+      <GiftBox project={PROJECTS[0] as (typeof PROJECTS)[number]} open={open} className="animate-rise w-56" />
     </div>
   );
 }
@@ -56,21 +57,21 @@ function Home() {
     <Shell>
       {opening && <GiftOpening onDone={toGifts} />}
       <section className="relative isolate -mt-px min-h-[74svh] overflow-hidden">
-        <img src={hero} alt="Piazza di Monza illuminata per Natale" width={1088} height={1440} className="absolute inset-0 -z-20 h-full w-full object-cover" />
+        <img src={hero} alt="Monza illuminata per Natale" width={1088} height={1440} className="absolute inset-0 -z-20 h-full w-full object-cover" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/40 via-background/30 to-background" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
         <Snow count={50} />
         <div className="mx-auto flex min-h-[74svh] max-w-6xl flex-col justify-end px-5 pb-20 pt-16 sm:justify-center">
-          <p className="animate-rise text-[11px] font-semibold uppercase tracking-[0.25em] text-gold">Croce Rossa Italiana – Comitato di Monza · Piazza San Paolo</p>
+          <p className="animate-rise text-[11px] font-semibold uppercase tracking-[0.25em] text-gold">Croce Rossa Italiana – Comitato di Monza{!ONLINE_GIFT && " · Piazza San Paolo"}</p>
           <h1 className="animate-rise mt-4 max-w-2xl font-display text-[2.9rem] leading-[0.98] sm:text-7xl" style={{ animationDelay: "0.1s" }}>
-            Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.
+            {ONLINE_GIFT ? <>Quest’anno regala qualcosa <em className="text-gold not-italic">che non si scarta.</em></> : <>Questo Natale, scegli cosa <em className="text-gold not-italic">regalare</em> a Monza.</>}
           </h1>
           <p className="animate-rise mt-5 max-w-md text-lg text-foreground/85" style={{ animationDelay: "0.2s" }}>
-            {CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi." : "Scopri i progetti di Croce Rossa Italiana — Comitato di Monza. Le donazioni online saranno disponibili dopo l’attivazione dei pagamenti."}
+            {ONLINE_GIFT ? "Fai un regalo solidale a qualcuno che ami. Scegli uno dei quattro progetti CRI, accendi una pallina sull’albero digitale, crea una cartolina e condividila. Da 5 € · in questa DEMO nessun pagamento reale." : CAMPAIGN.demo || CAMPAIGN.livePayments ? "Scegli una causa e dona a Croce Rossa Italiana — Comitato di Monza, anche con 5 €. Il tuo gesto diventa un addobbo sull’Albero di Monza: puoi dedicarlo a chi vuoi." : "Scopri i progetti di Croce Rossa Italiana — Comitato di Monza. Le donazioni online saranno disponibili dopo l’attivazione dei pagamenti."}
           </p>
           <div className="animate-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.3s" }}>
             <Button onClick={() => setOpening(true)} className="group h-auto rounded-full px-7 py-4 text-base shadow-deep transition hover:scale-[1.03]">
-              <Gift className="h-5 w-5" /> Scarta i regali
+              <Gift className="h-5 w-5" /> {ONLINE_GIFT ? "Regala a qualcuno" : "Scarta i regali"}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </Button>
             <Link to="/albero" className="glass rounded-full px-5 py-4 text-sm font-medium">L'Albero di Monza</Link>
@@ -79,7 +80,7 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Quattro regali, una città</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Quattro regali, un gesto solidale</p>
         <h2 className="mt-3 max-w-xl font-display text-3xl sm:text-5xl">Ogni regalo diventa un addobbo sull'Albero di Monza.</h2>
         <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:gap-x-10 lg:grid-cols-4">
           {PROJECTS.map((p) => (
@@ -93,7 +94,7 @@ function Home() {
         <ol className="mt-14 grid gap-3 sm:grid-cols-3">
           {[
             { n: "1", t: "Scegli un regalo", d: "Quattro progetti di Croce Rossa Monza." },
-            { n: "2", t: "Dona in pochi tocchi", d: CAMPAIGN.volunteerCashDonations ? "Bastano 5 €. Online o alla casetta." : CAMPAIGN.livePayments ? "Bastano 5 €. Online." : "Pagamenti online in attivazione." },
+            { n: "2", t: "Dona in pochi tocchi", d: ONLINE_GIFT ? "Da 5 €. Pagamento solo simulato." : CAMPAIGN.volunteerCashDonations ? "Bastano 5 €. Online o alla casetta." : CAMPAIGN.livePayments ? "Bastano 5 €. Online." : "Pagamenti online in attivazione." },
             { n: "3", t: "Accendi l'Albero di Monza", d: "Il tuo regalo diventa un addobbo. Puoi dedicarlo a chi vuoi." },
           ].map((s) => (
             <li key={s.n} className="glass flex items-start gap-4 rounded-2xl p-5">
@@ -104,7 +105,7 @@ function Home() {
         </ol>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4">
+      {!ONLINE_GIFT && <section className="mx-auto max-w-6xl px-4">
         <div className="glass grid gap-6 overflow-hidden rounded-[2rem] p-6 sm:grid-cols-2 sm:p-10">
           <div className="flex flex-col items-start gap-5 lg:flex-row">
             {/* Official poster appears here only once the original file is attached; nothing is drawn in its place. */}
@@ -130,7 +131,8 @@ function Home() {
         </div>
       </section>
 
-      {CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection />}
+      }
+      {!ONLINE_GIFT && CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection />}
     </Shell>
   );
 }

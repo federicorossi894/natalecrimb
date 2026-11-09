@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN, campaignRouteAllowed } from "@/lib/campaign";
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
@@ -23,7 +24,7 @@ export function DemoBanner() {
   if (!CAMPAIGN.demo) return null;
   return (
     <div className="bg-ink/80 px-4 py-1.5 text-center text-[10.5px] leading-snug text-paper/80 sm:text-xs">
-      <strong className="tracking-widest text-gold">PROTOTIPO DIMOSTRATIVO</strong> · Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita.
+      <strong className="tracking-widest text-gold">PROTOTIPO DIMOSTRATIVO</strong> · {ONLINE_GIFT ? "Pagamenti simulati: nessun incasso. Cartoline condivisibili; email reali solo nel test riservato a Federico." : "Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita."}
     </div>
   );
 }
@@ -70,7 +71,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
 
       <main>{children}</main>
 
-      {!hidePiazzaPill && (
+      {!ONLINE_GIFT && !hidePiazzaPill && (
       <Link to="/piazza" className="glass-strong fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs shadow-deep transition hover:scale-[1.02] sm:text-sm">
         <MapPin className="h-4 w-4 shrink-0 text-primary" />
         <span className="truncate"><strong>Casetta CRI · Piazza San Paolo</strong> <span className="text-gold">· Scopri cosa succede oggi</span></span>
@@ -81,9 +82,9 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 text-center">
           <CriLockup layout="vertical" className="h-32" />
           <p className="font-display text-xl">Il Natale <em className="text-gold">che fa bene</em></p>
-          <p className="text-sm text-muted-foreground">Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</p>
+          <p className="text-sm text-muted-foreground">{ONLINE_GIFT ? "Un regalo solidale, una pallina sull’albero digitale · Comitato di Monza" : <>Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</>}</p>
           <a href={CRI.site} target="_blank" rel="noreferrer" className="text-sm text-gold underline-offset-4 hover:underline">crimonza.org</a>
-          <Link to="/crediti-musica" className="text-sm text-gold underline-offset-4 hover:underline">Crediti musicali</Link>
+          {!ONLINE_GIFT && <Link to="/crediti-musica" className="text-sm text-gold underline-offset-4 hover:underline">Crediti musicali</Link>}
           <ul className="mt-1 flex items-center gap-1">
             {CRI.social.map((s) => {
               const I = SOCIAL_ICON[s.name as keyof typeof SOCIAL_ICON];
@@ -97,7 +98,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
             })}
           </ul>
         </div>
-        {CAMPAIGN.demo && <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale.</p>}
+        {CAMPAIGN.demo && <p className="mx-auto mt-10 max-w-3xl text-center text-[11px] text-muted-foreground">{ONLINE_GIFT ? "DEMO · Nessun pagamento reale. Messaggi privati nelle cartoline, non nell’albero pubblico." : "Prototipo dimostrativo · Contenuti e dediche di esempio. Nessun pagamento, invio o prenotazione reale."}</p>}
       </footer>
     </div>
   );
