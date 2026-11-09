@@ -1,4 +1,5 @@
 # Online gift DEMO — 9 November 2026
+- [ ] Restore autonomous calendar/academy and informational casetta in ONLINE_GIFT; test mobile/menu/routes, preserve FULL/email and publish after checks.
 - [x] Normal final-screen receipt optin and personalized gift/Christmas email use real fixed-recipient Gmail mechanism, completed-simulation proof and stable claims; FULL/LIVE unchanged.
 - [ ] Personalized real Gmail acceptance/Inbox check — requires owner CRI login, unavailable browser mint approval.
 - [x] QA_OWNER limited to exact server-verified confirmed CRI account; database claim mirrors it, no role grants.
