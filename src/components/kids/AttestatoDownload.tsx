@@ -5,12 +5,13 @@ import { deliverLocalFile } from '@/lib/local-file-download';
 
 /** Prepare the PNG before the click so iOS retains user activation for Save to Files. */
 export function AttestatoDownload({ target, code, revision }: { target: RefObject<HTMLElement | null>; code: string; revision: string }) {
-  const [file, setFile] = useState<File | null>(null);
+  const [prepared, setPrepared] = useState<{file: File; revision: string} | null>(null);
+  const file = prepared?.revision === revision ? prepared.file : null;
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let cancelled = false;
-    setFile(null); setError(false);
+    setPrepared(null); setError(false);
     const prepare = async () => {
       try {
         const node = target.current;
@@ -26,7 +27,7 @@ export function AttestatoDownload({ target, code, revision }: { target: RefObjec
         await toBlob(node, options);
         const blob = await toBlob(node, options);
         if (!blob) throw new Error('PNG unavailable');
-        if (!cancelled) setFile(new File([blob], `attestato-cri-monza-${code}.png`, { type: 'image/png' }));
+        if (!cancelled) setPrepared({file: new File([blob], `attestato-cri-monza-${code}.png`, { type: 'image/png' }), revision});
       } catch { if (!cancelled) setError(true); }
     };
     void prepare();
