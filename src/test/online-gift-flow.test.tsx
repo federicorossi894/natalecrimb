@@ -8,6 +8,7 @@ vi.mock('@/lib/tree-store',()=>({clientId:()=> '00000000-0000-4000-8000-00000000
 vi.mock('@/components/xmas/TreeExperience',()=>({TreeExperience:()=>null}));
 vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg}:{selfThanks:boolean;msg:string})=><div data-testid="card">{selfThanks?'thanks':'gift'}:{msg}</div>}));
 vi.mock('@/components/xmas/GiftEmailAccess',()=>({GiftEmailAccess:()=>null}));
+vi.mock('@/components/xmas/DemoGiftMail',()=>({DemoGiftMail:()=>null}));
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { PROJECTS } from '@/lib/data';
 import { clearGiftSession, sessionOrnaments } from '@/lib/online-gift-session';
