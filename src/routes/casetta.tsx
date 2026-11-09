@@ -1,4 +1,6 @@
 import { CAMPAIGN } from "@/lib/campaign";
+import { ONLINE_GIFT } from "@/lib/site-experience";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, CalendarDays, Candy, Coffee, Gift, Heart, Lightbulb, LightbulbOff, MapPin, PenLine, Sparkles, Store, Users, CakeSlice } from "lucide-react";
@@ -12,9 +14,9 @@ export const Route = createFileRoute("/casetta")({
   head: () => ({
     meta: [
       { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },
-      { name: "description", content: "Panettone, pandoro e cioccolatini alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
+      { name: "description", content: ONLINE_GIFT ? "La vetrina natalizia di CRI Monza: panettoni, pandoro e cioccolatini solidali. Disponibilità e modalità da confermare, nessun acquisto online." : "Panettone, pandoro e cioccolatini alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
       { property: "og:title", content: "La casetta di Natale · Sapori e regali solidali" },
-      { property: "og:description", content: "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
+      { property: "og:description", content: ONLINE_GIFT ? "Sapori e regali solidali nella vetrina di Natale di CRI Monza. Disponibilità e modalità in aggiornamento." : "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -98,6 +100,7 @@ function StallItem({ p, i }: { p: (typeof CASETTA_PRODUCTS)[number]; i: number }
 const STALL_LIGHTS = Array.from({ length: 14 }, (_, i) => `${(i % 5) * 0.8}s`);
 
 function Casetta() {
+  if (ONLINE_GIFT) return <OnlineCasetta />;
   return (
     <Shell>
       <section className="relative isolate overflow-hidden">
@@ -203,6 +206,37 @@ function Casetta() {
             </p>
           </div>
           <VisitCta />
+        </div>
+      </section>
+    </Shell>
+  );
+}
+
+/** Informational ONLINE_GIFT window; the original FULL page above stays intact. */
+function OnlineCasetta() {
+  return (
+    <Shell>
+      <section className="relative isolate overflow-hidden">
+        <Snow count={28} className="opacity-70" />
+        <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:pt-16">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sapori e regali solidali</p>
+          <h1 className="mt-3 font-display text-4xl leading-tight sm:text-6xl">La casetta di Natale</h1>
+          <p className="mt-5 max-w-2xl text-lg text-foreground/85">Il Natale ha un sapore ancora più buono quando lo condividi. Una vetrina di dolci e pensieri solidali di Croce Rossa Italiana – Comitato di Monza.</p>
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground"><strong>In aggiornamento.</strong> Disponibilità e modalità da confermare. Questa pagina è soltanto una vetrina: non si acquista e non si prenota online.</p>
+        </div>
+      </section>
+      <section className="mx-auto max-w-6xl px-4" aria-labelledby="online-stall-title">
+        <h2 id="online-stall-title" className="font-display text-3xl sm:text-4xl">I dolci delle feste</h2>
+        <div className="stall mt-6">
+          <span className="stall-awning" aria-hidden />
+          <div className="stall-lights" aria-hidden>{STALL_LIGHTS.map((d, i) => <span key={i} style={{ ["--d" as string]: d }} />)}</div>
+          <ul className="stall-shelf" data-testid="casetta-products">{CASETTA_PRODUCTS.map((p, i) => <StallItem key={p.id} p={p} i={i} />)}</ul>
+          <p className="mt-7 text-center text-sm text-snow/90">Prezzi indicati dal Comitato · disponibilità da confermare</p>
+        </div>
+        <div className="mt-10 border-t border-border pt-8">
+          <h2 className="font-display text-2xl">Regala un gesto solidale</h2>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">Scegli uno dei quattro progetti CRI Monza e dedica una pallina sull’albero digitale. In questa DEMO il pagamento è soltanto simulato.</p>
+          <Button asChild className="mt-5 rounded-full"><Link to="/regali"><Gift className="h-4 w-4" /> Regala a qualcuno <ArrowRight className="h-4 w-4" /></Link></Button>
         </div>
       </section>
     </Shell>

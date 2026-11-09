@@ -1,8 +1,8 @@
-import { ONLINE_GIFT } from "@/lib/site-experience";
+import { ONLINE_GIFT, ONLINE_OPTIONS } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Gift } from "lucide-react";
+import { ArrowRight, CalendarDays, Gift, Award, Store } from "lucide-react";
 import hero from "@/assets/hero-piazza.jpg";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
@@ -104,6 +104,29 @@ function Home() {
           ))}
         </ol>
       </section>
+
+      {ONLINE_GIFT && <section className="mx-auto max-w-6xl px-4 py-6" aria-label="Il Natale da condividere">
+        <div className="grid gap-8 sm:grid-cols-3">
+          {ONLINE_OPTIONS.calendar && <div>
+            <CalendarDays className="h-6 w-6 text-gold" aria-hidden />
+            <h2 className="mt-3 font-display text-2xl">Calendario della Gentilezza</h2>
+            <p className="mt-2 text-sm text-muted-foreground">24 finestrelle digitali, un piccolo gesto al giorno dal 1° al 24 dicembre. A casa, a scuola, con chi ami.</p>
+            <Link to="/calendario" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Apri il calendario <ArrowRight className="h-4 w-4" /></Link>
+          </div>}
+          {ONLINE_OPTIONS.children && <div>
+            <Award className="h-6 w-6 text-gold" aria-hidden />
+            <h2 className="mt-3 font-display text-2xl">Accademia dei Piccoli Volontari</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Tre missioni per imparare ad aiutare e un diploma digitale. Per bambini dai 6 ai 12 anni.</p>
+            <Link to="/piccoli-volontari" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Scopri le missioni <ArrowRight className="h-4 w-4" /></Link>
+          </div>}
+          <div>
+            <Store className="h-6 w-6 text-gold" aria-hidden />
+            <h2 className="mt-3 font-display text-2xl">La casetta di Natale</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Sapori e pensieri solidali nella nostra vetrina natalizia. Disponibilità e modalità da confermare.</p>
+            <Link to="/casetta" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Guarda la vetrina <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </div>
+      </section>}
 
       {!ONLINE_GIFT && <section className="mx-auto max-w-6xl px-4">
         <div className="glass grid gap-6 overflow-hidden rounded-[2rem] p-6 sm:grid-cols-2 sm:p-10">

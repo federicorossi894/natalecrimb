@@ -1,4 +1,5 @@
 import { CAMPAIGN } from "@/lib/campaign";
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Hand, MapPin } from "lucide-react";
 import { CriMark } from "@/components/xmas/Ornament";
@@ -39,7 +40,7 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
           <Seal className="h-20 w-20 shrink-0" />
           <div className="text-right"><p className="opacity-70">Codice diploma</p><p className="font-mono text-lg font-bold tracking-widest" data-testid="diploma-code">{d.code}</p></div>
         </div>
-        {claimed && (
+        {!ONLINE_GIFT && claimed && (
           <div className="kid-stamp pointer-events-none absolute right-4 top-24 rounded-xl border-4 border-primary px-3 py-1 text-primary sm:right-8" data-testid="claimed-stamp">
             <p className="font-display text-lg font-bold uppercase leading-none">Sorpresa consegnata</p>
             <p className="text-center text-xs font-semibold">{d.claimedAt ? fmt(d.claimedAt) : ""}</p>
@@ -47,7 +48,9 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
         )}
       </article>
 
-      {claimed ? (
+      {ONLINE_GIFT ? (
+        <p className="mt-5 text-center text-sm text-muted-foreground">Hai imparato ad aiutare con attenzione e gentilezza. Il tuo diploma digitale resta qui: puoi continuare con le altre missioni!</p>
+      ) : claimed ? (
         <div className="mt-5 flex gap-3 rounded-3xl border hairline-gold bg-card p-5">
           <CheckCircle2 className="h-7 w-7 shrink-0 text-gold" />
           <p className="text-lg leading-relaxed">Hai già ritirato la tua sorpresa: grazie, piccolo aiutante! Puoi continuare a giocare tutte le missioni che vuoi.</p>
@@ -63,7 +66,7 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
       ) : (
         <p className="mt-5 text-center text-sm text-muted-foreground">Il tuo diploma resta disponibile. Il biscotto è in attesa di approvazione del Comitato.</p>
       )}
-      {!claimed && CAMPAIGN.courtesyBiscuit && <VolunteerCheck onConfirm={() => { if (CAMPAIGN.courtesyBiscuit) update((s) => claimSurprise(s, new Date())); }} />}
+      {!ONLINE_GIFT && !claimed && CAMPAIGN.courtesyBiscuit && <VolunteerCheck onConfirm={() => { if (CAMPAIGN.courtesyBiscuit) update((s) => claimSurprise(s, new Date())); }} />}
       <p className="mt-4 text-center text-[11px] text-muted-foreground">Nessuna registrazione e nessun dato del bambino: il diploma resta solo su questo dispositivo.</p>
     </section>
   );

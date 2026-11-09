@@ -4,7 +4,8 @@ import { ACTIVE_CAMPAIGN_MODE, campaignCapabilities, assertCampaignPayment } fro
 import { onlineGiftInput } from '@/lib/online-gift.functions';
 describe('Independent experience and campaign axes',()=>{
   it('defaults to online DEMO without LIVE',()=>{expect(SITE_EXPERIENCE).toBe('ONLINE_GIFT');expect(ACTIVE_CAMPAIGN_MODE).toBe('DEMO');expect(campaignCapabilities('DEMO').livePayments).toBe(false);expect(()=>assertCampaignPayment('paypal','live')).toThrow();});
-  it.each(['/piazza','/casetta','/albero-live','/tv-preview','/volontari','/auguri','/augurio/abc','/moderazione','/babbo-natale','/piccoli-volontari','/giochi'])('blocks %s online and preserves FULL',path=>{expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(false);expect(experienceRouteAllowed(path,'FULL')).toBe(true);});
+  it.each(['/piazza','/albero-live','/tv-preview','/volontari','/auguri','/augurio/abc','/moderazione','/babbo-natale'])('blocks %s online and preserves FULL',path=>{expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(false);expect(experienceRouteAllowed(path,'FULL')).toBe(true);});
+  it.each(['/calendario','/piccoli-volontari','/giochi','/casetta'])('restores %s online and preserves FULL',path=>{expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(true);expect(experienceRouteAllowed(path,'FULL')).toBe(true);});
   it.each(['/','/regali','/regali/prossimita','/albero','/email-qa'])('keeps %s available',path=>expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(true));
   it('rejects legacy server operations online',()=>{expect(()=>assertFullExperience('ONLINE_GIFT')).toThrow();expect(()=>assertFullExperience('FULL')).not.toThrow();});
   it('redacts even approved or pending text',()=>{expect(projectOnly({id:'1',firma:'private',dedica:'pending',kind:'calore'})).toEqual({id:'1',firma:undefined,dedica:undefined,kind:'calore'});});
