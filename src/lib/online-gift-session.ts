@@ -9,6 +9,7 @@ export const giftSessionSchema = z.object({
   gift: z.boolean(), to: text(40), from: text(40), msg: text(90),
   dedica: text(90), firma: text(40), consent: z.boolean(), provider: z.enum(['sumup', 'paypal']),
   thankYou: z.string().max(500).optional(),
+  sharingComplete: z.boolean().optional(),
 });
 export type GiftSession = z.infer<typeof giftSessionSchema>;
 export type SessionOrnament = TreeOrnament & { sessionOnly?: boolean };

@@ -21,6 +21,7 @@ export function giftMailParts(c: GiftMailContent) {
     title: 'Grazie di cuore',
     lines: [`Grazie per il tuo gesto di ${euro} per il progetto «${c.projectTitle}».`, impact, 'La tua pallina è appesa sull’albero digitale del Natale che fa bene.', 'Questa email è una conferma informativa e non costituisce ricevuta fiscale.'],
     cta: 'Guarda la tua pallina',
+    invitation: null,
   };
   const opener = from ? `${from} ti ha fatto un regalo solidale` : 'Hai ricevuto un regalo solidale';
   return {
@@ -33,12 +34,14 @@ export function giftMailParts(c: GiftMailContent) {
       ...(msg ? [`«${msg}»`] : []),
     ],
     cta: 'Apri la tua pallina',
+    invitation: { title: 'Metti in circolo la solidarietà', text: 'Questo gesto sostiene Croce Rossa Monza e la nostra città. Se ti va, continua la catena: dedica anche tu un regalo solidale a qualcuno a cui vuoi bene.', label: 'Fai un regalo a qualcuno', url: `${GIFT_MAIL_SITE}/regali` },
   };
 }
 
 export function giftMailRaw(c: GiftMailContent, messageRef: string) {
   const p = giftMailParts(c);
   const link = `${GIFT_MAIL_SITE}/albero?addobbo=${encodeURIComponent(c.ornamentId)}`;
+  const invitation = p.invitation ? `<div style="border-top:1px solid #dce3df;margin-top:28px;padding-top:20px"><h3 style="font-family:Georgia,serif">${esc(p.invitation.title)}</h3><p style="line-height:1.6">${esc(p.invitation.text)}</p><p><a href="${esc(p.invitation.url)}" style="color:#c8102e">${esc(p.invitation.label)}</a></p></div>` : '';
   const html = `<!doctype html><html lang="it"><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif;color:#1d2a24"><div style="max-width:600px;margin:auto"><div style="background:#183b2c;color:#fffdf8;padding:30px"><p style="margin:0 0 8px">Croce Rossa Italiana · Comitato di Monza</p><h1 style="font-family:Georgia,serif;margin:0">Il Natale che fa bene</h1></div><div style="padding:30px"><h2 style="font-family:Georgia,serif">${esc(p.title)}</h2>${p.lines.map(l => `<p style="line-height:1.6;font-size:16px">${esc(l)}</p>`).join('')}<p style="margin:28px 0"><a href="${esc(link)}" style="display:inline-block;padding:16px 22px;background:#c8102e;color:#ffffff;text-decoration:none;border-radius:6px">${esc(p.cta)}</a></p><p style="font-size:12px;color:#5c6b63">Croce Rossa Italiana – Comitato di Monza · ${esc(GIFT_MAIL_SITE.replace('https://', ''))}</p></div></div></body></html>`;
   return b64([
     `From: ${header('CRI Monza · Il Natale che fa bene')} <${GIFT_MAIL_SENDER}>`,

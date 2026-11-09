@@ -9,7 +9,6 @@ import { createOnlineGift } from '@/lib/online-gift.functions';
 import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
 import { GiftMailForm } from './GiftMailForm';
-import { GIFT_IMPACT } from '@/lib/gift-impact';
 import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
 export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
@@ -23,12 +22,20 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
   const [ready,setReady]=useState(false);
   const [channel,setChannel]=useState<'whatsapp'|'email'|null>(null);
   const [thankYou,setThankYou]=useState('');
+  const [sharingComplete,setSharingComplete]=useState(false);
+  const thanksRef=useRef<HTMLDivElement>(null);
   const donorThanks = thankYou || `Grazie di cuore per il tuo gesto per Monza. ${project.tagline}`;
   useEffect(()=>{
     const saved=loadGiftSession(project.id);
-    if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setId(saved.id);setThankYou(saved.thankYou ?? '');setStage(saved.id?'done':'payment');}
+    if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setId(saved.id);setThankYou(saved.thankYou ?? '');setSharingComplete(saved.sharingComplete ?? false);setStage(saved.id?'done':'payment');}
     setReady(true);
   },[project.id,amount]);
+  useEffect(()=>{if(sharingComplete)thanksRef.current?.scrollIntoView?.({block:'center',behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});},[sharingComplete]);
+  const finishSharing=()=>{
+    setSharingComplete(true);
+    const saved=loadGiftSession(project.id);
+    if(saved?.id===id)saveGiftSession({...saved,sharingComplete:true});
+  };
   const [giftClient,setGiftClient]=useState<string|null>(null);
   const complete=async()=>{
     if(inFlight.current || id)return;
@@ -46,7 +53,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       setId(row.id);setStage('done');
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setThankYou('');setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setThankYou('');setSharingComplete(false);setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
@@ -77,8 +84,6 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
     </div>}
     {stage==='done' && id && <>
       <h1 className="font-display text-3xl">La tua pallina è sull’albero digitale.</h1>
-      <p className="mt-3 max-w-2xl font-display text-xl">{donorThanks}</p>
-      <p className="mt-3 max-w-2xl text-muted-foreground">{GIFT_IMPACT[project.ornament]}</p>
       {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
       <details className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">Vedi la tua pallina sull’albero</summary><TreeExperience focusId={id}/></details>
       {gift && <div className="mx-auto my-6 max-w-lg">
@@ -87,9 +92,9 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
           {([['whatsapp','WhatsApp'],['email','Email']] as const).map(([v,l])=><Button key={v} role="radio" aria-checked={channel===v} variant={channel===v?'default':'outline'} onClick={()=>setChannel(v)}>{l}</Button>)}
         </div>
       </div>}
-      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift} thankYou={!gift?donorThanks:undefined}/>}
-      {gift && channel==='email' && request.current && giftClient && <div className="mx-auto max-w-lg"><GiftMailForm project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from={from || (consent?firma:"")} toName={to} msg={msg || (consent?dedica:"")}/></div>}
-      {gift && <div className="my-8 border-t pt-6"><h2 className="mb-4 font-display text-2xl">La cartolina di ringraziamento per te</h2><PostcardStudio project={project} to="" from="" msg="" ornamentId={id} selfThanks thankYou={donorThanks}/></div>}
+      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift} thankYou={!gift?donorThanks:undefined} onShared={gift?finishSharing:undefined}/>}
+      {gift && channel==='email' && request.current && giftClient && <div className="mx-auto max-w-lg"><GiftMailForm project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from={from || (consent?firma:"")} toName={to} msg={msg || (consent?dedica:"")} onAccepted={finishSharing}/></div>}
+      {(!gift || sharingComplete) && <div ref={thanksRef} role="status" className="mx-auto my-8 max-w-2xl border-y border-gold bg-secondary px-5 py-6" data-testid="donor-thanks"><h2 className="font-display text-2xl">Grazie di cuore per il tuo dono</h2><p className="mt-3 font-display text-xl">{donorThanks}</p></div>}
       {request.current && giftClient && <div className="mx-auto mt-8 max-w-lg border-t pt-6">
         <h2 className="mb-3 font-display text-xl">Vuoi la conferma della donazione via email?</h2>
         <GiftMailForm receipt project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from="" toName="" msg=""/>
