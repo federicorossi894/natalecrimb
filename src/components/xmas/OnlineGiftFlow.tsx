@@ -39,7 +39,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       saveGiftSession(value);
       const row=await create({data:{requestId:request.current,client,kind:project.ornament,amount,provider,...parsed.data}});
       const completed={...value,id:row.id};
-      saveGiftSession(completed);rememberSessionOrnament(completed);
+      saveGiftSession(completed);rememberSessionOrnament(completed);window.dispatchEvent(new Event('cri-demo-tree'));
       setId(row.id);setStage('done');
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
