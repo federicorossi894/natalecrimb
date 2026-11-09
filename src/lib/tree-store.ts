@@ -3,7 +3,7 @@ import { CAMPAIGN } from "./campaign";
 import { livePublicTree } from './payments.functions';
 import { publicTvTree } from './tv-tree.functions';
 import { campaignRpc } from "@/lib/campaign-rpc";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useResilientPoll } from './resilient-poll';
 import { z } from "zod";
 import { TREE_ORNAMENTS, MOCK_TOTAL_GIFTS, type OrnamentKind, type TreeOrnament } from "./data";

@@ -166,11 +166,12 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.fillStyle = paper; ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(70, top, W - 140, H - top - 70, 26); else ctx.rect(70, top, W - 140, H - top - 70);
   ctx.fill();
-  ctx.fillStyle = inkDark; ctx.font = "italic 400 32px Fraunces, Georgia, serif";
-  const lines = wrap(ctx, `“${msg.trim() || p.postcardLine}”`, 820, 3);
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 52 + i * 38, 820));
+  ctx.fillStyle = inkDark; ctx.font = `italic 400 ${selfThanks ? 28 : 32}px Fraunces, Georgia, serif`;
+  const lines = wrap(ctx, `“${msg.trim() || p.postcardLine}”`, 820, selfThanks ? 5 : 3);
+  const lineHeight = selfThanks ? 32 : 38;
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 52 + i * lineHeight, 820));
   ctx.fillStyle = red; ctx.font = "700 32px Manrope, system-ui, sans-serif";
-  ctx.fillText(`— ${from.trim() || "Un amico"}`, W / 2, top + 72 + lines.length * 38, 820);
+  ctx.fillText(`— ${selfThanks ? 'Croce Rossa Monza' : from.trim() || "Un amico"}`, W / 2, top + 72 + lines.length * lineHeight, 820);
   // footer row: official mark (unaltered) + invite
   const fy = H - 70 - 104;
   ctx.strokeStyle = inkDark; ctx.globalAlpha = 0.12; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(110, fy - 10); ctx.lineTo(W - 110, fy - 10); ctx.stroke(); ctx.globalAlpha = 1;

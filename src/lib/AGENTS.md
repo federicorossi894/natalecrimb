@@ -13,4 +13,6 @@
 - SITE_EXPERIENCE is an independent build-time UX axis; ONLINE_GIFT blocks legacy routes and server operations, while FULL restores preserved flows without changing campaign/payment readiness.
 - Online gift requests use service-only row/advisory-lock idempotency; only the consented public dedica/firma is stored (published immediately, profanity filter rejects, staff can revoke); private recipient/message never reach ornaments.
 - The current attempt lives in validated session storage; explicit restart rotates the request while retries preserve it, preventing accidental duplicates.
+- Visitor trees render the shared server-approved projection only, without session overlays, so revocation and consent are authoritative across devices.
+- Donor thank-you generation uses the server-only AI Gateway SDK with approved project facts/amount only; a service-only durable one-shot claim bounds spend and stores output, with a factual fallback on failure and no inference replay.
 - Online gift mail (gift-mail.functions.ts) sends to any validated recipient from the connected Gmail sender after proving the ornament by request/client; service-only claim_online_gift_mail allows one email per bauble/purpose plus global/per-recipient caps, and visitor text rejects links/addresses so the sender cannot become a spam relay.

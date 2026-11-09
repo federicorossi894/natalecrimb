@@ -95,26 +95,27 @@ export function WhatsAppMock({ contact, imageUrl, text, refEl }: { contact: stri
 }
 
 /** Postcard image + WhatsApp preview with share/export actions. */
-export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean }) {
+export function PostcardStudio({ project, to, from, msg, ornamentId, demo = false, status, selfThanks = false, thankYou }: { project: Project; to: string; from: string; msg: string; ornamentId?: string | null; demo?: boolean; status?: ReactNode; selfThanks?: boolean; thankYou?: string | undefined }) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [renderError, setRenderError] = useState(false);
   const [retry, setRetry] = useState(0);
   const chat = useRef<HTMLDivElement>(null);
-  const text = useMemo(() => postcardText(project, to, from, msg, ornamentId, selfThanks), [project, to, from, msg, ornamentId, selfThanks]);
+  const cardMessage = selfThanks && thankYou ? thankYou : msg;
+  const text = useMemo(() => postcardText(project, to, from, cardMessage, ornamentId, selfThanks), [project, to, from, cardMessage, ornamentId, selfThanks]);
   useEffect(() => {
     let on = true, made: string | null = null;
     setFile(null); setUrl(null); setRenderError(false);
     const timer = setTimeout(() => { if(on) { on=false; setRenderError(true); } }, 15000);
-    renderPostcardImage(project, to, from, msg, ornamentId, selfThanks).then((f) => {
+    renderPostcardImage(project, to, from, cardMessage, ornamentId, selfThanks).then((f) => {
       if (!on) return;
       if (!f) throw new Error('PNG unavailable');
       clearTimeout(timer);
       made = URL.createObjectURL(f); setFile(f); setUrl(made);
     }).catch(() => { clearTimeout(timer); if(on) setRenderError(true); });
     return () => { on = false; clearTimeout(timer); if (made) URL.revokeObjectURL(made); };
-  }, [project, to, from, msg, ornamentId, selfThanks, retry]);
+  }, [project, to, from, cardMessage, ornamentId, selfThanks, retry]);
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: CAMPAIGN.demo && !ONLINE_GIFT ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); return; }
