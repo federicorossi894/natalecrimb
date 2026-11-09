@@ -9,6 +9,7 @@ import { createOnlineGift } from '@/lib/online-gift.functions';
 import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
 import { DemoGiftMail } from './DemoGiftMail';
+import { GiftEmailAccess } from './GiftEmailAccess';
 import { clearGiftSession, loadGiftSession, onlineDedication, rememberSessionOrnament, saveGiftSession } from '@/lib/online-gift-session';
 export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
@@ -77,10 +78,10 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       <p className="mt-3 text-muted-foreground">Simulazione completata: nessun pagamento reale. La tua dedica consensuale resta solo in questa sessione del browser; il link su altri dispositivi mostra la pallina senza il testo.</p>
       <TreeExperience/>
       <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift}/>
-      {request.current && giftClient && <>
-        <DemoGiftMail receipt ornamentId={id} giftRequestId={request.current} client={giftClient} donor={from} toName={to} msg={msg}/>
-        <DemoGiftMail ornamentId={id} giftRequestId={request.current} client={giftClient} donor={from} toName={to} msg={msg || (consent?dedica:"")}/>
-      </>}
+      {request.current && giftClient && <GiftEmailAccess>{authorized=><>
+        <DemoGiftMail authorized={authorized} receipt ornamentId={id} giftRequestId={request.current || ''} client={giftClient} donor={from} toName={to} msg={msg}/>
+        <DemoGiftMail authorized={authorized} ornamentId={id} giftRequestId={request.current || ''} client={giftClient} donor={from} toName={to} msg={msg || (consent?dedica:"")}/>
+      </>}</GiftEmailAccess>}
       <div className="mx-auto mt-8 max-w-lg space-y-4">
         <Button variant="outline" onClick={restart}>Nuovo regalo o donazione</Button>
         <Button variant="outline" asChild><Link to="/albero" search={{addobbo:id}}>Apri il link alla tua pallina</Link></Button>
