@@ -337,6 +337,42 @@ export type Database = {
           },
         ]
       }
+      online_gift_mails: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          id: string
+          kind: string
+          message_id: string | null
+          ornament_id: string
+          purpose: string
+          recipient_hash: string
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          kind: string
+          message_id?: string | null
+          ornament_id: string
+          purpose: string
+          recipient_hash: string
+          state?: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          message_id?: string | null
+          ornament_id?: string
+          purpose?: string
+          recipient_hash?: string
+          state?: string
+        }
+        Relationships: []
+      }
       staff_qa_attempts: {
         Row: {
           actor_id: string
@@ -658,6 +694,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_online_gift_mail: {
+        Args: { _kind: string; _ornament: string; _recipient_hash: string }
+        Returns: {
+          id: string
+          reason: string
+        }[]
+      }
       claim_staff_gmail_qa: {
         Args: { p_actor: string; p_kind: string; p_request: string }
         Returns: string
@@ -716,18 +759,34 @@ export type Database = {
         }
         Returns: undefined
       }
-      hang_online_gift: {
-        Args: {
-          _amount: number
-          _client: string
-          _kind: string
-          _request: string
-        }
-        Returns: {
-          id: string
-          status: string
-        }[]
-      }
+      hang_online_gift:
+        | {
+            Args: {
+              _amount: number
+              _client: string
+              _kind: string
+              _request: string
+            }
+            Returns: {
+              id: string
+              status: string
+            }[]
+          }
+        | {
+            Args: {
+              _amount: number
+              _client: string
+              _consent: boolean
+              _dedica: string
+              _firma: string
+              _kind: string
+              _request: string
+            }
+            Returns: {
+              id: string
+              status: string
+            }[]
+          }
       hang_ornament: {
         Args: {
           _amount_cents: number
