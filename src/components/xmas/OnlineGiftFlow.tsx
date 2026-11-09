@@ -76,7 +76,8 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
     {stage==='done' && id && <>
       <h1 className="font-display text-3xl">La tua pallina DEMO è sull’albero digitale.</h1>
       <p className="mt-3 text-muted-foreground">Simulazione completata: nessun pagamento reale. La tua dedica consensuale resta solo in questa sessione del browser; il link su altri dispositivi mostra la pallina senza il testo.</p>
-      <TreeExperience/>
+      {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
+      <details className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">Vedi la tua pallina sull’albero</summary><TreeExperience/></details>
       <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift}/>
       {request.current && giftClient && <GiftEmailAccess>{authorized=><>
         <DemoGiftMail authorized={authorized} receipt ornamentId={id} giftRequestId={request.current || ''} client={giftClient} donor={from} toName={to} msg={msg}/>
