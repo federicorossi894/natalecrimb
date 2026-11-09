@@ -1,4 +1,5 @@
-/** Fixed server-only Gmail QA; never accepts message content or addresses. */
+import type { DemoGiftMailPayload } from './demo-gift-mail-policy';
+/** Fixed server-only Gmail QA; optional validated online-gift content, never arbitrary addresses. */
 export const DEMO_EMAIL_QA = {
   confirmedRecipients: ["federico.rossi@crimonza.org"] as readonly string[],
   sender: "federico.rossi@crimonza.org",
@@ -38,7 +39,7 @@ export async function runDemoEmailQa(p: QaPorts) {
 }
 const b64 = (s: string) =>
   btoa(Array.from(new TextEncoder().encode(s), (b) => String.fromCharCode(b)).join(""));
-export function qaRawMessage(kind: QaKind, attempt: string) {
+export function qaRawMessage(kind: QaKind, attempt: string, gift?: DemoGiftMailPayload) {
   const labels = {
     receipt: "Conferma informativa donazione DEMO",
     gift_now: "Ti hanno fatto un regalo · DEMO",
@@ -46,7 +47,7 @@ export function qaRawMessage(kind: QaKind, attempt: string) {
   };
   const common =
     "[DEMO — NESSUN PAGAMENTO]\r\nCroce Rossa Italiana – Comitato di Monza\r\nIl Natale che fa bene\r\n\r\n";
-  const content =
+  const content = gift ? (kind==='receipt' ? `Conferma informativa: simulazione completata di ${gift.amount.toFixed(2)} € per ${gift.projectTitle}. Nessun incasso. SIMULAZIONE, NON VALIDA COME RICEVUTA. Nessun beneficio fiscale attestato.` : `${kind==='christmas_simulation' ? "SIMULAZIONE ORARIO · simulazione dell'invio programmato: inviata SUBITO, in produzione sarebbe programmato per il 25/12. Nessuna email programmata. " : 'Ti hanno fatto un regalo! '}${gift.toName ? `Per ${gift.toName}. ` : ''}${gift.donor ? `Da ${gift.donor}. ` : ''}${gift.projectTitle}. ${gift.msg} DEMO: nessun pagamento reale.`) :
     kind === "receipt"
       ? "Conferma informativa di una donazione SIMULATA di 5,00 € per il progetto Calore. Metodo: pagamento online SIMULATO. Nessun incasso, nessuna transazione. SIMULAZIONE, NON VALIDA COME RICEVUTA. Nessun beneficio fiscale è attestato."
       : kind === "gift_now"
@@ -57,7 +58,8 @@ export function qaRawMessage(kind: QaKind, attempt: string) {
     content +
     `\r\n\r\nData prova: ${new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Rome" }).format(new Date())}\r\nRiferimento prova: ${attempt}\r\nAlbero digitale: https://natalecrimb.lovable.app/albero\r\nProva tecnica riservata, nessuna iscrizione a comunicazioni promozionali.`;
   const escape = (s: string) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] ?? c));
-  const html = `<!doctype html><html lang="it"><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto"><div style="background:#183b2c;color:#fffdf8;padding:30px"><p>Croce Rossa Italiana · Comitato di Monza</p><h1 style="font-family:Georgia,serif">Il Natale che fa bene</h1><p style="color:#e8c37a">[DEMO — NESSUN PAGAMENTO]</p></div><div style="padding:30px"><h2>${escape(labels[kind])}</h2><p style="line-height:1.6">${escape(content)}</p><p>Regala calore · un gesto di gentilezza, un regalo digitale.</p><a href="https://natalecrimb.lovable.app/albero" style="display:inline-block;padding:16px;background:#c8102e;color:#ffffff;text-decoration:none">Apri l’albero digitale</a><p style="font-size:12px">${escape(body)}</p></div></div></body></html>`;
+  const link=gift ? `https://natalecrimb.lovable.app/albero?addobbo=${encodeURIComponent(gift.ornamentId)}` : 'https://natalecrimb.lovable.app/albero';
+  const html = `<!doctype html><html lang="it"><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto"><div style="background:#183b2c;color:#fffdf8;padding:30px"><p>Croce Rossa Italiana · Comitato di Monza</p><h1 style="font-family:Georgia,serif">Il Natale che fa bene</h1><p style="color:#e8c37a">[DEMO — NESSUN PAGAMENTO]</p></div><div style="padding:30px"><h2>${escape(labels[kind])}</h2><p style="line-height:1.6">${escape(content)}</p><p>${escape(gift?.projectTitle ?? 'Regala calore')} · un gesto di gentilezza, un regalo digitale.</p><a href="${escape(link)}" style="display:inline-block;padding:16px;background:#c8102e;color:#ffffff;text-decoration:none">Apri la pallina digitale</a><p style="font-size:12px">${escape(body)}</p></div></div></body></html>`;
   return b64(
     [
       `From: ${DEMO_EMAIL_QA.sender}`,
@@ -89,7 +91,7 @@ export async function gmailQaIdentity() {
   }
   return (await response.json()).emailAddress === DEMO_EMAIL_QA.sender;
 }
-export async function sendGmailQa(kind: QaKind, attempt: string): Promise<QaResult> {
+export async function sendGmailQa(kind: QaKind, attempt: string, gift?: DemoGiftMailPayload): Promise<QaResult> {
   const key = process.env["GOOGLE_MAIL_API_KEY"];
   const auth = process.env["LOVABLE_API_KEY"];
   if (!key || !auth) return { state: "failed" };
@@ -102,7 +104,7 @@ export async function sendGmailQa(kind: QaKind, attempt: string): Promise<QaResu
         "X-Connection-Api-Key": key,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ raw: qaRawMessage(kind, attempt) }),
+      body: JSON.stringify({ raw: qaRawMessage(kind, attempt, gift) }),
     },
   );
   if (!response.ok) {
