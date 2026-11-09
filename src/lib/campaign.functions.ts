@@ -1,4 +1,4 @@
-import { ONLINE_GIFT, assertFullExperience, projectOnly } from './site-experience';
+import { ONLINE_GIFT, assertFullExperience } from './site-experience';
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { assertCampaignRpc, assertDemoData } from './campaign';
@@ -14,7 +14,10 @@ export const publicDemoRpc = createServerFn({ method: 'POST' })
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const { data: result, error } = await supabaseAdmin.rpc('campaign_demo_dispatch', { _name: data.name, _args: data.args });
     if (error) throw new Error('Operazione non completata. Controlla i dati e riprova.');
-    return ONLINE_GIFT && Array.isArray(result) ? result.map(projectOnly) : result;
+    return ONLINE_GIFT && Array.isArray(result) ? result.map(row => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+      return {...row, firma: null, dedica: null};
+    }) : result;
   });
 export const staffDemoRpc = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
