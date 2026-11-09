@@ -170,7 +170,7 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
             {error ? "Scegli un importo valido" : ONLINE_GIFT ? `Regala a qualcuno · ${amount} €` : `Dona ${amount} €`}
           </button>
           <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. {CAMPAIGN.demo || CAMPAIGN.livePayments || CAMPAIGN.volunteerCashDonations ? <>Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</> : "Le donazioni online non sono ancora disponibili."}</p>
-          {CAMPAIGN.demo && <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>}
+          {CAMPAIGN.demo && !ONLINE_GIFT && <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>}
         </section>
 
         <div className="space-y-3">
@@ -188,7 +188,7 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
           <More title="Come aiuta il tuo regalo"><p>{p.helps}</p></More>
           <More title="Le donazioni possono avere benefici fiscali">
             <p>Le agevolazioni dipendono dai requisiti previsti dalla normativa e dalle modalità di pagamento. Conserva la ricevuta e verifica la tua situazione con un consulente fiscale.</p>
-            {CAMPAIGN.demo && <p className="mt-2">Le transazioni DEMO non sono erogazioni liberali e non producono ricevute fiscali.</p>}
+            {CAMPAIGN.demo && !ONLINE_GIFT && <p className="mt-2">Le transazioni DEMO non sono erogazioni liberali e non producono ricevute fiscali.</p>}
           </More>
           <More title="Donazione o acquisto?">
             <p>Il tuo è un regalo a Croce Rossa Italiana – Comitato di Monza: sostiene il progetto nel suo insieme. L'addobbo sull'albero è il simbolo del tuo gesto, non un oggetto comprato.</p>
