@@ -83,11 +83,11 @@ function Detail() {
 
   return (
     <Shell hidePiazzaPill>
-      <div className="mx-auto max-w-6xl px-4 pt-6">
+      {!(ONLINE_GIFT && step === 'checkout') && <div className="mx-auto max-w-6xl px-4 pt-6">
         <button onClick={back} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro
         </button>
-      </div>
+      </div>}
       {step === "detail" && <DetailView p={p} preset={preset} setPreset={(v) => { setPreset(v); setCustom(""); }} custom={custom} setCustom={setCustom} amount={amount} error={amountError} onGo={toCheckout} />}
       {ONLINE_GIFT && step === 'checkout' && parsed.success && <OnlineGiftFlow project={p} amount={amount} onBack={()=>go('detail')}/>}
       {!ONLINE_GIFT && step === "checkout" && (parsed.success
