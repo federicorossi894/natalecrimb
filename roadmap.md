@@ -1,3 +1,9 @@
+# Online gift DEMO — 9 November 2026
+- [ ] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
+- [ ] Online gift/cartolina flow and public privacy, mobile/desktop QA.
+- [ ] Separate protected email QA, verify exact auth blocker and Gmail evidence.
+- [ ] Full tests, documentation and safe DEMO publish verification.
+
 # CRI Monza demo — roadmap
 ## TV audio prompt only — 8 November 20:08 UTC
 - [x] Prompt completely removed after activation; engine/effects/catalogue unchanged, remote-only mute, public credits retained.

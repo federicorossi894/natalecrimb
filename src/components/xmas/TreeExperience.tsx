@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from '@/lib/site-experience';
 import { CAMPAIGN } from "@/lib/campaign";
 import { useEffect, useRef, useState } from 'react';
 import { LocateFixed, RotateCcw, ChevronLeft, ChevronRight, X, Gift } from 'lucide-react';
@@ -43,8 +44,8 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
       <div role="dialog" aria-modal="true" aria-label="Dedica del regalo" className="tree-tag dedication-panel animate-rise w-full max-w-md" onClick={e=>e.stopPropagation()}>
       <Button variant="outline" size="icon" autoFocus className="dedication-close absolute right-3 top-3 h-11 w-11 border-ink/30 bg-paper text-ink hover:bg-gold hover:text-ink" aria-label="Chiudi dedica" onClick={close}><X className="h-6 w-6" /></Button>
       <div className="flex items-center gap-3 pr-12"><OrnamentIcon kind={selected.kind} className="w-10 shrink-0" /><p className="text-xs font-semibold uppercase text-primary">Un regalo per Monza {CAMPAIGN.demo && "· DEMO"}</p></div>
-      <p className="mt-4 font-display text-2xl leading-snug">{selected.dedica?`“${selected.dedica}”`:'Un gesto di vicinanza, un regalo per la città.'}</p>
-      <p className="mt-3 text-sm font-semibold">— {selected.firma??'Anonimo'}</p>
+      <p className="mt-4 font-display text-2xl leading-snug">{ONLINE_GIFT ? 'Una pallina digitale per un regalo solidale.' : selected.dedica?`“${selected.dedica}”`:'Un gesto di vicinanza, un regalo per la città.'}</p>
+      {!ONLINE_GIFT && <p className="mt-3 text-sm font-semibold">— {selected.firma??'Anonimo'}</p>}
       {!selected.dedica&&<p className="mt-3 text-xs">Nessuna dedica pubblica.</p>}
       </div>
     </div>}
@@ -53,7 +54,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
       <h2 className="font-display text-2xl">{CAMPAIGN.demo ? "I regali di questa demo" : "I regali per Monza"}</h2>
       {!ornaments.length&&<p className="mt-3 text-muted-foreground">Il primo regalo accenderà l’albero.</p>}
       <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{ornaments.map((o,i)=><Button key={o.id} variant={selected?.id===o.id?'secondary':'outline'} className="h-auto min-h-16 justify-start whitespace-normal py-2 text-left" aria-label={`Seleziona addobbo ${i+1}`} onClick={()=>pick(o)}><OrnamentIcon kind={o.kind} className="h-9 w-8 shrink-0" /><span className="min-w-0 text-xs">{o.firma??`Regalo ${i+1}`}<span className="mt-1 block text-muted-foreground">{o.dedica?'Dedica pubblica':CAMPAIGN.demo?'DEMO':'Addobbo'}</span></span></Button>)}</div>
-      {mine.length>0&&<div className="mt-8 border-t pt-5"><h3 className="font-display text-xl">I tuoi addobbi</h3>{mine.map(o=><p key={o.id} className="mt-2 text-sm text-muted-foreground"><Gift className="mr-2 inline h-4 w-4 text-gold" />{o.dedica?`“${o.dedica}”`:'Senza dedica'} · {o.status==='approved'?'approvato':o.status==='pending'?'in moderazione':'testo non pubblicato'}</p>)}</div>}
+      {!ONLINE_GIFT&&mine.length>0&&<div className="mt-8 border-t pt-5"><h3 className="font-display text-xl">I tuoi addobbi</h3>{mine.map(o=><p key={o.id} className="mt-2 text-sm text-muted-foreground"><Gift className="mr-2 inline h-4 w-4 text-gold" />{o.dedica?`“${o.dedica}”`:'Senza dedica'} · {o.status==='approved'?'approvato':o.status==='pending'?'in moderazione':'testo non pubblicato'}</p>)}</div>}
     </div>
   </>;
 }

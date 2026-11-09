@@ -1,3 +1,4 @@
+import { assertFullExperience } from './site-experience';
 import { createServerFn } from '@tanstack/react-start';
 import { deleteCookie, getCookie, getRequest, getRequestHeader, setCookie } from '@tanstack/react-start/server';
 import { z } from 'zod';
@@ -11,6 +12,7 @@ export const SHARED_VOLUNTEER_RPC = ['cash_request_lookup', 'confirm_cash_reques
 const GENERIC = 'Nome o password non corretti.';
 const cookieOpts = { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', maxAge: VOLUNTEER_SESSION_HOURS * 3600 };
 async function reviewSession() {
+  assertFullExperience();
   if (!CAMPAIGN.demo) throw new Error('Revisione volontari disponibile solo in DEMO.');
   if (!reviewOriginAllowed(getRequestHeader('origin') ?? null, getRequest().url)) throw new Error('Origine non autorizzata.');
   const h = await currentTokenHash();
@@ -31,9 +33,11 @@ export const volunteerReviewDecide = createServerFn({ method:'POST' }).inputVali
 });
 
 async function admin() {
+  assertFullExperience();
   return (await import('@/integrations/supabase/client.server')).supabaseAdmin;
 }
 async function currentTokenHash(): Promise<string | null> {
+  assertFullExperience();
   const t = getCookie(VOLUNTEER_COOKIE);
   return t && /^[A-Za-z0-9_-]{40,64}$/.test(t) ? sha256Hex(t) : null;
 }
@@ -41,6 +45,7 @@ async function currentTokenHash(): Promise<string | null> {
 export const volunteerLogin = createServerFn({ method: 'POST' })
   .inputValidator((d) => z.object({ name: z.string().max(120), password: z.string().max(200) }).parse(d))
   .handler(async ({ data }) => {
+    assertFullExperience();
     const name = normalizeVolunteerName(data.name);
     if (!name) return { ok: false as const, error: 'Scrivi nome e cognome (almeno due parole).' };
     const db = await admin();

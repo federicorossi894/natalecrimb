@@ -48,7 +48,7 @@ export function qaRawMessage(kind: QaKind, attempt: string) {
     "[DEMO — NESSUN PAGAMENTO]\r\nCroce Rossa Italiana – Comitato di Monza\r\nIl Natale che fa bene\r\n\r\n";
   const content =
     kind === "receipt"
-      ? "Conferma informativa di una donazione SIMULATA di 5,00 € per il progetto Calore. Metodo: contanti DEMO. Nessun incasso, nessuna transazione. SIMULAZIONE, NON VALIDA COME RICEVUTA. Nessun beneficio fiscale è attestato."
+      ? "Conferma informativa di una donazione SIMULATA di 5,00 € per il progetto Calore. Metodo: pagamento online SIMULATO. Nessun incasso, nessuna transazione. SIMULAZIONE, NON VALIDA COME RICEVUTA. Nessun beneficio fiscale è attestato."
       : kind === "gift_now"
         ? "Un gesto di gentilezza illumina il Natale di Monza. Questo augurio è una prova del regalo email immediato: nessuna donazione o pagamento è avvenuto."
         : "SIMULAZIONE ORARIO: questa prova viene inviata SUBITO. Simula l'augurio previsto per il 25 dicembre alle 00:05 Europe/Rome; non è stata programmata alcuna email per Natale. Buon Natale dal Comitato di Monza!";

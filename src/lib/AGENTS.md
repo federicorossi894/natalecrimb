@@ -9,3 +9,6 @@
 - Campaign initialization rejects a mode-only LIVE switch until dedicated sender and both email paths are verified; the absent send adapter stays disabled until domain setup and managed scaffolding.
 - Manual DEMO QA uses a dynamically imported server-only Gmail adapter, fixed identity/recipient and templates, authenticated moderator checks and service-only durable audit claims; it is independent of official LIVE readiness and never schedules or auto-retries.
 - Volunteer desk uses a shared-password server session (name + common password, PBKDF2 verifier only in volunteer-secret.server.ts, HttpOnly cookie, DB-resolved display name) and service-only campaign_volunteer_dispatch limited to lookup/confirm/manual ornament plus create_wish_token (no-input createSharedWishToken for the casetta purchase QR, gated by CAMPAIGN.volunteerPurchaseWishQR), so ~100 volunteers need no accounts.
+
+- SITE_EXPERIENCE is an independent build-time UX axis; ONLINE_GIFT blocks legacy routes and server operations, while FULL restores preserved flows without changing campaign/payment readiness.
+- Online DEMO gift requests use service-only row/advisory-lock idempotency and store no private message, recipient or signature on ornaments.
