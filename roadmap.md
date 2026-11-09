@@ -1,8 +1,10 @@
 # Online gift DEMO — 9 November 2026
-- [ ] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
-- [ ] Online gift/cartolina flow and public privacy, mobile/desktop QA.
-- [ ] Separate protected email QA, verify exact auth blocker and Gmail evidence.
-- [ ] Full tests, documentation and safe DEMO publish verification.
+- [x] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
+- [x] Online gift/cartolina flow and privacy, isolated mobile/desktop four-project QA.
+- [x] Protected email QA; authentic owner session denied staff access, Gmail matching messages zero.
+- [ ] Three real QA emails and private-cartolina binding — requires approved moderator/admin authorization; no sends attempted.
+- [x] 392 tests/37 files, documentation and automatic build OK.
+- [ ] Safe DEMO publication completion and public release verification.
 
 # CRI Monza demo — roadmap
 ## TV audio prompt only — 8 November 20:08 UTC
