@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Link } from '@tanstack/react-router';
-import { Gift, Mail, ArrowLeft } from 'lucide-react';
+import { Gift, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Project } from '@/lib/data';
 import { clientId } from '@/lib/tree-store';
@@ -39,7 +39,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
           <label className="block">Destinatario (facoltativo)<input aria-label="Destinatario" maxLength={40} value={to} onChange={e=>setTo(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
           <label className="block">Mittente (facoltativo)<input aria-label="Mittente" maxLength={40} value={from} onChange={e=>setFrom(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
           <label className="block">Messaggio privato (facoltativo)<textarea aria-label="Messaggio privato" maxLength={90} rows={3} value={msg} onChange={e=>setMsg(e.target.value)} placeholder={project.postcardLine} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
-          <p className="text-sm text-muted-foreground">Nomi e messaggio restano in questa cartolina sul tuo dispositivo. L’albero pubblico mostra solo il progetto.</p>
+          <p className="text-sm text-muted-foreground">Nomi e messaggio restano nella cartolina sul dispositivo; se autorizzi una prova email, vengono inclusi solo nel messaggio a Federico. L’albero pubblico mostra solo il progetto.</p>
         </div>}
         <Button className="mt-6 h-auto w-full py-4" onClick={()=>setStage('payment')}>Continua</Button>
       </>:<>

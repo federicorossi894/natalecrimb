@@ -1,4 +1,6 @@
 # Online gift DEMO — 9 November 2026
+- [x] Normal final-screen receipt optin and personalized gift/Christmas email use real fixed-recipient Gmail mechanism, completed-simulation proof and stable claims; FULL/LIVE unchanged.
+- [ ] Personalized real Gmail acceptance/Inbox check — requires owner CRI login, unavailable browser mint approval.
 - [x] QA_OWNER limited to exact server-verified confirmed CRI account; database claim mirrors it, no role grants.
 - [ ] Real QA send/Inbox verification — CRI account browser session needs owner login; specific-account mint approval unavailable.
 - [x] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
