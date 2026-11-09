@@ -1,5 +1,8 @@
 # ONLINE_GIFT DEMO — 9 November 2026
 
+## 14:20 visibility correction
+The gift donor postcard was inside a closed disclosure and the explanation was only in outgoing email HTML. Donor thanks and concrete project impact now appear directly below completion; the donor postcard is expanded and the same project explanation/message appears before the email controls. Recovered old attempts without AI output get a factual immediate thank-you, without new inference or sending. ONLINE_GIFT find-my-ornament controls removed from tree/postcard; direct ID links and FULL retained. Final embedded tree receives the actual ornament ID. 450 regressions pass; automatic build OK; Chromium390/1280 recovered-gift rendering, email selection, loaded PNG and tree control removal verified with no overflow/runtime errors. No mail was sent.
+
 ## 14:08 request — current behavior (supersedes historical limitations below)
 Consented approved dedications now reach the public DEMO tree through the existing database projection: removed the blanket ONLINE_GIFT redaction in publicDemoRpc and the visitor's stale local overlay. Pending/unconsented/rejected text remains protected by database rules. Verified the same new ornament and dedication in a fresh independent browser with no session data.
 
