@@ -27,4 +27,16 @@ describe('online gift email',()=>{
     const r=giftMailParts({...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'P',amount:20});
     expect(r.lines.join(' ')).toMatch(/20,00/);expect(r.lines.join(' ')).toMatch(/non costituisce ricevuta fiscale/);
   });
+  it.each(['gift_now','gift_christmas'] as const)('recipient %s links to a new gift while retaining its own bauble link',kind=>{
+    const content={...giftMailInput.parse({...base,kind}),projectTitle:'Regala calore',amount:5};
+    expect(giftMailParts(content).invitation?.url).toBe('https://natalecrimb.lovable.app/regali');
+    const {html}=decode(giftMailRaw(content,'ref'));
+    expect(html).toContain('href="https://natalecrimb.lovable.app/regali"');
+    expect(html).toContain(`href="https://natalecrimb.lovable.app/albero?addobbo=${base.ornamentId}"`);
+  });
+  it('donor confirmation does not include a recipient re-gifting action',()=>{
+    const content={...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'Regala calore',amount:5};
+    expect(giftMailParts(content).invitation).toBeNull();
+    expect(decode(giftMailRaw(content,'ref')).html).not.toContain('href="https://natalecrimb.lovable.app/regali"');
+  });
 });
