@@ -4,14 +4,31 @@ import { useState } from 'react';
 import { DiplomaView } from '@/components/kids/Diploma';
 import { ACADEMY_KEY, EMPTY_ACADEMY, completeMission, parseAcademy } from '@/lib/kids-academy';
 import { CAMPAIGN, campaignCapabilities } from '@/lib/campaign';
+import * as experience from '@/lib/site-experience';
+
+vi.mock('@/lib/site-experience', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/lib/site-experience')>();
+  return { ...actual, ONLINE_GIFT: false };
+});
 
 vi.mock('@/lib/campaign', async importOriginal => {
   const actual = await importOriginal<typeof import('@/lib/campaign')>();
   return { ...actual, CAMPAIGN: { ...actual.CAMPAIGN } };
 });
 
-afterEach(() => { cleanup(); localStorage.clear(); Object.assign(CAMPAIGN, campaignCapabilities('DEMO')); });
+afterEach(() => { cleanup(); localStorage.clear(); Object.assign(CAMPAIGN, campaignCapabilities('DEMO')); vi.mocked(experience).ONLINE_GIFT = false; });
 describe('Local biscuit acknowledgement', () => {
+  it.each([null, '2026-12-02T10:00:00Z'])('ONLINE_GIFT cannot redeem or replay physical rewards (%s)', claimedAt => {
+    vi.mocked(experience).ONLINE_GIFT = true;
+    const state = completeMission(EMPTY_ACADEMY, 'citta', new Date('2026-12-01T10:00:00Z'), new Uint8Array([1, 2, 3, 4, 5, 6]));
+    if (state.diploma) state.diploma.claimedAt = claimedAt;
+    const update = vi.fn();
+    render(<DiplomaView state={state} update={update} onExit={() => undefined} />);
+    expect(screen.queryByTestId('volunteer-check')).toBeNull();
+    expect(screen.queryByTestId('claimed-stamp')).toBeNull();
+    expect(update).not.toHaveBeenCalled();
+    expect(state.diploma?.claimedAt).toBe(claimedAt);
+  });
   it('one tap persists redemption, retains diploma and prevents a second redemption on reload', () => {
     const original = completeMission(EMPTY_ACADEMY, 'citta', new Date('2026-12-01T10:00:00Z'), new Uint8Array([1, 2, 3, 4, 5, 6]));
     function VisitorPhone() {

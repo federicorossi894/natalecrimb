@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { useState } from "react";
 import { ArrowRight, Award, CheckCircle2, Clock, Lock, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
@@ -21,9 +22,9 @@ export const Route = createFileRoute("/piccoli-volontari")({
   head: () => ({
     meta: [
       { title: "Accademia dei piccoli aiutanti di Babbo Natale – CRI Monza" },
-      { name: "description", content: "Tre missioni illustrate per bambini dai 6 ai 12 anni: accorgersi di chi ha bisogno, preparare lo zaino per la neve e allenare il ritmo del cuore. Poi il diploma da mostrare alla casetta." },
+      { name: "description", content: ONLINE_GIFT ? "Accademia dei Piccoli Volontari: tre missioni digitali per bambini dai 6 ai 12 anni, per imparare ad aiutare e ottenere un diploma sul proprio dispositivo." : "Tre missioni illustrate per bambini dai 6 ai 12 anni: accorgersi di chi ha bisogno, preparare lo zaino per la neve e allenare il ritmo del cuore. Poi il diploma da mostrare alla casetta." },
       { property: "og:title", content: "Accademia dei piccoli aiutanti di Babbo Natale" },
-      { property: "og:description", content: "Tre missioni per imparare ad aiutare, e un diploma da mostrare ai volontari in Piazza San Paolo." },
+      { property: "og:description", content: ONLINE_GIFT ? "Tre missioni autonome di gentilezza e sicurezza, con un diploma digitale per i piccoli aiutanti." : "Tre missioni per imparare ad aiutare, e un diploma da mostrare ai volontari in Piazza San Paolo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -74,7 +75,7 @@ function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["stat
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gold">Area bambini · 6–12 anni</p>
             <h1 className="mt-2 font-display text-4xl leading-[1.05] text-glow sm:text-6xl">Accademia dei piccoli aiutanti<br /><em className="text-gold">di Babbo Natale</em></h1>
-            <p className="mt-3 max-w-xl text-lg">Tre missioni per imparare ad aiutare. Completane almeno una e ricevi il diploma da mostrare alla casetta di Croce Rossa!</p>
+            <p className="mt-3 max-w-xl text-lg">{ONLINE_GIFT ? "Tre missioni digitali per imparare ad aiutare, dove vuoi. Completane almeno una e ricevi il tuo diploma digitale!" : "Tre missioni per imparare ad aiutare. Completane almeno una e ricevi il diploma da mostrare alla casetta di Croce Rossa!"}</p>
           </div>
         </div>
       </section>
@@ -124,7 +125,7 @@ function Hub({ state, update, go }: { state: ReturnType<typeof useAcademy>["stat
           <div className="flex -space-x-4">{MISSIONS.map((m) => <Medal key={m.id} mission={m.id} earned={state.done.includes(m.id)} className="h-20 w-20" />)}</div>
           <div className="flex-1">
             <h2 className="font-display text-2xl">Diploma di Piccolo Aiutante</h2>
-            <p className={`mt-1 ${unlocked ? "" : "text-muted-foreground"}`}>{unlocked ? "Il tuo diploma è pronto! Mostralo ai volontari della casetta in Piazza San Paolo." : "Completa almeno una missione per sbloccarlo."}</p>
+            <p className={`mt-1 ${unlocked ? "" : "text-muted-foreground"}`}>{unlocked ? ONLINE_GIFT ? "Il tuo diploma digitale è pronto! Resta disponibile su questo dispositivo." : "Il tuo diploma è pronto! Mostralo ai volontari della casetta in Piazza San Paolo." : "Completa almeno una missione per sbloccarlo."}</p>
           </div>
           {unlocked
             ? <button type="button" onClick={() => go("diploma")} className="inline-flex min-h-14 items-center gap-2 rounded-full bg-primary px-6 font-semibold text-primary-foreground"><Award className="h-5 w-5" /> Apri il diploma</button>
