@@ -116,13 +116,13 @@ function Home() {
           {ONLINE_OPTIONS.children && <div>
             <Award className="h-6 w-6 text-gold" aria-hidden />
             <h2 className="mt-3 font-display text-2xl">Accademia dei Piccoli Volontari</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Tre missioni per imparare ad aiutare e un diploma digitale. Per bambini dai 6 ai 12 anni.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Tre missioni per imparare ad aiutare e un attestato scaricabile. Per bambini dai 6 ai 12 anni.</p>
             <Link to="/piccoli-volontari" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Scopri le missioni <ArrowRight className="h-4 w-4" /></Link>
           </div>}
           <div>
             <Store className="h-6 w-6 text-gold" aria-hidden />
             <h2 className="mt-3 font-display text-2xl">La casetta di Natale</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Sapori e pensieri solidali nella nostra vetrina natalizia. Disponibilità e modalità da confermare.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Sapori e regali solidali in Piazza San Paolo, Monza. Dal {CASETTA.from} al {CASETTA.until}, vendita alla casetta.</p>
             <Link to="/casetta" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Guarda la vetrina <ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
