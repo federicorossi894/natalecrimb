@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -145,15 +146,15 @@ function Calendario() {
           {[
             { t: "Una al giorno", d: "Dal 1 al 24 dicembre. Le finestrelle dei giorni passati restano aperte, quelle future si aprono solo quando arriva il loro giorno." },
             { t: "Gesti semplici e sicuri", d: "Piccole attenzioni per chi ci sta intorno. Se qualcuno è in difficoltà e la situazione sembra seria, la cosa giusta è chiamare il 112." },
-            { t: "Anche in piazza", d: "Ogni giorno a mezzogiorno la finestrella del giorno si apre anche sullo schermo della casetta in Piazza San Paolo." },
+            ...(ONLINE_GIFT ? [{ t: "Dove sei tu", d: "Un piccolo gesto gentile da fare a casa, a scuola o con chi ami." }] : [{ t: "Anche in piazza", d: "Ogni giorno a mezzogiorno la finestrella del giorno si apre anche sullo schermo della casetta in Piazza San Paolo." }]),
           ].map((x) => (
             <div key={x.t} className="glass rounded-3xl p-5"><p className="font-display text-xl">{x.t}</p><p className="mt-2 text-sm text-muted-foreground">{x.d}</p></div>
           ))}
         </div>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        {!ONLINE_GIFT && <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link to="/auguri" className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Guarda il Muro degli auguri</Link>
           <Link to="/casetta" className="glass rounded-full px-5 py-3 text-sm font-semibold">Vieni alla casetta</Link>
-        </div>
+        </div>}
       </section>
 
       <Modal open={!!show} onClose={() => setShow(null)} panelClassName="advent-note">

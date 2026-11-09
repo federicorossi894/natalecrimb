@@ -6,7 +6,7 @@ describe('Campaign modes and fail-closed actions', () => {
   it('keeps DEMO active', () => expect(ACTIVE_CAMPAIGN_MODE).toBe('DEMO'));
   it('preserves all demonstration routes and payment simulators', () => {
     const c = campaignCapabilities('DEMO');
-    for (const path of ['/tv-preview', '/presentazione', '/volontari', '/auguri', '/augurio/demo']) expect(campaignRouteAllowed(path, c)).toBe(true);
+    for (const path of ['/tv-preview', '/presentazione', '/volontari', '/auguri', '/augurio/demo']) expect(campaignRouteAllowed(path, c, 'FULL')).toBe(true);
     expect(campaignPaymentMethods(c)).toEqual(['sumup', 'paypal', 'cash']);
   });
   it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s never enables unready live actions', mode => {
@@ -25,7 +25,7 @@ describe('Campaign modes and fail-closed actions', () => {
     expect(c.livePayments).toBe(false); // Global readiness alone does not verify any provider.
     expect(c.volunteerCashDonations).toBe(false);
     expect(c.publicWishWall).toBe(false);
-    expect(campaignRouteAllowed('/augurio/a-code', c)).toBe(false);
+    expect(campaignRouteAllowed('/augurio/a-code', c, 'FULL')).toBe(false);
   });
   it('ADVANCED_1 adds only cash donation capability', () => {
     const c = campaignCapabilities('ADVANCED_1', { payments: true, cash: true, purchaseWishQR: true, liveData: true });
@@ -43,7 +43,7 @@ describe('Campaign modes and fail-closed actions', () => {
   });
   it.each(CAMPAIGN_MODES)('%s keeps independent content and protects staff RPCs', mode => {
     const c = campaignCapabilities(mode);
-    for (const path of ['/calendario', '/casetta', '/piccoli-volontari', '/albero', '/regali/calore']) expect(campaignRouteAllowed(path, c)).toBe(true);
+    for (const path of ['/calendario', '/casetta', '/piccoli-volontari', '/albero', '/regali/calore']) expect(campaignRouteAllowed(path, c, 'FULL')).toBe(true);
     expect(() => assertCampaignRpc('confirm_cash_request', 'public', c)).toThrow();
     expect(() => assertCampaignRpc('create_wish_token', 'public', c)).toThrow();
     expect(() => assertCampaignRpc('moderate_wish', 'volunteer', c)).toThrow();
@@ -51,8 +51,8 @@ describe('Campaign modes and fail-closed actions', () => {
   it('LIVE deep links cannot invoke demonstration previews', () => {
     for (const mode of ['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const) {
       const c = campaignCapabilities(mode);
-      expect(campaignRouteAllowed('/tv-preview/', c)).toBe(false);
-      expect(campaignRouteAllowed('/presentazione', c)).toBe(false);
+      expect(campaignRouteAllowed('/tv-preview/', c, 'FULL')).toBe(false);
+      expect(campaignRouteAllowed('/presentazione', c, 'FULL')).toBe(false);
     }
   });
   it.each(CAMPAIGN_MODES)('%s retains the complete autonomous experience', mode => {
@@ -62,16 +62,16 @@ describe('Campaign modes and fail-closed actions', () => {
   it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s hides unapproved home visits without removing academy', mode => {
     const c = campaignCapabilities(mode);
     expect(c.santaHomeVisitsVisible).toBe(false);
-    expect(campaignRouteAllowed('/babbo-natale', c)).toBe(false);
-    expect(campaignRouteAllowed('/babbo-natale/prenota', c)).toBe(false);
-    expect(campaignRouteAllowed('/piccoli-volontari', c)).toBe(true);
+    expect(campaignRouteAllowed('/babbo-natale', c, 'FULL')).toBe(false);
+    expect(campaignRouteAllowed('/babbo-natale/prenota', c, 'FULL')).toBe(false);
+    expect(campaignRouteAllowed('/piccoli-volontari', c, 'FULL')).toBe(true);
     expect(() => assertCampaignAction('santaBooking', c)).toThrow();
     expect(c.courtesyBiscuit).toBe(false);
   });
   it('keeps optional services off until approval while DEMO remains visible', () => {
     expect(CAMPAIGN_OPTIONS).toEqual({ santaHomeVisitsEnabled: false, courtesyBiscuitAvailable: false });
     expect(campaignCapabilities('DEMO').courtesyBiscuit).toBe(true);
-    expect(campaignRouteAllowed('/babbo-natale', campaignCapabilities('DEMO'))).toBe(true);
+    expect(campaignRouteAllowed('/babbo-natale', campaignCapabilities('DEMO'), 'FULL')).toBe(true);
   });
   it('Santa approval is independent of tier and not booking readiness', () => {
     for (const mode of ['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const) {

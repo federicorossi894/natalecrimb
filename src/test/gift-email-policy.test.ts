@@ -3,7 +3,7 @@ import { campaignCapabilities } from '@/lib/campaign';
 import { assertGiftEmailService, christmasDeliveryIso, giftEmailIdempotencyKey, GIFT_EMAIL_POLICY } from '@/lib/gift-email-policy';
 
 describe('Real email readiness contract', () => {
-  it('uses the intended sender, not a fictitious operational mailbox', () => expect(GIFT_EMAIL_POLICY.intendedSender).toBe('natale@crimonza.org'));
+  it('uses the owner-selected sender without asserting operational readiness', () => expect(GIFT_EMAIL_POLICY.intendedSender).toBe('federico.rossi@crimonza.org'));
   it('Christmas delivery is December 25 at 00:05 Europe/Rome', () => {
     expect(christmasDeliveryIso(2026)).toBe('2026-12-24T23:05:00.000Z');
     expect(christmasDeliveryIso(2027)).toBe('2027-12-24T23:05:00.000Z');

@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from './site-experience';
 export type OrnamentKind = "dae" | "calore" | "prossimita" | "cuore";
 
 export type Project = {
@@ -40,12 +41,12 @@ export const PROJECTS: Project[] = [
     ornamentName: "una sciarpa",
     tagline: "Fermarsi accanto a chi è solo.",
     opening: "Ci sono sere in cui il freddo non è l'unica cosa che pesa. Pesa anche sentirsi invisibili.",
-    intro: "Il tuo regalo sostiene i volontari di Croce Rossa Monza che, in strada, si fermano accanto a chi è in difficoltà.",
+    intro: ONLINE_GIFT ? "Il tuo regalo sostiene le uscite in strada di Croce Rossa Monza: tempo, ascolto e beni di conforto accanto a chi è in difficoltà." : "Il tuo regalo sostiene i volontari di Croce Rossa Monza che, in strada, si fermano accanto a chi è in difficoltà.",
     postcardLine: "Quest'anno il mio regalo per te è una presenza accanto a chi, a Monza, vive in strada.",
     theme: { bg: "--primary", ribbon: "--ivory", ink: "--snow" },
     story:
-      "Quando la città si accende per le feste, c'è chi resta fuori. I volontari di Croce Rossa Monza escono in strada per incontrare le persone in difficoltà: portano qualcosa di caldo, ma soprattutto tempo e ascolto. A volte una bevanda calda è il modo per cominciare a parlarsi; a volte un'indicazione sui servizi del territorio è il primo passo per non sentirsi più soli.",
-    doing: ["Uscite in strada con i volontari", "Bevande calde, coperte e generi di conforto", "Ascolto e vicinanza a chi è in difficoltà", "Orientamento verso i servizi del territorio"],
+      "Quando la città si accende per le feste, c'è chi resta fuori. Le persone di Croce Rossa Monza escono in strada per incontrare le persone in difficoltà: portano qualcosa di caldo, ma soprattutto tempo e ascolto. A volte una bevanda calda è il modo per cominciare a parlarsi; a volte un'indicazione sui servizi del territorio è il primo passo per non sentirsi più soli.",
+    doing: [ONLINE_GIFT ? "Uscite in strada di Croce Rossa Monza" : "Uscite in strada con i volontari", "Bevande calde, coperte e generi di conforto", "Ascolto e vicinanza a chi è in difficoltà", "Orientamento verso i servizi del territorio"],
     helps: "Il tuo contributo sostiene le attività di strada nel loro insieme. Non compra una coperta o una bevanda: dà continuità a una presenza.",
     amounts: AMOUNTS,
   },
@@ -97,8 +98,8 @@ export const PROJECTS: Project[] = [
     postcardLine: "Ho scelto per te il regalo più semplice: esserci, dove a Monza serve di più.",
     theme: { bg: "--burgundy", ribbon: "--gold", ink: "--snow" },
     story:
-      "I bisogni di una città cambiano, spesso senza preavviso: un'emergenza, un inverno più duro, un servizio da tenere attivo. Una donazione senza vincolo di progetto dà al Comitato la libertà di rispondere nel momento giusto, sostenendo le attività sanitarie e sociali e i volontari che le rendono possibili ogni giorno.",
-    doing: ["Risposta ai bisogni più urgenti", "Continuità delle attività sanitarie e sociali", "Sostegno ai volontari", "Flessibilità quando il territorio cambia"],
+      "I bisogni di una città cambiano, spesso senza preavviso: un'emergenza, un inverno più duro, un servizio da tenere attivo. Una donazione senza vincolo di progetto dà al Comitato la libertà di rispondere nel momento giusto, sostenendo le attività sanitarie e sociali e le persone che le rendono possibili ogni giorno.",
+    doing: ["Risposta ai bisogni più urgenti", "Continuità delle attività sanitarie e sociali", ONLINE_GIFT ? "Sostegno alle attività di Croce Rossa Monza" : "Sostegno ai volontari", "Flessibilità quando il territorio cambia"],
     helps: "Il tuo contributo viene destinato dal Comitato dove è più utile in quel momento. Nessun oggetto acquistato: fiducia in chi c'è.",
     amounts: AMOUNTS,
   },

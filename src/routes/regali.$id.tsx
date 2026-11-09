@@ -1,4 +1,6 @@
 import { CAMPAIGN, assertCampaignPayment, campaignPaymentMethods } from "@/lib/campaign";
+import { ONLINE_GIFT } from '@/lib/site-experience';
+import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
@@ -81,13 +83,14 @@ function Detail() {
 
   return (
     <Shell hidePiazzaPill>
-      <div className="mx-auto max-w-6xl px-4 pt-6">
+      {!(ONLINE_GIFT && step === 'checkout') && <div className="mx-auto max-w-6xl px-4 pt-6">
         <button onClick={back} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Indietro
         </button>
-      </div>
+      </div>}
       {step === "detail" && <DetailView p={p} preset={preset} setPreset={(v) => { setPreset(v); setCustom(""); }} custom={custom} setCustom={setCustom} amount={amount} error={amountError} onGo={toCheckout} />}
-      {step === "checkout" && (parsed.success
+      {ONLINE_GIFT && step === 'checkout' && parsed.success && <OnlineGiftFlow project={p} amount={amount} onBack={()=>go('detail')}/>}
+      {!ONLINE_GIFT && step === "checkout" && (parsed.success
         ? <Checkout p={p} amount={amount} onEdit={() => go("detail")} onConfirm={(m, requested) => { setReceiptPreview(Boolean(requested)); go(m === "cash" ? "cash" : "success"); }} />
         : <InvalidAmount error={amountError} onEdit={() => go("detail")} />)}
       {step === "cash" && CAMPAIGN.volunteerCashDonations && <CashFlow p={p} amount={amount} onConfirmed={(oid) => setHung({ id: oid, status: "approved", via: "cash" })} onPick={go} />}
@@ -162,7 +165,7 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
           <p className="mb-4 mt-1 text-sm text-muted-foreground">{CAMPAIGN.simulators ? "Bastano 5 €. Scegli e conferma: due tocchi." : "Scegli il progetto e verifica le modalità disponibili."}</p>
           <Amounts p={p} preset={preset} setPreset={setPreset} custom={custom} setCustom={setCustom} error={error} />
           <button onClick={onGo} disabled={Boolean(error)} aria-describedby={error ? "amount-help" : undefined} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
-            {error ? "Scegli un importo valido" : `Dona ${amount} €`}
+            {error ? "Scegli un importo valido" : ONLINE_GIFT ? `Regala a qualcuno · ${amount} €` : `Dona ${amount} €`}
           </button>
           <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. {CAMPAIGN.demo || CAMPAIGN.livePayments || CAMPAIGN.volunteerCashDonations ? <>Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</> : "Le donazioni online non sono ancora disponibili."}</p>
           {CAMPAIGN.demo && <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>}

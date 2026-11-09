@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from "./site-experience";
 import { TREE_UNTIL, type OrnamentKind, type Project } from "./data";
 import rossoLogo from "@/assets/cri-rosso-orizzontale.png.asset.json";
 import { CAMPAIGN } from './campaign';
@@ -8,13 +9,13 @@ export const projectUrl = (p: Project) => `${SITE_URL}/regali/${p.id}`;
 /** Stable deep link: opens the Albero and focuses this ornament (public data only). */
 export const ornamentUrl = (id?: string | null) => (id ? `${SITE_URL}/albero?addobbo=${id}` : `${SITE_URL}/albero`);
 export const giftLink = (p: Project, ornamentId?: string | null) => (ornamentId ? ornamentUrl(ornamentId) : projectUrl(p));
-export const INVITE_LINE = `Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta CRI in Piazza San Paolo, fino al ${TREE_UNTIL}.`;
+export const INVITE_LINE = ONLINE_GIFT ? "Un regalo solidale, una pallina digitale. Condividi questo gesto con chi ami." : `Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta CRI in Piazza San Paolo, fino al ${TREE_UNTIL}.`;
 
 export function postcardText(p: Project, to: string, from: string, msg: string, ornamentId?: string | null) {
   const dedica = msg.trim() || p.postcardLine;
   const firma = from.trim() ? `\n— ${from.trim()}` : "";
   const link = ornamentId ? `Il tuo addobbo è sull'Albero di Monza digitale: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
-  return `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo fatto a tuo nome un regalo per Monza con la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
+  return `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
 }
 
 /** Resolves a CSS custom property (any colour syntax) to #rrggbb, so canvases and email HTML get plain sRGB. */
@@ -139,7 +140,7 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.globalAlpha = 1;
   ctx.fillStyle = ink; ctx.textAlign = "center";
   ctx.font = "700 26px Manrope, system-ui, sans-serif"; ctx.fillText("IL NATALE CHE FA BENE", W / 2, 112);
-  ctx.globalAlpha = 0.8; ctx.font = "500 24px Manrope, system-ui, sans-serif"; ctx.fillText("Albero di Monza · Piazza San Paolo", W / 2, 150); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.8; ctx.font = "500 24px Manrope, system-ui, sans-serif"; ctx.fillText(ONLINE_GIFT ? "Un regalo solidale per chi ami" : "Albero di Monza · Piazza San Paolo", W / 2, 150); ctx.globalAlpha = 1;
   // glow + bauble + bow
   const glow = ctx.createRadialGradient(540, 430, 40, 540, 430, 300);
   glow.addColorStop(0, "rgba(255,224,160,0.45)"); glow.addColorStop(1, "rgba(255,224,160,0)");
@@ -155,7 +156,7 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   head.forEach((l, i) => ctx.fillText(l, W / 2, 735 + i * 86));
   const after = 735 + (head.length - 1) * 86;
   ctx.globalAlpha = 0.92; ctx.font = "italic 400 40px Fraunces, Georgia, serif";
-  ctx.fillText(`un regalo per Monza: ${p.title}`, W / 2, after + 62); ctx.globalAlpha = 1;
+  ctx.fillText(`un regalo solidale: ${p.title}`, W / 2, after + 62); ctx.globalAlpha = 1;
   // paper card
   const top = Math.max(890, after + 110);
   ctx.fillStyle = paper; ctx.beginPath();
@@ -174,7 +175,7 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.textAlign = "right"; ctx.fillStyle = inkDark;
   ctx.font = "700 24px Manrope, system-ui, sans-serif"; ctx.fillText("Comitato di Monza", W - 110, fy + 30);
   ctx.globalAlpha = 0.75; ctx.font = "500 21px Manrope, system-ui, sans-serif";
-  ctx.fillText(`Piazza San Paolo · fino al ${TREE_UNTIL}`, W - 110, fy + 60);
+  ctx.fillText(ONLINE_GIFT ? "Una pallina sull’albero digitale" : `Piazza San Paolo · fino al ${TREE_UNTIL}`, W - 110, fy + 60);
   ctx.fillText(CAMPAIGN.demo ? (ornamentId ? "natalecrimb.lovable.app/albero · DEMO" : "Cartolina DEMO · nessuna donazione reale") : "Il Natale che fa bene · Albero di Monza", W - 110, fy + 88);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
   const blob = await new Promise<Blob | null>((res) => c.toBlob(res, "image/png"));

@@ -1,3 +1,16 @@
+# Il Natale che fa bene · CRI Monza
+
+Current deployment: `SITE_EXPERIENCE=ONLINE_GIFT`, `ACTIVE_CAMPAIGN_MODE=DEMO`.
+
+Public payments are simulations only. Shared demo ornaments persist in Cloud; private postcard names/messages remain on the device. Manual Gmail QA is protected, fixed From/To Federico, 10-minute/3-per-day durable claims. Connected Gmail does not authorize the app account.
+
+## Rollback
+Change only `SITE_EXPERIENCE` in `src/lib/site-experience.ts` to `FULL`, run tests, and publish. Do not change campaign mode or readiness. TV/audio, shared volunteer review/cash/wishes and all records remain preserved.
+
+See `docs/ONLINE_GIFT_DEMO_2026-11-09.md` for routes, tests and exact limitations.
+
+## Historical initial brief (superseded)
+
 # Monza's Gift Tree
 
 Crea una NUOVA DEMO VISIVA mobile-first per una campagna natalizia di Croce Rossa Italiana – Comitato di Monza. Nome di lavoro: “Il Natale che fa bene – Croce Rossa Monza”.

@@ -17,6 +17,7 @@ import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
 import { Route as CreditiMusicaRouteImport } from './routes/crediti-musica'
+import { Route as EmailQaRouteImport } from './routes/email-qa'
 import { Route as GiochiRouteImport } from './routes/giochi'
 import { Route as ModerazioneRouteImport } from './routes/moderazione'
 import { Route as PagamentoRouteImport } from './routes/pagamento'
@@ -71,6 +72,11 @@ const CasettaRoute = CasettaRouteImport.update({
 const CreditiMusicaRoute = CreditiMusicaRouteImport.update({
   id: '/crediti-musica',
   path: '/crediti-musica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailQaRoute = EmailQaRouteImport.update({
+  id: '/email-qa',
+  path: '/email-qa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiochiRoute = GiochiRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/crediti-musica': typeof CreditiMusicaRoute
+  '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/pagamento': typeof PagamentoRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/crediti-musica': typeof CreditiMusicaRoute
+  '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/pagamento': typeof PagamentoRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/crediti-musica': typeof CreditiMusicaRoute
+  '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
   '/moderazione': typeof ModerazioneRoute
   '/pagamento': typeof PagamentoRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/casetta'
     | '/crediti-musica'
+    | '/email-qa'
     | '/giochi'
     | '/moderazione'
     | '/pagamento'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/casetta'
     | '/crediti-musica'
+    | '/email-qa'
     | '/giochi'
     | '/moderazione'
     | '/pagamento'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/casetta'
     | '/crediti-musica'
+    | '/email-qa'
     | '/giochi'
     | '/moderazione'
     | '/pagamento'
@@ -314,6 +326,7 @@ export interface RootRouteChildren {
   CalendarioRoute: typeof CalendarioRoute
   CasettaRoute: typeof CasettaRoute
   CreditiMusicaRoute: typeof CreditiMusicaRoute
+  EmailQaRoute: typeof EmailQaRoute
   GiochiRoute: typeof GiochiRoute
   ModerazioneRoute: typeof ModerazioneRoute
   PagamentoRoute: typeof PagamentoRoute
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/crediti-musica'
       fullPath: '/crediti-musica'
       preLoaderRoute: typeof CreditiMusicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email-qa': {
+      id: '/email-qa'
+      path: '/email-qa'
+      fullPath: '/email-qa'
+      preLoaderRoute: typeof EmailQaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/giochi': {
@@ -506,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarioRoute: CalendarioRoute,
   CasettaRoute: CasettaRoute,
   CreditiMusicaRoute: CreditiMusicaRoute,
+  EmailQaRoute: EmailQaRoute,
   GiochiRoute: GiochiRoute,
   ModerazioneRoute: ModerazioneRoute,
   PagamentoRoute: PagamentoRoute,

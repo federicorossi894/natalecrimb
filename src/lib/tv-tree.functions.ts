@@ -1,3 +1,4 @@
+import { ONLINE_GIFT, projectOnly } from './site-experience';
 import { createServerFn } from '@tanstack/react-start';
 import { assertDemoData } from './campaign';
 import { TV_ORNAMENT_LIMIT, TV_TREE_COLUMNS, tvTreeSummary } from './tv-tree-summary';
@@ -12,5 +13,6 @@ export const publicTvTree = createServerFn({ method: 'POST' }).handler(async () 
     .select(TV_TREE_COLUMNS, { count: 'exact' }).neq('status','rejected')
     .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(TV_ORNAMENT_LIMIT);
   if (error || count === null) throw new Error('Albero non disponibile.');
-  return tvTreeSummary(data ?? [], count);
+  const summary=tvTreeSummary(data ?? [], count);
+  return ONLINE_GIFT ? {...summary, rows:summary.rows.map(projectOnly)} : summary;
 });

@@ -1,3 +1,4 @@
+import { ONLINE_GIFT } from './site-experience';
 import type { Project } from "./data";
 import { CRI, TREE_UNTIL } from "./data";
 import { EMAIL_SENDER, deliveryLabel, type EmailAudience, type EmailMode } from "./email-demo";
@@ -59,12 +60,12 @@ export function giftEmailHtml(e: GiftEmail) {
   const toName = esc(e.toName.trim());
   const msg = esc(e.msg.trim() || p.postcardLine);
   const christmas = e.mode === "christmas" && e.audience === "recipient";
-  const kicker = e.audience === "donor" ? "Grazie dalla casetta di Piazza San Paolo" : christmas ? "Buon Natale da Monza" : "Il Natale che fa bene";
+  const kicker = e.audience === "donor" ? (ONLINE_GIFT ? "Grazie da Croce Rossa Monza" : "Grazie dalla casetta di Piazza San Paolo") : christmas ? "Buon Natale da Monza" : "Il Natale che fa bene";
   const title = e.audience === "donor"
     ? `Grazie${donor ? `, ${donor}` : ""}!`
     : christmas ? `Buon Natale${toName ? `, ${toName}` : ""}!` : `${toName ? `${toName}, c'è` : "C'è"} un regalo per te`;
   const lead = e.audience === "donor"
-    ? "Il tuo regalo alla casetta di Croce Rossa è diventato un addobbo sull'Albero di Monza."
+    ? (ONLINE_GIFT ? "Il tuo regalo solidale è una pallina sull’albero digitale." : "Il tuo regalo alla casetta di Croce Rossa è diventato un addobbo sull'Albero di Monza.")
     : `${donor || "Qualcuno che ti vuole bene"} ha fatto a tuo nome un regalo per Monza con Croce Rossa Italiana – Comitato di Monza.`;
   const social = CRI.social.map((s) => `<a href="${s.url}" style="color:${C.ink};text-decoration:underline">${s.name}</a>`).join(" · ");
   const envelope = e.envelope ? `
@@ -127,8 +128,8 @@ ${envelope}
     <p style="margin:14px 0 30px;text-align:center;font:13px/1.4 Arial,sans-serif"><a href="${projectUrl(p)}" style="color:${C.ink}">Scopri il progetto “${esc(p.title)}”</a></p>
   </td></tr>
   <tr><td class="px" style="background:${C.burgundy};padding:26px 40px;color:${C.snow}">
-    <p style="margin:0;font:700 11px/1 Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:${C.gold}">Ti aspettiamo in piazza</p>
-    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta di Croce Rossa in Piazza San Paolo, fino al ${TREE_UNTIL}. Lì trovi anche i volontari.</p>
+    <p style="margin:0;font:700 11px/1 Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:${C.gold}">${ONLINE_GIFT ? "Il tuo regalo digitale" : "Ti aspettiamo in piazza"}</p>
+    <p style="margin:8px 0 0;font:19px/1.4 Georgia,serif">${ONLINE_GIFT ? "Una pallina digitale racconta il progetto scelto. Nomi e dedica restano nella tua cartolina privata." : `Il tuo addobbo si vede sull'albero digitale, sullo schermo della casetta di Croce Rossa in Piazza San Paolo, fino al ${TREE_UNTIL}. Lì trovi anche i volontari.`}</p>
   </td></tr>
   <tr><td class="px" style="padding:22px 40px 26px;font:12px/1.6 Arial,sans-serif;color:${C.ink}">
     <p style="margin:0;font-weight:700">Croce Rossa Italiana – Comitato di Monza</p>
