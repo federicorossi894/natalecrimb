@@ -1,4 +1,6 @@
 # Online gift DEMO — 9 November 2026
+- [x] QA_OWNER limited to exact server-verified confirmed CRI account; database claim mirrors it, no role grants.
+- [ ] Real QA send/Inbox verification — CRI account browser session needs owner login; specific-account mint approval unavailable.
 - [x] Reversible ONLINE_GIFT config, server restrictions and preserved FULL.
 - [x] Online gift/cartolina flow and privacy, isolated mobile/desktop four-project QA.
 - [x] Protected email QA; authentic owner session denied staff access, Gmail matching messages zero.
