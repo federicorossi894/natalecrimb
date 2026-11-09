@@ -23,8 +23,9 @@ function EmailQaPage(){
     void load();const {data}=supabase.auth.onAuthStateChange(()=>void load());return()=>{active=false;data.subscription.unsubscribe();};
   },[check]);
   return <Shell hidePiazzaPill><PageHead kicker="DEMO · Accesso riservato" title="Prove email a Federico"/><section className="mx-auto max-w-2xl px-4">
-    {state==='signed-out' && <AuthBox title="Accesso staff autorizzato" returnPath="/email-qa" roleName="moderatore"/>}
-    {state==='denied' && <div><p role="alert">Sessione autentica, ma senza autorizzazione staff per le email. Nessuna email inviata.</p><p className="mt-3 text-sm text-muted-foreground">Gmail collegato non assegna permessi al tuo account del sito. Serve un accesso già autorizzato o una delega esplicita dell’amministratore; la password condivisa non concede questo accesso.</p><Button className="mt-4" variant="outline" onClick={()=>void supabase.auth.signOut()}>Esci</Button></div>}
+    <p className="mb-4">Accesso solo con l’account verificato federico.rossi@crimonza.org o personale già autorizzato. Non usare la password condivisa volontari.</p>
+    {state==='signed-out' && <AuthBox title="Accedi: federico.rossi@crimonza.org" returnPath="/email-qa" roleName="QA email" loginOnly/>}
+    {state==='denied' && <div><p role="alert">Questo account non è autorizzato alle prove email. Nessuna email inviata.</p><p className="mt-3 text-sm text-muted-foreground">Esci e accedi con l’account CRI verificato federico.rossi@crimonza.org, non con l’account privato né con la password volontari.</p><Button className="mt-4" variant="outline" onClick={()=>void supabase.auth.signOut()}>Esci</Button></div>}
     {state==='allowed' && <EmailQa/>}
     {state==='loading' && <p>Verifica accesso…</p>}
   </section></Shell>;

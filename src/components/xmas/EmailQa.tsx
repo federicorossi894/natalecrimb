@@ -110,16 +110,6 @@ export function EmailQa() {
         Una prova ogni 10 minuti, massimo tre al giorno. L’esito Gmail attesta l’accettazione, non
         la consegna.
       </p>
-      {!ready && (
-        <a
-          className="mt-3 inline-block break-all text-sm underline"
-          href="https://lovable.dev/dashboard?connectors=&connector=google_mail&workspace=FqetqUBRBhlbcaE0ZRZ4"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Collega o controlla Gmail in Lovable
-        </a>
-      )}
       {status && (
         <p role="status" className="mt-3 text-sm text-gold">
           {status}
