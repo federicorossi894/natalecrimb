@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { giftMailInput } from '@/lib/gift-mail-policy';
 import { giftMailParts, giftMailRaw, GIFT_MAIL_SENDER } from '@/lib/gift-mail.server';
+import { PROJECTS } from '@/lib/data';
+import { GIFT_IMPACT } from '@/lib/gift-impact';
 const base={ornamentId:'00000000-0000-4000-8000-000000000001',giftRequestId:'00000000-0000-4000-8000-000000000002',client:'00000000-0000-4000-8000-000000000003',kind:'gift_now' as const,to:'Anna@Example.it',from:'Luca',toName:'Anna',msg:'Buone feste'};
 const decode=(raw:string)=>{const t=atob(raw.replace(/-/g,'+').replace(/_/g,'/'));const [head,body]=t.split('\r\n\r\n');return {head:head??'',html:new TextDecoder().decode(Uint8Array.from(atob(body??''),c=>c.charCodeAt(0)))};};
 describe('online gift email',()=>{
+  it.each(PROJECTS)('explains the concrete Monza impact for $id in gifts and confirmations',project=>{
+    for(const kind of ['receipt','gift_now','gift_christmas'] as const){
+      const parts=giftMailParts({...giftMailInput.parse({...base,kind}),projectKind:project.ornament,projectTitle:project.title,amount:5});
+      expect(parts.lines).toContain(GIFT_IMPACT[project.ornament]);
+    }
+  });
   it('accepts any valid recipient, normalised',()=>{expect(giftMailInput.parse(base).to).toBe('anna@example.it');});
   it('rejects header injection, links and addresses in visitor text',()=>{
     for(const bad of [{to:'a@b.it\r\nBcc: x@y.it'},{to:'a@b.it, c@d.it'},{msg:'vai su www.truffa.com'},{msg:'scrivi a x@y.it'},{from:'https://x'},{msg:'<script>'},{msg:'x'.repeat(91)}])expect(giftMailInput.safeParse({...base,...bad}).success).toBe(false);

@@ -9,7 +9,7 @@ import { createOnlineGift } from '@/lib/online-gift.functions';
 import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
 import { GiftMailForm } from './GiftMailForm';
-import { clearGiftSession, loadGiftSession, onlineDedication, rememberSessionOrnament, saveGiftSession } from '@/lib/online-gift-session';
+import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
 export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
   const [to,setTo]=useState(''),[from,setFrom]=useState(''),[msg,setMsg]=useState('');
@@ -21,9 +21,10 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
   const [dedica,setDedica]=useState(''),[firma,setFirma]=useState(''),[consent,setConsent]=useState(false);
   const [ready,setReady]=useState(false);
   const [channel,setChannel]=useState<'whatsapp'|'email'|null>(null);
+  const [thankYou,setThankYou]=useState('');
   useEffect(()=>{
     const saved=loadGiftSession(project.id);
-    if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setId(saved.id);setStage(saved.id?'done':'payment');}
+    if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setId(saved.id);setThankYou(saved.thankYou ?? '');setStage(saved.id?'done':'payment');}
     setReady(true);
   },[project.id,amount]);
   const [giftClient,setGiftClient]=useState<string|null>(null);
@@ -38,12 +39,12 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       const value={project:project.id,amount,request:request.current,client,id:null,kind:project.ornament,gift,to:to.trim(),from:from.trim(),msg:msg.trim(),...parsed.data,provider};
       saveGiftSession(value);
       const row=await create({data:{requestId:request.current,client,kind:project.ornament,amount,provider,...parsed.data}});
-      const completed={...value,id:row.id};
-      saveGiftSession(completed);rememberSessionOrnament(completed);window.dispatchEvent(new Event('cri-demo-tree'));
+      const completed={...value,id:row.id,thankYou:row.thankYou};
+      saveGiftSession(completed);setThankYou(row.thankYou);window.dispatchEvent(new Event('cri-demo-tree'));
       setId(row.id);setStage('done');
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setThankYou('');setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
@@ -74,7 +75,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
     </div>}
     {stage==='done' && id && <>
       <h1 className="font-display text-3xl">La tua pallina è sull’albero digitale.</h1>
-      <p className="mt-3 text-muted-foreground">Grazie per il tuo gesto solidale. La tua cartolina è pronta da condividere.</p>
+      <p className="mt-3 text-muted-foreground">{thankYou || 'Grazie per il tuo gesto solidale.'}</p>
       {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
       <details className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">Vedi la tua pallina sull’albero</summary><TreeExperience/></details>
       {gift && <div className="mx-auto my-6 max-w-lg">
@@ -83,7 +84,8 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
           {([['whatsapp','WhatsApp'],['email','Email']] as const).map(([v,l])=><Button key={v} role="radio" aria-checked={channel===v} variant={channel===v?'default':'outline'} onClick={()=>setChannel(v)}>{l}</Button>)}
         </div>
       </div>}
-      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift}/>}
+      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift} thankYou={!gift?thankYou:undefined}/>}
+      {gift && <details className="my-6 border-y py-3"><summary className="cursor-pointer font-semibold">La cartolina di ringraziamento per te</summary><PostcardStudio project={project} to="" from="" msg="" ornamentId={id} selfThanks thankYou={thankYou}/></details>}
       {gift && channel==='email' && request.current && giftClient && <div className="mx-auto max-w-lg"><GiftMailForm ornamentId={id} giftRequestId={request.current} client={giftClient} from={from || (consent?firma:"")} toName={to} msg={msg || (consent?dedica:"")}/></div>}
       {request.current && giftClient && <div className="mx-auto mt-8 max-w-lg border-t pt-6">
         <h2 className="mb-3 font-display text-xl">Vuoi la conferma della donazione via email?</h2>

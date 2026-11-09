@@ -6,15 +6,15 @@ vi.mock('@tanstack/react-router',()=>({Link:({children}:{children:React.ReactNod
 vi.mock('@/lib/online-gift.functions',()=>({createOnlineGift:()=>undefined}));
 vi.mock('@/lib/tree-store',()=>({clientId:()=> '00000000-0000-4000-8000-000000000001'}));
 vi.mock('@/components/xmas/TreeExperience',()=>({TreeExperience:()=>null}));
-vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg}:{selfThanks:boolean;msg:string})=><div data-testid="card">{selfThanks?'thanks':'gift'}:{msg}</div>}));
+vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg,thankYou}:{selfThanks:boolean;msg:string;thankYou?:string})=><div data-testid={selfThanks?'thanks-card':'card'}>{selfThanks?'thanks':'gift'}:{thankYou || msg}</div>}));
 vi.mock('@/components/xmas/GiftMailForm',()=>({GiftMailForm:({receipt}:{receipt?:boolean})=><div data-testid={receipt?'receipt':'mail'}/>}));
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { PROJECTS } from '@/lib/data';
-import { clearGiftSession, sessionOrnaments } from '@/lib/online-gift-session';
+import { clearGiftSession, loadGiftSession } from '@/lib/online-gift-session';
 afterEach(()=>{cleanup();sessionStorage.clear();clearGiftSession();vi.clearAllMocks();});
-it.each([true,false])('gift=%s keeps dedicated text on own bauble and makes postcard after simulation only',async gift=>{
+it.each([true,false])('gift=%s sends consented dedication to shared server and prepares donor AI thanks after simulation only',async gift=>{
   const project=PROJECTS[0];if(!project)throw Error('project');
-  call.mockResolvedValue({id:'00000000-0000-4000-8000-000000000002'});
+  call.mockResolvedValue({id:'00000000-0000-4000-8000-000000000002',thankYou:'Grazie, il tuo gesto porta vicinanza a Monza.'});
   render(<OnlineGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
   await screen.findByRole('button',{name:'Continua'});
   if(!gift)fireEvent.click(screen.getByRole('button',{name:'Solo donazione'}));
@@ -25,7 +25,9 @@ it.each([true,false])('gift=%s keeps dedicated text on own bauble and makes post
   const pay=screen.getByRole('button',{name:'Conferma 5 €'});fireEvent.click(pay);fireEvent.click(pay);
   await screen.findByTestId('receipt');expect(call).toHaveBeenCalledOnce();expect(call.mock.calls[0]?.[0]?.data).toMatchObject({dedica:'Per Monza',consent:true});
   if(gift){expect(screen.queryByTestId('card')).toBeNull();fireEvent.click(screen.getByRole('radio',{name:'Email'}));expect(screen.getByTestId('mail')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'WhatsApp'}));}
-  await screen.findByTestId('card');expect(sessionOrnaments()[0]?.dedica).toBe('Per Monza');expect(screen.getByTestId('card')).toHaveTextContent(gift?'gift:Per Monza':'thanks:Per Monza');
+  expect(loadGiftSession('calore')?.thankYou).toBe('Grazie, il tuo gesto porta vicinanza a Monza.');
+  expect(screen.getByTestId('thanks-card')).toHaveTextContent('Grazie, il tuo gesto porta vicinanza a Monza.');
+  if(gift)expect(screen.getByTestId('card')).toHaveTextContent('gift:Per Monza');
   const previous=call.mock.calls[0]?.[0]?.data.requestId;
   fireEvent.click(screen.getByRole('button',{name:'Nuovo regalo o donazione'}));
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Conferma 5 €'}));

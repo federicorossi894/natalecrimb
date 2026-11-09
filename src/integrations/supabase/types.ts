@@ -118,6 +118,8 @@ export type Database = {
           payment_method: string | null
           publish_consent: boolean
           status: string
+          thank_you: string | null
+          thank_you_claimed_at: string | null
           x: number
           y: number
         }
@@ -134,6 +136,8 @@ export type Database = {
           payment_method?: string | null
           publish_consent?: boolean
           status?: string
+          thank_you?: string | null
+          thank_you_claimed_at?: string | null
           x: number
           y: number
         }
@@ -150,6 +154,8 @@ export type Database = {
           payment_method?: string | null
           publish_consent?: boolean
           status?: string
+          thank_you?: string | null
+          thank_you_claimed_at?: string | null
           x?: number
           y?: number
         }
@@ -700,6 +706,10 @@ export type Database = {
           id: string
           reason: string
         }[]
+      }
+      claim_online_gift_thanks: {
+        Args: { _ornament: string }
+        Returns: boolean
       }
       claim_staff_gmail_qa: {
         Args: { p_actor: string; p_kind: string; p_request: string }
