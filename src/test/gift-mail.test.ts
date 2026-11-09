@@ -1,0 +1,22 @@
+import { describe, expect, it } from 'vitest';
+import { giftMailInput } from '@/lib/gift-mail-policy';
+import { giftMailParts, giftMailRaw, GIFT_MAIL_SENDER } from '@/lib/gift-mail.server';
+const base={ornamentId:'00000000-0000-4000-8000-000000000001',giftRequestId:'00000000-0000-4000-8000-000000000002',client:'00000000-0000-4000-8000-000000000003',kind:'gift_now' as const,to:'Anna@Example.it',from:'Luca',toName:'Anna',msg:'Buone feste'};
+const decode=(raw:string)=>{const t=atob(raw.replace(/-/g,'+').replace(/_/g,'/'));const [head,body]=t.split('\r\n\r\n');return {head:head??'',html:new TextDecoder().decode(Uint8Array.from(atob(body??''),c=>c.charCodeAt(0)))};};
+describe('online gift email',()=>{
+  it('accepts any valid recipient, normalised',()=>{expect(giftMailInput.parse(base).to).toBe('anna@example.it');});
+  it('rejects header injection, links and addresses in visitor text',()=>{
+    for(const bad of [{to:'a@b.it\r\nBcc: x@y.it'},{to:'a@b.it, c@d.it'},{msg:'vai su www.truffa.com'},{msg:'scrivi a x@y.it'},{from:'https://x'},{msg:'<script>'},{msg:'x'.repeat(91)}])expect(giftMailInput.safeParse({...base,...bad}).success).toBe(false);
+  });
+  it('rejects unknown kinds and extra fields',()=>{expect(giftMailInput.safeParse({...base,kind:'promo'}).success).toBe(false);expect(giftMailInput.safeParse({...base,bcc:'x@y.it'}).success).toBe(false);});
+  it('sends from the configured sender to the recipient, without demo labels',()=>{
+    const {head,html}=decode(giftMailRaw({...giftMailInput.parse(base),projectTitle:'Regala calore',amount:20},'ref'));
+    expect(head).toContain(`<${GIFT_MAIL_SENDER}>`);expect(head).toContain('To: <anna@example.it>');expect(html).not.toMatch(/DEMO|SIMULAZ/i);
+    expect(html).toContain('Buone feste');expect(html).toContain('addobbo=00000000-0000-4000-8000-000000000001');
+  });
+  it('christmas email says Buon Natale; receipt states amount and is not a tax receipt',()=>{
+    expect(giftMailParts({...giftMailInput.parse({...base,kind:'gift_christmas'}),projectTitle:'P',amount:5}).subject).toMatch(/^Buon Natale, Anna/);
+    const r=giftMailParts({...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'P',amount:20});
+    expect(r.lines.join(' ')).toMatch(/20,00/);expect(r.lines.join(' ')).toMatch(/non costituisce ricevuta fiscale/);
+  });
+});
