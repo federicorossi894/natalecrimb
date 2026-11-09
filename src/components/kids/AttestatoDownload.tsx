@@ -18,10 +18,13 @@ export function AttestatoDownload({ target, code, revision }: { target: RefObjec
         await document.fonts?.ready;
         await Promise.all(Array.from(node.querySelectorAll('img')).map(img => img.decode()));
         const { toBlob } = await import('html-to-image');
-        const blob = await toBlob(node, {
+        const options = {
           pixelRatio: Math.max(3, 2382 / node.getBoundingClientRect().width), cacheBust: false,
           style: { animation: 'none', opacity: '1', transform: 'none', margin: '0' },
-        });
+        };
+        // WebKit needs one rasterization pass to warm embedded images in foreignObject.
+        await toBlob(node, options);
+        const blob = await toBlob(node, options);
         if (!blob) throw new Error('PNG unavailable');
         if (!cancelled) setFile(new File([blob], `attestato-cri-monza-${code}.png`, { type: 'image/png' }));
       } catch { if (!cancelled) setError(true); }
