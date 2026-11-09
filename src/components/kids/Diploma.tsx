@@ -1,5 +1,7 @@
 import { CAMPAIGN } from "@/lib/campaign";
 import { ONLINE_GIFT } from "@/lib/site-experience";
+import { useRef } from "react";
+import { AttestatoDownload } from "./AttestatoDownload";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Hand, MapPin } from "lucide-react";
 import { CriMark } from "@/components/xmas/Ornament";
@@ -10,13 +12,14 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString("it-IT", { day: "n
 
 /** Local courtesy acknowledgement, independent of payments, login and campaign tier. */
 export function DiplomaView({ state, update, onExit }: { state: AcademyState; update: (fn: (s: AcademyState) => AcademyState) => void; onExit: () => void }) {
+  const diplomaRef = useRef<HTMLElement>(null);
   const d = state.diploma;
   if (!d || !state.done.length) return null;
   const claimed = d.claimedAt !== null;
   return (
     <section className="mx-auto max-w-3xl px-4 pt-5" data-testid="diploma">
       <button type="button" onClick={onExit} className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /> Torna all'Accademia</button>
-      <article className="animate-rise relative mt-3 overflow-hidden rounded-[2rem] border-[6px] border-double border-gold bg-paper p-6 text-center text-ink shadow-deep sm:p-10">
+      <article ref={diplomaRef} className="animate-rise relative mt-3 overflow-hidden rounded-[2rem] border-[6px] border-double border-gold bg-paper p-6 text-center text-ink shadow-deep sm:p-10">
         <div className="pointer-events-none absolute inset-3 rounded-[1.4rem] border border-gold/60" />
         <CriMark variant="red" className="relative mx-auto h-12 sm:h-14" />
         <p className="relative mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] opacity-70">Comitato di Monza</p>
@@ -37,7 +40,7 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
         </div>
         <div className="relative mt-6 flex items-end justify-between gap-4 text-left text-sm">
           <div><p className="opacity-70">Monza,</p><p className="font-semibold">{fmt(d.issuedAt)}</p></div>
-          <Seal className="h-20 w-20 shrink-0" />
+          {!ONLINE_GIFT && <Seal className="h-20 w-20 shrink-0" />}
           <div className="text-right"><p className="opacity-70">Codice diploma</p><p className="font-mono text-lg font-bold tracking-widest" data-testid="diploma-code">{d.code}</p></div>
         </div>
         {!ONLINE_GIFT && claimed && (
@@ -47,6 +50,8 @@ export function DiplomaView({ state, update, onExit }: { state: AcademyState; up
           </div>
         )}
       </article>
+
+      {ONLINE_GIFT && <AttestatoDownload target={diplomaRef} code={d.code} revision={`${state.helper}:${state.done.join(',')}`} />}
 
       {ONLINE_GIFT ? (
         <p className="mt-5 text-center text-sm text-muted-foreground">Hai imparato ad aiutare con attenzione e gentilezza. Il tuo diploma digitale resta qui: puoi continuare con le altre missioni!</p>

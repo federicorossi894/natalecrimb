@@ -5,6 +5,7 @@ import { DiplomaView } from '@/components/kids/Diploma';
 import { ACADEMY_KEY, EMPTY_ACADEMY, completeMission, parseAcademy } from '@/lib/kids-academy';
 import { CAMPAIGN, campaignCapabilities } from '@/lib/campaign';
 import * as experience from '@/lib/site-experience';
+vi.mock('@/components/kids/AttestatoDownload', () => ({ AttestatoDownload: () => null }));
 
 vi.mock('@/lib/site-experience', async importOriginal => {
   const actual = await importOriginal<typeof import('@/lib/site-experience')>();

@@ -14,9 +14,9 @@ export const Route = createFileRoute("/casetta")({
   head: () => ({
     meta: [
       { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },
-      { name: "description", content: ONLINE_GIFT ? "La vetrina natalizia di CRI Monza: panettoni, pandoro e cioccolatini solidali. Disponibilità e modalità da confermare, nessun acquisto online." : "Panettone, pandoro e cioccolatini alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
+      { name: "description", content: "Panettone, pandoro e cioccolatini alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
       { property: "og:title", content: "La casetta di Natale · Sapori e regali solidali" },
-      { property: "og:description", content: ONLINE_GIFT ? "Sapori e regali solidali nella vetrina di Natale di CRI Monza. Disponibilità e modalità in aggiornamento." : "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
+      { property: "og:description", content: "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -218,11 +218,19 @@ function OnlineCasetta() {
     <Shell>
       <section className="relative isolate overflow-hidden">
         <Snow count={28} className="opacity-70" />
-        <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:pt-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-12 sm:pt-16 md:grid-cols-[1.15fr_0.85fr]">
+          <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sapori e regali solidali</p>
           <h1 className="mt-3 font-display text-4xl leading-tight sm:text-6xl">La casetta di Natale</h1>
           <p className="mt-5 max-w-2xl text-lg text-foreground/85">Il Natale ha un sapore ancora più buono quando lo condividi. Una vetrina di dolci e pensieri solidali di Croce Rossa Italiana – Comitato di Monza.</p>
-          <p className="mt-4 max-w-2xl text-sm text-muted-foreground"><strong>In aggiornamento.</strong> Disponibilità e modalità da confermare. Questa pagina è soltanto una vetrina: non si acquista e non si prenota online.</p>
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground">Cioccolato, tisane, regali e panettone. I prodotti si scelgono e si acquistano di persona alla casetta: nessun acquisto o prenotazione online.</p>
+          <ul className="mt-6 space-y-2 text-sm">
+            <li className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-gold" /> Dal {CASETTA.from} al {CASETTA.until}</li>
+            <li className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-gold" /> {CASETTA.place}</li>
+          </ul>
+          <div className="mt-6"><VisitCta /></div>
+          </div>
+          <div className="shop-window mx-auto w-full max-w-[360px]"><CasettaPoster className="relative rounded-2xl" /></div>
         </div>
       </section>
       <section className="mx-auto max-w-6xl px-4" aria-labelledby="online-stall-title">
@@ -231,7 +239,7 @@ function OnlineCasetta() {
           <span className="stall-awning" aria-hidden />
           <div className="stall-lights" aria-hidden>{STALL_LIGHTS.map((d, i) => <span key={i} style={{ ["--d" as string]: d }} />)}</div>
           <ul className="stall-shelf" data-testid="casetta-products">{CASETTA_PRODUCTS.map((p, i) => <StallItem key={p.id} p={p} i={i} />)}</ul>
-          <p className="mt-7 text-center text-sm text-snow/90">Prezzi indicati dal Comitato · disponibilità da confermare</p>
+          <p className="mt-7 text-center text-sm text-snow/90">Prezzi indicati dal Comitato · vendita solo alla casetta</p>
         </div>
         <div className="mt-10 border-t border-border pt-8">
           <h2 className="font-display text-2xl">Regala un gesto solidale</h2>
