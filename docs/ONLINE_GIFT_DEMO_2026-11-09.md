@@ -1,5 +1,14 @@
 # ONLINE_GIFT DEMO — 9 November 2026
 
+## 14:08 request — current behavior (supersedes historical limitations below)
+Consented approved dedications now reach the public DEMO tree through the existing database projection: removed the blanket ONLINE_GIFT redaction in publicDemoRpc and the visitor's stale local overlay. Pending/unconsented/rejected text remains protected by database rules. Verified the same new ornament and dedication in a fresh independent browser with no session data.
+
+Each completed online gift receives a short Italian donor thank-you through AI Gateway (workspace default GPT-6 Astra Responses). Only approved project facts and amount enter the model, never names, private messages, dedications or emails. A service-only permanent one-shot claim prevents repeated inference and caps generation at 80/day; the text is stored on the ornament and recovered on checkout reload. AI failure leaves a factual fallback and never cancels the donation or triggers automatic inference replay. The donor's PNG includes the thank-you (1080×1350); gifts retain their separate recipient postcard and add the donor thank-you postcard under an existing-style disclosure.
+
+All online gift/Christmas/confirmation email templates now include a brief concrete explanation of the chosen project's support for CRI Monza and the city. Prossimità is explicitly a project to acquire/equip a vehicle, not a service already running; no donation-to-object equivalence. Removed the obsolete session-only/email-reserved clauses from the sole top banner. Payment simulation, email sender/claims/caps, LIVE gates, FULL/TV and private recipient message handling remain unchanged.
+
+Verification: 449 tests pass; automatic build OK. Real Chromium390 simulated donation invoked Gateway, stored its generated thank-you, downloaded/inspected the 1080×1350 PNG; Chromium1280 fresh browser showed the same public dedication. No real payment or email was sent by this change; recipient delivery and physical-device native share were not retested.
+
 ## 13:28 request — normal wording, one disclosure
 Removed repeated ONLINE_GIFT demo/payment/session/QA disclaimers from home, project selection, composition, final screen, tree panels and postcard PNG/text. One top disclosure states the actual current limits. FULL copy is preserved. Guest sees one optional email access control, not two disabled email forms and repeated login warnings; authorized users see normal confirmation/gift controls. Normal opt-in remains, server authorization, fixed recipient, budget and permanent claims unchanged. Accepted means Gmail accepted the message, not independently verified delivery.
 
