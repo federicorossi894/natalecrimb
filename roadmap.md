@@ -1,5 +1,5 @@
 # Online gift DEMO — 9 November 2026
-- [ ] 13:02 functional correction: session-local consensual dedication, current-attempt recovery/new gift, postcard CORS/retry/share, inline QA login/return, page-only child name/instructor export; regressions/browser/publication.
+- [x] 13:02 functional correction: session-local dedication, current-attempt recovery/new gift, postcard CORS/retry/share, inline QA login/return, page-only child name/instructor export; 437 regressions and real Cloud DEMO browser flow/downloads on Chromium 390/1280 and WebKit390. Publication checked separately below.
 - [x] 12:39 clarification: local attestato PNG genuinely downloaded and inspected in Chromium 390/1280 and WebKit 390; casetta original location/dates/directions/poster restored without agenda. Physical devices/share sheet unverified; publish pending.
 - [x] Restore autonomous calendar/academy and informational casetta in ONLINE_GIFT; 419 tests/build OK, 390/1280 browser menu/routes/calendar/photos and actual mission → diploma → reload verified; FULL/email preserved.
 - [ ] Restored sections publication completion — deployment service and public URL verification pending.

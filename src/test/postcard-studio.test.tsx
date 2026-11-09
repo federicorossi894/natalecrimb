@@ -14,7 +14,7 @@ it.each([null,'rejection'])('renderer failure %s exposes retry, not indefinite s
   const file=new File(['png'],'card.png',{type:'image/png'});renderer.mockResolvedValueOnce(file);
   URL.createObjectURL=vi.fn(()=> 'blob:card');URL.revokeObjectURL=vi.fn();
   fireEvent.click(screen.getByRole('button',{name:'Riprova cartolina'}));
-  await screen.findByTestId('postcard-image');expect(screen.getByRole('button',{name:'Scarica cartolina',exact:true})).toBeEnabled();
+  await screen.findByTestId('postcard-image');expect(screen.getByRole('button',{name:/^Scarica cartolina$/})).toBeEnabled();
 });
 it('prepared native share carries PNG and text; unsupported fallback opens composer without claiming send',async()=>{
   const file=new File(['png'],'card.png',{type:'image/png'});renderer.mockResolvedValue(file);
