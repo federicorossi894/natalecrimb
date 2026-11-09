@@ -3,10 +3,12 @@ import { useServerFn } from '@tanstack/react-start';
 import { Button } from '@/components/ui/button';
 import { sendOnlineGiftMail } from '@/lib/gift-mail.functions';
 import { giftMailInput } from '@/lib/gift-mail-policy';
+import type { Project } from '@/lib/data';
+import { GIFT_IMPACT } from '@/lib/gift-impact';
 
-type Props = { ornamentId: string; giftRequestId: string; client: string; from: string; toName: string; msg: string; receipt?: boolean };
+type Props = { ornamentId: string; giftRequestId: string; client: string; from: string; toName: string; msg: string; receipt?: boolean; project?: Project };
 /** Real email send for a completed gift: confirmation to the donor, or the gift now / at Christmas. */
-export function GiftMailForm({ ornamentId, giftRequestId, client, from, toName, msg, receipt = false }: Props) {
+export function GiftMailForm({ ornamentId, giftRequestId, client, from, toName, msg, receipt = false, project }: Props) {
   const send = useServerFn(sendOnlineGiftMail);
   const [when, setWhen] = useState<'gift_now' | 'gift_christmas'>('gift_now');
   const [to, setTo] = useState(''), [busy, setBusy] = useState(false), [done, setDone] = useState(false), [status, setStatus] = useState(''), [error, setError] = useState('');
@@ -24,6 +26,11 @@ export function GiftMailForm({ ornamentId, giftRequestId, client, from, toName, 
     finally { setBusy(false); }
   };
   return <div className="space-y-4">
+    {project && <div className="border-l-2 border-gold pl-4">
+      <h3 className="font-display text-lg">{receipt ? 'Grazie per il tuo gesto' : `${toName ? `${toName}, ` : ''}${from ? `${from} ti ha fatto un regalo solidale` : 'hai ricevuto un regalo solidale'}`}</h3>
+      <p className="mt-2 text-sm leading-relaxed">{GIFT_IMPACT[project.ornament]}</p>
+      {!receipt && msg && <p className="mt-2 font-display italic">“{msg}”</p>}
+    </div>}
     {!receipt && <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quando inviare">
       {([['gift_now', 'Ora'], ['gift_christmas', 'A Natale']] as const).map(([v, l]) => <Button key={v} type="button" role="radio" aria-checked={when === v} variant={when === v ? 'default' : 'outline'} disabled={done} onClick={() => setWhen(v)}>{l}</Button>)}
     </div>}

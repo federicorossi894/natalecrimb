@@ -1,4 +1,5 @@
 # Online gift DEMO — 9 November 2026
+- [ ] 14:20 show donor thank-you postcard without closed disclosure, project impact on final screen/email form, remove ONLINE_GIFT find-my-ornament controls; verify and publish.
 - [x] 14:08 shared public dedication without local override; AI Gateway donor thank-you per completed gift; concrete email project explanation; 449 tests/build OK, actual Gateway + PNG1080×1350 Chromium390 and independent Chromium1280 public-tree read verified. No emails sent by this task.
 - [x] 13:28 repeated ONLINE_GIFT DEMO/QA copy removed in favor of one top disclosure; normal email wording, one optional guest access control, linked Federico Gmail profile verified; 437 tests pass. Shared text and unrestricted normal email are not implemented; require safe tester-access decision, not anonymous mailbox access.
 - [ ] Public production-equivalent dedication/email requested without protections: unsafe removal not applied; public send needs anti-abuse implementation before replacing owner-only authorization. Current delivery and cross-device differences remain explicitly disclosed once.

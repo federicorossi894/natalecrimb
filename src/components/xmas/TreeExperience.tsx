@@ -35,7 +35,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
       </div>
       <div className="flex min-h-20 items-center justify-center gap-2 px-3">
         <Button variant="outline" size="icon" aria-label="Addobbo precedente" onClick={()=>step(-1)} disabled={!ornaments.length}><ChevronLeft /></Button>
-        <Button onClick={find} className="h-10 shadow-deep"><LocateFixed />Trova il mio addobbo</Button>
+        {!ONLINE_GIFT && <Button onClick={find} className="h-10 shadow-deep"><LocateFixed />Trova il mio addobbo</Button>}
         <Button variant="outline" size="icon" aria-label="Addobbo successivo" onClick={()=>step(1)} disabled={!ornaments.length}><ChevronRight /></Button>
       </div>
     </div>

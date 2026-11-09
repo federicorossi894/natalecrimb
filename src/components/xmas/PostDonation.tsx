@@ -145,8 +145,8 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
           <Button variant="outline" onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica cartolina</Button>
           <Button variant="outline" disabled={!file} onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`).catch(()=>setNote('Anteprima non scaricata. Usa Scarica cartolina.'))} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica anteprima</Button>
           <button onClick={copy} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Copy className="h-4 w-4" /> Copia messaggio</button>
-          {demo ? <span className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold opacity-80"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</span>
-            : <Link to="/albero" search={ornamentId ? { addobbo: ornamentId } : { trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</Link>}
+          {!ONLINE_GIFT && (demo ? <span className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold opacity-80"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</span>
+            : <Link to="/albero" search={ornamentId ? { addobbo: ornamentId } : { trova: 1 }} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</Link>)}
         </div>
         {note && <p role="status" className="text-center text-xs text-muted-foreground">{note}</p>}
         <PiazzaInvite />
