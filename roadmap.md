@@ -1,4 +1,5 @@
 # Online gift DEMO — 9 November 2026
+- [ ] 12:39 clarification: genuinely downloadable local attestato, restore original casetta location/dates/directions without agenda; test downloads and republish DEMO.
 - [x] Restore autonomous calendar/academy and informational casetta in ONLINE_GIFT; 419 tests/build OK, 390/1280 browser menu/routes/calendar/photos and actual mission → diploma → reload verified; FULL/email preserved.
 - [ ] Restored sections publication completion — deployment service and public URL verification pending.
 - [x] Normal final-screen receipt optin and personalized gift/Christmas email use real fixed-recipient Gmail mechanism, completed-simulation proof and stable claims; FULL/LIVE unchanged.
