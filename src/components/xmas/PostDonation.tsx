@@ -120,7 +120,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   const share = async () => {
     if (file && navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: CAMPAIGN.demo && !ONLINE_GIFT ? "Cartolina CRI Monza · demo" : "Cartolina CRI Monza", text }); setNote("Scegli WhatsApp dal menu di condivisione: il messaggio parte solo quando premi invio."); onShared?.(); return; }
-      catch (e) { if (e instanceof Error && e.name === "AbortError") return; }
+      catch (e) { if (typeof e === 'object' && e !== null && 'name' in e && e.name === "AbortError") return; }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
     setNote("Si apre WhatsApp con il messaggio già scritto: scegli tu il contatto e premi invio. La cartolina va allegata a parte, dopo averla scaricata.");
