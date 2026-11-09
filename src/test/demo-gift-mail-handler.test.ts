@@ -1,0 +1,19 @@
+// @vitest-environment node
+import { it,expect,vi,beforeEach } from 'vitest';
+const mocks=vi.hoisted(()=>({auth:vi.fn(),identity:vi.fn(),claim:vi.fn(),finish:vi.fn(),send:vi.fn(),single:vi.fn(),middleware:vi.fn()}));
+vi.mock('@tanstack/react-start',()=>({createServerFn:()=>{const chain={middleware:(x:unknown)=>{mocks.middleware(x);return chain;},inputValidator:()=>chain,handler:(fn:unknown)=>fn};return chain;}}));
+vi.mock('@/integrations/supabase/auth-middleware',()=>({requireSupabaseAuth:'bearer-auth-required'}));
+vi.mock('@/lib/email-qa-auth.server',()=>({requireEmailQa:mocks.auth}));
+vi.mock('@/integrations/supabase/client.server',()=>({supabaseAdmin:{from:()=>{const q={select:()=>q,eq:()=>q,single:mocks.single};return q;},rpc:(name:string)=>name==='claim_staff_gmail_qa'?mocks.claim():mocks.finish()}}));
+vi.mock('@/lib/demo-email-qa.server',async()=>{const real=await vi.importActual<typeof import('@/lib/demo-email-qa.server')>('@/lib/demo-email-qa.server');return {...real,gmailQaIdentity:mocks.identity,sendGmailQa:mocks.send};});
+import { sendDemoGiftMail } from '@/lib/demo-gift-mail.functions';
+const id='00000000-0000-4000-8000-000000000001';
+const data={ornamentId:id,giftRequestId:id,client:id,kind:'gift_now',recipient:'federico.rossi@crimonza.org',approved:true,donor:'Federico',toName:'Giulia',msg:'Privata'};
+const handler=sendDemoGiftMail as unknown as (x:{data:typeof data;context:{supabase:unknown;userId:string}})=>Promise<{state:string}>;
+const context={supabase:{},userId:'verified-owner'};
+beforeEach(()=>{vi.clearAllMocks();mocks.auth.mockResolvedValue(undefined);mocks.identity.mockResolvedValue(true);mocks.single.mockResolvedValue({data:{id,kind:'prossimita',amount_cents:2000},error:null});mocks.claim.mockResolvedValue({data:id,error:null});mocks.finish.mockResolvedValue({error:null});mocks.send.mockResolvedValue({state:'accepted',messageId:'fixture-only'});});
+it('foreign identity denied before ornament read, claim or Gmail send',async()=>{mocks.auth.mockRejectedValue(new Error('Denied'));await expect(handler({data,context})).rejects.toThrow('Denied');expect(mocks.single).not.toHaveBeenCalled();expect(mocks.claim).not.toHaveBeenCalled();expect(mocks.send).not.toHaveBeenCalled();});
+it('requires real completed simulation ornament before mail',async()=>{mocks.single.mockResolvedValue({data:null,error:null});await expect(handler({data,context})).rejects.toThrow('Completa prima');expect(mocks.claim).not.toHaveBeenCalled();expect(mocks.send).not.toHaveBeenCalled();});
+it('authorized owner receives actual server project and amount with validated private fields',async()=>{expect((await handler({data,context})).state).toBe('accepted');expect(mocks.send).toHaveBeenCalledWith('gift_now',id,{projectTitle:'Regala prossimità',amount:20,ornamentId:id,donor:'Federico',toName:'Giulia',msg:'Privata'});expect(mocks.finish).toHaveBeenCalledOnce();});
+it('global budget/replay deny never calls Gmail',async()=>{mocks.claim.mockResolvedValue({data:null,error:null});expect((await handler({data,context})).state).toBe('rate_limited');expect(mocks.send).not.toHaveBeenCalled();});
+it('unverified sender never claims or sends',async()=>{mocks.identity.mockResolvedValue(false);expect((await handler({data,context})).state).toBe('unavailable');expect(mocks.claim).not.toHaveBeenCalled();expect(mocks.send).not.toHaveBeenCalled();});
