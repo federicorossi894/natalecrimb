@@ -141,6 +141,13 @@
       "when": 1794217802504,
       "tag": "0019_email_qa_verified_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794232944008,
+      "tag": "0020_online_gift_public_dedication_and_mail",
+      "breakpoints": true
     }
   ]
 }

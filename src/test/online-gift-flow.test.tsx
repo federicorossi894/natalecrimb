@@ -7,8 +7,7 @@ vi.mock('@/lib/online-gift.functions',()=>({createOnlineGift:()=>undefined}));
 vi.mock('@/lib/tree-store',()=>({clientId:()=> '00000000-0000-4000-8000-000000000001'}));
 vi.mock('@/components/xmas/TreeExperience',()=>({TreeExperience:()=>null}));
 vi.mock('@/components/xmas/PostDonation',()=>({PostcardStudio:({selfThanks,msg}:{selfThanks:boolean;msg:string})=><div data-testid="card">{selfThanks?'thanks':'gift'}:{msg}</div>}));
-vi.mock('@/components/xmas/GiftEmailAccess',()=>({GiftEmailAccess:()=>null}));
-vi.mock('@/components/xmas/DemoGiftMail',()=>({DemoGiftMail:()=>null}));
+vi.mock('@/components/xmas/GiftMailForm',()=>({GiftMailForm:({receipt}:{receipt?:boolean})=><div data-testid={receipt?'receipt':'mail'}/>}));
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { PROJECTS } from '@/lib/data';
 import { clearGiftSession, sessionOrnaments } from '@/lib/online-gift-session';
@@ -20,11 +19,13 @@ it.each([true,false])('gift=%s keeps dedicated text on own bauble and makes post
   await screen.findByRole('button',{name:'Continua'});
   if(!gift)fireEvent.click(screen.getByRole('button',{name:'Solo donazione'}));
   fireEvent.change(screen.getByLabelText("Dedica pubblica sull'albero"),{target:{value:'Per Monza'}});
-  fireEvent.click(screen.getByLabelText('Acconsento alla pubblicazione di dedica e firma'));
+  fireEvent.click(screen.getByLabelText('Pubblica dedica e firma sull’albero'));
   expect(screen.queryByTestId('card')).toBeNull();
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));
   const pay=screen.getByRole('button',{name:'Conferma 5 €'});fireEvent.click(pay);fireEvent.click(pay);
-  await screen.findByTestId('card');expect(call).toHaveBeenCalledOnce();expect(sessionOrnaments()[0]?.dedica).toBe('Per Monza');expect(screen.getByTestId('card')).toHaveTextContent(gift?'gift:Per Monza':'thanks:Per Monza');
+  await screen.findByTestId('receipt');expect(call).toHaveBeenCalledOnce();expect(call.mock.calls[0]?.[0]?.data).toMatchObject({dedica:'Per Monza',consent:true});
+  if(gift){expect(screen.queryByTestId('card')).toBeNull();fireEvent.click(screen.getByRole('radio',{name:'Email'}));expect(screen.getByTestId('mail')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'WhatsApp'}));}
+  await screen.findByTestId('card');expect(sessionOrnaments()[0]?.dedica).toBe('Per Monza');expect(screen.getByTestId('card')).toHaveTextContent(gift?'gift:Per Monza':'thanks:Per Monza');
   const previous=call.mock.calls[0]?.[0]?.data.requestId;
   fireEvent.click(screen.getByRole('button',{name:'Nuovo regalo o donazione'}));
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));fireEvent.click(screen.getByRole('button',{name:'Conferma 5 €'}));

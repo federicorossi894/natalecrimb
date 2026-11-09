@@ -8,8 +8,7 @@ import { clientId } from '@/lib/tree-store';
 import { createOnlineGift } from '@/lib/online-gift.functions';
 import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
-import { DemoGiftMail } from './DemoGiftMail';
-import { GiftEmailAccess } from './GiftEmailAccess';
+import { GiftMailForm } from './GiftMailForm';
 import { clearGiftSession, loadGiftSession, onlineDedication, rememberSessionOrnament, saveGiftSession } from '@/lib/online-gift-session';
 export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
@@ -21,6 +20,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
   const inFlight=useRef(false);
   const [dedica,setDedica]=useState(''),[firma,setFirma]=useState(''),[consent,setConsent]=useState(false);
   const [ready,setReady]=useState(false);
+  const [channel,setChannel]=useState<'whatsapp'|'email'|null>(null);
   useEffect(()=>{
     const saved=loadGiftSession(project.id);
     if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setId(saved.id);setStage(saved.id?'done':'payment');}
@@ -37,13 +37,13 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       const client=clientId();setGiftClient(client);
       const value={project:project.id,amount,request:request.current,client,id:null,kind:project.ornament,gift,to:to.trim(),from:from.trim(),msg:msg.trim(),...parsed.data,provider};
       saveGiftSession(value);
-      const row=await create({data:{requestId:request.current,client,kind:project.ornament,amount,provider}});
+      const row=await create({data:{requestId:request.current,client,kind:project.ornament,amount,provider,...parsed.data}});
       const completed={...value,id:row.id};
-      saveGiftSession(completed);rememberSessionOrnament(completed);
+      saveGiftSession(completed);rememberSessionOrnament(completed);window.dispatchEvent(new Event('cri-demo-tree'));
       setId(row.id);setStage('done');
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
@@ -55,7 +55,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
         <div className="space-y-4">
           <label className="block">Dedica pubblica sull’albero (facoltativa)<textarea aria-label="Dedica pubblica sull'albero" maxLength={90} rows={3} value={dedica} onChange={e=>setDedica(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
           <label className="block">Firma pubblica facoltativa<input aria-label="Firma pubblica facoltativa" maxLength={40} value={firma} onChange={e=>setFirma(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3"/></label>
-          <label className="flex items-start gap-3"><input type="checkbox" aria-label="Acconsento alla pubblicazione di dedica e firma" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>Acconsento alla pubblicazione di dedica e firma.</span></label>
+          <label className="flex items-start gap-3"><input type="checkbox" aria-label="Pubblica dedica e firma sull’albero" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>Pubblica dedica e firma sull’albero, visibili a tutti.</span></label>
           <p className="text-sm text-muted-foreground">Senza consenso la pallina resta senza testo. Non inserire dati personali di altre persone.</p>
         </div>
         {gift && <div className="mt-5 space-y-4">
@@ -77,11 +77,18 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       <p className="mt-3 text-muted-foreground">Grazie per il tuo gesto solidale. La tua cartolina è pronta da condividere.</p>
       {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
       <details className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">Vedi la tua pallina sull’albero</summary><TreeExperience/></details>
-      <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift}/>
-      {request.current && giftClient && <GiftEmailAccess>{authorized=><>
-        <DemoGiftMail authorized={authorized} receipt ornamentId={id} giftRequestId={request.current || ''} client={giftClient} donor={from} toName={to} msg={msg}/>
-        <DemoGiftMail authorized={authorized} ornamentId={id} giftRequestId={request.current || ''} client={giftClient} donor={from} toName={to} msg={msg || (consent?dedica:"")}/>
-      </>}</GiftEmailAccess>}
+      {gift && <div className="mx-auto my-6 max-w-lg">
+        <h2 className="font-display text-2xl">Come vuoi inviare il regalo?</h2>
+        <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Come inviare il regalo">
+          {([['whatsapp','WhatsApp'],['email','Email']] as const).map(([v,l])=><Button key={v} role="radio" aria-checked={channel===v} variant={channel===v?'default':'outline'} onClick={()=>setChannel(v)}>{l}</Button>)}
+        </div>
+      </div>}
+      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift}/>}
+      {gift && channel==='email' && request.current && giftClient && <div className="mx-auto max-w-lg"><GiftMailForm ornamentId={id} giftRequestId={request.current} client={giftClient} from={from || (consent?firma:"")} toName={to} msg={msg || (consent?dedica:"")}/></div>}
+      {request.current && giftClient && <div className="mx-auto mt-8 max-w-lg border-t pt-6">
+        <h2 className="mb-3 font-display text-xl">Vuoi la conferma della donazione via email?</h2>
+        <GiftMailForm receipt ornamentId={id} giftRequestId={request.current} client={giftClient} from="" toName="" msg=""/>
+      </div>}
       <div className="mx-auto mt-8 max-w-lg space-y-4">
         <Button variant="outline" onClick={restart}>Nuovo regalo o donazione</Button>
         <Button variant="outline" asChild><Link to="/albero" search={{addobbo:id}}>Apri il link alla tua pallina</Link></Button>
