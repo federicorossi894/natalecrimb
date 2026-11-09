@@ -60,3 +60,5 @@ Verification: **437 tests / 45 files pass**. Real localhost Cloud DEMO flows (no
 
 ## Limits
 Real owner Gmail/Inbox remains unverified without owner CRI session; payment remains simulated. Local dedication is not cross-device/global. No payment, scheduler, venue, volunteer or DNS activation. Physical iOS/Android share sheets and WhatsApp delivery are unverified. Publication requires a separate actual public URL check.
+
+Release verification 13:17 UTC: publication requested and actual public `https://natalecrimb.lovable.app/regali/calore` returned HTTP200; Chromium390 selected the gift and rendered the new dedication/consent fields with DEMO explicit, no page errors. Public route bundle contains inline QA login/current-attempt restart. Release SHA `a8fb3f008596b023b199f04e9bd34da14e4d15c5`. Safari name revision check also downloaded Sofia/Stellina (not the old Luca), visually inspected; name absent from storage, URL and network payloads and cleared after reload. Casetta/calendar/giochi rechecked unchanged.

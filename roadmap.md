@@ -2,7 +2,7 @@
 - [x] 13:02 functional correction: session-local dedication, current-attempt recovery/new gift, postcard CORS/retry/share, inline QA login/return, page-only child name/instructor export; 437 regressions and real Cloud DEMO browser flow/downloads on Chromium 390/1280 and WebKit390. Publication checked separately below.
 - [x] 12:39 clarification: local attestato PNG genuinely downloaded and inspected in Chromium 390/1280 and WebKit 390; casetta original location/dates/directions/poster restored without agenda. Physical devices/share sheet unverified; publish pending.
 - [x] Restore autonomous calendar/academy and informational casetta in ONLINE_GIFT; 419 tests/build OK, 390/1280 browser menu/routes/calendar/photos and actual mission → diploma → reload verified; FULL/email preserved.
-- [ ] Restored sections publication completion — deployment service and public URL verification pending.
+- [x] Restored sections and functional correction published: public /regali/calore HTTP200, new dedication field visible in actual Chromium390; no runtime errors, DEMO explicit.
 - [x] Normal final-screen receipt optin and personalized gift/Christmas email use real fixed-recipient Gmail mechanism, completed-simulation proof and stable claims; FULL/LIVE unchanged.
 - [ ] Personalized real Gmail acceptance/Inbox check — requires owner CRI login, unavailable browser mint approval.
 - [x] QA_OWNER limited to exact server-verified confirmed CRI account; database claim mirrors it, no role grants.
@@ -13,7 +13,7 @@
 - [ ] Three real QA emails — owner must sign in using CRI account; minting its browser session requires unavailable approval. No sends attempted.
 - [x] 392 tests/37 files, documentation and automatic build OK.
 - [x] Previous ONLINE_GIFT release verified public HTTP 200 on follow-up.
-- [ ] Scoped QA_OWNER release publication completion/verification.
+- [x] Scoped QA_OWNER and inline QA login included in public gift route bundle; real owner send still awaits CRI login.
 
 # CRI Monza demo — roadmap
 ## TV audio prompt only — 8 November 20:08 UTC
