@@ -33,6 +33,8 @@ export const requestPaidGiftEmail = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     assertOfficialEmailReady();
     assertGiftEmailService(data.gift.mode);
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) throw new Error("La casella natale@crimonza.org non risulta ancora autorizzata sul sito.");
     const { loadDonation } = await import("./payments.server");
     const d = await loadDonation(data.id, data.accessToken);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -72,6 +74,8 @@ export const requestPaidDonorReceipt = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     assertOfficialEmailReady();
     assertCampaignAction("emailNow");
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) throw new Error("La casella natale@crimonza.org non risulta ancora autorizzata sul sito.");
     const { loadDonation } = await import("./payments.server");
     const d = await loadDonation(data.id, data.accessToken);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
