@@ -217,11 +217,11 @@ function Baubles({ornaments,height,palette,selected,arrivingId,reduced,onPick}:A
   return <>
     {KINDS.map(k=><instancedMesh key={`${k}-${byKind[k].length}`} ref={m=>{baubleRefs.current[k]=m;}} args={[undefined,undefined,Math.max(1,byKind[k].length)]} count={byKind[k].length} castShadow frustumCulled={false}>
       <sphereGeometry args={[1,40,28]} />
-      <meshPhysicalMaterial map={textures[k]} emissiveMap={textures[k]} emissive="#ffffff" emissiveIntensity={0.14} roughness={0.42} metalness={0.06} clearcoat={0.5} clearcoatRoughness={0.38} />
+      <meshPhysicalMaterial map={textures[k]} emissiveMap={textures[k]} emissive="#ffffff" emissiveIntensity={0.1} roughness={0.3} metalness={0.14} clearcoat={0.76} clearcoatRoughness={0.23} />
     </instancedMesh>)}
-    <instancedMesh key={`cap-${n}`} ref={cap} args={[undefined,undefined,Math.max(1,n)]} count={n} frustumCulled={false}><cylinderGeometry args={[1,1,1,16]} /><meshStandardMaterial color={palette.gold} metalness={0.85} roughness={0.28} /></instancedMesh>
+    <instancedMesh key={`cap-${n}`} ref={cap} args={[undefined,undefined,Math.max(1,n)]} count={n} frustumCulled={false}><cylinderGeometry args={[1,1,1,16]} /><meshStandardMaterial color={palette.gold} metalness={0.84} roughness={0.2} /></instancedMesh>
     <instancedMesh key={`rib-${n}`} ref={ribbon} args={[undefined,undefined,Math.max(1,n)]} count={n} frustumCulled={false}><boxGeometry /><meshStandardMaterial roughness={0.45} metalness={0.15} /></instancedMesh>
-    <instancedMesh key={`bow-${n}`} ref={bow} args={[undefined,undefined,Math.max(1,n*3)]} count={n*3} frustumCulled={false}><sphereGeometry args={[1,14,10]} /><meshStandardMaterial roughness={0.42} metalness={0.2} /></instancedMesh>
+    <instancedMesh key={`bow-${n}`} ref={bow} args={[undefined,undefined,Math.max(1,n*3)]} count={n*3} frustumCulled={false}><sphereGeometry args={[1,14,10]} /><meshStandardMaterial roughness={0.32} metalness={0.28} /></instancedMesh>
     <instancedMesh key={`tag-${nt}`} ref={tag} args={[undefined,undefined,Math.max(1,nt)]} count={nt} frustumCulled={false}><boxGeometry /><meshStandardMaterial map={tagTex} emissiveMap={tagTex} emissive="#ffffff" emissiveIntensity={0.18} roughness={0.7} /></instancedMesh>
     <instancedMesh key={`str-${nt}`} ref={string} args={[undefined,undefined,Math.max(1,nt)]} count={nt} frustumCulled={false}><boxGeometry /><meshBasicMaterial color={palette.gold} /></instancedMesh>
     <instancedMesh key={`hit-${n}`} ref={hit} args={[undefined,undefined,Math.max(1,n)]} count={n} frustumCulled={false}
