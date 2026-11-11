@@ -111,7 +111,15 @@ export const updatePaidDedication = createServerFn({ method: "POST" })
     const d = await loadDonation(data.id, data.accessToken);
     if (d.status !== "paid") throw new Error("Pagamento non confermato.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const status = data.consent && (data.firma || data.dedica) ? "pending" : "approved";
+    // Public text is auto-approved only when the already deployed server-side
+    // safety filter finds no personal identifiers, URLs or problematic language.
+    // Flagged content stays private pending staff review; no unchecked text escapes.
+    let status: "approved" | "pending" = "approved";
+    if (data.consent && (data.firma || data.dedica)) {
+      const flags = await supabaseAdmin.rpc("wish_flags", { _body: data.dedica, _nick: data.firma });
+      if (flags.error || !Array.isArray(flags.data)) throw new Error("Controllo della dedica non disponibile.");
+      status = flags.data.length ? "pending" : "approved";
+    }
     const { data: ornament, error } = await supabaseAdmin
       .from("live_ornaments")
       .update({
