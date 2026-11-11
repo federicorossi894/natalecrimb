@@ -29,14 +29,29 @@ describe('online gift email',()=>{
   });
   it.each(['gift_now','gift_christmas'] as const)('recipient %s links to a new gift while retaining its own bauble link',kind=>{
     const content={...giftMailInput.parse({...base,kind}),projectTitle:'Regala calore',amount:5};
-    expect(giftMailParts(content).invitation?.url).toBe('https://natalecrimb.lovable.app/regali');
+    expect(giftMailParts(content).invitation?.url).toBe('https://natale.crimonza.org/regali');
     const {html}=decode(giftMailRaw(content,'ref'));
-    expect(html).toContain('href="https://natalecrimb.lovable.app/regali"');
-    expect(html).toContain(`href="https://natalecrimb.lovable.app/albero?addobbo=${base.ornamentId}"`);
+    expect(html).toContain('href="https://natale.crimonza.org/regali"');
+    expect(html).toContain(`href="https://natale.crimonza.org/albero?addobbo=${base.ornamentId}"`);
+  });
+  it('preserves the sender name exactly and includes a hidden preheader',()=>{
+    const content={...giftMailInput.parse({...base,from:'TEST AUDIT'}),projectTitle:'Regala calore',amount:5};
+    const parts=giftMailParts(content);
+    expect(parts.subject).toContain('TEST AUDIT');
+    const {html}=decode(giftMailRaw(content,'ref'));
+    expect(html).toContain('TEST AUDIT ha scelto');
+    expect(html).not.toContain('tEST AUDIT');
+    expect(html).toContain('mso-hide:all');
+  });
+  it('includes authoritative gift date and a reference when provided',()=>{
+    const content={...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'Regala calore',amount:5,createdAt:'2026-11-11T10:20:00Z'};
+    const parts=giftMailParts(content);
+    expect(parts.lines.join(' ')).toContain('11 nov 2026');
+    expect(parts.lines.join(' ')).toContain(base.ornamentId);
   });
   it('donor confirmation does not include a recipient re-gifting action',()=>{
     const content={...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'Regala calore',amount:5};
     expect(giftMailParts(content).invitation).toBeNull();
-    expect(decode(giftMailRaw(content,'ref')).html).not.toContain('href="https://natalecrimb.lovable.app/regali"');
+    expect(decode(giftMailRaw(content,'ref')).html).not.toContain('href="https://natale.crimonza.org/regali"');
   });
 });
