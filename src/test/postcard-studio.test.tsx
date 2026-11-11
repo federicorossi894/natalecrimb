@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 const renderer=vi.hoisted(()=>vi.fn());
-vi.mock('@/lib/postcard-share',()=>({renderPostcardImage:renderer,postcardText:()=> 'Message https://natalecrimb.lovable.app/albero',INVITE_LINE:''}));
+vi.mock('@/lib/postcard-share',()=>({renderPostcardImage:renderer,postcardText:()=> 'Personal message + https://natale.crimonza.org/albero',postcardCaption:()=> 'Cartolina per te · https://natale.crimonza.org/albero',INVITE_LINE:''}));
 vi.mock('@tanstack/react-router',()=>({Link:({children}:{children:React.ReactNode})=><a>{children}</a>}));
 import { PostcardStudio } from '@/components/xmas/PostDonation';
 import { PROJECTS } from '@/lib/data';
@@ -24,7 +24,8 @@ it('prepared native share carries PNG and text; unsupported fallback opens compo
   const open=vi.spyOn(window,'open').mockImplementation(()=>null);
   const completed=vi.fn();
   render(<PostcardStudio project={project} to="" from="" msg="" selfThanks onShared={completed}/>);await screen.findByTestId('postcard-image');
-  fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));await waitFor(()=>expect(share).toHaveBeenCalledWith(expect.objectContaining({files:[file],text:expect.stringContaining('https://')})));expect(open).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));await waitFor(()=>expect(share).toHaveBeenCalledWith(expect.objectContaining({files:[file],text:expect.stringContaining('natale.crimonza.org')})));expect(open).not.toHaveBeenCalled();
+  expect(share.mock.calls[0]?.[0]?.text).not.toContain('Personal message');
   await waitFor(()=>expect(completed).toHaveBeenCalledOnce());completed.mockClear();
   canShare.mockReturnValue(false);fireEvent.click(screen.getByRole('button',{name:'Condividi su WhatsApp'}));expect(open).toHaveBeenCalledWith(expect.stringContaining('https://wa.me/?text='),'_blank','noopener,noreferrer');
   expect(completed).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Ho concluso la condivisione'}));expect(completed).toHaveBeenCalledOnce();

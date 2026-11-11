@@ -17,10 +17,11 @@ describe('online gift email',()=>{
     for(const bad of [{to:'a@b.it\r\nBcc: x@y.it'},{to:'a@b.it, c@d.it'},{msg:'vai su www.truffa.com'},{msg:'scrivi a x@y.it'},{from:'https://x'},{msg:'<script>'},{msg:'x'.repeat(91)}])expect(giftMailInput.safeParse({...base,...bad}).success).toBe(false);
   });
   it('rejects unknown kinds and extra fields',()=>{expect(giftMailInput.safeParse({...base,kind:'promo'}).success).toBe(false);expect(giftMailInput.safeParse({...base,bcc:'x@y.it'}).success).toBe(false);});
-  it('sends from the configured sender to the recipient, without demo labels',()=>{
+  it('sends from the configured sender to the recipient and clearly marks demo messages',()=>{
     const {head,html}=decode(giftMailRaw({...giftMailInput.parse(base),projectTitle:'Regala calore',amount:20},'ref'));
-    expect(head).toContain(`<${GIFT_MAIL_SENDER}>`);expect(head).toContain('To: <anna@example.it>');expect(html).not.toMatch(/DEMO|SIMULAZ/i);
-    expect(html).toContain('Buone feste');expect(html).toContain('addobbo=00000000-0000-4000-8000-000000000001');
+    expect(head).toContain(`<${GIFT_MAIL_SENDER}>`);expect(head).toContain('To: <anna@example.it>');expect(html).toContain('PROVA DEMO');
+    expect(html).toContain('Buone feste');
+    expect(html).toContain('UN MESSAGGIO PER TE');expect(html).toContain('addobbo=00000000-0000-4000-8000-000000000001');
   });
   it('christmas email says Buon Natale; receipt states amount and is not a tax receipt',()=>{
     expect(giftMailParts({...giftMailInput.parse({...base,kind:'gift_christmas'}),projectTitle:'P',amount:5}).subject).toMatch(/^Buon Natale, Anna/);

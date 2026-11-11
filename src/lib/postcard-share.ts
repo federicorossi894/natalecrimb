@@ -15,7 +15,18 @@ export function postcardText(p: Project, to: string, from: string, msg: string, 
   const dedica = msg.trim() || p.postcardLine;
   const firma = from.trim() ? `\n— ${from.trim()}` : "";
   const link = ornamentId ? `Il tuo addobbo è sull'Albero di Monza digitale: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
-  return `${selfThanks ? '🎄 Ho scelto di fare un gesto solidale!\nHo sostenuto' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo && !ONLINE_GIFT ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
+  return `${selfThanks ? '🎄 Ho scelto di fare un gesto solidale!\nHo sostenuto' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Prova DEMO: nessuna donazione reale.)" : ""}`;
+}
+
+/** Short caption when the illustrated card is attached. Never repeat the private message already printed in the PNG. */
+export function postcardCaption(p: Project, to: string, ornamentId?: string | null, selfThanks = false) {
+  const recipient = to.trim();
+  const greeting = selfThanks
+    ? `🎄 Ho scelto di sostenere «${p.title}» con Croce Rossa Monza.`
+    : `🎄 ${recipient ? `Un regalo solidale per ${recipient}.` : "Un regalo solidale per te."}`;
+  const link = ornamentId ? ornamentUrl(ornamentId) : projectUrl(p);
+  const footer = CAMPAIGN.demo ? "\n\n(Prova DEMO: nessuna donazione reale.)" : "";
+  return `${greeting}\nScopri la pallina sull’Albero di Monza:\n${link}${footer}`;
 }
 
 /** Resolves a CSS custom property (any colour syntax) to #rrggbb, so canvases and email HTML get plain sRGB. */
