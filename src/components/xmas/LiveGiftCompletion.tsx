@@ -86,11 +86,16 @@ export function LiveGiftCompletion({donationId,ornamentId,project}:{donationId:s
   const stored=useRef(false);
   useEffect(()=>{
     if(!current || stored.current)return;
+    if(current.dedicationSynced){setDedicationNote("La tua scelta per la pallina è stata registrata.");return;}
     stored.current=true;
     const access=loadDonationAccess(donationId);
     if(!access){setDedicationNote("Per recuperare la dedica usa il dispositivo con cui hai effettuato il pagamento.");return;}
     void donate({data:{...access,consent:current.consent,dedica:current.dedica,firma:current.firma}})
-      .then(result=>setDedicationNote(result.status==="pending"?"Dedica pubblica ricevuta: attende la moderazione.":"La pallina è pronta sull'Albero di Monza."))
+      .then(result=>{
+        const latest=loadGiftSession(project.id);
+        if(latest?.request===donationId) saveGiftSession({...latest,id:ornamentId,dedicationSynced:true});
+        setDedicationNote(result.status==="pending"?"Dedica pubblica ricevuta: attende la moderazione.":"La pallina è pronta sull'Albero di Monza.");
+      })
       .catch(()=>setDedicationNote("La pallina è stata creata, ma la dedica non è stata salvata. Contatta il Comitato prima di ripetere l'operazione."));
   },[current?.request,donationId,donate]);
   const finish=()=>{setSharing(true);if(current)saveGiftSession({...current,id:ornamentId,sharingComplete:true});};
