@@ -50,6 +50,18 @@ describe('online gift email',()=>{
     expect(parts.lines.join(' ')).toContain('11 nov 2026');
     expect(parts.lines.join(' ')).toContain(base.ornamentId);
   });
+  it('uses responsive premium table layout, keeps private message escaped and preserves the official link',()=>{
+    const c={...giftMailInput.parse({...base,msg:'Un regalo & un pensiero'}),projectTitle:'Regala calore',amount:12};
+    const {html}=decode(giftMailRaw(c,'ref'));
+    expect(html).toContain('role="presentation"');
+    expect(html).toContain('max-width:620px');
+    expect(html).toContain('email-content');
+    expect(html).toContain('UN MESSAGGIO PER TE');
+    expect(html).toContain('Un regalo &amp; un pensiero');
+    expect(html).not.toContain('Un regalo & un pensiero');
+    expect(html).toContain('href="https://natale.crimonza.org/albero?addobbo=');
+    expect(html).toContain('Informazioni privacy (bozza in revisione)');
+  });
   it('donor confirmation does not include a recipient re-gifting action',()=>{
     const content={...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'Regala calore',amount:5};
     expect(giftMailParts(content).invitation).toBeNull();
