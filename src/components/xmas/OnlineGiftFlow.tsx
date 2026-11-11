@@ -13,7 +13,12 @@ import { OrnamentIcon } from './Ornament';
 import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
 import { resolvePublicTreeChoice } from '@/lib/public-tree-choice';
 import { SolidarityShare } from './SolidarityShare';
-export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
+import { LiveGiftFlow } from './LiveGiftFlow';
+import { CAMPAIGN } from '@/lib/campaign';
+export function OnlineGiftFlow(props: {project:Project;amount:number;onBack:()=>void}) {
+  return CAMPAIGN.demo ? <DemoGiftFlow {...props} /> : <LiveGiftFlow {...props} />;
+}
+function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
   const [to,setTo]=useState(''),[from,setFrom]=useState(''),[msg,setMsg]=useState('');
   const [gift,setGift]=useState(true),[provider,setProvider]=useState<'sumup'|'paypal'>('sumup');
