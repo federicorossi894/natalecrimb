@@ -164,11 +164,12 @@ function DetailView({ p, preset, setPreset, custom, setCustom, amount, error, on
 
         <section className="glass-strong rounded-3xl p-5 shadow-deep lg:sticky lg:top-24 lg:row-span-2" data-testid="quick-donate">
           <p className="font-display text-2xl">Fai questo regalo</p>
-          <p className="mb-4 mt-1 text-sm text-muted-foreground">{CAMPAIGN.simulators ? "Bastano 5 €. Scegli e conferma: due tocchi." : "Scegli il progetto e verifica le modalità disponibili."}</p>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">{CAMPAIGN.simulators ? "Da 5 €. Scegli l’importo, dedica il gesto e condividilo." : "Scegli il progetto e verifica le modalità disponibili."}</p>
           <Amounts p={p} preset={preset} setPreset={setPreset} custom={custom} setCustom={setCustom} error={error} />
           <button onClick={onGo} disabled={Boolean(error)} aria-describedby={error ? "amount-help" : undefined} className="mt-4 w-full rounded-full bg-primary py-4 text-lg font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
-            {error ? "Scegli un importo valido" : ONLINE_GIFT ? `Regala a qualcuno · ${amount} €` : `Dona ${amount} €`}
+            {error ? "Scegli un importo valido" : ONLINE_GIFT ? `Continua · ${amount} €` : `Dona ${amount} €`}
           </button>
+          {ONLINE_GIFT && <p className="mt-2 text-center text-sm text-gold">Puoi regalarlo a una persona oppure scegliere una semplice donazione al prossimo passaggio.</p>}
           <p className="mt-3 text-center text-xs text-muted-foreground">È una donazione, non un acquisto. {CAMPAIGN.demo || CAMPAIGN.livePayments || CAMPAIGN.volunteerCashDonations ? <>Il tuo regalo diventa {p.ornamentName} sull'Albero di Monza.</> : "Le donazioni online non sono ancora disponibili."}</p>
           {CAMPAIGN.demo && !ONLINE_GIFT && <p className="mt-1 text-center text-[11px] text-gold">Demo: nessun pagamento verrà effettuato</p>}
         </section>
