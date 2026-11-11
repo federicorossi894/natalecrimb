@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 const checkout=vi.hoisted(()=>vi.fn());
 vi.mock("@tanstack/react-start",()=>({useServerFn:()=>checkout}));
 vi.mock("@/lib/payments.functions",()=>({startDonationCheckout:()=>undefined}));
+vi.mock("@/lib/tree-store",()=>({clientId:()=> "00000000-0000-4000-8000-000000000111"}));
 vi.mock("@tanstack/react-router",()=>({Link:({children}:{children:React.ReactNode})=><a>{children}</a>}));
 import { LiveGiftFlow } from "@/components/xmas/LiveGiftFlow";
 import { CAMPAIGN } from "@/lib/campaign";
