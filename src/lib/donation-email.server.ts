@@ -78,3 +78,33 @@ export async function processDonationEmail(id: string, kind: DeliveryKind, retry
     retry,
   );
 }
+
+/** Bounded worker for durable Christmas deliveries. Must only be called from a
+ * DB-authenticated internal cron endpoint, never from a browser action.
+ * Ambiguous Gmail outcomes remain claimed and require staff reconciliation.
+ */
+export async function processDueChristmasGiftEmails() {
+  if (CAMPAIGN.demo || !officialEmailReady()) return { state: "blocked" as const, processed: 0 };
+  const { data: due, error } = await supabaseAdmin.from("live_donations")
+    .select("id")
+    .eq("status", "paid")
+    .eq("settlement_state", "completed")
+    .eq("gift_email_state", "blocked")
+    .not("gift_email_due_at", "is", null)
+    .lte("gift_email_due_at", new Date().toISOString())
+    .order("gift_email_due_at", { ascending: true })
+    .limit(12);
+  if (error) throw new Error("Coda Natale non disponibile.");
+  const result = { state: "checked" as const, processed: 0, accepted: 0, review: 0 };
+  for (const row of due ?? []) {
+    result.processed++;
+    try {
+      const status = await processDonationEmail(row.id, "gift");
+      if (status.state === "accepted") result.accepted++;
+      else if (status.state !== "unchanged") result.review++;
+    } catch {
+      result.review++; // No blind retry: the SQL claim may have been taken.
+    }
+  }
+  return result;
+}
