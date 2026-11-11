@@ -76,6 +76,25 @@ function Ground({palette}:{palette:Palette}) {
   useEffect(()=>()=>texture.dispose(),[texture]);
   return <mesh rotation-x={-Math.PI/2} receiveShadow><planeGeometry args={[200,200]} /><meshStandardMaterial map={texture} color={palette.snow} roughness={0.7} metalness={0.15} /></mesh>;
 }
+/** One static warm halo behind the fir. One sprite, no animation or new postprocessing pass. */
+function TreeAtmosphere({ height, palette }: { height: number; palette: Palette }) {
+  const glow = useMemo(() => {
+    const c = document.createElement("canvas"); c.width = c.height = 128;
+    const ctx = c.getContext("2d");
+    if (ctx) {
+      const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
+      g.addColorStop(0, "rgba(255,222,160,0.58)");
+      g.addColorStop(0.35, "rgba(255,211,140,0.25)");
+      g.addColorStop(1, "rgba(255,211,140,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
+    }
+    const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace; return texture;
+  }, []);
+  useEffect(() => () => glow.dispose(), [glow]);
+  return <sprite position={[0, height * 0.48, -height * 0.48]} scale={[height * 2.25, height * 2.25, 1]}>
+    <spriteMaterial map={glow} color={palette.gold} transparent opacity={0.46} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+  </sprite>;
+}
 export default function TreeScene(props:Props) {
   const [palette,setPalette]=useState<Palette|null>(null);
   const [supported,setSupported]=useState(true);
@@ -101,11 +120,13 @@ export default function TreeScene(props:Props) {
       contextCleanup.current=()=>gl.domElement.removeEventListener('webglcontextlost',lost);
     }}>
       <color attach="background" args={[palette.night]} /><fog attach="fog" args={[palette.night,9,27]} />
-      <ambientLight intensity={0.65} /><hemisphereLight args={[palette.rim,palette.ground,1.2]} />
-      <directionalLight position={[3,6,5]} intensity={2.4} color={palette.snow} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
-      <pointLight position={[-2,3,-2]} intensity={12} color={palette.gold} />
+      <ambientLight intensity={0.52} /><hemisphereLight args={[palette.rim,palette.ground,0.95]} />
+      <directionalLight position={[3,6,5]} intensity={2.0} color={palette.snow} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
+      <pointLight position={[-2, h*0.7, -2]} intensity={7} distance={h*3} color={palette.gold} />
+      <spotLight position={[2, h*1.35, 3]} intensity={5} angle={0.54} penumbra={0.85} distance={h*4} color={palette.ivory} />
       <Environment resolution={64}><Lightformer intensity={2} position={[0,5,0]} scale={[8,8,1]} /><Lightformer intensity={3} color={palette.gold} position={[-4,2,1]} rotation-y={Math.PI/2} scale={[6,4,1]} /></Environment>
       <Ground palette={palette} />
+      <TreeAtmosphere height={h} palette={palette} />
       
       <Decorations {...props} height={h} palette={palette} />
       <TreeStar height={h} palette={palette} />
