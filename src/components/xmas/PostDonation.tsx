@@ -132,7 +132,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   return (
     <div data-testid="postcard-studio">
       {status && <p className="mb-4 text-center text-xs text-gold">{status}</p>}
-      {ONLINE_GIFT && <div className="mx-auto mb-6 max-w-xl rounded-2xl border border-gold/40 bg-secondary/35 p-4 text-center"><Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 text-base shadow-deep"><MessageCircle className="h-5 w-5"/>Condividi la cartolina su WhatsApp</Button><p className="mt-2 text-xs text-muted-foreground">La dedica è nell’immagine. Scegli il contatto e conferma tu l’invio.</p></div>}
+      {ONLINE_GIFT && <div className="mx-auto mb-6 max-w-xl rounded-2xl border border-gold/40 bg-secondary/35 p-4 text-center"><Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 text-base shadow-deep"><MessageCircle className="h-5 w-5"/>Condividi su WhatsApp</Button><p className="mt-2 text-xs text-muted-foreground">La dedica è nell’immagine. Scegli il contatto e conferma tu l’invio.</p></div>}
       <div className="grid items-start gap-8 md:grid-cols-2">
         <figure>
           <figcaption className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gold">La cartolina · immagine</figcaption>
