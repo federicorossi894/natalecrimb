@@ -132,6 +132,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
   return (
     <div data-testid="postcard-studio">
       {status && <p className="mb-4 text-center text-xs text-gold">{status}</p>}
+      {ONLINE_GIFT && <div className="mx-auto mb-6 max-w-xl rounded-2xl border border-gold/40 bg-secondary/35 p-4 text-center"><Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 text-base shadow-deep"><MessageCircle className="h-5 w-5"/>Condividi su WhatsApp</Button><p className="mt-2 text-xs text-muted-foreground">La dedica è nell’immagine. Scegli il contatto e conferma tu l’invio.</p></div>}
       <div className="grid items-start gap-8 md:grid-cols-2">
         <figure>
           <figcaption className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gold">La cartolina · immagine</figcaption>
@@ -143,7 +144,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         </figure>
       </div>
       <div className="mx-auto mt-6 max-w-lg space-y-2">
-        <Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 shadow-deep"><MessageCircle className="h-5 w-5" /> {ONLINE_GIFT ? "Condividi su WhatsApp" : "Apri WhatsApp con il messaggio"}</Button>
+        {!ONLINE_GIFT && <Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 shadow-deep"><MessageCircle className="h-5 w-5" />Apri WhatsApp con il messaggio</Button>}
         <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Quando condividi l’immagine dal telefono, il messaggio è breve: la dedica è già sulla cartolina. Se WhatsApp non supporta il PNG, si apre il solo testo e puoi allegare la cartolina scaricata. Nessun invio parte automaticamente.</p>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" onClick={() => { if (file) void deliverLocalFile(file).catch(() => setNote('Non è stato possibile scaricare la cartolina: riprova.')); }} disabled={!file} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica cartolina</Button>

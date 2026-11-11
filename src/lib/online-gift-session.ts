@@ -8,6 +8,7 @@ export const giftSessionSchema = z.object({
   id: z.string().uuid().nullable(), kind: z.enum(['calore', 'dae', 'prossimita', 'cuore']),
   gift: z.boolean(), to: text(40), from: text(40), msg: text(90),
   dedica: text(90), firma: text(40), consent: z.boolean(), provider: z.enum(['sumup', 'paypal']),
+  reusePublicText: z.boolean().optional(),
   thankYou: z.string().max(500).optional(),
   sharingComplete: z.boolean().optional(),
 });
