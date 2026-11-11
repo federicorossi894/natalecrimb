@@ -4,7 +4,7 @@ import rossoLogo from "@/assets/cri-rosso-orizzontale.png.asset.json";
 import { CAMPAIGN } from './campaign';
 
 /** Public site used in shared messages and QR codes. */
-export const SITE_URL = "https://natalecrimb.lovable.app";
+export const SITE_URL = "https://natale.crimonza.org";
 export const projectUrl = (p: Project) => `${SITE_URL}/regali/${p.id}`;
 /** Stable deep link: opens the Albero and focuses this ornament (public data only). */
 export const ornamentUrl = (id?: string | null) => (id ? `${SITE_URL}/albero?addobbo=${id}` : `${SITE_URL}/albero`);
@@ -15,7 +15,7 @@ export function postcardText(p: Project, to: string, from: string, msg: string, 
   const dedica = msg.trim() || p.postcardLine;
   const firma = from.trim() ? `\n— ${from.trim()}` : "";
   const link = ornamentId ? `Il tuo addobbo è sull'Albero di Monza digitale: ${ornamentUrl(ornamentId)}` : `Scopri il regalo: ${projectUrl(p)}`;
-  return `${selfThanks ? '🎄 Grazie per il tuo gesto solidale!\nHo scelto di sostenere' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo && !ONLINE_GIFT ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
+  return `${selfThanks ? '🎄 Ho scelto di fare un gesto solidale!\nHo sostenuto' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo && !ONLINE_GIFT ? "\n\n(Cartolina DEMO: nessuna donazione reale)" : ""}`;
 }
 
 /** Resolves a CSS custom property (any colour syntax) to #rrggbb, so canvases and email HTML get plain sRGB. */
@@ -181,7 +181,7 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.font = "700 24px Manrope, system-ui, sans-serif"; ctx.fillText("Comitato di Monza", W - 110, fy + 30);
   ctx.globalAlpha = 0.75; ctx.font = "500 21px Manrope, system-ui, sans-serif";
   ctx.fillText(ONLINE_GIFT ? "Una pallina sull’albero digitale" : `Piazza San Paolo · fino al ${TREE_UNTIL}`, W - 110, fy + 60);
-  ctx.fillText(CAMPAIGN.demo && !ONLINE_GIFT ? (ornamentId ? "natalecrimb.lovable.app/albero · DEMO" : "Cartolina DEMO · nessuna donazione reale") : "Il Natale che fa bene · Albero di Monza", W - 110, fy + 88);
+  ctx.fillText(CAMPAIGN.demo && !ONLINE_GIFT ? (ornamentId ? "natale.crimonza.org/albero · DEMO" : "Cartolina DEMO · nessuna donazione reale") : "Il Natale che fa bene · Albero di Monza", W - 110, fy + 88);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
   const blob = await new Promise<Blob | null>((res) => c.toBlob(res, "image/png"));
   return blob ? new File([blob], `cartolina-cri-monza-${p.id}.png`, { type: "image/png" }) : null;
