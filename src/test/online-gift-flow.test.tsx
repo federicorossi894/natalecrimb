@@ -24,7 +24,7 @@ it.each([true,false])('gift=%s sends consented dedication to shared server and p
   fireEvent.click(screen.getByRole('button',{name:'Continua'}));
   const pay=screen.getByRole('button',{name:'Conferma 5 €'});fireEvent.click(pay);fireEvent.click(pay);
   await screen.findByTestId('receipt');expect(call).toHaveBeenCalledOnce();expect(call.mock.calls[0]?.[0]?.data).toMatchObject({dedica:'Per Monza',consent:true});
-  if(gift){expect(screen.queryByTestId('card')).toBeNull();fireEvent.click(screen.getByRole('radio',{name:'Email'}));expect(screen.getByTestId('mail')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'WhatsApp'}));}
+  if(gift){expect(screen.getByTestId('card')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'Email'}));expect(screen.getByTestId('mail')).toBeInTheDocument();fireEvent.click(screen.getByRole('radio',{name:'WhatsApp'}));}
   expect(loadGiftSession('calore')?.thankYou).toBe('Grazie, il tuo gesto porta vicinanza a Monza.');
   if(gift){
     expect(loadGiftSession('calore')?.sharingComplete).not.toBe(true);
