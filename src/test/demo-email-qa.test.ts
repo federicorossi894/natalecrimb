@@ -28,7 +28,7 @@ describe("Manual DEMO QA, mocked delivery only", () => {
   it("uses only the exact owner-confirmed server destination", async () => {
     const p = ports();
     await runDemoEmailQa(p);
-    expect(p.send).toHaveBeenCalledWith("federico.rossi@crimonza.org", "mock-attempt");
+    expect(p.send).toHaveBeenCalledWith("natale@crimonza.org", "mock-attempt");
   });
   it("ordinary visitors and volunteers cannot claim or send", async () => {
     const p = ports();
@@ -71,21 +71,21 @@ describe("Manual DEMO QA, mocked delivery only", () => {
     expect(p.send).toHaveBeenCalledTimes(1);
   });
   it("QA readiness is independent of absent official LIVE mailbox", () => {
-    expect(DEMO_EMAIL_QA.sender).toBe("federico.rossi@crimonza.org");
+    expect(DEMO_EMAIL_QA.sender).toBe("natale@crimonza.org");
     expect(DEMO_EMAIL_QA.enabled).toBe(true);
   });
   it.each(["receipt", "gift_now", "christmas_simulation"] as const)(
     "fixed sender and recipient for %s",
     (kind) => {
       const raw = Buffer.from(qaRawMessage(kind, "mock-id"), "base64url").toString("utf8");
-      expect(raw).toContain("From: federico.rossi@crimonza.org\r\nTo: federico.rossi@crimonza.org");
+      expect(raw).toContain("From: natale@crimonza.org\r\nTo: natale@crimonza.org");
       const body = Buffer.from(raw.split("\r\n\r\n")[1] ?? "", "base64").toString("utf8");
       expect(body).toContain("[DEMO — NESSUN PAGAMENTO]");
       if (kind === "christmas_simulation") expect(body).toContain("SIMULAZIONE ORARIO");
     },
   );
   it("provider acceptance is not labelled delivery", async () => {
-    vi.stubEnv("GOOGLE_MAIL_API_KEY", "mock");
+    vi.stubEnv("GOOGLE_MAIL_API_KEY_1", "mock");
     vi.stubEnv("LOVABLE_API_KEY", "mock");
     const f = vi.fn(
       async () => new Response(JSON.stringify({ id: "mock-provider-id" }), { status: 200 }),

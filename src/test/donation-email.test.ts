@@ -164,7 +164,7 @@ describe("Official sender hard gate and protected QA", () => {
   );
   it("official LIVE sender stays unavailable independently of manual Gmail QA", () => {
     expect(officialEmailReady()).toBe(false);
-    expect(DEMO_EMAIL_QA.confirmedRecipients).toEqual(["federico.rossi@crimonza.org"]);
+    expect(DEMO_EMAIL_QA.confirmedRecipients).toEqual(["natale@crimonza.org"]);
     expect(DEMO_EMAIL_QA.enabled).toBe(true);
   });
   const ready = {
