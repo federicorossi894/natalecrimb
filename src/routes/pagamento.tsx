@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CAMPAIGN } from "@/lib/campaign";
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Shell } from "@/components/xmas/Shell";
 import { PaidGiftEmail } from '@/components/xmas/PaidGiftEmail';
 import { loadGiftSession } from "@/lib/online-gift-session";
-import { LiveGiftCompletion } from "@/components/xmas/LiveGiftCompletion";
+const LiveGiftCompletion = lazy(async()=>({default:(await import("@/components/xmas/LiveGiftCompletion")).LiveGiftCompletion}));
 export const Route = createFileRoute("/pagamento")({
   validateSearch: z.object({
     id: z.string().uuid().optional(),
@@ -106,7 +106,7 @@ function PaymentReturn() {
   // This branch is available only after authoritative paid status and ornament creation.
   if (!CAMPAIGN.demo && status === "paid" && ornament && project && id
       && loadGiftSession(project.id)?.request === id) {
-    return <Shell hidePiazzaPill><LiveGiftCompletion donationId={id} ornamentId={ornament} project={project}/></Shell>;
+    return <Shell hidePiazzaPill><Suspense fallback={<p role="status" className="p-8">Preparo il tuo regalo…</p>}><LiveGiftCompletion donationId={id} ornamentId={ornament} project={project}/></Suspense></Shell>;
   }
   return (
     <Shell hidePiazzaPill>
