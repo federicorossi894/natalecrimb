@@ -21,8 +21,9 @@ export const giftEmailAvailability = createServerFn({ method: "POST" })
     } catch {
       return { state: "unavailable", reason: "sender_not_configured" };
     }
-    // Readiness flags alone must never turn a missing integration into success.
-    return { state: "unavailable", reason: "live_service_not_implemented" };
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) return { state: "unavailable", reason: "sender_not_configured" };
+    return { state: "available", mode: data.mode };
   });
 
 /** Feature-specific request: one owned paid donation, one expected recipient, one immutable gift. */
