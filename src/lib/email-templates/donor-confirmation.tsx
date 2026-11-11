@@ -53,7 +53,7 @@ export function DonorConfirmationEmail({
             <br />
             Riferimento: {reference}
           </Text>
-          <Link href="https://natalecrimb.lovable.app/albero">L’Albero di Monza</Link>
+          <Link href="https://natale.crimonza.org/albero">L’Albero di Monza</Link>
           <Hr />
           <Text>
             Questa è una conferma informativa, non un documento fiscale. Non attesta automaticamente
