@@ -14,6 +14,8 @@ import { loadDonationAccess } from "@/lib/payment-device";
 import { Button } from "@/components/ui/button";
 import { Shell } from "@/components/xmas/Shell";
 import { PaidGiftEmail } from '@/components/xmas/PaidGiftEmail';
+import { loadGiftSession } from "@/lib/online-gift-session";
+import { LiveGiftCompletion } from "@/components/xmas/LiveGiftCompletion";
 export const Route = createFileRoute("/pagamento")({
   validateSearch: z.object({
     id: z.string().uuid().optional(),
@@ -100,6 +102,12 @@ function PaymentReturn() {
       setError("Dedica non salvata.");
     }
   };
+  // Restore the ONLINE_GIFT recipient/dedication on the ORIGINAL paying device.
+  // This branch is available only after authoritative paid status and ornament creation.
+  if (!CAMPAIGN.demo && status === "paid" && ornament && project && id
+      && loadGiftSession(project.id)?.request === id) {
+    return <Shell hidePiazzaPill><LiveGiftCompletion donationId={id} ornamentId={ornament} project={project}/></Shell>;
+  }
   return (
     <Shell hidePiazzaPill>
       <section className="mx-auto max-w-lg px-4 py-10">
