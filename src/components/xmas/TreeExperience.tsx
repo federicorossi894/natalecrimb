@@ -31,7 +31,7 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
     <div className="relative">
       {loaded ? <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} /> : <div className="tree-stage flex min-h-[360px] flex-col items-center justify-center gap-4 px-6 text-center" role="status"><p className="font-display text-2xl text-gold">{error ? "L’albero non è raggiungibile in questo momento." : "Accendiamo il tuo albero…"}</p>{error && <Button variant="outline" onClick={() => { void refresh(); }}>Riprova a caricare</Button>}</div>}
       <div className="pointer-events-none absolute inset-x-0 top-5 flex items-start justify-between gap-4 px-5">
-        <div><p className="text-xs font-semibold uppercase text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{loaded ? `${addedCount} regali appesi` : (error ? "In attesa di connessione…" : "Caricamento dei regali…")}</p></div>
+        <div className="tree-stage-counter"><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{loaded ? `${addedCount} regali appesi` : (error ? "In attesa di connessione…" : "Caricamento dei regali…")}</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{close();setReset(s=>s+1);}}><RotateCcw /></Button>
       </div>
       <div className="flex min-h-20 items-center justify-center gap-2 px-3">
@@ -45,11 +45,12 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
     {selected&&<div className="dedication-scrim fixed inset-0 z-[65] flex items-end justify-center px-4 pb-5 sm:items-center" onClick={close} data-testid="dedication-backdrop">
       <div role="dialog" aria-modal="true" aria-label="Dedica del regalo" className="tree-tag dedication-panel animate-rise w-full max-w-md" onClick={e=>e.stopPropagation()}>
       <Button variant="outline" size="icon" autoFocus className="dedication-close absolute right-3 top-3 h-11 w-11 border-ink/30 bg-paper text-ink hover:bg-gold hover:text-ink" aria-label="Chiudi dedica" onClick={close}><X className="h-6 w-6" /></Button>
+      <p className="dedication-kicker">✦ &nbsp; ALBERO DI MONZA &nbsp; ✦</p>
       <div className="flex items-center gap-3 pr-12"><OrnamentIcon kind={selected.kind} className="w-10 shrink-0" /><p className="text-xs font-semibold uppercase text-primary">{GIFT_LABEL[selected.kind] ?? "Un regalo che fa bene"} {!ONLINE_GIFT && CAMPAIGN.demo && "· DEMO"}</p></div>
-      <p className="mt-4 font-display text-2xl leading-snug">{selected.dedica?`“${selected.dedica}”`:'Una pallina che racconta un gesto di solidarietà.'}</p>
-      {selected.firma && <p className="mt-3 text-sm font-semibold">— {selected.firma}</p>}
+      <p className="dedication-message mt-5 font-display text-[clamp(1.4rem,4vw,2rem)] leading-snug">{selected.dedica?`“${selected.dedica}”`:'Una pallina che racconta un gesto di solidarietà.'}</p>
+      {selected.firma && <p className="dedication-signature mt-5 text-sm font-semibold">— {selected.firma}</p>}
       
-      {!selected.dedica&&<p className="mt-3 text-xs">Il messaggio personale, se presente, resta nella cartolina privata.</p>}
+      {!selected.dedica&&<p className="mt-3 text-xs text-ink/65">Il messaggio personale, se presente, resta nella cartolina privata.</p>}
       </div>
     </div>}
     <p className="mx-auto max-w-lg px-5 pt-6 text-center font-display text-xl text-gold">L’albero cresce con i regali.<br />Monza cresce con la solidarietà.</p>
