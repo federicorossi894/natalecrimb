@@ -20,7 +20,7 @@ export const sendOnlineGiftMail = createServerFn({ method: 'POST' }).inputValida
   if (!c.id) return { state: 'limited' as const, message: c.reason === 'already_sent' ? 'Email già inviata per questo regalo.' : c.reason === 'recipient_limit' ? 'Questo indirizzo ha già ricevuto diverse email oggi.' : 'Troppi invii in questo momento, riprova tra qualche minuto.' };
   const { sendGiftMail } = await import('./gift-mail.server');
   let result: Awaited<ReturnType<typeof sendGiftMail>>;
-  try { result = await sendGiftMail({ kind: data.kind, to: data.to, projectTitle: project.title, projectKind: project.ornament, amount: row.amount_cents / 100, ornamentId: row.id, from: data.from, toName: data.toName, msg: data.msg }, c.id); }
+  try { result = await sendGiftMail({ kind: data.kind, to: data.to, projectTitle: project.title, projectKind: project.ornament, amount: row.amount_cents / 100, ornamentId: row.id, from: data.from, toName: data.toName, msg: data.msg, createdAt: row.created_at }, c.id); }
   catch (e) { console.error('Gift mail', e); result = { state: 'unknown' }; }
   await supabaseAdmin.from('online_gift_mails').update({ state: result.state, message_id: result.messageId ?? null, finished_at: new Date().toISOString() }).eq('id', c.id);
   return result.state === 'accepted' ? { state: 'accepted' as const, message: `Email inviata a ${data.to}.` }

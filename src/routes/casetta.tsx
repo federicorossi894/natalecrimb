@@ -1,20 +1,19 @@
-import { CAMPAIGN } from "@/lib/campaign";
 import { ONLINE_GIFT } from "@/lib/site-experience";
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, CalendarDays, Candy, Coffee, Gift, Heart, Lightbulb, LightbulbOff, MapPin, PenLine, Sparkles, Store, Users, CakeSlice } from "lucide-react";
+import { ArrowRight, CalendarDays, Candy, Coffee, Gift, Heart, Lightbulb, LightbulbOff, MapPin, Sparkles, Store, Users, CakeSlice } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { Snow } from "@/components/xmas/Snow";
 import { CasettaPhoto, CasettaPoster } from "@/components/xmas/CasettaMedia";
-import { CASETTA, CASETTA_PRODUCTS, formatEuro } from "@/lib/casetta";
+import { CASETTA, CASETTA_PRODUCTS } from "@/lib/casetta";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/casetta")({
   head: () => ({
     meta: [
       { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },
-      { name: "description", content: "Panettone, pandoro e cioccolatini alla casetta di Croce Rossa Italiana – Comitato di Monza in Piazza San Paolo, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
+      { name: "description", content: "Panettone e pandoro, riso da 500 g, tisane e altri pensieri solidali in Piazza San Paolo, dal 21 novembre al 6 gennaio. Orario indicativo 10–18." },
       { property: "og:title", content: "La casetta di Natale · Sapori e regali solidali" },
       { property: "og:description", content: "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
       { property: "og:type", content: "website" },
@@ -64,7 +63,7 @@ function StringLights() {
   );
 }
 
-const OFFER_ICON = { Cioccolato: Candy, Tisane: Coffee, Regali: Gift, Panettone: CakeSlice } as const;
+const OFFER_ICON = { "Panettone e pandoro": CakeSlice, "Riso 500 g": Gift, Tisane: Coffee, "Altri regali": Candy } as const;
 
 function HangingSign({ label, i }: { label: string; i: number }) {
   const [swing, setSwing] = useState(false);
@@ -90,7 +89,6 @@ function StallItem({ p, i }: { p: (typeof CASETTA_PRODUCTS)[number]; i: number }
       <div className="stall-tag" style={{ ["--tilt" as string]: `${TAG_TILT[i % 4]}deg` }}>
         <h3 className="font-display text-lg leading-tight sm:text-xl">{p.name}</h3>
         <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-ink/65">{p.format}</p>
-        <p className="stall-price mt-2"><span data-testid="casetta-price">{formatEuro(p.price)}</span></p>
         <p className="mt-2 text-xs leading-snug text-ink/80 sm:text-[13px]">{p.blurb}</p>
       </div>
     </li>
@@ -113,15 +111,15 @@ function Casetta() {
               Il Natale ha un sapore ancora più buono <em className="text-gold">quando lo condividi.</em>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-foreground/85">
-              Alla casetta di Croce Rossa Italiana – Comitato di Monza trovi cioccolato, tisane, regali e panettone. Passa a scegliere un pensiero per le feste e a conoscere i nostri volontari.
+              Alla casetta di Croce Rossa Monza trovi panettone e pandoro, riso da 500 g, tisane e altri pensieri solidali. Passa a trovarci durante il Villaggio di Natale.
             </p>
             <ul className="mt-6 space-y-2 text-sm">
               <li className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-gold" /> Dal {CASETTA.from} al {CASETTA.until}</li>
               <li className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-gold" /> {CASETTA.place}</li>
+              <li className="flex items-center gap-2"><Store className="h-4 w-4 shrink-0 text-gold" /> {CASETTA.openingHours}</li>
             </ul>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <VisitCta />
-              <Link to="/piazza" className="glass rounded-full px-5 py-3.5 text-sm font-medium">Cosa succede oggi</Link>
             </div>
           </div>
           {/* The official poster sits inside a wooden shop-window frame; the image itself is untouched. */}
@@ -144,9 +142,9 @@ function Casetta() {
           <h2 className="mt-2 max-w-2xl font-display text-3xl sm:text-4xl">Una vetrina solidale nel cuore di Monza.</h2>
           <ul className="mt-8 grid gap-6 sm:grid-cols-3">
             {[
-              { icon: Heart, t: "Un gesto di dolcezza", d: "Scegliere un panettone o una latta di cioccolatini alla casetta è un modo semplice per portare in tavola la festa e, insieme, un pensiero di solidarietà." },
+              { icon: Heart, t: "Un gesto di dolcezza", d: "Scegliere un panettone, un pandoro, del riso o una tisana alla casetta è un modo semplice per condividere un pensiero solidale." },
               { icon: Users, t: "Un incontro", d: "La casetta non è un negozio: è un piccolo presidio di Croce Rossa in piazza, dove fermarsi, fare due chiacchiere con i volontari e scoprire cosa fanno ogni giorno a Monza." },
-              { icon: Store, t: "Solo in Piazza San Paolo", d: `Dal ${CASETTA.from} al ${CASETTA.until}, esclusivamente alla casetta. Nessun acquisto né prenotazione online.` },
+              { icon: Store, t: "Solo in Piazza San Paolo", d: `Dal ${CASETTA.from} al ${CASETTA.until}, con orari indicativi 10–18. Nessun acquisto né prenotazione online.` },
             ].map(({ icon: I, t, d }) => (
               <li key={t}>
                 <I className="h-6 w-6 text-gold" aria-hidden />
@@ -160,7 +158,7 @@ function Casetta() {
 
       <section className="mx-auto max-w-6xl px-4 pt-14" aria-labelledby="stall-title">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sul banco della casetta</p>
-        <h2 id="stall-title" className="mt-2 font-display text-3xl sm:text-4xl">I dolci delle feste</h2>
+        <h2 id="stall-title" className="mt-2 font-display text-3xl sm:text-4xl">I pensieri solidali delle feste</h2>
 
         <div className="stall mt-6">
           <span className="stall-awning" aria-hidden />
@@ -172,7 +170,7 @@ function Casetta() {
           </ul>
           <p className="mt-7 flex items-center justify-center gap-2 text-center text-sm text-snow/90">
             <Store className="h-4 w-4 shrink-0 text-gold" aria-hidden />
-            Prezzi indicati dal Comitato · si scelgono e si acquistano solo alla casetta
+            Assortimento e disponibilità possono variare · vendita solo alla casetta
           </p>
         </div>
       </section>
@@ -183,7 +181,6 @@ function Casetta() {
           {[
             { I: MapPin, t: "Vieni in piazza", d: `Piazza San Paolo, dal ${CASETTA.from} al ${CASETTA.until}.` },
             { I: Gift, t: "Scegli il tuo pensiero", d: "Dolci, tisane e regali, scelti di persona con i volontari." },
-            ...(CAMPAIGN.volunteerPurchaseWishQR ? [{ I: PenLine, t: "Lascia un augurio", d: "Dopo l'acquisto puoi chiedere il QR per appendere un biglietto sul Muro degli Auguri." }] : []),
           ].map(({ I, t, d }, i) => (
             <li key={t} className="glass relative rounded-3xl p-5">
               <span className="absolute right-5 top-4 font-display text-4xl text-gold/30" aria-hidden>{i + 1}</span>
@@ -194,7 +191,6 @@ function Casetta() {
           ))}
         </ol>
         <div className="mt-4 flex flex-wrap gap-3">
-          {CAMPAIGN.publicWishWall && <Link to="/auguri" className="inline-flex items-center gap-2 text-sm font-semibold text-gold">Guarda il Muro degli Auguri <ArrowRight className="h-4 w-4" /></Link>}
           <Link to="/calendario" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground/80">Calendario della Gentilezza <ArrowRight className="h-4 w-4" /></Link>
         </div>
 
@@ -202,7 +198,7 @@ function Casetta() {
           <div>
             <h2 className="font-display text-2xl sm:text-3xl">Ti aspettiamo in Piazza San Paolo</h2>
             <p className="mt-2 max-w-xl text-muted-foreground">
-              Dal {CASETTA.from} al {CASETTA.until} alla casetta di Croce Rossa Italiana – Comitato di Monza. Sul sito non si acquista e non si prenota: si sceglie di persona, insieme a cioccolato, tisane e regali, e intanto si conoscono i volontari.
+              Dal {CASETTA.from} al {CASETTA.until}, indicativamente dalle 10 alle 18. Trovi panettone e pandoro, riso, tisane e altri pensieri solidali: prodotti e prezzi disponibili direttamente in casetta.
             </p>
           </div>
           <VisitCta />
@@ -223,10 +219,11 @@ function OnlineCasetta() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sapori e regali solidali</p>
           <h1 className="mt-3 font-display text-4xl leading-tight sm:text-6xl">La casetta di Natale</h1>
           <p className="mt-5 max-w-2xl text-lg text-foreground/85">Il Natale ha un sapore ancora più buono quando lo condividi. Una vetrina di dolci e pensieri solidali di Croce Rossa Italiana – Comitato di Monza.</p>
-          <p className="mt-4 max-w-2xl text-sm text-muted-foreground">Cioccolato, tisane, regali e panettone. I prodotti si scelgono e si acquistano di persona alla casetta: nessun acquisto o prenotazione online.</p>
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground">Panettone e pandoro, riso da 500 g, tisane e altri pensieri solidali. Li trovi alla casetta, secondo disponibilità: nessun acquisto o prenotazione online.</p>
           <ul className="mt-6 space-y-2 text-sm">
             <li className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-gold" /> Dal {CASETTA.from} al {CASETTA.until}</li>
             <li className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-gold" /> {CASETTA.place}</li>
+              <li className="flex items-center gap-2"><Store className="h-4 w-4 shrink-0 text-gold" /> {CASETTA.openingHours}</li>
           </ul>
           <div className="mt-6"><VisitCta /></div>
           </div>
@@ -234,12 +231,12 @@ function OnlineCasetta() {
         </div>
       </section>
       <section className="mx-auto max-w-6xl px-4" aria-labelledby="online-stall-title">
-        <h2 id="online-stall-title" className="font-display text-3xl sm:text-4xl">I dolci delle feste</h2>
+        <h2 id="online-stall-title" className="font-display text-3xl sm:text-4xl">I pensieri solidali delle feste</h2>
         <div className="stall mt-6">
           <span className="stall-awning" aria-hidden />
           <div className="stall-lights" aria-hidden>{STALL_LIGHTS.map((d, i) => <span key={i} style={{ ["--d" as string]: d }} />)}</div>
           <ul className="stall-shelf" data-testid="casetta-products">{CASETTA_PRODUCTS.map((p, i) => <StallItem key={p.id} p={p} i={i} />)}</ul>
-          <p className="mt-7 text-center text-sm text-snow/90">Prezzi indicati dal Comitato · vendita solo alla casetta</p>
+          <p className="mt-7 text-center text-sm text-snow/90">Assortimento indicativo · prezzi e disponibilità alla casetta</p>
         </div>
         <div className="mt-10 border-t border-border pt-8">
           <h2 className="font-display text-2xl">Regala un gesto solidale</h2>

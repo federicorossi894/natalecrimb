@@ -56,9 +56,9 @@ export function qaRawMessage(kind: QaKind, attempt: string, gift?: DemoGiftMailP
   const body =
     common +
     content +
-    `\r\n\r\nData prova: ${new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Rome" }).format(new Date())}\r\nRiferimento prova: ${attempt}\r\nAlbero digitale: https://natalecrimb.lovable.app/albero\r\nProva tecnica riservata, nessuna iscrizione a comunicazioni promozionali.`;
+    `\r\n\r\nData prova: ${new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Rome" }).format(new Date())}\r\nRiferimento prova: ${attempt}\r\nAlbero digitale: https://natale.crimonza.org/albero\r\nProva tecnica riservata, nessuna iscrizione a comunicazioni promozionali.`;
   const escape = (s: string) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] ?? c));
-  const link=gift ? `https://natalecrimb.lovable.app/albero?addobbo=${encodeURIComponent(gift.ornamentId)}` : 'https://natalecrimb.lovable.app/albero';
+  const link=gift ? `https://natale.crimonza.org/albero?addobbo=${encodeURIComponent(gift.ornamentId)}` : 'https://natale.crimonza.org/albero';
   const html = `<!doctype html><html lang="it"><body style="margin:0;background:#ffffff;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto"><div style="background:#183b2c;color:#fffdf8;padding:30px"><p>Croce Rossa Italiana · Comitato di Monza</p><h1 style="font-family:Georgia,serif">Il Natale che fa bene</h1><p style="color:#e8c37a">[DEMO — NESSUN PAGAMENTO]</p></div><div style="padding:30px"><h2>${escape(labels[kind])}</h2><p style="line-height:1.6">${escape(content)}</p><p>${escape(gift?.projectTitle ?? 'Regala calore')} · un gesto di gentilezza, un regalo digitale.</p><a href="${escape(link)}" style="display:inline-block;padding:16px;background:#c8102e;color:#ffffff;text-decoration:none">Apri la pallina digitale</a><p style="font-size:12px">${escape(body)}</p></div></div></body></html>`;
   return b64(
     [

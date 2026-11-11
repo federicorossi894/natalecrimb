@@ -12,8 +12,9 @@ export const CASETTA = {
   from: "21 novembre",
   until: TREE_UNTIL,
   place: "Piazza San Paolo, Monza",
-  /** Exactly what the official "Mercatini di Natale" poster lists. */
-  offering: ["Cioccolato", "Tisane", "Regali", "Panettone"],
+  /** Assortimento indicativo confermato per la campagna; disponibilità variabile. */
+  offering: ["Panettone e pandoro", "Riso 500 g", "Tisane", "Altri regali"],
+  openingHours: "Indicativamente 10:00–18:00, con possibili variazioni",
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=Piazza+San+Paolo+Monza",
 } as const;
 
@@ -22,7 +23,7 @@ export const CASETTA = {
  * uploaded as an asset; components then show it untouched. Never fill these with generated art.
  */
 export type CasettaImage = { src: string; alt: string; width?: number; height?: number } | null;
-export type CasettaSlot = "poster" | "cioccolatini" | "panettoneCarta" | "panettoneLatta" | "pandoroLatta";
+export type CasettaSlot = "poster" | "cioccolatini" | "panettoneCarta" | "panettoneLatta" | "pandoroLatta" | "riso" | "tisane";
 export const CASETTA_MEDIA: Record<CasettaSlot, CasettaImage> = {
   poster: { src: posterAsset.url, alt: "Locandina Mercatini di Natale di Croce Rossa Italiana – Comitato di Monza: dal 21 novembre al 6 gennaio, Piazza San Paolo Monza. Cioccolato, tisane, regali, panettone.", width: 1024, height: 1280 },
   cioccolatini: { src: chocoAsset.url, alt: "Latta Cioccolatini solidali Croce Rossa Italiana con cioccolatini incartati di rosso", width: 391, height: 382 },
@@ -30,6 +31,8 @@ export const CASETTA_MEDIA: Record<CasettaSlot, CasettaImage> = {
   panettoneLatta: { src: tinAsset.url, alt: "Latta del Panettone solidale Croce Rossa Italiana accanto al panettone", width: 554, height: 343 },
   // No original pandoro photo supplied yet: keep the placeholder, never a generated image.
   pandoroLatta: null,
+  riso: null,
+  tisane: null,
 };
 
 export type CasettaProduct = {
@@ -37,43 +40,39 @@ export type CasettaProduct = {
   name: string;
   /** Only confirmed details: weight is omitted when unknown. */
   format: string;
-  price: number;
+  price?: number;
   blurb: string;
   photo: CasettaSlot;
 };
 
 export const CASETTA_PRODUCTS: CasettaProduct[] = [
   {
-    id: "cioccolatini",
-    name: "Cioccolatini gourmet",
-    format: "In latta",
-    price: 7,
-    blurb: "Un pensiero piccolo e prezioso, da regalare o da aprire insieme dopo cena.",
-    photo: "cioccolatini",
-  },
-  {
-    id: "panettone-carta",
-    name: "Panettone",
-    format: "750 g · scatola in carta",
-    price: 10,
-    blurb: "Il grande classico delle feste, pronto per la tavola di casa o per chi ti è vicino.",
+    id: "panettone-pandoro",
+    name: "Panettone e pandoro",
+    format: "I grandi classici del Natale",
+    blurb: "Due dolci delle feste, insieme in un unico pensiero solidale. La foto mostra il panettone; il pandoro può essere disponibile alla casetta.",
     photo: "panettoneCarta",
   },
   {
-    id: "panettone-latta",
-    name: "Panettone in latta",
-    format: "750 g · latta",
-    price: 12,
-    blurb: "Lo stesso panettone delle feste, in una latta da regalare e da tenere.",
-    photo: "panettoneLatta",
+    id: "riso",
+    name: "Riso solidale",
+    format: "Sacchetto da 500 g",
+    blurb: "Un piccolo prodotto da mettere in dispensa e un gesto concreto da condividere.",
+    photo: "riso",
   },
   {
-    id: "pandoro-latta",
-    name: "Pandoro in latta",
-    format: "750 g · latta",
-    price: 12,
-    blurb: "Per chi a Natale sceglie il pandoro: in latta, pronto da mettere sotto l’albero.",
-    photo: "pandoroLatta",
+    id: "tisane",
+    name: "Tisane",
+    format: "Confezioni regalo",
+    blurb: "Per regalare una pausa calda durante le feste.",
+    photo: "tisane",
+  },
+  {
+    id: "cioccolatini",
+    name: "Cioccolatini e altri pensieri",
+    format: "Altri prodotti solidali",
+    blurb: "Cioccolatini, idee regalo e altre proposte, secondo la disponibilità del momento.",
+    photo: "cioccolatini",
   },
 ];
 

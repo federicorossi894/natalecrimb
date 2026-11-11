@@ -1,7 +1,7 @@
 import { QRCodeSVG } from "qrcode.react";
 
 /** Public home of the campaign site: every QR (phone pages and the casetta TV) points here. */
-export const PUBLIC_SITE_URL = "https://natalecrimb.lovable.app/";
+export const PUBLIC_SITE_URL = "https://natale.crimonza.org/";
 
 /** Real, scannable QR pointing to the site home. */
 export function HomeQr({ className = "" }: { className?: string }) {
