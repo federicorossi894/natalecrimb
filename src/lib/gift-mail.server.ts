@@ -1,6 +1,6 @@
 /** Server-only: builds and sends online-gift emails from the connected Gmail account. */
 export const GIFT_MAIL_SENDER = 'federico.rossi@crimonza.org';
-export const GIFT_MAIL_SITE = 'https://natalecrimb.lovable.app';
+export const GIFT_MAIL_SITE = 'https://natale.crimonza.org';
 export type GiftMailKind = 'receipt' | 'gift_now' | 'gift_christmas';
 import { PROJECTS, type OrnamentKind } from './data';
 import { GIFT_IMPACT } from './gift-impact';
