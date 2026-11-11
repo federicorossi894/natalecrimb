@@ -10,6 +10,7 @@ import { CHRISTMAS_DELIVERY, MODE_LABEL, confirmationText, giftEmailSchema, type
 import { emailSubject, giftEmailHtml } from "@/lib/email-template";
 import { CAMPAIGN } from "@/lib/campaign";
 import { Button } from '@/components/ui/button';
+import { deliverLocalFile } from '@/lib/local-file-download';
 
 export function downloadBlob(blob: Blob, name: string) {
   const a = document.createElement("a");
@@ -145,7 +146,7 @@ export function PostcardStudio({ project, to, from, msg, ornamentId, demo = fals
         <Button onClick={share} aria-describedby="wa-how" className="h-auto w-full py-4 shadow-deep"><MessageCircle className="h-5 w-5" /> {ONLINE_GIFT ? "Condividi su WhatsApp" : "Apri WhatsApp con il messaggio"}</Button>
         <p id="wa-how" className="text-center text-xs text-muted-foreground" data-testid="wa-how">Quando condividi l’immagine dal telefono, il messaggio è breve: la dedica è già sulla cartolina. Se WhatsApp non supporta il PNG, si apre il solo testo e puoi allegare la cartolina scaricata. Nessun invio parte automaticamente.</p>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" onClick={() => file && downloadBlob(file, file.name)} disabled={!file} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica cartolina</Button>
+          <Button variant="outline" onClick={() => { if (file) void deliverLocalFile(file).catch(() => setNote('Non è stato possibile scaricare la cartolina: riprova.')); }} disabled={!file} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica cartolina</Button>
           <Button variant="outline" disabled={!file} onClick={() => void exportNode(chat.current, `anteprima-whatsapp-${project.id}.png`).catch(()=>setNote('Anteprima non scaricata. Usa Scarica cartolina.'))} className="h-auto whitespace-normal py-3 text-sm"><Download className="h-4 w-4" /> Scarica anteprima</Button>
           <button onClick={copy} className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"><Copy className="h-4 w-4" /> Copia messaggio</button>
           {!ONLINE_GIFT && (demo ? <span className="glass inline-flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold opacity-80"><LocateFixed className="h-4 w-4" /> Trova l'addobbo</span>
