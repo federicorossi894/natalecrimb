@@ -3,6 +3,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { Button } from '@/components/ui/button';
 import { sendOnlineGiftMail } from '@/lib/gift-mail.functions';
 import { giftMailInput } from '@/lib/gift-mail-policy';
+import { CAMPAIGN } from '@/lib/campaign';
 import type { Project } from '@/lib/data';
 
 type Props = { ornamentId: string; giftRequestId: string; client: string; from: string; toName: string; msg: string; receipt?: boolean; project?: Project; onAccepted?: () => void };
@@ -27,13 +28,14 @@ export function GiftMailForm({ ornamentId, giftRequestId, client, from, toName, 
   };
   return <div className="space-y-4">
     {!receipt && <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quando inviare">
-      {([['gift_now', 'Ora'], ['gift_christmas', 'A Natale']] as const).map(([v, l]) => <Button key={v} type="button" role="radio" aria-checked={when === v} variant={when === v ? 'default' : 'outline'} disabled={done} onClick={() => setWhen(v)}>{l}</Button>)}
+      {([['gift_now', 'Ora'], ['gift_christmas', CAMPAIGN.demo ? 'Natale · prova' : 'A Natale']] as const).map(([v, l]) => <Button key={v} type="button" role="radio" aria-checked={when === v} variant={when === v ? 'default' : 'outline'} disabled={done} onClick={() => setWhen(v)}>{l}</Button>)}
     </div>}
+    {!receipt && when === 'gift_christmas' && CAMPAIGN.demo && <p className="text-xs text-gold" role="note">Questa è una prova: l’email natalizia viene inviata subito, non è programmata per il 25 dicembre.</p>}
     <label className="block">{receipt ? 'La tua email' : 'Email del destinatario'}
       <input aria-label={receipt ? 'La tua email' : 'Email del destinatario'} type="email" inputMode="email" autoComplete={receipt ? 'email' : 'off'} maxLength={254} value={to} disabled={done} onChange={e => setTo(e.target.value)} className="mt-2 w-full rounded-lg border bg-background p-3" />
     </label>
     <p className="text-xs text-muted-foreground">L’indirizzo viene utilizzato per la comunicazione richiesta. <a href="/privacy" className="text-gold underline underline-offset-4">Informazioni sulla privacy (bozza in revisione)</a>.</p>
-    <Button className="h-auto w-full py-4" disabled={busy || done || !to.trim()} onClick={submit}>{busy ? 'Invio…' : receipt ? 'Inviami la conferma' : when === 'gift_christmas' ? 'Invia a Natale' : 'Invia ora'}</Button>
+    <Button className="h-auto w-full py-4" disabled={busy || done || !to.trim()} onClick={submit}>{busy ? 'Invio…' : receipt ? 'Inviami la conferma' : when === 'gift_christmas' ? (CAMPAIGN.demo ? 'Invia prova natalizia ora' : 'Programma per Natale') : 'Invia ora'}</Button>
     {status && <p role="status" className="text-sm font-semibold">{status}</p>}
     {error && <p role="alert" className="text-sm text-gold">{error}</p>}
   </div>;
