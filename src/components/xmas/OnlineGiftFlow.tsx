@@ -20,7 +20,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
   const inFlight=useRef(false);
   const [dedica,setDedica]=useState(''),[firma,setFirma]=useState(''),[consent,setConsent]=useState(false);
   const [ready,setReady]=useState(false);
-  const [channel,setChannel]=useState<'whatsapp'|'email'|null>(null);
+  const [channel,setChannel]=useState<'whatsapp'|'email'|null>('whatsapp');
   const [thankYou,setThankYou]=useState('');
   const [sharingComplete,setSharingComplete]=useState(false);
   const thanksRef=useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       setId(row.id);setStage('done');window.scrollTo({top:0,behavior:'instant'});
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setThankYou('');setSharingComplete(false);setChannel(null);setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setThankYou('');setSharingComplete(false);setChannel('whatsapp');setStage('compose');setError('');window.scrollTo({top:0});};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
@@ -88,7 +88,7 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
       <details open className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">La tua pallina sull’Albero di Monza</summary><TreeExperience focusId={id}/></details>
       {gift && <div className="mx-auto my-6 max-w-lg">
-        <h2 className="font-display text-2xl">Come vuoi inviare il regalo?</h2>
+        <h2 className="font-display text-2xl">Il tuo regalo è pronto da condividere</h2><p className="mt-2 text-sm text-muted-foreground">La cartolina con la tua dedica è pronta. Puoi inviarla su WhatsApp oppure scegliere l’email.</p>
         <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Come inviare il regalo">
           {([['whatsapp','WhatsApp'],['email','Email']] as const).map(([v,l])=><Button key={v} role="radio" aria-checked={channel===v} variant={channel===v?'default':'outline'} onClick={()=>setChannel(v)}>{l}</Button>)}
         </div>
