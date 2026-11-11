@@ -108,23 +108,40 @@ export function OnlineGiftFlow({project,amount,onBack}:{project:Project;amount:n
       </>}
     </div>}
     {stage==='done' && id && <>
-      <h1 className="font-display text-3xl">La tua pallina è sull’albero digitale.</h1>
-      {consent && dedica && <blockquote className="mx-auto my-5 max-w-lg border-l-2 border-gold pl-4 font-display text-xl">“{dedica}”{firma && <span className="mt-2 block text-sm">— {firma}</span>}</blockquote>}
-      <details open className="my-5 border-y py-3"><summary className="cursor-pointer font-semibold">La tua pallina sull’Albero di Monza</summary><TreeExperience focusId={id}/></details>
-      {gift && <div className="mx-auto my-6 max-w-lg">
-        <h2 className="font-display text-2xl">Il tuo regalo è pronto da condividere</h2><p className="mt-2 text-sm text-muted-foreground">La cartolina con la tua dedica è pronta. Puoi inviarla su WhatsApp oppure scegliere l’email.</p>
-        <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Come inviare il regalo">
-          {([['whatsapp','WhatsApp'],['email','Email']] as const).map(([v,l])=><Button key={v} role="radio" aria-checked={channel===v} variant={channel===v?'default':'outline'} onClick={()=>setChannel(v)}>{l}</Button>)}
+      <div className="mx-auto max-w-xl py-5 text-center">
+        <OrnamentIcon kind={project.ornament} className="mx-auto h-24 w-24 drop-shadow-[0_0_24px_var(--gold)]" />
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-gold">Il Natale che fa bene</p>
+        <h1 className="mt-2 font-display text-3xl sm:text-4xl">{gift ? 'La tua pallina è pronta. Fai arrivare il regalo!' : 'Grazie per il tuo dono a Monza!'}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{gift ? 'La pallina è già sull’Albero di Monza. Adesso scegli come consegnare il tuo pensiero.' : 'Il tuo gesto è sull’Albero di Monza. Puoi ritrovare la pallina e condividere la solidarietà.'}</p>
+        {consent && (gift && reusePublicText ? msg : dedica) && <blockquote className="mt-5 border-l-2 border-gold pl-4 text-left font-display text-xl">“{gift && reusePublicText ? msg : dedica}”{(gift && reusePublicText ? from : firma) && <span className="mt-2 block text-sm">— {gift && reusePublicText ? from : firma}</span>}</blockquote>}
+      </div>
+      {gift && <section className="mx-auto mt-3 max-w-5xl rounded-3xl border-2 border-gold/60 bg-secondary/50 p-4 shadow-deep sm:p-7" data-testid="delivery-step">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[.15em] text-gold"><Sparkles className="mr-1 inline h-4 w-4"/>Il momento del regalo</p>
+          <h2 className="mt-2 font-display text-3xl">Invia il regalo a {to.trim() || 'chi ami'}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">La cartolina è pronta. Scegli WhatsApp o email per farla arrivare davvero.</p>
+          <div className="mt-5 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Come inviare il regalo">
+            <Button className="h-auto py-4" role="radio" aria-checked={channel==='whatsapp'} variant={channel==='whatsapp'?'default':'outline'} onClick={()=>setChannel('whatsapp')}><MessageCircle className="h-5 w-5"/>WhatsApp</Button>
+            <Button className="h-auto py-4" role="radio" aria-checked={channel==='email'} variant={channel==='email'?'default':'outline'} onClick={()=>setChannel('email')}><Mail className="h-5 w-5"/>Email</Button>
+          </div>
         </div>
+        {channel==='whatsapp' && <div className="mt-5"><PostcardStudio project={project} to={to} from={from} msg={msg} ornamentId={id} onShared={finishSharing}/></div>}
+        {channel==='email' && request.current && giftClient && <div className="mx-auto mt-6 max-w-lg"><GiftMailForm project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from={from} toName={to} msg={msg} onAccepted={finishSharing}/></div>}
+      </section>}
+      {(!gift || sharingComplete) && <div ref={thanksRef} role="status" className="mx-auto my-8 max-w-2xl rounded-3xl border border-gold/40 bg-secondary px-6 py-7 text-center" data-testid="donor-thanks">
+        <h2 className="font-display text-3xl">Grazie di cuore per il tuo dono</h2>
+        <p className="mt-3 font-display text-lg sm:text-xl">{donorThanks}</p>
       </div>}
-      {(!gift || channel==='whatsapp') && <PostcardStudio project={project} to={gift?to:""} from={from || (consent?firma:"")} msg={msg || (consent?dedica:"")} ornamentId={id} selfThanks={!gift} thankYou={!gift?donorThanks:undefined} onShared={gift?finishSharing:undefined}/>}
-      {gift && channel==='email' && request.current && giftClient && <div className="mx-auto max-w-lg"><GiftMailForm project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from={from || (consent?firma:"")} toName={to} msg={msg || (consent?dedica:"")} onAccepted={finishSharing}/></div>}
-      {(!gift || sharingComplete) && <div ref={thanksRef} role="status" className="mx-auto my-8 max-w-2xl border-y border-gold bg-secondary px-5 py-6" data-testid="donor-thanks"><h2 className="font-display text-2xl">Grazie di cuore per il tuo dono</h2><p className="mt-3 font-display text-xl">{donorThanks}</p></div>}
+      {(!gift || sharingComplete) && <SolidarityShare project={project}/>} 
+      <details className="mx-auto mt-9 max-w-6xl border-y border-gold/35 py-4" data-testid="gift-tree-details">
+        <summary className="cursor-pointer py-3 font-display text-xl text-gold">Guarda la tua pallina sull’Albero di Monza</summary>
+        <TreeExperience focusId={id}/>
+      </details>
       {request.current && giftClient && <div className="mx-auto mt-8 max-w-lg border-t pt-6">
-        <h2 className="mb-3 font-display text-xl">Vuoi la conferma della donazione via email?</h2>
+        <h2 className="mb-3 font-display text-xl">Vuoi ricevere la conferma della donazione via email?</h2>
         <GiftMailForm receipt project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from="" toName="" msg=""/>
       </div>}
-      <div className="mx-auto mt-8 max-w-lg space-y-4">
+      <div className="mx-auto mt-8 flex max-w-lg flex-wrap gap-3">
         <Button variant="outline" onClick={restart}>Nuovo regalo o donazione</Button>
         <Button variant="outline" asChild><Link to="/albero" search={{addobbo:id}}>Apri il link alla tua pallina</Link></Button>
       </div>
