@@ -25,8 +25,8 @@ export function postcardCaption(p: Project, to: string, ornamentId?: string | nu
     ? `🎄 Ho scelto di sostenere «${p.title}» con Croce Rossa Monza.`
     : `🎄 ${recipient ? `Un regalo solidale per ${recipient}.` : "Un regalo solidale per te."}`;
   const link = ornamentId ? ornamentUrl(ornamentId) : projectUrl(p);
-  const footer = CAMPAIGN.demo ? "\\n\\n(Prova DEMO: nessuna donazione reale.)" : "";
-  return `${greeting}\\nScopri la pallina sull’Albero di Monza:\\n${link}${footer}`;
+  const footer = CAMPAIGN.demo ? "\n\n(Prova DEMO: nessuna donazione reale.)" : "";
+  return `${greeting}\nScopri la pallina sull’Albero di Monza:\n${link}${footer}`;
 }
 
 /** Resolves a CSS custom property (any colour syntax) to #rrggbb, so canvases and email HTML get plain sRGB. */
