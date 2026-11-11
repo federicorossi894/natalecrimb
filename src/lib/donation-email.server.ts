@@ -92,6 +92,10 @@ export async function processDonationEmail(id: string, kind: DeliveryKind, retry
  */
 export async function processDueChristmasGiftEmails() {
   if (CAMPAIGN.demo || !officialEmailReady()) return { state: "blocked" as const, processed: 0 };
+  // This is the 2026 campaign. Never send abandoned 2026 gifts next Christmas.
+  const now = Date.now();
+  if (now < Date.parse("2026-12-24T23:05:00.000Z") || now >= Date.parse("2026-12-27T00:00:00.000Z"))
+    return { state: "out_of_window" as const, processed: 0 };
   const { data: due, error } = await supabaseAdmin.from("live_donations")
     .select("id")
     .eq("status", "paid")
