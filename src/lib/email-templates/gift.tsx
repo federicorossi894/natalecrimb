@@ -18,8 +18,8 @@ export function GiftEmail({
 }: GiftProps) {
   const href =
     ornamentId && /^[a-f0-9-]{36}$/i.test(ornamentId)
-      ? `https://natalecrimb.lovable.app/albero?addobbo=${ornamentId}`
-      : "https://natalecrimb.lovable.app/albero";
+      ? `https://natale.crimonza.org/albero?addobbo=${ornamentId}`
+      : "https://natale.crimonza.org/albero";
   return (
     <Html lang="it">
       <Head />
