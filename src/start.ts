@@ -2,6 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { isVolunteerHost } from "./lib/volunteer-host";
+import { canonicalNataleNavigation } from './lib/canonical-natale';
 import { experienceRouteAllowed, ONLINE_GIFT } from './lib/site-experience';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,6 +41,8 @@ const csrfMiddleware = createCsrfMiddleware({
 
 // The dedicated volunteer host opens the portal at "/"; every other host is untouched.
 const volunteerHostMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const canonical = canonicalNataleNavigation(request);
+  if (canonical) return Response.redirect(canonical, 308);
   const url = new URL(request.url);
   if (!experienceRouteAllowed(url.pathname)) return Response.redirect(new URL('/', url), 302);
   if (!ONLINE_GIFT && isVolunteerHost(url.hostname) && url.pathname === "/") {
