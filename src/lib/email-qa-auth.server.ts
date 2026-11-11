@@ -2,8 +2,9 @@ import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
 /** QA-only identity; never grants a role or authorizes LIVE/volunteer operations. */
+const QA_OWNER_EMAILS = ['natale@crimonza.org', 'federico.rossi@crimonza.org'];
 export function isQaOwner(user: Pick<User, 'id' | 'email' | 'email_confirmed_at'> | null, userId: string) {
-  return !!user && user.id === userId && user.email === 'federico.rossi@crimonza.org' && !!user.email_confirmed_at;
+  return !!user && user.id === userId && !!user.email && QA_OWNER_EMAILS.includes(user.email) && !!user.email_confirmed_at;
 }
 export async function requireEmailQa(supabase: SupabaseClient<Database>, userId: string) {
   // getUser revalidates the bearer against Auth; no browser email/metadata/actor is trusted.
