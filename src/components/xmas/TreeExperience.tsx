@@ -11,7 +11,7 @@ import { TreeStage } from './TreeStage';
 const GIFT_LABEL: Record<string, string> = { dae: 'Un regalo di vita', calore: 'Un regalo di calore', prossimita: 'Un regalo di prossimità', cuore: 'Un gesto che fa bene' };
 export function useReducedMotion(){const [reduced,setReduced]=useState(false);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(m.matches);update();m.addEventListener('change',update);return()=>m.removeEventListener('change',update);},[]);return reduced;}
 export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focusId?:string}={}){
-  const {addedOrnaments:ornaments,addedCount,mine,error,loaded}=useTreeStore();
+  const {addedOrnaments:ornaments,addedCount,mine,error,loaded,refresh}=useTreeStore();
   const [selected,setSelected]=useState<SessionOrnament|null>(null);
   const [reset,setReset]=useState(0);
   const [notice,setNotice]=useState('');
@@ -29,9 +29,9 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
   const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">
-      {loaded ? <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} /> : <div className="tree-stage flex min-h-[360px] items-center justify-center px-6 text-center" role="status"><p className="font-display text-2xl text-gold">Accendiamo il tuo albero…</p></div>}
+      {loaded ? <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} /> : <div className="tree-stage flex min-h-[360px] flex-col items-center justify-center gap-4 px-6 text-center" role="status"><p className="font-display text-2xl text-gold">{error ? "L’albero non è raggiungibile in questo momento." : "Accendiamo il tuo albero…"}</p>{error && <Button variant="outline" onClick={() => { void refresh(); }}>Riprova a caricare</Button>}</div>}
       <div className="pointer-events-none absolute inset-x-0 top-5 flex items-start justify-between gap-4 px-5">
-        <div><p className="text-xs font-semibold uppercase text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{loaded ? `${addedCount} regali appesi` : "Caricamento dei regali…"}</p></div>
+        <div><p className="text-xs font-semibold uppercase text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{loaded ? `${addedCount} regali appesi` : (error ? "In attesa di connessione…" : "Caricamento dei regali…")}</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{close();setReset(s=>s+1);}}><RotateCcw /></Button>
       </div>
       <div className="flex min-h-20 items-center justify-center gap-2 px-3">
