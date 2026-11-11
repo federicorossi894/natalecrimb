@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Link } from '@tanstack/react-router';
 import { Gift, ArrowLeft, HeartHandshake, MessageCircle, Mail, Sparkles } from 'lucide-react';
@@ -13,10 +13,10 @@ import { OrnamentIcon } from './Ornament';
 import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
 import { resolvePublicTreeChoice } from '@/lib/public-tree-choice';
 import { SolidarityShare } from './SolidarityShare';
-import { LiveGiftFlow } from './LiveGiftFlow';
+const LiveGiftFlow = lazy(async()=>({default:(await import('./LiveGiftFlow')).LiveGiftFlow}));
 import { CAMPAIGN } from '@/lib/campaign';
 export function OnlineGiftFlow(props: {project:Project;amount:number;onBack:()=>void}) {
-  return CAMPAIGN.demo ? <DemoGiftFlow {...props} /> : <LiveGiftFlow {...props} />;
+  return CAMPAIGN.demo ? <DemoGiftFlow {...props} /> : <Suspense fallback={<p role="status" className="p-8">Carico il percorso di donazione…</p>}><LiveGiftFlow {...props}/></Suspense>;
 }
 function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onBack:()=>void}) {
   const create=useServerFn(createOnlineGift);
