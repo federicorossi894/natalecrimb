@@ -162,27 +162,66 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.fillStyle = ribbon;
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(540 + s * 46, 238, 46, 22, s * -0.5, 0, Math.PI * 2); ctx.fill(); }
   ctx.beginPath(); ctx.arc(540, 244, 15, 0, Math.PI * 2); ctx.fill();
-  // headline
+  // Editorial recipient title: long names remain clear and never overlap the note.
+  ctx.textAlign = "center";
   ctx.fillStyle = ink;
-  ctx.font = "600 80px Fraunces, Georgia, serif";
-  const heading = selfThanks ? 'Grazie di cuore!' : `Per te, ${to.trim() || "con affetto"}`;
-  ctx.font = "600 66px Fraunces, Georgia, serif";
-  const head = wrap(ctx, heading, 900, 2);
-  head.forEach((l, i) => ctx.fillText(l, W / 2, 735 + i * 86));
-  const after = 735 + (head.length - 1) * 86;
-  ctx.globalAlpha = 0.92; ctx.font = "italic 400 40px Fraunces, Georgia, serif";
-  ctx.fillText(`un regalo solidale: ${p.title}`, W / 2, after + 62); ctx.globalAlpha = 1;
-  // paper card
-  const top = 890;
-  ctx.fillStyle = paper; ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(70, top, W - 140, H - top - 70, 26); else ctx.rect(70, top, W - 140, H - top - 70);
+  const heading = selfThanks ? "Grazie di cuore!" : `Per te, ${to.trim() || "con affetto"}`;
+  const headingSize = heading.length > 27 ? 54 : 68;
+  ctx.font = `600 ${headingSize}px Fraunces, Georgia, serif`;
+  const headline = wrap(ctx, heading, 870, 2);
+  const headingBase = headline.length > 1 ? 699 : 744;
+  headline.forEach((line, i) => ctx.fillText(line, W / 2, headingBase + i * 70, 880));
+  ctx.fillStyle = ink;
+  ctx.globalAlpha = 0.88;
+  ctx.font = "italic 400 37px Fraunces, Georgia, serif";
+  ctx.fillText(`un regalo solidale: ${p.title}`, W / 2, headline.length > 1 ? 836 : 812, 880);
+  ctx.globalAlpha = 1;
+
+  // Stationery sheet: centre the message and signature together; no empty lower half.
+  const top = 875, left = 70, cardWidth = W - 140, bottom = H - 70;
+  ctx.fillStyle = paper;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(left, top, cardWidth, bottom - top, 27);
+  else ctx.rect(left, top, cardWidth, bottom - top);
   ctx.fill();
-  ctx.fillStyle = inkDark; ctx.font = `italic 400 ${selfThanks ? 28 : 32}px Fraunces, Georgia, serif`;
-  const lines = wrap(ctx, `“${msg.trim() || p.postcardLine}”`, 820, selfThanks ? 5 : 3);
-  const lineHeight = selfThanks ? 32 : 38;
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 52 + i * lineHeight, 820));
-  ctx.fillStyle = red; ctx.font = "700 32px Manrope, system-ui, sans-serif";
-  ctx.fillText(`— ${selfThanks ? 'Croce Rossa Monza' : from.trim() || "Un amico"}`, W / 2, top + 72 + lines.length * lineHeight, 820);
+  ctx.strokeStyle = gold;
+  ctx.globalAlpha = 0.42;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(left + 12, top + 12, cardWidth - 24, bottom - top - 24, 19);
+  else ctx.rect(left + 12, top + 12, cardWidth - 24, bottom - top - 24);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = red;
+  ctx.font = "700 20px Manrope, system-ui, sans-serif";
+  ctx.fillText(selfThanks ? "UN GESTO CHE FA BENE" : "UN PENSIERO PER TE", W / 2, 936);
+  ctx.strokeStyle = gold;
+  ctx.globalAlpha = 0.64;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(444, 954); ctx.lineTo(636, 954); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  const note = `“${msg.trim() || p.postcardLine}”`;
+  let noteSize = selfThanks ? 31 : 39;
+  let noteLines: string[] = [];
+  let noteHeight = 0;
+  for (; noteSize >= 26; noteSize -= 2) {
+    ctx.font = `italic 400 ${noteSize}px Fraunces, Georgia, serif`;
+    noteLines = wrap(ctx, note, 790, 4);
+    noteHeight = noteLines.length * noteSize * 1.22;
+    if (noteHeight + 48 <= 190) break;
+  }
+  const lineHeight = noteSize * 1.22;
+  const groupHeight = noteHeight + 48;
+  const topOfGroup = 970 + Math.max(0, (196 - groupHeight) / 2);
+  ctx.fillStyle = inkDark;
+  ctx.font = `italic 400 ${noteSize}px Fraunces, Georgia, serif`;
+  noteLines.forEach((line, i) => ctx.fillText(line, W / 2, topOfGroup + noteSize * 0.85 + i * lineHeight, 790));
+  ctx.fillStyle = red;
+  ctx.font = "700 30px Manrope, system-ui, sans-serif";
+  const signature = selfThanks ? "Croce Rossa Monza" : from.trim() || "Un amico";
+  ctx.fillText(`— ${signature}`, W / 2, topOfGroup + noteHeight + 22, 780);
   // footer row: official mark (unaltered) + invite
   const fy = H - 70 - 104;
   ctx.strokeStyle = inkDark; ctx.globalAlpha = 0.12; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(110, fy - 10); ctx.lineTo(W - 110, fy - 10); ctx.stroke(); ctx.globalAlpha = 1;
@@ -192,7 +231,7 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.font = "700 24px Manrope, system-ui, sans-serif"; ctx.fillText("Comitato di Monza", W - 110, fy + 30);
   ctx.globalAlpha = 0.75; ctx.font = "500 21px Manrope, system-ui, sans-serif";
   ctx.fillText(ONLINE_GIFT ? "Una pallina sull’albero digitale" : `Piazza San Paolo · fino al ${TREE_UNTIL}`, W - 110, fy + 60);
-  ctx.fillText(CAMPAIGN.demo && !ONLINE_GIFT ? (ornamentId ? "natale.crimonza.org/albero · DEMO" : "Cartolina DEMO · nessuna donazione reale") : "Il Natale che fa bene · Albero di Monza", W - 110, fy + 88);
+  ctx.fillText(CAMPAIGN.demo ? "PROVA DEMO · nessuna donazione reale" : "Il Natale che fa bene · Albero di Monza", W - 110, fy + 88);
   ctx.globalAlpha = 1; ctx.textAlign = "left";
   const blob = await new Promise<Blob | null>((res) => c.toBlob(res, "image/png"));
   return blob ? new File([blob], `cartolina-cri-monza-${p.id}.png`, { type: "image/png" }) : null;
