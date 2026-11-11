@@ -1,11 +1,13 @@
 import { createServerFn } from '@tanstack/react-start';
 import { ONLINE_GIFT } from './site-experience';
+import { CAMPAIGN } from './campaign';
 import { PROJECTS } from './data';
 import { giftMailInput } from './gift-mail-policy';
 
 /** Sends the confirmation or the gift email after a completed gift; one per bauble and purpose, with global caps. */
 export const sendOnlineGiftMail = createServerFn({ method: 'POST' }).inputValidator(d => giftMailInput.parse(d)).handler(async ({ data }) => {
-  if (!ONLINE_GIFT) throw new Error('Percorso non disponibile.');
+  // Historical DEMO requests must never become an unverified LIVE email channel.
+  if (!ONLINE_GIFT || !CAMPAIGN.demo) throw new Error('Percorso DEMO non disponibile in LIVE.');
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
   const { data: row, error } = await supabaseAdmin.from('demo_ornaments').select('id,kind,amount_cents,created_at')
     .eq('id', data.ornamentId).eq('online_request_id', data.giftRequestId).eq('client_id', data.client).maybeSingle();
