@@ -25,12 +25,15 @@ const managedSendAdapter: DeliveryPorts["send"] = async (donationId, kind) => {
     throw new DefiniteEmailRefusal("Regalo non ancora dovuto.");
   const personal = kind === "gift" ? privateGift.safeParse(record.gift_email_data) : null;
   if (kind === "gift" && !personal?.success) throw new DefiniteEmailRefusal("Dettagli regalo non validi.");
+  const { data: bauble, error: baubleError } = await supabaseAdmin.from("live_ornaments")
+    .select("id").eq("donation_id", donationId).single();
+  if (baubleError || !bauble) throw new DefiniteEmailRefusal("Pallina non trovata per il pagamento.");
   const { sendGiftMail } = await import("./gift-mail.server");
   const data = personal?.success ? personal.data : { donor: "", toName: "", msg: "" };
   const result = await sendGiftMail({
     kind: kind === "receipt" ? "receipt" : record.gift_email_due_at ? "gift_christmas" : "gift_now",
     to, projectTitle: project.title, projectKind: project.ornament,
-    amount: record.amount_cents / 100, ornamentId: record.id,
+    amount: record.amount_cents / 100, ornamentId: bauble.id,
     from: data.donor, toName: data.toName, msg: data.msg, createdAt: record.created_at,
   }, `paid-${donationId}-${kind}`);
   if (result.state === "accepted") return { sent: true };
@@ -40,6 +43,10 @@ const managedSendAdapter: DeliveryPorts["send"] = async (donationId, kind) => {
 export async function processDonationEmail(id: string, kind: DeliveryKind, retry = false) {
   const adapter = managedSendAdapter;
   if (CAMPAIGN.demo || !officialEmailReady() || !adapter) return { state: "blocked" as const };
+  // Reject a stale connection that still belongs to a personal Gmail account
+  // BEFORE the SQL claim is consumed.
+  const { gmailQaIdentity } = await import("./demo-email-qa.server");
+  if (!(await gmailQaIdentity())) return { state: "blocked" as const };
   const { data: d, error } = await supabaseAdmin
     .from("live_donations")
     .select("id,status,settlement_state,donor_email_requested,gift_email_private")
