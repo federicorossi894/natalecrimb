@@ -11,7 +11,7 @@ END $create_secret$;
 CREATE OR REPLACE FUNCTION public.verify_natal_cron_token(p_token text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $verify$
   SELECT length(p_token)=64 AND COALESCE((
-    SELECT encode(digest(d.decrypted_secret, 'sha256'), 'hex') = encode(digest(p_token, 'sha256'), 'hex')
+    SELECT encode(extensions.digest(d.decrypted_secret, 'sha256'), 'hex') = encode(extensions.digest(p_token, 'sha256'), 'hex')
     FROM vault.decrypted_secrets d WHERE d.name='natale_2026_cron_token' LIMIT 1
   ),false);
 $verify$;
