@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, expect, it, vi } from "vitest";
 const checkout=vi.hoisted(()=>vi.fn());
 vi.mock("@tanstack/react-start",()=>({useServerFn:()=>checkout}));
+vi.mock("@/lib/payments.functions",()=>({startDonationCheckout:()=>undefined}));
 vi.mock("@tanstack/react-router",()=>({Link:({children}:{children:React.ReactNode})=><a>{children}</a>}));
 import { LiveGiftFlow } from "@/components/xmas/LiveGiftFlow";
 import { CAMPAIGN } from "@/lib/campaign";
