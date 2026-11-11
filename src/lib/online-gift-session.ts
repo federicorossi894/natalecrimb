@@ -11,6 +11,7 @@ export const giftSessionSchema = z.object({
   reusePublicText: z.boolean().optional(),
   thankYou: z.string().max(500).optional(),
   sharingComplete: z.boolean().optional(),
+  dedicationSynced: z.boolean().optional(),
 });
 export type GiftSession = z.infer<typeof giftSessionSchema>;
 export type SessionOrnament = TreeOrnament & { sessionOnly?: boolean };

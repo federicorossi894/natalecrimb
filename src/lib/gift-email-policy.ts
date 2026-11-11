@@ -8,6 +8,7 @@ export const GIFT_EMAIL_POLICY = {
   christmasMonth: 12, christmasDay: 25, christmasHour: 0, christmasMinute: 5,
 } as const;
 export type GiftEmailOutcome =
+  | { state: "available"; mode: EmailMode }
   | { state: 'unavailable'; reason: 'sender_not_configured' | 'live_service_not_implemented' }
   | { state: 'sent' | 'scheduled'; eventId: string }
   | { state: 'suppressed'; eventId: string }

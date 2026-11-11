@@ -2,10 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { assertGiftEmailService, type GiftEmailOutcome } from "./gift-email-policy";
 import { donationAccessSchema } from "./payment-policy";
-import { giftDeliverySchema, giftDeliveryTime } from "./donation-email-policy";
+import { giftDeliverySchema, giftDeliveryTime, privateEmailSchema } from "./donation-email-policy";
 import { assertOfficialEmailReady } from "./email-readiness";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CAMPAIGN } from "./campaign";
+import { CAMPAIGN, assertCampaignAction } from "./campaign";
 
 /** No recipient input or side effects until sender setup and verified paid-gift ownership exist. */
 export const giftEmailAvailability = createServerFn({ method: "POST" })
@@ -21,8 +21,9 @@ export const giftEmailAvailability = createServerFn({ method: "POST" })
     } catch {
       return { state: "unavailable", reason: "sender_not_configured" };
     }
-    // Readiness flags alone must never turn a missing integration into success.
-    return { state: "unavailable", reason: "live_service_not_implemented" };
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) return { state: "unavailable", reason: "sender_not_configured" };
+    return { state: "available", mode: data.mode };
   });
 
 /** Feature-specific request: one owned paid donation, one expected recipient, one immutable gift. */
@@ -33,6 +34,8 @@ export const requestPaidGiftEmail = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     assertOfficialEmailReady();
     assertGiftEmailService(data.gift.mode);
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) throw new Error("La casella natale@crimonza.org non risulta ancora autorizzata sul sito.");
     const { loadDonation } = await import("./payments.server");
     const d = await loadDonation(data.id, data.accessToken);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -59,9 +62,35 @@ export const requestPaidGiftEmail = createServerFn({ method: "POST" })
       throw new Error(
         "Richiesta regalo già presente o non salvata. Non è stato inviato un nuovo messaggio.",
       );
-    if (due) return { state: "blocked" as const }; // Never say scheduled until a managed single-event schedule is registered.
+    if (due) return { state: "scheduled" as const, dueAt: due }; // Verified DB-backed cron is required before activating LIVE.
     const { processDonationEmail } = await import("./donation-email.server");
     return processDonationEmail(d.id, "gift");
+  });
+
+/** Optional confirmation requested AFTER a verified payment. One receipt per paid
+ * donation, without allowing arbitrary anonymous visitors to send email.
+ */
+export const requestPaidDonorReceipt = createServerFn({ method: "POST" })
+  .inputValidator(data => donationAccessSchema.extend({ email: privateEmailSchema }).strict().parse(data))
+  .handler(async ({ data }) => {
+    assertOfficialEmailReady();
+    assertCampaignAction("emailNow");
+    const { gmailQaIdentity } = await import("./demo-email-qa.server");
+    if (!(await gmailQaIdentity())) throw new Error("La casella natale@crimonza.org non risulta ancora autorizzata sul sito.");
+    const { loadDonation } = await import("./payments.server");
+    const d = await loadDonation(data.id, data.accessToken);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: record, error } = await supabaseAdmin.from("live_donations")
+      .select("status,settlement_state").eq("id", d.id).single();
+    if (error || record?.status !== "paid" || record.settlement_state !== "completed")
+      throw new Error("Donazione non ancora confermata.");
+    const updated = await supabaseAdmin.from("live_donations")
+      .update({ donor_email_requested: true, donor_email_private: data.email, donor_email_state: "blocked" })
+      .eq("id", d.id).eq("donor_email_state", "not_requested").select("id");
+    if (updated.error || !updated.data?.length)
+      throw new Error("Conferma email gia richiesta o da verificare: non ripetere l'invio.");
+    const { processDonationEmail } = await import("./donation-email.server");
+    return processDonationEmail(d.id, "receipt");
   });
 
 /** Private opt-out on the donor's originating device. No address returned to the browser. */

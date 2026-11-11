@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CAMPAIGN } from "@/lib/campaign";
@@ -14,6 +14,8 @@ import { loadDonationAccess } from "@/lib/payment-device";
 import { Button } from "@/components/ui/button";
 import { Shell } from "@/components/xmas/Shell";
 import { PaidGiftEmail } from '@/components/xmas/PaidGiftEmail';
+import { loadGiftSession } from "@/lib/online-gift-session";
+const LiveGiftCompletion = lazy(async()=>({default:(await import("@/components/xmas/LiveGiftCompletion")).LiveGiftCompletion}));
 export const Route = createFileRoute("/pagamento")({
   validateSearch: z.object({
     id: z.string().uuid().optional(),
@@ -100,6 +102,12 @@ function PaymentReturn() {
       setError("Dedica non salvata.");
     }
   };
+  // Restore the ONLINE_GIFT recipient/dedication on the ORIGINAL paying device.
+  // This branch is available only after authoritative paid status and ornament creation.
+  if (!CAMPAIGN.demo && status === "paid" && ornament && project && id
+      && loadGiftSession(project.id)?.request === id) {
+    return <Shell hidePiazzaPill><Suspense fallback={<p role="status" className="p-8">Preparo il tuo regalo…</p>}><LiveGiftCompletion donationId={id} ornamentId={ornament} project={project}/></Suspense></Shell>;
+  }
   return (
     <Shell hidePiazzaPill>
       <section className="mx-auto max-w-lg px-4 py-10">
