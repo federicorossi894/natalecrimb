@@ -52,3 +52,25 @@ La presenza di una funzione o di un test unitario non garantisce la sua operativ
 Fino alla verifica dei blocchi non superati, **la modalità deve rimanere DEMO**.
 
 Per il prossimo collaudo su telefono: scegliere “Regala prossimità”, simulare un regalo, verificare che la cartolina compaia subito, inviarla a un contatto autorizzato via WhatsApp, controllare che la didascalia sia breve, la dedica non sia ripetuta e il link punti a `natale.crimonza.org`; ripetere con “Solo donazione”.
+
+
+## Aggiornamento esecutivo — 11 novembre 2026, dopo approvazioni
+
+**Comitato / utente:** privacy e 24 gesti di gentilezza dichiarati approvati; casella `natale@crimonza.org` riferita funzionante. La pagina `/privacy` contiene ancora marcatori "bozza" e note di revisione legale e va confrontata con il testo effettivamente approvato prima di dichiararla definitiva.
+
+**Realizzato e verificato:**
+- 24 contenuti della bozza sottoposta al Comitato caricati in `kindness_doors`; `kindness_calendar()` restituisce 24 porte ma 0 contenuti anticipati in novembre.
+- Nuovo checkout LIVE preparato, ma raggiungibile solo quando la modalità è diversa da DEMO e dopo attivazione controllata dei provider; onorati i testi separati pubblico/privato, pagamento verificato prima della pallina, cartolina, email e storia social.
+- Gmail LIVE collegato al mittente `natale@crimonza.org` usando il connettore già testato in DEMO, con controllo identità OAuth prima dell'invio e blocco irrevocabile dei tentativi ambigui. Mancano prove reali complete con donazione saldata.
+- `pg_cron` e `pg_net` abilitati nel database Lovable; cron `natale-2026-christmas-gift-email` attivo ogni 5 minuti nei giorni UTC 24–26 dicembre; esecuzione protetta da token generato dentro Supabase Vault.
+- Chiamata cron reale al dominio `natale.crimonza.org`: HTTP 200 con `{"state":"blocked","reason":"official_sender_not_configured"}` in modalità DEMO; il 401 precedente proveniva dalla pubblicazione non ancora aggiornata. Questo prova la connessione e l'autenticazione, **non** l'invio effettivo di una email.
+- `LIVE_READINESS.payments=false`, `ACTIVE_CAMPAIGN_MODE='DEMO'`, `OFFICIAL_EMAIL_READINESS` e servizi opzionali ancora disattivati; nessun incasso attivo.
+
+**Per chiudere prima dell'apertura:**
+1. Sostituire la pagina privacy ancora contrassegnata "bozza" con la **copia finale esatta approvata**, non un testo riscritto sulla base di ipotesi legali.
+2. Verificare realmente, da LIVE con donazione pagata di test, Gmail mittente, conferma donatore, regalo immediato e messaggio programmato (anche con collaudo su coda protetta senza aspettare il 25 dicembre). Registrare prove e stati.
+3. Verificare entrambi i provider in collaudo autorizzato (checkout, ritorno, webhook, una sola pallina, email) e solo allora impostare i flag LIVE; pubblicare senza mai bypassare i controlli di sicurezza.
+4. Monitorare `cron.job_run_details`, `net._http_response`, `live_donations.gift_email_state` e l'audit prima di Natale. Un invio `claimed` ambiguo non va rilanciato automaticamente.
+5. Alla partenza pubblica eliminare le indicazioni DEMO soltanto dopo verifiche pagamenti/email/privacy e prova iPhone.
+
+**Rollback:** mantenere la modalità DEMO finché i due pagamenti di test non sono conclusi; in caso di guasto ripristinare DEMO e non riprovare automaticamente un capture PayPal o un messaggio Gmail con esito ambiguo.
