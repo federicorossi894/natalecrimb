@@ -84,6 +84,7 @@ export function Shell({ children, hidePiazzaPill = false }: { children: ReactNod
           <p className="font-display text-xl">Il Natale <em className="text-gold">che fa bene</em></p>
           <p className="text-sm text-muted-foreground">{ONLINE_GIFT ? "Un regalo solidale, una pallina sull’albero digitale · Comitato di Monza" : <>Villaggio di Natale · Piazza San Paolo, Monza · l'Albero di Monza fino al {TREE_UNTIL}</>}</p>
           <a href={CRI.site} target="_blank" rel="noreferrer" className="text-sm text-gold underline-offset-4 hover:underline">crimonza.org</a>
+          <Link to="/privacy" className="text-sm text-muted-foreground underline underline-offset-4 hover:text-gold">Informazioni privacy · bozza in revisione</Link>
           {!ONLINE_GIFT && <Link to="/crediti-musica" className="text-sm text-gold underline-offset-4 hover:underline">Crediti musicali</Link>}
           <ul className="mt-1 flex items-center gap-1">
             {CRI.social.map((s) => {
