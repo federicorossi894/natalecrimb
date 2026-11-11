@@ -9,6 +9,7 @@ import { createOnlineGift } from '@/lib/online-gift.functions';
 import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
 import { GiftMailForm } from './GiftMailForm';
+import { OrnamentIcon } from './Ornament';
 import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
 import { resolvePublicTreeChoice } from '@/lib/public-tree-choice';
 import { SolidarityShare } from './SolidarityShare';
