@@ -3,7 +3,7 @@ import type { EmailMode } from './email-demo';
 
 /** Readiness contract only: no queue, stored address or fictitious send. */
 export const GIFT_EMAIL_POLICY = {
-  intendedSender: 'federico.rossi@crimonza.org',
+  intendedSender: 'natale@crimonza.org',
   timeZone: 'Europe/Rome',
   christmasMonth: 12, christmasDay: 25, christmasHour: 0, christmasMinute: 5,
 } as const;

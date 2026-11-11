@@ -12,7 +12,7 @@ it('receipt never sends on mount or without optin; accepted is not delivered and
   call.mockResolvedValue({state:'accepted'});render(<DemoGiftMail {...props} receipt/>);
   expect(call).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Invia conferma'})).toBeDisabled();
   fireEvent.click(screen.getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Invia conferma'}));
-  await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({ornamentId:props.ornamentId,giftRequestId:props.giftRequestId,client:props.client,donor:props.donor,toName:props.toName,msg:props.msg,kind:'receipt',approved:true,recipient:'federico.rossi@crimonza.org'});
+  await waitFor(()=>expect(call).toHaveBeenCalledOnce());expect(call.mock.calls[0]?.[0]?.data).toMatchObject({ornamentId:props.ornamentId,giftRequestId:props.giftRequestId,client:props.client,donor:props.donor,toName:props.toName,msg:props.msg,kind:'receipt',approved:true,recipient:'natale@crimonza.org'});
   expect(screen.getByRole('button',{name:'Invia conferma'})).toBeDisabled();
 });
 it('foreign recipient blocks before send',()=>{render(<DemoGiftMail {...props}/>);fireEvent.change(screen.getByLabelText('Email regalo'),{target:{value:'other@example.org'}});fireEvent.click(screen.getByRole('checkbox'));expect(screen.getByRole('button',{name:'Invia via email'})).toBeDisabled();expect(call).not.toHaveBeenCalled();});

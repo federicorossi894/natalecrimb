@@ -1,5 +1,5 @@
 /** Server-only: builds and sends online-gift emails from the connected Gmail account. */
-export const GIFT_MAIL_SENDER = 'federico.rossi@crimonza.org';
+export const GIFT_MAIL_SENDER = 'natale@crimonza.org';
 export const GIFT_MAIL_SITE = 'https://natale.crimonza.org';
 export type GiftMailKind = 'receipt' | 'gift_now' | 'gift_christmas';
 import { PROJECTS, type OrnamentKind } from './data';
@@ -94,7 +94,7 @@ export function giftMailRaw(c: GiftMailContent, messageRef: string) {
 }
 
 export async function sendGiftMail(c: GiftMailContent, messageRef: string): Promise<{ state: 'accepted' | 'failed' | 'unknown'; messageId?: string }> {
-  const key = process.env['GOOGLE_MAIL_API_KEY'], auth = process.env['LOVABLE_API_KEY'];
+  const key = process.env['GOOGLE_MAIL_API_KEY_1'], auth = process.env['LOVABLE_API_KEY'];
   if (!key || !auth) return { state: 'failed' };
   const response = await fetch('https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/messages/send', {
     method: 'POST', headers: { Authorization: `Bearer ${auth}`, 'X-Connection-Api-Key': key, 'Content-Type': 'application/json' },

@@ -1,6 +1,6 @@
 /** Evidence set only after the Committee's dedicated sender has been verified. */
 export const OFFICIAL_EMAIL_READINESS = {
-  sender: "federico.rossi@crimonza.org",
+  sender: "natale@crimonza.org",
   mailboxApproved: false,
   domainVerified: false,
   managedSenderConfigured: false,
@@ -21,7 +21,7 @@ export const EMAIL_LIVE_BLOCKER =
   "ATTENZIONE: email ufficiale Natale non ancora configurata; impossibile attivare modalità LIVE";
 export function officialEmailReady(r: OfficialEmailReadiness = OFFICIAL_EMAIL_READINESS) {
   return (
-    r.sender === "federico.rossi@crimonza.org" &&
+    r.sender === "natale@crimonza.org" &&
     r.mailboxApproved &&
     r.domainVerified &&
     r.managedSenderConfigured &&

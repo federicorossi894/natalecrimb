@@ -8,7 +8,7 @@ vi.mock('@/integrations/supabase/client.server',()=>({supabaseAdmin:{from:()=>{c
 vi.mock('@/lib/demo-email-qa.server',async()=>{const real=await vi.importActual<typeof import('@/lib/demo-email-qa.server')>('@/lib/demo-email-qa.server');return {...real,gmailQaIdentity:mocks.identity,sendGmailQa:mocks.send};});
 import { sendDemoGiftMail } from '@/lib/demo-gift-mail.functions';
 const id='00000000-0000-4000-8000-000000000001';
-const data={ornamentId:id,giftRequestId:id,client:id,kind:'gift_now',recipient:'federico.rossi@crimonza.org',approved:true,donor:'Federico',toName:'Giulia',msg:'Privata'};
+const data={ornamentId:id,giftRequestId:id,client:id,kind:'gift_now',recipient:'natale@crimonza.org',approved:true,donor:'Federico',toName:'Giulia',msg:'Privata'};
 const handler=sendDemoGiftMail as unknown as (x:{data:typeof data;context:{supabase:unknown;userId:string}})=>Promise<{state:string}>;
 const context={supabase:{},userId:'verified-owner'};
 beforeEach(()=>{vi.clearAllMocks();mocks.auth.mockResolvedValue(undefined);mocks.identity.mockResolvedValue(true);mocks.single.mockResolvedValue({data:{id,kind:'prossimita',amount_cents:2000},error:null});mocks.claim.mockResolvedValue({data:id,error:null});mocks.finish.mockResolvedValue({error:null});mocks.send.mockResolvedValue({state:'accepted',messageId:'fixture-only'});});

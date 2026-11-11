@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const demoGiftMailInput = z.object({
   ornamentId:z.string().uuid(), giftRequestId:z.string().uuid(), client:z.string().uuid(),
   kind:z.enum(['receipt','gift_now','christmas_simulation']),
-  recipient:z.literal('federico.rossi@crimonza.org'), approved:z.literal(true),
+  recipient:z.literal('natale@crimonza.org'), approved:z.literal(true),
   donor:z.string().trim().max(40), toName:z.string().trim().max(40), msg:z.string().trim().max(90),
 }).strict();
 export type DemoGiftMailPayload = {projectTitle:string;amount:number;ornamentId:string;donor:string;toName:string;msg:string};

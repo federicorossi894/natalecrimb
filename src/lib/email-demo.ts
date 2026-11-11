@@ -3,7 +3,7 @@ import { z } from "zod";
 /** Gift email demo: preview + simulated confirmation only. Nothing is sent, scheduled or stored. */
 export type EmailMode = "now" | "christmas";
 export type EmailAudience = "recipient" | "donor";
-export const EMAIL_SENDER = "federico.rossi@crimonza.org";
+export const EMAIL_SENDER = "natale@crimonza.org";
 /** Christmas surprise: 25 December, 00:05 Europe/Rome. */
 export const CHRISTMAS_DELIVERY = "25 dicembre · ore 00:05 (ora italiana)";
 export const CHRISTMAS_DELIVERY_ISO = "2026-12-24T23:05:00.000Z";

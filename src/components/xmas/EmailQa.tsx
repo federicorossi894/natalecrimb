@@ -59,7 +59,7 @@ export function EmailQa() {
   return (
     <section className="mt-8 border-t py-6">
       <h2 className="font-display text-2xl">Prova email · DEMO</h2>
-      <p className="mt-2 break-words text-sm">Da e a: federico.rossi@crimonza.org</p>
+      <p className="mt-2 break-words text-sm">Da e a: natale@crimonza.org</p>
       <p className="mt-2 text-sm text-muted-foreground">
         [DEMO — NESSUN PAGAMENTO] · Non valida come ricevuta. Tutte le prove partono subito, nessun
         invio programmato per Natale.

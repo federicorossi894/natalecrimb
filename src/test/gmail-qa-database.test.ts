@@ -13,6 +13,7 @@ beforeAll(async () => {
   );
   await db.exec(await readFile("drizzle/migrations/0014_staff_gmail_qa_audit.sql", "utf8"));
   await db.exec(await readFile('drizzle/migrations/0019_email_qa_verified_owner.sql','utf8'));
+  await db.exec(await readFile('drizzle/migrations/0022_email_qa_natale_owner.sql','utf8'));
   await db.exec(`select set_config('request.jwt.claims','{"role":"service_role"}',false)`);
 }, 30000);
 afterAll(async () => {
@@ -86,11 +87,16 @@ it('confirmed exact owner with volunteer role can claim QA without wider roles',
   const owner='00000000-0000-4000-8000-000000000002';
   await db.exec(`TRUNCATE public.staff_qa_attempts; INSERT INTO auth.users VALUES('${owner}','federico.rossi@crimonza.org',now(),NULL,NULL); INSERT INTO public.user_roles VALUES('${owner}','volunteer');`);
   const r=await db.query<{id:string}>('select public.claim_staff_gmail_qa($1,$2,$3) id',[owner,request(),'receipt']);
+  expect(r.rows[0]?.id).toBeTruthy();  expect((await db.query<{role:string}>('select role from public.user_roles where user_id=$1',[owner])).rows.map(r=>r.role)).toEqual(['volunteer']);
+});
+it('the campaign mailbox owner natale@crimonza.org can claim QA without any role', async () => {
+  const owner='00000000-0000-4000-8000-000000000003';
+  await db.exec(`TRUNCATE public.staff_qa_attempts; INSERT INTO auth.users VALUES('${owner}','natale@crimonza.org',now(),NULL,NULL);`);
+  const r=await db.query<{id:string}>('select public.claim_staff_gmail_qa($1,$2,$3) id',[owner,request(),'gift_now']);
   expect(r.rows[0]?.id).toBeTruthy();
-  expect((await db.query<{role:string}>('select role from public.user_roles where user_id=$1',[owner])).rows.map(r=>r.role)).toEqual(['volunteer']);
 });
 it('unconfirmed, foreign volunteer, deleted and shared-session actors cannot claim', async () => {
-  for (const [email,confirmed,deleted] of [['foreign@example.org',true,false],['federico.rossi@crimonza.org',false,false],['federico.rossi@crimonza.org',true,true]] as const) {
+  for (const [email,confirmed,deleted] of [['foreign@example.org',true,false],['federico.rossi@crimonza.org',false,false],['federico.rossi@crimonza.org',true,true],['natale@crimonza.org',false,false],['natale@crimonza.org',true,true]] as const) {
     const id=request();
     await db.query('insert into auth.users values($1,$2,$3,$4,NULL)',[id,email,confirmed?new Date():null,deleted?new Date():null]);
     await db.query("insert into public.user_roles values($1,'volunteer')",[id]);

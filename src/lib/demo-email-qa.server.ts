@@ -1,8 +1,8 @@
 import type { DemoGiftMailPayload } from './demo-gift-mail-policy';
 /** Fixed server-only Gmail QA; optional validated online-gift content, never arbitrary addresses. */
 export const DEMO_EMAIL_QA = {
-  confirmedRecipients: ["federico.rossi@crimonza.org"] as readonly string[],
-  sender: "federico.rossi@crimonza.org",
+  confirmedRecipients: ["natale@crimonza.org"] as readonly string[],
+  sender: "natale@crimonza.org",
   enabled: true,
   minIntervalSeconds: 600,
   maximumPerDay: 3,
@@ -78,7 +78,7 @@ export function qaRawMessage(kind: QaKind, attempt: string, gift?: DemoGiftMailP
     .replace(/=+$/, "");
 }
 export async function gmailQaIdentity() {
-  const key = process.env["GOOGLE_MAIL_API_KEY"];
+  const key = process.env["GOOGLE_MAIL_API_KEY_1"];
   const auth = process.env["LOVABLE_API_KEY"];
   if (!key || !auth) return false;
   const response = await fetch(
@@ -92,7 +92,7 @@ export async function gmailQaIdentity() {
   return (await response.json()).emailAddress === DEMO_EMAIL_QA.sender;
 }
 export async function sendGmailQa(kind: QaKind, attempt: string, gift?: DemoGiftMailPayload): Promise<QaResult> {
-  const key = process.env["GOOGLE_MAIL_API_KEY"];
+  const key = process.env["GOOGLE_MAIL_API_KEY_1"];
   const auth = process.env["LOVABLE_API_KEY"];
   if (!key || !auth) return { state: "failed" };
   const response = await fetch(
