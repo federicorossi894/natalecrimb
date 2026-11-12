@@ -8,7 +8,7 @@ import {
 import { Route } from "@/routes/api/public/payment-reconciliation";
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), recover: vi.fn() }));
-vi.mock("@/integrations/supabase/cron-auth", () => ({ authenticateCronRequest: mocks.auth }));
+vi.mock("@/lib/internal-cron-auth.server", () => ({ authenticateInternalScheduler: mocks.auth }));
 vi.mock("@/lib/payments.server", () => ({ recoverLivePayments: mocks.recover }));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({ options }),
