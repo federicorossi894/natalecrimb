@@ -1,7 +1,7 @@
 import { ONLINE_GIFT } from '@/lib/site-experience';
 import { CAMPAIGN } from "@/lib/campaign";
 import { useEffect, useRef, useState } from 'react';
-import { LocateFixed, RotateCcw, ChevronLeft, ChevronRight, X, Gift } from 'lucide-react';
+import { LocateFixed, RotateCcw, X, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTreeStore } from '@/lib/tree-store';
 import type { TreeOrnament } from '@/lib/data';
@@ -20,13 +20,12 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
   useEffect(()=>{const pop=()=>setSelected(null);window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
   const close=()=>{setSelected(null);if(window.history.state?.treeDedication)window.history.back();};
   useEffect(()=>{if(!selected)return;const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){setSelected(null);if(window.history.state?.treeDedication)window.history.back();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[selected]);
-  const pick=(o:TreeOrnament)=>{if(!selected)window.history.pushState({...window.history.state,treeDedication:true},'');setSelected(o);setNotice('');setTimeout(()=>{const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-82,behavior:'instant'});},80);};
+  const pick=(o:TreeOrnament)=>{if(!selected)window.history.pushState({...window.history.state,treeDedication:true},'');setSelected(o);setNotice('');setTimeout(()=>{const stage=document.querySelector('.tree-stage');if(stage)window.scrollTo({top:stage.getBoundingClientRect().top+window.scrollY-24,behavior:'instant'});},80);};
   const find=()=>{const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));if(!own.length){setNotice('Non ci sono ancora tuoi addobbi visibili da questo dispositivo.');return;}const i=own.findIndex(o=>o.id===selected?.id);const next=own[(i+1)%own.length];if(next)pick(next);};
   useEffect(()=>{if(!autoFind||autoDone.current||!mine.length||!ornaments.length)return;const ids=new Set(mine.map(o=>o.id));const own=ornaments.filter(o=>ids.has(String(o.id)));const last=own[own.length-1];if(last){autoDone.current=true;pick(last);}},[autoFind,mine,ornaments]);
   // Stable deep link (/albero?addobbo=<id>) from postcards and emails: focus that ornament once it is loaded.
   const focusDone=useRef(false);
   useEffect(()=>{if(!focusId||focusDone.current)return;const o=ornaments.find(x=>String(x.id)===focusId);if(o){focusDone.current=true;pick(o);return;}if(error)setNotice('Albero momentaneamente non raggiungibile: riproviamo tra poco.');},[focusId,ornaments,error]);
-  const step=(dir:number)=>{const i=ornaments.findIndex(o=>o.id===selected?.id);const next=ornaments[(i+dir+ornaments.length)%ornaments.length];if(next)pick(next);};
   return <>
     <div className="relative">
       {loaded ? <TreeStage ornaments={ornaments} selected={selected} onPick={pick} resetKey={reset} reduced={reduced} /> : <div className="tree-stage flex min-h-[360px] flex-col items-center justify-center gap-4 px-6 text-center" role="status"><p className="font-display text-2xl text-gold">{error ? "L’albero non è raggiungibile in questo momento." : "Accendiamo il tuo albero…"}</p>{error && <Button variant="outline" onClick={() => { void refresh(); }}>Riprova a caricare</Button>}</div>}
@@ -34,11 +33,9 @@ export function TreeExperience({autoFind=false,focusId}:{autoFind?:boolean;focus
         <div className="tree-stage-counter"><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-gold">{!ONLINE_GIFT && CAMPAIGN.demo ? "DEMO · Albero condiviso" : "Albero di Monza"}</p><p className="mt-1 font-display text-2xl">{loaded ? `${addedCount} regali appesi` : (error ? "In attesa di connessione…" : "Caricamento dei regali…")}</p></div>
         <Button variant="outline" size="icon" className="pointer-events-auto" title="Vista generale" aria-label="Vista generale" onClick={()=>{close();setReset(s=>s+1);}}><RotateCcw /></Button>
       </div>
-      <div className="flex min-h-20 items-center justify-center gap-2 px-3">
-        <Button variant="outline" size="icon" aria-label="Addobbo precedente" onClick={()=>step(-1)} disabled={!ornaments.length}><ChevronLeft /></Button>
-        {!ONLINE_GIFT && <Button onClick={find} className="h-10 shadow-deep"><LocateFixed />Trova il mio addobbo</Button>}
-        <Button variant="outline" size="icon" aria-label="Addobbo successivo" onClick={()=>step(1)} disabled={!ornaments.length}><ChevronRight /></Button>
-      </div>
+      {!ONLINE_GIFT && <div className="flex min-h-20 items-center justify-center px-3">
+        <Button onClick={find} className="h-10 shadow-deep"><LocateFixed />Trova il mio addobbo</Button>
+      </div>}
     </div>
     {error&&<p role="status" className="mt-3 text-sm text-gold">Aggiornamento temporaneamente non disponibile. Riproveremo automaticamente.</p>}
     {notice&&<p role="status" className="mt-4 text-sm text-gold">{notice}</p>}
