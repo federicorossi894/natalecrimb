@@ -115,7 +115,7 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
           </div>}
           <p className="text-xs text-muted-foreground">Non inserire dati personali di altre persone nella dedica pubblica. La cartolina privata resta separata.</p>
         </fieldset>
-        <p className="mt-4 text-xs text-muted-foreground">I dati inseriti servono alla tua richiesta. <Link to="/privacy" className="font-semibold text-gold underline underline-offset-4">Leggi le informazioni sulla privacy (bozza in revisione)</Link>.</p>
+        <p className="mt-4 text-xs text-muted-foreground">I dati inseriti servono alla tua richiesta. <Link to="/privacy" className="font-semibold text-gold underline underline-offset-4">Leggi l’informativa sulla privacy</Link>.</p>
         {draftIssue && <p role="alert" className="mt-4 rounded-lg border border-amber-500/45 bg-secondary p-3 text-sm text-foreground">{draftIssue}</p>}
         <Button className="mt-6 h-auto w-full py-4" disabled={!!draftIssue} onClick={()=>{setError('');setStage('payment');}}>Continua</Button>
         {error && <p role="alert" className="mt-3 text-gold">{error}</p>}
