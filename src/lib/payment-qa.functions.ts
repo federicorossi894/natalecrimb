@@ -97,3 +97,32 @@ export const paymentQaSummary = createServerFn({method:"POST"})
     }
     return out;
   });
+
+export const schedulePaymentQaChristmas = createServerFn({method:"POST"})
+  .middleware([requireSupabaseAuth])
+  .inputValidator(data=>donationAccessSchema.strict().parse(data))
+  .handler(async ({data,context})=>{
+    const actor=await requirePaymentQa(context);
+    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
+    const {data:permit,error:permError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("provider,actor").eq("donation_id",data.id).maybeSingle();
+    if(permError || !permit || permit.actor!==actor || permit.provider!=="paypal")
+      throw new Error("La programmazione è riservata al secondo collaudo.");
+    const {loadDonation}=await import("./payments.server");
+    const donation=await loadDonation(data.id,data.accessToken);
+    if(donation.provider!=="paypal" || donation.amount_cents!==500 || donation.status!=="paid")
+      throw new Error("Pagamento di prova non ancora confermato.");
+    const {data:proof,error:proofError}=await supabaseAdmin.from("live_donations")
+      .select("settlement_state").eq("id",data.id).single();
+    if(proofError || proof?.settlement_state!=="completed")
+      throw new Error("Incasso non riconciliato.");
+    const {giftDeliveryTime}=await import("./donation-email-policy");
+    const due=giftDeliveryTime("christmas",new Date());
+    const {data:updated,error}=await supabaseAdmin.from("live_donations")
+      .update({gift_email_private:"natale@crimonza.org",
+        gift_email_data:{donor:"Collaudo CRI Monza",toName:"Comitato di Monza",msg:"Buon Natale dal collaudo tecnico"},
+        gift_email_due_at:due,gift_email_state:"blocked"})
+      .eq("id",data.id).eq("gift_email_state","not_requested").select("id");
+    if(error || !updated?.length)throw new Error("Invio già programmato o in verifica.");
+    return {state:"scheduled" as const,dueAt:due};
+  });
