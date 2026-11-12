@@ -83,6 +83,20 @@ describe("Real payment adapters, no external requests", () => {
       );
     },
   );
+  it("a staff-only QA checkout is exactly €5, on the official domain, and keeps public DEMO disabled",async()=>{
+    Object.assign(CAMPAIGN,campaignCapabilities("DEMO",ready,undefined,undefined,providers));
+    fetchMock.mockResolvedValueOnce(response({merchant_profile:{merchant_code:"test-merchant"}}))
+      .mockResolvedValueOnce(response({id:"qa-checkout",hosted_checkout_url:"https://checkout.sumup.com/qa"}));
+    const result=await createProviderCheckout("sumup",id,500,"https://natale.crimonza.org",true);
+    expect(result.providerId).toBe("qa-checkout");
+    const body=JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(body.amount).toBe(5);
+    expect(body.redirect_url).toBe(`https://natale.crimonza.org/collaudo-pagamenti?d=${id}`);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await expect(createProviderCheckout("sumup",id,400,"https://natale.crimonza.org",true)).rejects.toThrow("Collaudo");
+    await expect(createProviderCheckout("sumup",id,600,"https://natale.crimonza.org",true)).rejects.toThrow("Collaudo");
+    await expect(createProviderCheckout("sumup",id,500,"https://natalecrimb.lovable.app",true)).rejects.toThrow("natale.crimonza.org");
+  });
   it("DEMO never calls a real provider or writes LIVE data", async () => {
     Object.assign(CAMPAIGN, campaignCapabilities("DEMO", ready, undefined, undefined, providers));
     await expect(
