@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import styles from "../styles.css?raw";
+import { readFileSync } from "node:fs";
+const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
 
 describe("selected ornament dedication overlay", () => {
   it("keeps the 3D tree sharp behind the dedication, including on iOS Safari", () => {
