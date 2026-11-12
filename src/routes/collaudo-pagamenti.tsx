@@ -7,7 +7,7 @@ import { AuthBox } from "@/components/xmas/AuthBox";
 import { Shell, PageHead } from "@/components/xmas/Shell";
 import { Button } from "@/components/ui/button";
 import { newDonationAccess, saveDonationAccess, loadDonationAccess } from "@/lib/payment-device";
-import { startPaymentQa, checkPaymentQa, paymentQaSummary, schedulePaymentQaChristmas } from "@/lib/payment-qa.functions";
+import { startPaymentQa, checkPaymentQa, paymentQaSummary, schedulePaymentQaChristmas, sendPaymentQaGiftNow } from "@/lib/payment-qa.functions";
 type Provider = "sumup"|"paypal";
 export const Route=createFileRoute("/collaudo-pagamenti")({
   validateSearch:z.object({d:z.string().uuid().optional(),token:z.string().optional(),PayerID:z.string().optional(),annullato:z.coerce.number().optional()}),
@@ -25,6 +25,7 @@ function PaymentQaPage(){
   const check=useServerFn(checkPaymentQa);
   const summary=useServerFn(paymentQaSummary);
   const schedule=useServerFn(schedulePaymentQaChristmas);
+  const sendNow=useServerFn(sendPaymentQaGiftNow);
   const [state,setState]=useState<"loading"|"signed-out"|"denied"|"allowed">("loading");
   const [items,setItems]=useState<Awaited<ReturnType<typeof summary>>>([]);
   const [busy,setBusy]=useState(false);
@@ -77,6 +78,20 @@ function PaymentQaPage(){
       window.location.assign(result.url);
     }catch(e){setError(e instanceof Error?e.message:"Checkout non disponibile. Non ripetere automaticamente la donazione.");setBusy(false);await refresh();}
   };
+  const sendImmediate=async()=>{
+    if(!d)return;
+    const access=loadDonationAccess(d);
+    if(!access){setError("Accesso al pagamento non disponibile sul dispositivo.");return;}
+    setBusy(true);setError("");
+    try{
+      const result=await sendNow({data:access});
+      setMessage(result.state==="accepted"
+        ?"Regalo solidale realmente inviato a natale@crimonza.org."
+        :"Invio in verifica: non richiedere un secondo messaggio.");
+      await refresh();
+    }catch(e){setError(e instanceof Error?e.message:"Invio da verificare: non ripetere.");}
+    finally{setBusy(false);}
+  };
   const queue=async()=>{
     if(!d)return;
     const access=loadDonationAccess(d);
@@ -125,6 +140,8 @@ function PaymentQaPage(){
           {paid?.status==="paid"?<>
             <p className="mt-2 text-sm font-semibold">Incasso confermato dal provider: 5,00 €.</p>
             <p className="mt-2 text-sm">Palline create: {paid.ornaments} · Conferma Gmail: {paid.receipt}.</p>
+            {items.some(i=>i.provider==="sumup"&&i.id===d&&i.christmas==="not_requested")&&
+              <Button className="mt-4" disabled={busy} onClick={()=>void sendImmediate()}>Invia email regalo immediata alla casella CRI</Button>}
             {items.some(i=>i.provider==="paypal"&&i.id===d&&i.christmas==="not_requested")&&
               <Button className="mt-4" disabled={busy} onClick={()=>void queue()}>Programma email di collaudo per Natale</Button>}
           </>:<Button className="mt-3" variant="outline" disabled={busy} onClick={()=>void verify()}>Riprova soltanto la verifica, non il pagamento</Button>}
