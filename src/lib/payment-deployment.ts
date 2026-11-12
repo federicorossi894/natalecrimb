@@ -1,20 +1,17 @@
-/** An exact server deployment allowlist, never a browser/forwarded-host override. */
-export const PUBLIC_PAYMENT_ORIGINS = [
-  "https://natalecrimb.lovable.app",
-  "https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
-] as const;
+/** Production payments originate ONLY from the official CRI Monza domain.
+ * Lovable preview and editor domains never initiate a real checkout.
+ * Never use Host/X-Forwarded-Host, browser input or an arbitrary env override as a redirect target.
+ */
+export const PUBLIC_PAYMENT_ORIGINS = ["https://natale.crimonza.org"] as const;
 export function paymentOrigin(requestUrl: string, configuredOrigin?: string) {
-  const requested = new URL(requestUrl);
-  const origin = configuredOrigin ? new URL(configuredOrigin) : requested;
+  const request = new URL(requestUrl);
+  const official = PUBLIC_PAYMENT_ORIGINS[0];
   if (
-    origin.protocol !== "https:" ||
-    origin.username ||
-    origin.password ||
-    !PUBLIC_PAYMENT_ORIGINS.some((allowed) => allowed === origin.origin) ||
-    requested.origin !== origin.origin
-  )
-    throw new Error("Dominio pagamenti non autorizzato.");
-  return origin.origin;
+    request.origin !== official ||
+    request.username || request.password ||
+    (configuredOrigin && configuredOrigin !== official)
+  ) throw new Error("Effettua il pagamento soltanto su natale.crimonza.org.");
+  return official;
 }
 export const PAYPAL_WEBHOOK_EVENTS = [
   "CHECKOUT.ORDER.APPROVED",
