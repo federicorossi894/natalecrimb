@@ -45,15 +45,16 @@ const managedSendAdapter: DeliveryPorts["send"] = async (donationId, kind) => {
 export async function processDonationEmail(id: string, kind: DeliveryKind, retry = false, qaAuthorized = false) {
   const adapter = managedSendAdapter;
   if (qaAuthorized) {
-    if (!CAMPAIGN.demo || kind !== "receipt") return { state: "blocked" as const };
+    if (!CAMPAIGN.demo) return { state: "blocked" as const };
     const {data:permit,error:pError}=await supabaseAdmin.from("natale_payment_qa_2026")
       .select("donation_id").eq("donation_id",id).maybeSingle();
     const {data:donation,error:dError}=await supabaseAdmin.from("live_donations")
-      .select("amount_cents,donor_email_private,settlement_state,status")
+      .select("amount_cents,donor_email_private,gift_email_private,gift_email_due_at,settlement_state,status")
       .eq("id",id).single();
     if(pError || !permit || dError || donation?.status!=="paid"
       || donation.settlement_state!=="completed" || donation.amount_cents!==500
-      || donation.donor_email_private!=="natale@crimonza.org")
+      || (kind==="receipt" && donation.donor_email_private!=="natale@crimonza.org")
+      || (kind==="gift" && (donation.gift_email_private!=="natale@crimonza.org" || donation.gift_email_due_at!==null)))
       return {state:"blocked" as const};
   } else if (CAMPAIGN.demo || !officialEmailReady()) return { state: "blocked" as const };
   // Reject a stale connection that still belongs to a personal Gmail account
