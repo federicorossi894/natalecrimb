@@ -30,11 +30,12 @@ afterEach(() => {
   CAMPAIGN.demo = true;
   CAMPAIGN.livePayments = false;
 });
-it("DEMO acknowledges shared-app foreign notifications without payload parsing or payment work", async () => {
-  CAMPAIGN.livePayments = true; // Hard DEMO gate wins even against an inconsistent readiness value.
+it("DEMO routes callbacks into the limited QA handlers, which verify ownership before any provider charge", async () => {
   for (const handler of routes) expect((await handler({ request: request() })).status).toBe(204);
-  expect(mocks.paypal).not.toHaveBeenCalled();
-  expect(mocks.sumup).not.toHaveBeenCalled();
+  expect(mocks.paypal).toHaveBeenCalledOnce();
+  expect(mocks.sumup).toHaveBeenCalledOnce();
+  expect(mocks.paypal).toHaveBeenCalledWith(expect.any(Request), true);
+  expect(mocks.sumup).toHaveBeenCalledWith(expect.any(Request), true);
 });
 it("unready live deployment also safely acknowledges without processing", async () => {
   CAMPAIGN.demo = false;
