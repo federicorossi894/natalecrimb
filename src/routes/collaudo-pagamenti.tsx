@@ -115,6 +115,7 @@ function PaymentQaPage(){
           {items.map(i=><div key={i.provider} className="mt-3 border-t pt-3 text-sm">
             <strong>{i.provider==="sumup"?"SumUp":"PayPal"}</strong> · {i.status} · {i.settlement}
             <p>Palline: {i.ornaments} · Conferma email: {i.receipt} · Natale: {i.christmas}</p>
+            <p>Webhook reale verificato: <strong>{i.webhookVerified?"Sì":"Non ancora"}</strong></p>
             <Button size="sm" variant="outline" className="mt-2" disabled={busy}
               onClick={()=>window.location.assign(`/collaudo-pagamenti?d=${i.id}`)}>Verifica questo pagamento</Button>
           </div>)}
