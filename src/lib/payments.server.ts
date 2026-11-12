@@ -355,7 +355,13 @@ export async function handleSumupWebhook(request: Request, qaMode = false) {
     if(permitError)throw new Error("Registro collaudo non disponibile.");
     if(!permit)return;
   }
-  await reconcileDonation(await loadDonation(data.id), false, qaMode);
+  const verified=await reconcileDonation(await loadDonation(data.id), false, qaMode);
+  if(qaMode && verified.status==="paid"){
+    const {error:markError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .update({webhook_verified_at:new Date().toISOString()})
+      .eq("donation_id",data.id).eq("provider","sumup");
+    if(markError)throw new Error("Audit webhook SumUp non registrato.");
+  }
 }
 export async function handlePaypalWebhook(request: Request, qaMode = false) {
   if (qaMode) {
@@ -428,6 +434,10 @@ export async function handlePaypalWebhook(request: Request, qaMode = false) {
       .select("provider").eq("donation_id",data.id).eq("provider","paypal").maybeSingle();
     if(permitError)throw new Error("Registro collaudo non disponibile.");
     if(!permit)return;
+    const {error:auditError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .update({webhook_verified_at:new Date().toISOString()})
+      .eq("donation_id",data.id).eq("provider","paypal");
+    if(auditError)throw new Error("Audit webhook PayPal non registrato.");
   }
   const d = await loadDonation(data.id);
   if (approvalReversed) {
