@@ -45,6 +45,8 @@ beforeEach(() => {
   vi.stubEnv("LOVABLE_API_KEY", "test-only");
   vi.stubEnv("PAYPAL_CLIENT_ID", "test-only");
   vi.stubEnv("PAYPAL_CLIENT_SECRET", "test-only");
+  // Stale Lovable override cannot redirect a genuine paid checkout away from the official domain.
+  vi.stubEnv("PAYMENT_PUBLIC_ORIGIN", "https://natalecrimb.lovable.app");
   Object.assign(CAMPAIGN, campaignCapabilities("BASIC", ready, undefined, undefined, providers));
   db.rpc.mockResolvedValue({ data: "ornament-1", error: null });
 });
