@@ -18,7 +18,7 @@ export const startDonationCheckout = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     assertCampaignPayment(data.provider, "live");
     const requestUrl = getRequest().url;
-    paymentOrigin(requestUrl, process.env["PAYMENT_PUBLIC_ORIGIN"]);
+    paymentOrigin(requestUrl);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const accessHash = await tokenHash(data.accessToken);
     const { data: existing, error: lookupError } = await supabaseAdmin
