@@ -7,6 +7,14 @@ export const Route = createFileRoute("/api/public/sumup-webhook")({
         if (CAMPAIGN.demo && Date.now()>=Date.parse("2026-11-16T00:00:00Z"))
           return new Response(null,{status:204});
         if (!CAMPAIGN.demo && !CAMPAIGN.livePayments) return new Response(null,{status:204});
+        if (CAMPAIGN.demo) {
+          try {
+            const {paymentQaProviderActive}=await import("@/lib/payment-qa-active.server");
+            if (!(await paymentQaProviderActive("sumup")))
+              return new Response(null,{status:204});
+          } catch { return new Response("QA audit unavailable",{status:503}); }
+        }
+
         try {
           const { handleSumupWebhook } = await import("@/lib/payments.server");
           await handleSumupWebhook(request, CAMPAIGN.demo);
