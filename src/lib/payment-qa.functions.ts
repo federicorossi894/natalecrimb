@@ -79,7 +79,7 @@ export const paymentQaSummary = createServerFn({method:"POST"})
     const actor=await requirePaymentQa(context);
     const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
     const {data:items,error}=await supabaseAdmin.from("natale_payment_qa_2026")
-      .select("provider,donation_id").eq("actor",actor);
+      .select("provider,donation_id,webhook_verified_at").eq("actor",actor);
     if(error)throw new Error("Registro collaudo non disponibile.");
     const out=[];
     for(const q of items??[]){
@@ -93,7 +93,7 @@ export const paymentQaSummary = createServerFn({method:"POST"})
       out.push({provider:q.provider,id:q.donation_id,status:don?.status??"creating",
         settlement:don?.settlement_state??"unknown",
         receipt:don?.donor_email_state??"not_requested",
-        christmas:don?.gift_email_state??"not_requested",ornaments:count??0});
+        christmas:don?.gift_email_state??"not_requested",webhookVerified:!!q.webhook_verified_at,ornaments:count??0});
     }
     return out;
   });
