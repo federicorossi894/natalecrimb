@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PROJECTS } from '@/lib/data';
-import { postcardCaption, postcardText } from '@/lib/postcard-share';
+import { postcardCaption, postcardGiftIntro, postcardText } from '@/lib/postcard-share';
 
 const project=PROJECTS[0]!;
 const id='00000000-0000-4000-8000-000000000101';
@@ -25,5 +25,21 @@ describe('WhatsApp sharing copy',()=>{
     const caption=postcardCaption(project,'');
     expect(caption).toContain('per te');
     expect(caption).toContain('natale.crimonza.org/regali/');
+  });
+});
+
+describe('private postcard attribution',()=>{
+  it('uses the two names only on the personal greeting, before the dedication',()=>{
+    expect(postcardGiftIntro('Chicco','Emma')).toBe('Chicco ha fatto un regalo a Emma');
+    expect(postcardGiftIntro('Chicco','Emma',true)).toBe('');
+  });
+  it('gracefully handles optional names without inventing people',()=>{
+    expect(postcardGiftIntro('','Emma')).toBe('Un regalo per Emma');
+    expect(postcardGiftIntro('Chicco','')).toBe('Chicco ha fatto un regalo solidale');
+    expect(postcardGiftIntro('','')).toBe('Un regalo pensato per te');
+  });
+  it('keeps the social caption short instead of exposing the donor name',()=>{
+    expect(postcardCaption(project,'Emma',id)).not.toContain('Chicco');
+    expect(postcardCaption(project,'Emma',id)).toContain('natale.crimonza.org');
   });
 });
