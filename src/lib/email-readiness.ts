@@ -21,7 +21,7 @@ export type OfficialEmailReadiness = {
   giftChristmasScheduleVerified: boolean;
 };
 export const EMAIL_LIVE_BLOCKER =
-  "ATTENZIONE: email ufficiale Natale non ancora configurata; impossibile attivare modalità LIVE";
+  "ATTENZIONE: le email LIVE devono essere collaudate su donazioni pagate prima dell’attivazione pubblica.";
 export function officialEmailReady(r: OfficialEmailReadiness = OFFICIAL_EMAIL_READINESS) {
   return (
     r.sender === "natale@crimonza.org" &&
