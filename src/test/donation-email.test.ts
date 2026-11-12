@@ -159,7 +159,7 @@ describe("Official sender hard gate and protected QA", () => {
     "mode-only switch to %s is rejected",
     (mode) =>
       expect(() => assertCampaignDeployment(mode)).toThrow(
-        "ATTENZIONE: email ufficiale Natale non ancora configurata; impossibile attivare modalità LIVE",
+        "ATTENZIONE: le email LIVE devono essere collaudate su donazioni pagate prima dell’attivazione pubblica.",
       ),
   );
   it("official LIVE sender stays unavailable independently of manual Gmail QA", () => {
