@@ -42,3 +42,58 @@ export const startPaymentQa = createServerFn({method:"POST"})
     if(saveError)throw new Error("Checkout avviato ma registrazione incompleta. Non creare un'altra donazione.");
     return {url:checkout.url,id:data.id};
   });
+
+export const checkPaymentQa = createServerFn({method:"POST"})
+  .middleware([requireSupabaseAuth])
+  .inputValidator(data=>donationAccessSchema.strict().parse(data))
+  .handler(async ({data,context})=>{
+    const actor=await requirePaymentQa(context);
+    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
+    const {data:permit,error:permitError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("provider,actor,expires_at").eq("donation_id",data.id).maybeSingle();
+    if(permitError || !permit || permit.actor!==actor || new Date(permit.expires_at).getTime()<=Date.now())
+      throw new Error("Prova riservata non autorizzata.");
+    const {loadDonation,reconcileDonation}=await import("./payments.server");
+    const row=await loadDonation(data.id,data.accessToken);
+    if(row.provider!==permit.provider || row.amount_cents!==500)
+      throw new Error("Importo o provider non corrispondente.");
+    const result=await reconcileDonation(row,true,true);
+    if(result.status!=="paid" || !result.ornamentId)
+      return {status:result.status,ornamentId:null,ornaments:0,receipt:"not_sent"};
+    const {count,error:countError}=await supabaseAdmin.from("live_ornaments")
+      .select("id",{count:"exact",head:true}).eq("donation_id",data.id);
+    if(countError || count!==1)throw new Error("Verifica della pallina fallita.");
+    let receipt="blocked";
+    try{
+      const {processDonationEmail}=await import("./donation-email.server");
+      const delivered=await processDonationEmail(data.id,"receipt",false,true);
+      receipt=delivered.state;
+    }catch{receipt="review";}
+    return {status:"paid",ornamentId:result.ornamentId,ornaments:count,receipt};
+  });
+
+export const paymentQaSummary = createServerFn({method:"POST"})
+  .middleware([requireSupabaseAuth])
+  .inputValidator(data=>z.object({}).strict().parse(data))
+  .handler(async ({context})=>{
+    const actor=await requirePaymentQa(context);
+    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
+    const {data:items,error}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("provider,donation_id").eq("actor",actor);
+    if(error)throw new Error("Registro collaudo non disponibile.");
+    const out=[];
+    for(const q of items??[]){
+      const {data:don,error:dError}=await supabaseAdmin.from("live_donations")
+        .select("status,settlement_state,donor_email_state,gift_email_state")
+        .eq("id",q.donation_id).maybeSingle();
+      if(dError)throw new Error("Lettura del pagamento non disponibile.");
+      const {count,error:oError}=await supabaseAdmin.from("live_ornaments")
+        .select("id",{count:"exact",head:true}).eq("donation_id",q.donation_id);
+      if(oError)throw new Error("Lettura pallina non disponibile.");
+      out.push({provider:q.provider,id:q.donation_id,status:don?.status??"creating",
+        settlement:don?.settlement_state??"unknown",
+        receipt:don?.donor_email_state??"not_requested",
+        christmas:don?.gift_email_state??"not_requested",ornaments:count??0});
+    }
+    return out;
+  });
