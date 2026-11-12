@@ -19,7 +19,8 @@ export const getRouter = () => {
   const router = createRouter({
     routeTree,
     context: { queryClient },
-    scrollRestoration: true,
+    // Each new page and checkout step begins at the top. Do not restore a stale iOS offset.
+    scrollRestoration: false,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: RoutePending,
     defaultPendingMs: 300,
