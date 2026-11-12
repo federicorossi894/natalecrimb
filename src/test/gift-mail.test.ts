@@ -60,7 +60,7 @@ describe('online gift email',()=>{
     expect(html).toContain('Un regalo &amp; un pensiero');
     expect(html).not.toContain('Un regalo & un pensiero');
     expect(html).toContain('href="https://natale.crimonza.org/albero?addobbo=');
-    expect(html).toContain('Informazioni privacy (bozza in revisione)');
+    expect(html).toContain('Informativa sulla privacy');
   });
   it('donor confirmation does not include a recipient re-gifting action',()=>{
     const content={...giftMailInput.parse({...base,kind:'receipt'}),projectTitle:'Regala calore',amount:5};
