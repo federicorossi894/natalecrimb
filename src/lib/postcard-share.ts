@@ -133,9 +133,9 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLine
 function drawCenteredNoteLine(ctx: CanvasRenderingContext2D, text: string, cx: number, baseline: number, size: number) {
   const phraseFont = `italic 400 ${size}px Fraunces, Georgia, serif`;
   const emojiFont = `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-  const runs = text.split(/(\\p{Extended_Pictographic}\\uFE0F?(?:\\u200D\\p{Extended_Pictographic}\\uFE0F?)*)/gu).filter(Boolean);
+  const runs = text.split(/(\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)/gu).filter(Boolean);
   const measured = runs.map(segment => {
-    const emoji = /\\p{Extended_Pictographic}/u.test(segment);
+    const emoji = /\p{Extended_Pictographic}/u.test(segment);
     ctx.font = emoji ? emojiFont : phraseFont;
     return { segment, font: ctx.font, width: ctx.measureText(segment).width };
   });
