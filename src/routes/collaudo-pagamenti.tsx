@@ -78,6 +78,36 @@ function PaymentQaPage(){
       window.location.assign(result.url);
     }catch(e){setError(e instanceof Error?e.message:"Checkout non disponibile. Non ripetere automaticamente la donazione.");setBusy(false);await refresh();}
   };
+  // Resume the existing PayPal order, never allocate a second QA permit.
+  // The server checks verified provider evidence and capture claims again.
+  const resumePaypal=async()=>{
+    if(busy)return;
+    const record=items.find(i=>i.provider==="paypal"&&i.status==="pending");
+    if(!record){setError("Non risulta un checkout PayPal riprendibile.");return;}
+    const access=loadDonationAccess(record.id);
+    if(!access){
+      setError("Apri questa pagina sullo stesso iPhone/browser con cui avevi aperto PayPal: manca la chiave locale del checkout originale. Non fare una seconda donazione.");
+      return;
+    }
+    setBusy(true);setError("");setMessage("");
+    try{
+      const verified=await check({data:access});
+      if(verified.status==="paid"){
+        setPaid(verified);
+        setMessage("PayPal risultava già pagato: incasso verificato, nessun altro pagamento necessario.");
+        await refresh();
+        return;
+      }
+      if(verified.status!=="pending"){
+        setError("La precedente prova PayPal non è più riprendibile. Nessun secondo pagamento è stato avviato.");
+        return;
+      }
+      const existing=await start({data:{provider:"paypal",id:access.id,accessToken:access.accessToken}});
+      window.location.assign(existing.url);
+    }catch(e){
+      setError(e instanceof Error?e.message:"Stato PayPal incerto: non aprire un altro checkout.");
+    }finally{setBusy(false);}
+  };
   const sendImmediate=async()=>{
     if(!d)return;
     const access=loadDonationAccess(d);
@@ -120,9 +150,13 @@ function PaymentQaPage(){
           {(["sumup","paypal"] as const).map(provider=><div key={provider} className="rounded-2xl border border-gold/40 bg-secondary/50 p-5">
             <h2 className="font-display text-2xl">{provider==="sumup"?"SumUp":"PayPal"}</h2>
             <p className="my-3 text-sm">Donazione vera di <strong>5,00 €</strong> al progetto Calore.</p>
-            <Button className="w-full" disabled={busy||used(provider)} onClick={()=>void pay(provider)}>
-              {used(provider)?"Prova già avviata":`Paga 5 € con ${provider==="sumup"?"SumUp":"PayPal"}`}
-            </Button>
+            {provider==="paypal" && items.some(i=>i.provider==="paypal" && i.status==="pending")
+              ? <Button className="w-full" disabled={busy} onClick={()=>void resumePaypal()}>
+                  Riprendi pagamento PayPal · 5 €
+                </Button>
+              : <Button className="w-full" disabled={busy||used(provider)} onClick={()=>void pay(provider)}>
+                  {used(provider)?"Prova già avviata":`Paga 5 € con ${provider==="sumup"?"SumUp":"PayPal"}`}
+                </Button>}
           </div>)}
         </div>
         {items.length>0&&<section className="rounded-2xl border border-border p-4">
