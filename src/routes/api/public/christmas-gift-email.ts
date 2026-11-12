@@ -17,8 +17,10 @@ export const Route = createFileRoute("/api/public/christmas-gift-email")({
         // due queue can initiate a Christmas email. Staff retries remain separate.
         const parsed = z.object({ kind: z.literal("due-gifts") }).strict().safeParse(body);
         if (!parsed.success) return new Response("Invalid request", { status: 400 });
-        if (CAMPAIGN.demo || !officialEmailReady())
-          return Response.json({ state: "blocked", reason: "official_sender_not_configured" });
+        if (CAMPAIGN.demo)
+          return Response.json({ state: "blocked", reason: "live_not_active" });
+        if (!officialEmailReady())
+          return Response.json({ state: "blocked", reason: "email_live_not_verified" });
         const { processDueChristmasGiftEmails } = await import("@/lib/donation-email.server");
         try {
           return Response.json(await processDueChristmasGiftEmails());
