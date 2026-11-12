@@ -4,6 +4,7 @@ import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
 import { loadGiftSession } from '@/lib/online-gift-session';
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { resetPageScroll } from "@/lib/reset-page-scroll";
 import { z } from "zod";
 import { ArrowLeft, Banknote, Check, ChevronDown, CreditCard, ExternalLink, Gift, Heart, LocateFixed, Mail, MessageCircle, RotateCcw } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
@@ -61,7 +62,14 @@ function Detail() {
   const parsed = custom ? amountSchema.safeParse(custom) : amountSchema.safeParse(preset);
   const amount = parsed.success ? parsed.data : 0;
   const amountError = parsed.success ? "" : parsed.error.issues[0]?.message ?? "Importo non valido";
-  const go = (s: Step) => { setStep(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  // Run only after the step is committed: scrolling the previous layout
+  // caused iOS Safari to display a new checkout halfway down its page.
+  useEffect(() => {
+    resetPageScroll();
+    const frame = window.requestAnimationFrame(resetPageScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
+  const go = (s: Step) => setStep(s);
   // A cash gift prepared on this phone for this project: resume it (QR or post-confirmation choices).
   useEffect(() => { const g = CAMPAIGN.volunteerCashDonations ? loadCashGift() : null; if (g && g.project === p.id) setStep("cash"); }, [p.id]);
   const hang = async (firma: string, dedica: string, consent: boolean): Promise<Hung> => {

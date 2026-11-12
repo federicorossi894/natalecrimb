@@ -16,6 +16,7 @@ import { resolvePublicTreeChoice } from '@/lib/public-tree-choice';
 import { SolidarityShare } from './SolidarityShare';
 const LiveGiftFlow = lazy(async()=>({default:(await import('./LiveGiftFlow')).LiveGiftFlow}));
 import { CAMPAIGN } from '@/lib/campaign';
+import { resetPageScroll } from '@/lib/reset-page-scroll';
 export function OnlineGiftFlow(props: {project:Project;amount:number;onBack:()=>void}) {
   return CAMPAIGN.demo ? <DemoGiftFlow {...props} /> : <Suspense fallback={<p role="status" className="p-8">Carico il percorso di donazione…</p>}><LiveGiftFlow {...props}/></Suspense>;
 }
@@ -42,6 +43,12 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
     else {const recent=loadRecentGiftCompletion(project.id,amount);if(recent){setId(recent.id);setRecovered(true);setStage('done');}}
     setReady(true);
   },[project.id,amount]);
+  useEffect(() => {
+    if (!ready) return;
+    resetPageScroll();
+    const frame = window.requestAnimationFrame(resetPageScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [stage, ready]);
   useEffect(()=>{if(sharingComplete)thanksRef.current?.scrollIntoView?.({block:'center',behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});},[sharingComplete]);
   const finishSharing=()=>{
     setSharingComplete(true);
@@ -64,10 +71,10 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
       const row=await create({data:{requestId:request.current,client,kind:project.ornament,amount,provider,...parsed.data}});
       const completed={...value,id:row.id,thankYou:row.thankYou};
       saveGiftSession(completed);setThankYou(row.thankYou);window.dispatchEvent(new Event('cri-demo-tree'));
-      setId(row.id);setStage('done');window.scrollTo({top:0,behavior:'instant'});
+      setId(row.id);setStage('done');
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setReusePublicText(true);setRecovered(false);setThankYou('');setSharingComplete(false);setChannel('whatsapp');setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setReusePublicText(true);setRecovered(false);setThankYou('');setSharingComplete(false);setChannel('whatsapp');setStage('compose');setError('');};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
