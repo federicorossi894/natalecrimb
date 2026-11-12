@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { newDonationAccess, saveDonationAccess, loadDonationAccess } from "@/lib/payment-device";
 import { startPaymentQa, checkPaymentQa, paymentQaSummary, schedulePaymentQaChristmas } from "@/lib/payment-qa.functions";
 type Provider = "sumup"|"paypal";
-type Summary = Awaited<ReturnType<ReturnType<typeof useServerFn<typeof paymentQaSummary>>>>;
 export const Route=createFileRoute("/collaudo-pagamenti")({
   validateSearch:z.object({d:z.string().uuid().optional(),token:z.string().optional(),PayerID:z.string().optional(),annullato:z.coerce.number().optional()}),
   head:()=>({meta:[
