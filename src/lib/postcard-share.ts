@@ -18,6 +18,17 @@ export function postcardText(p: Project, to: string, from: string, msg: string, 
   return `${selfThanks ? '🎄 Ho scelto di fare un gesto solidale!\nHo sostenuto' : `🎄 Buon Natale, ${to.trim() || "a te"}!\nHo scelto per te un regalo solidale con`} la Croce Rossa Italiana – Comitato di Monza: “${p.title}”.\n\n“${dedica}”${firma}\n\n${link}\n${INVITE_LINE}${CAMPAIGN.demo ? "\n\n(Prova DEMO: nessuna donazione reale.)" : ""}`;
 }
 
+/** Private-card heading only. Never transfer either name to the public tree
+ * or social story: publishing a tree dedication remains a separate opt-in.
+ */
+export function postcardGiftIntro(from: string, to: string, selfThanks = false): string {
+  if (selfThanks) return "";
+  const donor = from.trim(), recipient = to.trim();
+  if (donor && recipient) return `${donor} ha fatto un regalo a ${recipient}`;
+  if (donor) return `${donor} ha fatto un regalo solidale`;
+  return recipient ? `Un regalo per ${recipient}` : "Un regalo pensato per te";
+}
+
 /** Short caption when the illustrated card is attached. Never repeat the private message already printed in the PNG. */
 export function postcardCaption(p: Project, to: string, ornamentId?: string | null, selfThanks = false) {
   const recipient = to.trim();
@@ -116,6 +127,29 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLine
   return lines;
 }
 
+/** Apple emoji fallback can make Canvas centre alignment visually uneven:
+ * compose text and emoji runs with measured advances around an explicit midpoint.
+ */
+function drawCenteredNoteLine(ctx: CanvasRenderingContext2D, text: string, cx: number, baseline: number, size: number) {
+  const phraseFont = `italic 400 ${size}px Fraunces, Georgia, serif`;
+  const emojiFont = `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  const runs = text.split(/(\\p{Extended_Pictographic}\\uFE0F?(?:\\u200D\\p{Extended_Pictographic}\\uFE0F?)*)/gu).filter(Boolean);
+  const measured = runs.map(segment => {
+    const emoji = /\\p{Extended_Pictographic}/u.test(segment);
+    ctx.font = emoji ? emojiFont : phraseFont;
+    return { segment, font: ctx.font, width: ctx.measureText(segment).width };
+  });
+  const width = measured.reduce((sum, run) => sum + run.width, 0);
+  let cursor = cx - width / 2;
+  ctx.textAlign = "left";
+  for (const run of measured) {
+    ctx.font = run.font;
+    ctx.fillText(run.segment, cursor, baseline);
+    cursor += run.width;
+  }
+  ctx.textAlign = "center";
+}
+
 function loadImage(src: string) {
   return new Promise<HTMLImageElement | null>((res) => {
     const img = new Image();
@@ -202,26 +236,49 @@ export async function renderPostcardImage(p: Project, to: string, from: string, 
   ctx.beginPath(); ctx.moveTo(444, 954); ctx.lineTo(636, 954); ctx.stroke();
   ctx.globalAlpha = 1;
 
+  const intro = postcardGiftIntro(from, to, selfThanks);
+  ctx.textAlign = "center";
+  ctx.fillStyle = red;
+  ctx.font = "600 26px Manrope, system-ui, sans-serif";
+  const introLines = intro ? wrap(ctx, intro, 820, 2) : [];
+  const introHeight = introLines.length * 32;
+
   const note = `“${msg.trim() || p.postcardLine}”`;
-  let noteSize = selfThanks ? 31 : 39;
+  let noteSize = selfThanks ? 31 : 38;
   let noteLines: string[] = [];
-  let noteHeight = 0;
-  for (; noteSize >= 26; noteSize -= 2) {
+  // Fit all text into the stationery area above the official CRI footer.
+  for (; noteSize >= 24; noteSize -= 2) {
     ctx.font = `italic 400 ${noteSize}px Fraunces, Georgia, serif`;
     noteLines = wrap(ctx, note, 790, 4);
-    noteHeight = noteLines.length * noteSize * 1.22;
-    if (noteHeight + 48 <= 190) break;
+    const estimatedHeight = introHeight + (introLines.length ? 14 : 0) + noteLines.length * noteSize * 1.25 + (selfThanks ? 37 : 0);
+    if (estimatedHeight <= 176) break;
   }
-  const lineHeight = noteSize * 1.22;
-  const groupHeight = noteHeight + 48;
-  const topOfGroup = 970 + Math.max(0, (196 - groupHeight) / 2);
-  ctx.fillStyle = inkDark;
-  ctx.font = `italic 400 ${noteSize}px Fraunces, Georgia, serif`;
-  noteLines.forEach((line, i) => ctx.fillText(line, W / 2, topOfGroup + noteSize * 0.85 + i * lineHeight, 790));
+  const lineHeight = noteSize * 1.25;
+  const messageHeight = noteLines.length * lineHeight;
+  const groupHeight = introHeight + (introLines.length ? 14 : 0) + messageHeight + (selfThanks ? 37 : 0);
+  const groupTop = 970 + Math.max(0, (184 - groupHeight) / 2);
+
   ctx.fillStyle = red;
-  ctx.font = "700 30px Manrope, system-ui, sans-serif";
-  const signature = selfThanks ? "Croce Rossa Monza" : from.trim() || "Un amico";
-  ctx.fillText(`— ${signature}`, W / 2, topOfGroup + noteHeight + 22, 780);
+  ctx.font = "600 26px Manrope, system-ui, sans-serif";
+  introLines.forEach((line, i) => {
+    ctx.textAlign = "center";
+    ctx.fillText(line, W / 2, groupTop + 25 + i * 32, 820);
+  });
+
+  const noteStart = groupTop + introHeight + (introLines.length ? 14 : 0);
+  ctx.fillStyle = inkDark;
+  noteLines.forEach((line, i) => {
+    drawCenteredNoteLine(ctx, line, W / 2, noteStart + noteSize * 0.87 + i * lineHeight, noteSize);
+  });
+
+  // Self-donation thank-you keeps its institutional signature; for a gift,
+  // the personalised introduction already names the donor and recipient.
+  if (selfThanks) {
+    ctx.fillStyle = red;
+    ctx.font = "700 27px Manrope, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("— Croce Rossa Monza", W / 2, noteStart + messageHeight + 27, 780);
+  }
   // footer row: official mark (unaltered) + invite
   const fy = H - 70 - 104;
   ctx.strokeStyle = inkDark; ctx.globalAlpha = 0.12; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(110, fy - 10); ctx.lineTo(W - 110, fy - 10); ctx.stroke(); ctx.globalAlpha = 1;
