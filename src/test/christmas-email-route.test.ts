@@ -29,6 +29,12 @@ it("forged tokens are rejected",async()=>{
   mocks.auth.mockResolvedValue({data:false,error:null});
   expect((await post({request:request({kind:"due-gifts"})})).status).toBe(401);
 });
+it("will not process an individual gift ID even for an authenticated scheduler",async()=>{
+  const r=await post({request:request({kind:"single-gift",donationId:"00000000-0000-4000-8000-000000000001"})});
+  expect(r.status).toBe(400);
+  expect(mocks.send).not.toHaveBeenCalled();
+  expect(mocks.dispatch).not.toHaveBeenCalled();
+});
 it("cannot supply arbitrary email addresses or recipient templates to scheduled runner",async()=>{
   const r=await post({request:request({kind:"single-gift",donationId:"00000000-0000-4000-8000-000000000001",to:"victim@example.org"})});
   expect(r.status).toBe(400);
