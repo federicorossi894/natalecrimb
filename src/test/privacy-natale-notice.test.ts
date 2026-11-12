@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-const privacy = readFileSync(new URL("../routes/privacy.tsx", import.meta.url), "utf8");
-const shell = readFileSync(new URL("../components/xmas/Shell.tsx", import.meta.url), "utf8");
-const gift = readFileSync(new URL("../components/xmas/OnlineGiftFlow.tsx", import.meta.url), "utf8");
-const mail = readFileSync(new URL("../lib/gift-mail.server.ts", import.meta.url), "utf8");
+const privacy = readFileSync(resolve(process.cwd(), "src/routes/privacy.tsx"), "utf8");
+const shell = readFileSync(resolve(process.cwd(), "src/components/xmas/Shell.tsx"), "utf8");
+const gift = readFileSync(resolve(process.cwd(), "src/components/xmas/OnlineGiftFlow.tsx"), "utf8");
+const mail = readFileSync(resolve(process.cwd(), "src/lib/gift-mail.server.ts"), "utf8");
 
 describe("Natale privacy transparency", () => {
   it("publishes a plain-language campaign notice rather than an unapproved generic draft", () => {
