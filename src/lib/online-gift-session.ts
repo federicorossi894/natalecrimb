@@ -15,6 +15,23 @@ export const giftSessionSchema = z.object({
 });
 export type GiftSession = z.infer<typeof giftSessionSchema>;
 export type SessionOrnament = TreeOrnament & { sessionOnly?: boolean };
+const COMPLETED = 'cri-online-recent-public-reference-v1';
+const completedSchema = z.object({
+  project: z.string().max(40), amount: z.number().int().min(5).max(1000),
+  id: z.string().uuid(), savedAt: z.number().int(),
+}).strict();
+/** A short-lived link to a public bauble, without name, signature, message,
+ * email, or access token. It allows a refreshed page to avoid offering a second donation.
+ */
+export function loadRecentGiftCompletion(project: string, amount: number) {
+  try {
+    const parsed = completedSchema.safeParse(JSON.parse(localStorage.getItem(COMPLETED) || 'null'));
+    if (parsed.success && parsed.data.project === project && parsed.data.amount === amount
+        && parsed.data.savedAt <= Date.now() && Date.now() - parsed.data.savedAt < 24*60*60*1000)
+      return parsed.data;
+  } catch { /* No persistent storage available */ }
+  return null;
+}
 const CURRENT = 'cri-online-current';
 const TREE = 'cri-online-session-tree';
 export const SESSION_TREE_EVENT = 'cri-online-session-tree-change';
@@ -27,10 +44,16 @@ export function loadGiftSession(project: string): GiftSession | null {
 export function saveGiftSession(value: GiftSession) {
   current = giftSessionSchema.parse(value);
   try { sessionStorage.setItem(CURRENT, JSON.stringify(current)); } catch { /* page-memory fallback */ }
+  if (current.id) {
+    try { localStorage.setItem(COMPLETED, JSON.stringify({
+      project: current.project, amount: current.amount, id: current.id, savedAt: Date.now(),
+    })); } catch { /* No persistent storage available */ }
+  }
 }
 export function clearGiftSession() {
   current = null;
   try { sessionStorage.removeItem(CURRENT); } catch { /* restricted storage */ }
+  try { localStorage.removeItem(COMPLETED); } catch { /* restricted storage */ }
 }
 const rowSchema = z.object({ id: z.string().uuid(), kind: giftSessionSchema.shape.kind, x: z.number(), y: z.number(), dedica: text(90).optional(), firma: text(40).optional(), sessionOnly: z.literal(true) });
 export function sessionOrnaments(): SessionOrnament[] {

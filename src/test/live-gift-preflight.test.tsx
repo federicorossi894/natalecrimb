@@ -50,3 +50,13 @@ it("gifting to Monza stores no private recipient details and keeps public text o
   await waitFor(()=>expect(checkout).toHaveBeenCalledOnce());
   expect(loadGiftSession(project.id)).toMatchObject({gift:false,to:"",from:"",msg:"",dedica:"Grazie Monza",consent:true,id:null});
 });
+
+it("refuses to start a real checkout when a pasted dedication exceeds the shared limit",()=>{
+  Object.assign(CAMPAIGN,{livePayments:true,liveOnlineProviders:["sumup"]});
+  render(<LiveGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
+  fireEvent.change(screen.getByLabelText("Messaggio privato"),{target:{value:"x".repeat(240)}});
+  expect(screen.getByText("240/90 caratteri")).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:/Procedi alla donazione di 5/})).toBeDisabled();
+  expect(screen.getByRole("alert")).toHaveTextContent("massimo 90 caratteri");
+  expect(checkout).not.toHaveBeenCalled();
+});

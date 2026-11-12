@@ -98,6 +98,42 @@ it('email acceptance completes the person gift and restores social story on relo
   expect(call).toHaveBeenCalledOnce();
 });
 
+
+it('blocks a 240-character private dedication before confirming, with a clear counter and Italian guidance',async()=>{
+  await renderGift();
+  fireEvent.change(screen.getByLabelText('Messaggio privato'),{target:{value:'x'.repeat(240)}});
+  expect(screen.getByText('240/90 caratteri', {exact:false})).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Continua'})).toBeDisabled();
+  expect(screen.getByRole('alert')).toHaveTextContent('massimo 90 caratteri');
+  expect(call).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText('Messaggio privato'),{target:{value:'Un pensiero sincero'}});
+  expect(screen.getByRole('button',{name:'Continua'})).toBeEnabled();
+  await pay();
+  expect(call).toHaveBeenCalledOnce();
+});
+it('prevents too-long public dedications before the payment step',async()=>{
+  await renderGift();
+  fireEvent.click(screen.getByRole('button',{name:/Regalo a Monza/}));
+  fireEvent.click(screen.getByLabelText('Pubblica dedica e firma sull’albero'));
+  fireEvent.change(screen.getByLabelText('Dedica pubblica sull’albero'),{target:{value:'y'.repeat(105)}});
+  expect(screen.getByRole('button',{name:'Continua'})).toBeDisabled();
+  expect(screen.getByRole('alert')).toHaveTextContent("dedica sull'albero");
+  expect(call).not.toHaveBeenCalled();
+});
+it('recovers an already-completed Monza gift after refresh without repeating the donation or restoring private data',async()=>{
+  await renderGift();
+  fireEvent.click(screen.getByRole('button',{name:/Regalo a Monza/}));
+  await pay();
+  expect(screen.getByTestId('donor-thanks')).toBeInTheDocument();
+  cleanup();
+  sessionStorage.removeItem('cri-online-current');
+  render(<OnlineGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
+  expect(await screen.findByRole('heading',{name:/già sull.Albero di Monza/})).toBeInTheDocument();
+  expect(screen.getByText(/non è necessario ripetere la donazione/i)).toBeInTheDocument();
+  expect(screen.getByTestId('social-share')).toBeInTheDocument();
+  expect(screen.queryByTestId('delivery-step')).toBeNull();
+  expect(call).toHaveBeenCalledTimes(1);
+});
 it('new gift rotates the idempotency key and resets public choice',async()=>{
   await renderGift();
   await pay();
