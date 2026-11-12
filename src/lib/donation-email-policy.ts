@@ -38,10 +38,9 @@ export function maySendDonationEmail(
 }
 export function giftDeliveryTime(mode: "now" | "christmas", now: Date) {
   if (mode === "now") return null;
-  const year = Number(
-    new Intl.DateTimeFormat("en", { timeZone: "Europe/Rome", year: "numeric" }).format(now),
-  );
-  const date = christmasDeliveryIso(year);
+  // One-time campaign: never accept a 2027 promise if this temporary site is
+  // accidentally left online after Christmas 2026.
+  const date = christmasDeliveryIso(2026);
   if (Date.parse(date) <= now.getTime())
     throw new Error("La consegna di Natale per questa campagna è già trascorsa. Scegli invia ora.");
   return date;

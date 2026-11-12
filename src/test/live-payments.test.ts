@@ -67,7 +67,7 @@ describe("Real payment adapters, no external requests", () => {
         "sumup",
         id,
         500,
-        "https://natalecrimb.lovable.app",
+        "https://natale.crimonza.org",
       );
       expect(checkout.providerId).toBe("checkout-1");
       const init = fetchMock.mock.calls[1]?.[1];
@@ -84,7 +84,7 @@ describe("Real payment adapters, no external requests", () => {
   it("DEMO never calls a real provider or writes LIVE data", async () => {
     Object.assign(CAMPAIGN, campaignCapabilities("DEMO", ready, undefined, undefined, providers));
     await expect(
-      createProviderCheckout("sumup", id, 500, "https://natalecrimb.lovable.app"),
+      createProviderCheckout("sumup", id, 500, "https://natale.crimonza.org"),
     ).rejects.toThrow();
     await expect(reconcileDonation(donation)).rejects.toThrow();
     expect(fetchMock).not.toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe("Real payment adapters, no external requests", () => {
         "paypal",
         id,
         500,
-        "https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/start",
+        "https://natale.crimonza.org/start",
       );
       const init = fetchMock.mock.calls[1]?.[1];
       expect(JSON.parse(init.body)).toMatchObject({
@@ -262,8 +262,8 @@ describe("Real payment adapters, no external requests", () => {
         payment_source: {
           paypal: {
             experience_context: {
-              return_url: `https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/pagamento?id=${id}`,
-              cancel_url: `https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/pagamento?id=${id}&annullato=1`,
+              return_url: `https://natale.crimonza.org/pagamento?id=${id}`,
+              cancel_url: `https://natale.crimonza.org/pagamento?id=${id}&annullato=1`,
             },
           },
         },
@@ -307,7 +307,7 @@ describe("Real payment adapters, no external requests", () => {
         500,
         "https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
       ),
-    ).rejects.toThrow("Dominio");
+    ).rejects.toThrow("natale.crimonza.org");
     expect(fetchMock).not.toHaveBeenCalled();
   });
   it("does not accept a browser success marker as payment evidence", () => {

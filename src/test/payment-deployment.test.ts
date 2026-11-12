@@ -3,13 +3,15 @@ import { paymentOrigin, PAYPAL_WEBHOOK_EVENTS } from "@/lib/payment-deployment";
 import { donationCheckoutSchema } from "@/lib/payment-policy";
 
 describe("Actual deployment and ordinary donation boundaries", () => {
-  it.each([
-    "https://natalecrimb.lovable.app",
-    "https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
-  ])("returns the exact authorized request origin %s", (origin) => {
-    expect(paymentOrigin(`${origin}/_serverFn/checkout`)).toBe(origin);
+  it("uses the official custom domain for return URLs and webhook links", () => {
+    expect(paymentOrigin("https://natale.crimonza.org/_serverFn/checkout")).toBe("https://natale.crimonza.org");
+    expect(paymentOrigin("https://natale.crimonza.org/_serverFn/checkout", "https://natale.crimonza.org")).toBe("https://natale.crimonza.org");
   });
   it.each([
+    "http://natale.crimonza.org",
+    "https://natale.crimonza.org.evil.test",
+    "https://natalecrimb.lovable.app",
+    "https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
     "http://natalecrimb.lovable.app",
     "https://natalecrimb.lovable.app.evil.test",
     "https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
@@ -21,8 +23,8 @@ describe("Actual deployment and ordinary donation boundaries", () => {
   it("cannot send callbacks to a different origin even through server configuration", () => {
     expect(() =>
       paymentOrigin(
-        "https://natalecrimb.lovable.app/start",
-        "https://project--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app",
+        "https://natale.crimonza.org/start",
+        "https://natalecrimb.lovable.app",
       ),
     ).toThrow();
   });
