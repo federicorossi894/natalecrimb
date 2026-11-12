@@ -123,7 +123,7 @@ export async function createProviderCheckout(
   assertCampaignPayment(provider, "live");
   z.number().int().min(500).max(100000).multipleOf(100).parse(amountCents);
   z.string().uuid().parse(id);
-  const origin = paymentOrigin(requestUrl, process.env["PAYMENT_PUBLIC_ORIGIN"]);
+  const origin = paymentOrigin(requestUrl);
   const returnUrl = `${origin}/pagamento?id=${id}`;
   if (provider === "sumup") {
     const account = z
