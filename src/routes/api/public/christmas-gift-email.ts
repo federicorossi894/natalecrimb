@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { CAMPAIGN } from "@/lib/campaign";
 import { officialEmailReady } from "@/lib/email-readiness";
+import { authenticateInternalScheduler } from "@/lib/internal-cron-auth.server";
 
 export const Route = createFileRoute("/api/public/christmas-gift-email")({
   server: {
