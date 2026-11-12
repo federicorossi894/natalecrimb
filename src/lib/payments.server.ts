@@ -119,12 +119,15 @@ export async function createProviderCheckout(
   id: string,
   amountCents: number,
   requestUrl: string,
+  qaAuthorized = false,
 ) {
-  assertCampaignPayment(provider, "live");
+  if (qaAuthorized) {
+    if (!CAMPAIGN.demo || amountCents !== 500) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment(provider, "live");
   z.number().int().min(500).max(100000).multipleOf(100).parse(amountCents);
   z.string().uuid().parse(id);
   const origin = paymentOrigin(requestUrl);
-  const returnUrl = `${origin}/pagamento?id=${id}`;
+  const returnUrl = qaAuthorized ? `${origin}/collaudo-pagamenti?d=${id}` : `${origin}/pagamento?id=${id}`;
   if (provider === "sumup") {
     const account = z
       .object({ merchant_profile: z.object({ merchant_code: z.string().min(1) }) })
@@ -205,8 +208,10 @@ export async function loadDonation(id: string, accessToken?: string): Promise<Do
     throw new Error("Donazione non disponibile su questo dispositivo.");
   return data;
 }
-export async function reconcileDonation(d: Donation, capture = false) {
-  assertCampaignPayment(d.provider, "live");
+export async function reconcileDonation(d: Donation, capture = false, qaAuthorized = false) {
+  if (qaAuthorized) {
+    if (!CAMPAIGN.demo || d.amount_cents !== 500) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment(d.provider, "live");
   if (!d.provider_id) return { status: d.status, ornamentId: null };
   let proof: PaymentEvidence;
   if (d.provider === "sumup") {
