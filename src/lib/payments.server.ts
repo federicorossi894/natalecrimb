@@ -119,12 +119,15 @@ export async function createProviderCheckout(
   id: string,
   amountCents: number,
   requestUrl: string,
+  qaAuthorized = false,
 ) {
-  assertCampaignPayment(provider, "live");
+  if (qaAuthorized) {
+    if (!CAMPAIGN.demo || amountCents !== 500) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment(provider, "live");
   z.number().int().min(500).max(100000).multipleOf(100).parse(amountCents);
   z.string().uuid().parse(id);
   const origin = paymentOrigin(requestUrl);
-  const returnUrl = `${origin}/pagamento?id=${id}`;
+  const returnUrl = qaAuthorized ? `${origin}/collaudo-pagamenti?d=${id}` : `${origin}/pagamento?id=${id}`;
   if (provider === "sumup") {
     const account = z
       .object({ merchant_profile: z.object({ merchant_code: z.string().min(1) }) })
@@ -205,8 +208,10 @@ export async function loadDonation(id: string, accessToken?: string): Promise<Do
     throw new Error("Donazione non disponibile su questo dispositivo.");
   return data;
 }
-export async function reconcileDonation(d: Donation, capture = false) {
-  assertCampaignPayment(d.provider, "live");
+export async function reconcileDonation(d: Donation, capture = false, qaAuthorized = false) {
+  if (qaAuthorized) {
+    if (!CAMPAIGN.demo || d.amount_cents !== 500) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment(d.provider, "live");
   if (!d.provider_id) return { status: d.status, ornamentId: null };
   let proof: PaymentEvidence;
   if (d.provider === "sumup") {
@@ -327,8 +332,10 @@ export async function reconcileDonation(d: Donation, capture = false) {
   } catch { console.error('Donor confirmation requires review'); }
   return { status: "paid", ornamentId };
 }
-export async function handleSumupWebhook(request: Request) {
-  assertCampaignPayment("sumup", "live");
+export async function handleSumupWebhook(request: Request, qaMode = false) {
+  if (qaMode) {
+    if (!CAMPAIGN.demo) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment("sumup", "live");
   const payload = z
     .object({ event_type: z.string().max(100), id: z.string().min(1).max(100) })
     .parse(await limitedJson(request));
@@ -341,10 +348,25 @@ export async function handleSumupWebhook(request: Request) {
     .maybeSingle();
   if (error) throw new Error("Registro non disponibile.");
   // Callback is an untrusted hint; only authoritative SumUp API evidence can authorize the atomic write.
-  if (data) await reconcileDonation(await loadDonation(data.id));
+  if (!data) return;
+  if (qaMode) {
+    const {data:permit,error:permitError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("provider").eq("donation_id",data.id).eq("provider","sumup").maybeSingle();
+    if(permitError)throw new Error("Registro collaudo non disponibile.");
+    if(!permit)return;
+  }
+  const verified=await reconcileDonation(await loadDonation(data.id), false, qaMode);
+  if(qaMode && verified.status==="paid"){
+    const {error:markError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .update({webhook_verified_at:new Date().toISOString()})
+      .eq("donation_id",data.id).eq("provider","sumup");
+    if(markError)throw new Error("Audit webhook SumUp non registrato.");
+  }
 }
-export async function handlePaypalWebhook(request: Request) {
-  assertCampaignPayment("paypal", "live");
+export async function handlePaypalWebhook(request: Request, qaMode = false) {
+  if (qaMode) {
+    if (!CAMPAIGN.demo) throw new Error("Collaudo non autorizzato.");
+  } else assertCampaignPayment("paypal", "live");
   const webhookId = process.env["PAYPAL_WEBHOOK_ID"];
   if (!webhookId) throw new Error("Webhook PayPal non configurato.");
   const rawEvent = await limitedJson(request);
@@ -407,6 +429,16 @@ export async function handlePaypalWebhook(request: Request) {
     .maybeSingle();
   if (error) throw new Error("Registro non disponibile.");
   if (!data) return;
+  if (qaMode) {
+    const {data:permit,error:permitError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("provider").eq("donation_id",data.id).eq("provider","paypal").maybeSingle();
+    if(permitError)throw new Error("Registro collaudo non disponibile.");
+    if(!permit)return;
+    const {error:auditError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .update({webhook_verified_at:new Date().toISOString()})
+      .eq("donation_id",data.id).eq("provider","paypal");
+    if(auditError)throw new Error("Audit webhook PayPal non registrato.");
+  }
   const d = await loadDonation(data.id);
   if (approvalReversed) {
     // Order-level signal, never a capture authorization; authoritative GET only.
@@ -424,7 +456,7 @@ export async function handlePaypalWebhook(request: Request) {
       throw new Error("Ordine PayPal non corrispondente.");
     if (parent.status === "VOIDED" && !unit.payments?.captures.length)
       await recordSettlement(d, "denied");
-    else await reconcileDonation(d, false);
+    else await reconcileDonation(d, false, qaMode);
     return;
   }
   if (!approved) {
@@ -467,7 +499,7 @@ export async function handlePaypalWebhook(request: Request) {
     }
     if (c.status !== "COMPLETED") return;
   }
-  await reconcileDonation(d, approved);
+  await reconcileDonation(d, approved, qaMode);
 }
 async function recordSettlement(d: Donation, state: "denied" | "reversed") {
   const { error } = await supabaseAdmin

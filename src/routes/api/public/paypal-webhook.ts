@@ -6,10 +6,20 @@ export const Route = createFileRoute("/api/public/paypal-webhook")({
       POST: async ({ request }) => {
         // Same PayPal app may deliver gala events here. Disabled deployment acknowledges
         // without reading payload, loading payment code, accessing data or calling providers.
-        if (CAMPAIGN.demo || !CAMPAIGN.livePayments) return new Response(null, { status: 204 });
+        if (CAMPAIGN.demo && Date.now()>=Date.parse("2026-11-16T00:00:00Z"))
+          return new Response(null,{status:204});
+        if (!CAMPAIGN.demo && !CAMPAIGN.livePayments) return new Response(null,{status:204});
+        if (CAMPAIGN.demo) {
+          try {
+            const {paymentQaProviderActive}=await import("@/lib/payment-qa-active.server");
+            if (!(await paymentQaProviderActive("paypal")))
+              return new Response(null,{status:204});
+          } catch { return new Response("QA audit unavailable",{status:503}); }
+        }
+
         try {
           const { handlePaypalWebhook } = await import("@/lib/payments.server");
-          await handlePaypalWebhook(request);
+          await handlePaypalWebhook(request, CAMPAIGN.demo);
           return new Response(null, { status: 204 });
         } catch {
           return new Response("Notification not processed; retry required", { status: 503 });

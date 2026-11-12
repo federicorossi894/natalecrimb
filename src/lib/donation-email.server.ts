@@ -30,19 +30,33 @@ const managedSendAdapter: DeliveryPorts["send"] = async (donationId, kind) => {
   if (baubleError || !bauble) throw new DefiniteEmailRefusal("Pallina non trovata per il pagamento.");
   const { sendGiftMail } = await import("./gift-mail.server");
   const data = personal?.success ? personal.data : { donor: "", toName: "", msg: "" };
+  const { data: qaPermit } = await supabaseAdmin.from("natale_payment_qa_2026")
+    .select("donation_id").eq("donation_id",donationId).maybeSingle();
   const result = await sendGiftMail({
     kind: kind === "receipt" ? "receipt" : record.gift_email_due_at ? "gift_christmas" : "gift_now",
     to, projectTitle: project.title, projectKind: project.ornament,
     amount: record.amount_cents / 100, ornamentId: bauble.id,
     from: data.donor, toName: data.toName, msg: data.msg, createdAt: record.created_at,
-  }, `paid-${donationId}-${kind}`);
+  }, `paid-${donationId}-${kind}`, Boolean(qaPermit && CAMPAIGN.demo));
   if (result.state === "accepted") return { sent: true };
   if (result.state === "failed") throw new DefiniteEmailRefusal("Provider Gmail ha rifiutato l'invio.");
   throw new Error("Risposta Gmail ambigua; non ritentare automaticamente.");
 };
-export async function processDonationEmail(id: string, kind: DeliveryKind, retry = false) {
+export async function processDonationEmail(id: string, kind: DeliveryKind, retry = false, qaAuthorized = false) {
   const adapter = managedSendAdapter;
-  if (CAMPAIGN.demo || !officialEmailReady() || !adapter) return { state: "blocked" as const };
+  if (qaAuthorized) {
+    if (!CAMPAIGN.demo) return { state: "blocked" as const };
+    const {data:permit,error:pError}=await supabaseAdmin.from("natale_payment_qa_2026")
+      .select("donation_id").eq("donation_id",id).maybeSingle();
+    const {data:donation,error:dError}=await supabaseAdmin.from("live_donations")
+      .select("amount_cents,donor_email_private,gift_email_private,gift_email_due_at,settlement_state,status")
+      .eq("id",id).single();
+    if(pError || !permit || dError || donation?.status!=="paid"
+      || donation.settlement_state!=="completed" || donation.amount_cents!==500
+      || (kind==="receipt" && donation.donor_email_private!=="natale@crimonza.org")
+      || (kind==="gift" && (donation.gift_email_private!=="natale@crimonza.org" || donation.gift_email_due_at!==null)))
+      return {state:"blocked" as const};
+  } else if (CAMPAIGN.demo || !officialEmailReady()) return { state: "blocked" as const };
   // Reject a stale connection that still belongs to a personal Gmail account
   // BEFORE the SQL claim is consumed.
   const { gmailQaIdentity } = await import("./demo-email-qa.server");

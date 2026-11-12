@@ -45,11 +45,11 @@ export function giftMailParts(c: GiftMailContent) {
   };
 }
 
-export function giftMailRaw(c: GiftMailContent, messageRef: string) {
+export function giftMailRaw(c: GiftMailContent, messageRef: string, verifiedPaidQa = false) {
   const p = giftMailParts(c);
   const link = `${GIFT_MAIL_SITE}/albero?addobbo=${encodeURIComponent(c.ornamentId)}`;
   // Email-client-safe editorial design: a single-column table with inline styles and a quiet mobile media query.
-  const demoNote = CAMPAIGN.demo ? `<tr><td style="padding:11px 24px;background:#fff0d8;color:#5d3929;text-align:center;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.06em">PROVA DEMO · Nessun pagamento o regalo reale effettuato.</td></tr>` : "";
+  const demoNote = CAMPAIGN.demo && !verifiedPaidQa ? `<tr><td style="padding:11px 24px;background:#fff0d8;color:#5d3929;text-align:center;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.06em">PROVA DEMO · Nessun pagamento o regalo reale effettuato.</td></tr>` : "";
   const personalNote = p.personalMessage ? `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;background:#fff9ef;border:1px solid #e1c998;border-radius:12px"><tr><td style="padding:24px 26px;text-align:center"><p style="margin:0 0 12px;font:700 11px/1.4 Arial,sans-serif;letter-spacing:2px;color:#8a642e">UN MESSAGGIO PER TE</p><p style="margin:0;font:italic 23px/1.5 Georgia,serif;color:#20352d;overflow-wrap:anywhere">“${esc(p.personalMessage)}”</p>${p.signedBy ? `<p style="margin:15px 0 0;color:#a8202f;font:700 15px/1.5 Arial,sans-serif">— ${esc(p.signedBy)}</p>` : ""}</td></tr></table>` : "";
   const invitation = p.invitation ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;border-top:1px solid #e1dbca"><tr><td style="padding-top:20px"><p style="margin:0 0 7px;font:700 20px/1.3 Georgia,serif;color:#234434">${esc(p.invitation.title)}</p><p style="margin:0 0 12px;font:15px/1.65 Arial,sans-serif;color:#415349">${esc(p.invitation.text)}</p><a href="${esc(p.invitation.url)}" style="color:#a8202f;font:700 14px/1.5 Arial,sans-serif;text-decoration:underline">${esc(p.invitation.label)}</a></td></tr></table>` : "";
   const reason = p.invitation ? `<p style="margin:18px 0 0;font:12px/1.5 Arial,sans-serif;color:#65746d">Ricevi questa email perché una persona ti ha dedicato un regalo solidale.</p>` : "";
@@ -87,18 +87,18 @@ export function giftMailRaw(c: GiftMailContent, messageRef: string) {
   return b64([
     `From: ${header('CRI Monza · Il Natale che fa bene')} <${GIFT_MAIL_SENDER}>`,
     `To: <${c.to}>`,
-    `Subject: ${header(CAMPAIGN.demo ? `[DEMO] ${p.subject}` : p.subject)}`,
+    `Subject: ${header(CAMPAIGN.demo && !verifiedPaidQa ? `[DEMO] ${p.subject}` : p.subject)}`,
     `Message-ID: <gift-${messageRef}@crimonza.org>`,
     'MIME-Version: 1.0', 'Content-Type: text/html; charset="UTF-8"', 'Content-Transfer-Encoding: base64', '', b64(html),
   ].join('\r\n')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-export async function sendGiftMail(c: GiftMailContent, messageRef: string): Promise<{ state: 'accepted' | 'failed' | 'unknown'; messageId?: string }> {
+export async function sendGiftMail(c: GiftMailContent, messageRef: string, verifiedPaidQa = false): Promise<{ state: 'accepted' | 'failed' | 'unknown'; messageId?: string }> {
   const key = process.env['GOOGLE_MAIL_API_KEY_1'], auth = process.env['LOVABLE_API_KEY'];
   if (!key || !auth) return { state: 'failed' };
   const response = await fetch('https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/messages/send', {
     method: 'POST', headers: { Authorization: `Bearer ${auth}`, 'X-Connection-Api-Key': key, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ raw: giftMailRaw(c, messageRef) }),
+    body: JSON.stringify({ raw: giftMailRaw(c, messageRef, verifiedPaidQa) }),
   });
   if (!response.ok) { console.error('Gift mail send', response.status, await response.text()); return { state: response.status >= 500 ? 'unknown' : 'failed' }; }
   const r = await response.json() as { id?: string };
