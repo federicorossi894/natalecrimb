@@ -21,6 +21,7 @@ export const startPaymentQa = createServerFn({method:"POST"})
         throw new Error("La prova di questo provider è già stata avviata. Non fare un secondo pagamento.");
       const {loadDonation}=await import("./payments.server");
       const row=await loadDonation(data.id,data.accessToken);
+      if(row.status==="paid")throw new Error("Pagamento già confermato. Non aprire un secondo checkout.");
       if(!row.checkout_url)throw new Error("Prova già avviata: checkout da verificare. Non riprovare.");
       return {url:row.checkout_url,id:data.id};
     }
