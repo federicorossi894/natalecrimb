@@ -22,7 +22,7 @@ it("unauthorized jobs never reach the sender",async()=>{
 it("a valid Vault token is checked BEFORE accepting the job body",async()=>{
   const r=await post({request:request({kind:"due-gifts"})});
   expect(mocks.auth).toHaveBeenCalledWith("verify_natal_cron_token",{p_token:"a".repeat(64)});
-  expect(await r.json()).toEqual({state:"blocked",reason:"official_sender_not_configured"});
+  expect(await r.json()).toEqual({state:"blocked",reason:"live_not_active"});
   expect(mocks.send).not.toHaveBeenCalled();
 });
 it("forged tokens are rejected",async()=>{
