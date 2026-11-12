@@ -10,7 +10,8 @@ import { PostcardStudio } from './PostDonation';
 import { TreeExperience } from './TreeExperience';
 import { GiftMailForm } from './GiftMailForm';
 import { OrnamentIcon } from './Ornament';
-import { clearGiftSession, loadGiftSession, onlineDedication, saveGiftSession } from '@/lib/online-gift-session';
+import { clearGiftSession, loadGiftSession, loadRecentGiftCompletion, saveGiftSession } from '@/lib/online-gift-session';
+import { giftDraftIssue, PRIVATE_GIFT_MESSAGE_MAX, PUBLIC_TREE_MESSAGE_MAX } from '@/lib/gift-draft-validation';
 import { resolvePublicTreeChoice } from '@/lib/public-tree-choice';
 import { SolidarityShare } from './SolidarityShare';
 const LiveGiftFlow = lazy(async()=>({default:(await import('./LiveGiftFlow')).LiveGiftFlow}));
@@ -29,6 +30,7 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
   const [dedica,setDedica]=useState(''),[firma,setFirma]=useState(''),[consent,setConsent]=useState(false);
   const [reusePublicText,setReusePublicText]=useState(true);
   const [ready,setReady]=useState(false);
+  const [recovered,setRecovered]=useState(false);
   const [channel,setChannel]=useState<'whatsapp'|'email'|null>('whatsapp');
   const [thankYou,setThankYou]=useState('');
   const [sharingComplete,setSharingComplete]=useState(false);
@@ -37,6 +39,7 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
   useEffect(()=>{
     const saved=loadGiftSession(project.id);
     if(saved && saved.amount===amount){request.current=saved.request;setGiftClient(saved.client);setTo(saved.to);setFrom(saved.from);setMsg(saved.msg);setGift(saved.gift);setProvider(saved.provider);setDedica(saved.dedica);setFirma(saved.firma);setConsent(saved.consent);setReusePublicText(saved.reusePublicText ?? true);setId(saved.id);setThankYou(saved.thankYou ?? '');setSharingComplete(saved.sharingComplete ?? false);setStage(saved.id?'done':'payment');}
+    else {const recent=loadRecentGiftCompletion(project.id,amount);if(recent){setId(recent.id);setRecovered(true);setStage('done');}}
     setReady(true);
   },[project.id,amount]);
   useEffect(()=>{if(sharingComplete)thanksRef.current?.scrollIntoView?.({block:'center',behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});},[sharingComplete]);
@@ -47,10 +50,11 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
   };
   const [giftClient,setGiftClient]=useState<string|null>(null);
   const treeFields=()=>resolvePublicTreeChoice({gift,reusePersonalText:reusePublicText,personalMessage:msg,personalSignature:from,treeMessage:dedica,treeSignature:firma,publishOnTree:consent});
+  const draftIssue=giftDraftIssue({gift,to,from,msg,publicFields:treeFields()});
   const complete=async()=>{
     if(inFlight.current || id)return;
-    const parsed=onlineDedication.safeParse(treeFields());
-    if(!parsed.success){setError(parsed.error.issues[0]?.message || 'Controlla la dedica.');return;}
+    if(draftIssue){setError(draftIssue);setStage('compose');return;}
+    const parsed={data:treeFields()};
     inFlight.current=true;setBusy(true);setError('');
     try {
       request.current ??= crypto.randomUUID();
@@ -63,7 +67,7 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
       setId(row.id);setStage('done');window.scrollTo({top:0,behavior:'instant'});
     }catch(e){setError(e instanceof Error?e.message:'Simulazione non disponibile.');}finally{inFlight.current=false;setBusy(false);}
   };
-  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setReusePublicText(true);setThankYou('');setSharingComplete(false);setChannel('whatsapp');setStage('compose');setError('');window.scrollTo({top:0});};
+  const restart=()=>{clearGiftSession();request.current=null;setId(null);setGiftClient(null);setTo('');setFrom('');setMsg('');setDedica('');setFirma('');setConsent(false);setReusePublicText(true);setRecovered(false);setThankYou('');setSharingComplete(false);setChannel('whatsapp');setStage('compose');setError('');window.scrollTo({top:0});};
   if(!ready)return <p className="p-8 text-center">Un momento…</p>;
   return <section className="mx-auto max-w-6xl px-4 py-8">
     {stage!=='done' && <div className="mx-auto max-w-lg">
@@ -87,7 +91,7 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
           <h2 className="font-display text-2xl">Il messaggio per chi ami</h2>
           <label className="block text-sm">Per chi è il regalo? (facoltativo)<input aria-label="Destinatario" maxLength={40} value={to} onChange={e=>setTo(e.target.value)} placeholder="Es. Pino" className="mt-2 w-full rounded-lg border bg-background p-3" /></label>
           <label className="block text-sm">Come vuoi firmarti? (facoltativo)<input aria-label="Mittente" maxLength={40} value={from} onChange={e=>setFrom(e.target.value)} placeholder="Es. Federico" className="mt-2 w-full rounded-lg border bg-background p-3" /></label>
-          <label className="block text-sm">La tua dedica personale (facoltativa)<textarea aria-label="Messaggio privato" maxLength={90} rows={3} value={msg} onChange={e=>setMsg(e.target.value)} placeholder={project.postcardLine} className="mt-2 w-full rounded-lg border bg-background p-3" /></label>
+          <label className="block text-sm">La tua dedica personale (facoltativa)<textarea aria-label="Messaggio privato" aria-invalid={msg.trim().length>PRIVATE_GIFT_MESSAGE_MAX} aria-describedby="gift-personal-counter" maxLength={PRIVATE_GIFT_MESSAGE_MAX} rows={3} value={msg} onChange={e=>setMsg(e.target.value)} placeholder={project.postcardLine} className="mt-2 w-full rounded-lg border bg-background p-3" /><span id="gift-personal-counter" className={`mt-1 block text-right text-xs ${msg.trim().length>PRIVATE_GIFT_MESSAGE_MAX?'text-red-600':'text-muted-foreground'}`}>{msg.trim().length}/{PRIVATE_GIFT_MESSAGE_MAX} caratteri{msg.trim().length>PRIVATE_GIFT_MESSAGE_MAX?' · Accorcia la dedica per continuare.':''}</span></label>
           <p className="text-xs text-muted-foreground">Nome, firma e messaggio sono destinati alla cartolina privata. Non compaiono sull’albero senza il tuo consenso.</p>
         </div> : <div className="rounded-2xl border border-gold/30 bg-secondary/35 p-5">
           <h2 className="font-display text-2xl">Un regalo per Monza</h2>
@@ -99,13 +103,14 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
           {gift && consent && <label className="flex items-start gap-3 rounded-xl bg-secondary/45 p-3 text-sm"><input type="checkbox" aria-label="Usa la stessa dedica e firma del regalo" checked={reusePublicText} onChange={e=>setReusePublicText(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" /><span>Usa la stessa dedica e la stessa firma del regalo anche sull’albero. <span className="block text-xs text-muted-foreground">Se disattivi la spunta, puoi scrivere testi diversi per l’albero.</span></span></label>}
           {consent && gift && reusePublicText && <p className="rounded-xl border border-gold/25 bg-background/40 p-3 text-xs text-muted-foreground" role="status">Sull’albero compariranno {msg.trim() ? `«${msg.trim()}»` : "la dedica che scriverai nella cartolina"}{from.trim() ? ` — ${from.trim()}` : ""}. Questi dati saranno pubblici.</p>}
           {consent && (!gift || !reusePublicText) && <div className="space-y-4">
-            <label className="block text-sm">Dedica pubblica sull’albero (facoltativa)<textarea aria-label="Dedica pubblica sull’albero" maxLength={90} rows={3} value={dedica} onChange={e=>setDedica(e.target.value)} placeholder="Un pensiero per Monza…" className="mt-2 w-full rounded-lg border bg-background p-3" /></label>
+            <label className="block text-sm">Dedica pubblica sull’albero (facoltativa)<textarea aria-label="Dedica pubblica sull’albero" aria-invalid={dedica.trim().length>PUBLIC_TREE_MESSAGE_MAX} aria-describedby="gift-public-counter" maxLength={PUBLIC_TREE_MESSAGE_MAX} rows={3} value={dedica} onChange={e=>setDedica(e.target.value)} placeholder="Un pensiero per Monza…" className="mt-2 w-full rounded-lg border bg-background p-3" /><span id="gift-public-counter" className="mt-1 block text-right text-xs text-muted-foreground">{dedica.trim().length}/{PUBLIC_TREE_MESSAGE_MAX} caratteri</span></label>
             <label className="block text-sm">Firma pubblica (facoltativa)<input aria-label="Firma pubblica" maxLength={40} value={firma} onChange={e=>setFirma(e.target.value)} placeholder="Il tuo nome, se vuoi" className="mt-2 w-full rounded-lg border bg-background p-3" /></label>
           </div>}
           <p className="text-xs text-muted-foreground">Non inserire dati personali di altre persone nella dedica pubblica. La cartolina privata resta separata.</p>
         </fieldset>
         <p className="mt-4 text-xs text-muted-foreground">I dati inseriti servono alla tua richiesta. <Link to="/privacy" className="font-semibold text-gold underline underline-offset-4">Leggi le informazioni sulla privacy (bozza in revisione)</Link>.</p>
-        <Button className="mt-6 h-auto w-full py-4" onClick={()=>{const r=onlineDedication.safeParse(treeFields());if(!r.success){setError(r.error.issues[0]?.message || 'Controlla i campi.');return;}setError('');setStage('payment');}}>Continua</Button>
+        {draftIssue && <p role="alert" className="mt-4 rounded-lg border border-amber-500/45 bg-secondary p-3 text-sm text-foreground">{draftIssue}</p>}
+        <Button className="mt-6 h-auto w-full py-4" disabled={!!draftIssue} onClick={()=>{setError('');setStage('payment');}}>Continua</Button>
         {error && <p role="alert" className="mt-3 text-gold">{error}</p>}
       </>:<>
         <div className="my-6 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Metodo di pagamento">{(['sumup','paypal'] as const).map(p=><Button key={p} role="radio" aria-checked={provider===p} variant={provider===p?'default':'outline'} onClick={()=>setProvider(p)}>{p==='sumup'?'SumUp':'PayPal'}</Button>)}</div>
@@ -117,11 +122,11 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
       <div className="mx-auto max-w-xl py-5 text-center">
         <OrnamentIcon kind={project.ornament} className="mx-auto h-24 w-24 drop-shadow-[0_0_24px_var(--gold)]" />
         <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-gold">Il Natale che fa bene</p>
-        <h1 className="mt-2 font-display text-3xl sm:text-4xl">{gift ? 'La tua pallina è pronta. Fai arrivare il regalo!' : 'Grazie per il tuo dono a Monza!'}</h1>
-        <p className="mt-3 text-sm text-muted-foreground">{gift ? 'La pallina è già sull’Albero di Monza. Adesso scegli come consegnare il tuo pensiero.' : 'Il tuo gesto è sull’Albero di Monza. Puoi ritrovare la pallina e condividere la solidarietà.'}</p>
+        <h1 className="mt-2 font-display text-3xl sm:text-4xl">{recovered ? 'Il tuo gesto è già sull’Albero di Monza' : gift ? 'La tua pallina è pronta. Fai arrivare il regalo!' : 'Grazie per il tuo dono a Monza!'}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{recovered ? 'Abbiamo ritrovato il collegamento alla pallina già creata. I dati privati della cartolina non sono disponibili in questa sessione: non è necessario ripetere la donazione.' : gift ? 'La pallina è già sull’Albero di Monza. Adesso scegli come consegnare il tuo pensiero.' : 'Il tuo gesto è sull’Albero di Monza. Puoi ritrovare la pallina e condividere la solidarietà.'}</p>
         {consent && (gift && reusePublicText ? msg : dedica) && <blockquote className="mt-5 border-l-2 border-gold pl-4 text-left font-display text-xl">“{gift && reusePublicText ? msg : dedica}”{(gift && reusePublicText ? from : firma) && <span className="mt-2 block text-sm">— {gift && reusePublicText ? from : firma}</span>}</blockquote>}
       </div>
-      {gift && <section className="mx-auto mt-3 max-w-5xl rounded-3xl border-2 border-gold/60 bg-secondary/50 p-4 shadow-deep sm:p-7" data-testid="delivery-step">
+      {gift && !recovered && <section className="mx-auto mt-3 max-w-5xl rounded-3xl border-2 border-gold/60 bg-secondary/50 p-4 shadow-deep sm:p-7" data-testid="delivery-step">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[.15em] text-gold"><Sparkles className="mr-1 inline h-4 w-4"/>Il momento del regalo</p>
           <h2 className="mt-2 font-display text-3xl">Invia il regalo a {to.trim() || 'chi ami'}</h2>
@@ -134,11 +139,11 @@ function DemoGiftFlow({project,amount,onBack}:{project:Project;amount:number;onB
         {channel==='whatsapp' && <div className="mt-5"><PostcardStudio project={project} to={to} from={from} msg={msg} ornamentId={id} onShared={finishSharing}/></div>}
         {channel==='email' && request.current && giftClient && <div className="mx-auto mt-6 max-w-lg"><GiftMailForm project={project} ornamentId={id} giftRequestId={request.current} client={giftClient} from={from} toName={to} msg={msg} onAccepted={finishSharing}/></div>}
       </section>}
-      {(!gift || sharingComplete) && <div ref={thanksRef} role="status" className="mx-auto my-8 max-w-2xl rounded-3xl border border-gold/40 bg-secondary px-6 py-7 text-center" data-testid="donor-thanks">
+      {(!gift || sharingComplete || recovered) && <div ref={thanksRef} role="status" className="mx-auto my-8 max-w-2xl rounded-3xl border border-gold/40 bg-secondary px-6 py-7 text-center" data-testid="donor-thanks">
         <h2 className="font-display text-3xl">Grazie di cuore per il tuo dono</h2>
         <p className="mt-3 font-display text-lg sm:text-xl">{donorThanks}</p>
       </div>}
-      {(!gift || sharingComplete) && <SolidarityShare project={project}/>} 
+      {(!gift || sharingComplete || recovered) && <SolidarityShare project={project}/>} 
       <details className="mx-auto mt-9 max-w-6xl border-y border-gold/35 py-4" data-testid="gift-tree-details">
         <summary className="cursor-pointer py-3 font-display text-xl text-gold">Guarda la tua pallina sull’Albero di Monza</summary>
         <TreeExperience focusId={id}/>
