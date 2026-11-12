@@ -24,7 +24,7 @@ export function DemoBanner() {
   if (!CAMPAIGN.demo) return null;
   return (
     <div className="bg-ink/80 px-4 py-1.5 text-center text-[10.5px] leading-snug text-paper/80 sm:text-xs">
-      <strong className="tracking-widest text-gold">DEMO V1</strong> · {ONLINE_GIFT ? "Pagamenti simulati · email da Federico, Natale invia subito." : "Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita."}
+      <strong className="tracking-widest text-gold">DEMO V1</strong> · {ONLINE_GIFT ? "Pagamenti simulati · email di prova da natale@crimonza.org · Natale invia subito." : "Pagamenti, prenotazioni, email, WhatsApp e dati sono simulati. Nessuna operazione reale viene eseguita."}
     </div>
   );
 }
