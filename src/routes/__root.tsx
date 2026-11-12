@@ -6,11 +6,13 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { resetPageScroll } from "@/lib/reset-page-scroll";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -120,11 +122,24 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function ScrollToTopOnNavigation() {
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  useEffect(() => {
+    resetPageScroll();
+    // Safari may restore an old scroll position during the same frame;
+    // reassert top once the new page layout is ready.
+    const frame = window.requestAnimationFrame(resetPageScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ScrollToTopOnNavigation />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
