@@ -80,7 +80,7 @@ export function giftMailRaw(c: GiftMailContent, messageRef: string) {
     <tr><td style="padding:22px 35px 27px;background:#f4eee2;border-top:1px solid #e4ddcd;text-align:center">
     <p style="margin:0 0 8px;font:700 12px/1.5 Arial,sans-serif;color:#294a38">Croce Rossa Italiana – Comitato di Monza</p>
     <p style="margin:0 0 10px;font:12px/1.5 Arial,sans-serif;color:#607064"><a href="${GIFT_MAIL_SITE}" style="color:#607064;text-decoration:underline">${esc(GIFT_MAIL_SITE.replace("https://", ""))}</a></p>
-    <p style="margin:0;font:12px/1.5 Arial,sans-serif"><a href="${GIFT_MAIL_SITE}/privacy" style="color:#607064;text-decoration:underline">Informazioni privacy (bozza in revisione)</a></p>
+    <p style="margin:0;font:12px/1.5 Arial,sans-serif"><a href="${GIFT_MAIL_SITE}/privacy" style="color:#607064;text-decoration:underline">Informativa sulla privacy</a></p>
     </td></tr></table>
     <p style="margin:17px 0 0;font:12px/1.6 Arial,sans-serif;color:#54685e;text-align:center">Un piccolo gesto. Un Natale che fa bene.</p>
     </td></tr></table></body></html>`;
