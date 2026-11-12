@@ -9,6 +9,14 @@ export const Route = createFileRoute("/api/public/paypal-webhook")({
         if (CAMPAIGN.demo && Date.now()>=Date.parse("2026-11-16T00:00:00Z"))
           return new Response(null,{status:204});
         if (!CAMPAIGN.demo && !CAMPAIGN.livePayments) return new Response(null,{status:204});
+        if (CAMPAIGN.demo) {
+          try {
+            const {paymentQaProviderActive}=await import("@/lib/payment-qa-active.server");
+            if (!(await paymentQaProviderActive("paypal")))
+              return new Response(null,{status:204});
+          } catch { return new Response("QA audit unavailable",{status:503}); }
+        }
+
         try {
           const { handlePaypalWebhook } = await import("@/lib/payments.server");
           await handlePaypalWebhook(request, CAMPAIGN.demo);
