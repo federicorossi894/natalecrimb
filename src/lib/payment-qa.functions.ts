@@ -21,7 +21,16 @@ export const startPaymentQa = createServerFn({method:"POST"})
         throw new Error("La prova di questo provider è già stata avviata. Non fare un secondo pagamento.");
       const {loadDonation}=await import("./payments.server");
       const row=await loadDonation(data.id,data.accessToken);
-      if(row.status==="paid")throw new Error("Pagamento già confermato. Non aprire un secondo checkout.");
+      const {data:state,error:stateError}=await supabaseAdmin.from("live_donations")
+        .select("status,settlement_state,capture_claimed_at,provider_payment_id")
+        .eq("id",data.id).single();
+      if(stateError || !state)throw new Error("Stato del checkout non verificabile.");
+      if(state.status==="paid" || state.settlement_state==="completed" || state.provider_payment_id)
+        throw new Error("Pagamento già confermato. Non aprire un secondo checkout.");
+      if(state.capture_claimed_at)
+        throw new Error("Verifica PayPal in corso: non riaprire il pagamento, contatta il Comitato.");
+      if(state.status!=="pending" || !["unknown","pending"].includes(state.settlement_state))
+        throw new Error("Questo checkout non può essere ripreso in sicurezza.");
       if(!row.checkout_url)throw new Error("Prova già avviata: checkout da verificare. Non riprovare.");
       return {url:row.checkout_url,id:data.id};
     }
