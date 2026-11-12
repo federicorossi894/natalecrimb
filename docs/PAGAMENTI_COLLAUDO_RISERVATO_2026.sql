@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.natale_payment_qa_2026 (
   donation_id uuid NOT NULL UNIQUE,
   actor uuid NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
+  webhook_verified_at timestamptz,
   expires_at timestamptz NOT NULL DEFAULT '2026-11-16T00:00:00Z'::timestamptz
 );
 ALTER TABLE public.natale_payment_qa_2026 ENABLE ROW LEVEL SECURITY;
