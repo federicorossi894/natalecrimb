@@ -3,7 +3,7 @@ import { SITE_EXPERIENCE,experienceRouteAllowed,assertFullExperience,projectOnly
 import { ACTIVE_CAMPAIGN_MODE, campaignCapabilities, assertCampaignPayment } from '@/lib/campaign';
 import { onlineGiftInput } from '@/lib/online-gift.functions';
 describe('Independent experience and campaign axes',()=>{
-  it('defaults to online DEMO without LIVE',()=>{expect(SITE_EXPERIENCE).toBe('ONLINE_GIFT');expect(ACTIVE_CAMPAIGN_MODE).toBe('DEMO');expect(campaignCapabilities('DEMO').livePayments).toBe(false);expect(()=>assertCampaignPayment('paypal','live')).toThrow();});
+  it('defaults to ONLINE_GIFT BASIC with verified LIVE',()=>{expect(SITE_EXPERIENCE).toBe('ONLINE_GIFT');expect(ACTIVE_CAMPAIGN_MODE).toBe('BASIC');expect(campaignCapabilities('DEMO').livePayments).toBe(false);expect(()=>assertCampaignPayment('paypal','live')).not.toThrow();});
   it.each(['/piazza','/albero-live','/tv-preview','/volontari','/auguri','/augurio/abc','/moderazione','/babbo-natale'])('blocks %s online and preserves FULL',path=>{expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(false);expect(experienceRouteAllowed(path,'FULL')).toBe(true);});
   it.each(['/calendario','/piccoli-volontari','/giochi','/casetta'])('restores %s online and preserves FULL',path=>{expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(true);expect(experienceRouteAllowed(path,'FULL')).toBe(true);});
   it.each(['/','/regali','/regali/prossimita','/albero','/email-qa'])('keeps %s available',path=>expect(experienceRouteAllowed(path,'ONLINE_GIFT')).toBe(true));

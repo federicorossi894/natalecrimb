@@ -22,8 +22,8 @@ describe('Real email readiness contract', () => {
     expect(() => giftEmailIdempotencyKey('person@example.org', 'now')).toThrow();
   });
   it('unconfigured live email cannot report an accepted send', () => {
-    expect(() => assertGiftEmailService('now', campaignCapabilities('BASIC'))).toThrow();
-    expect(() => assertGiftEmailService('christmas', campaignCapabilities('BASIC'))).toThrow();
+    expect(() => assertGiftEmailService('now', campaignCapabilities('BASIC', undefined, undefined, {santaBookings:false,emailSending:false,emailScheduling:false}))).toThrow();
+    expect(() => assertGiftEmailService('christmas', campaignCapabilities('BASIC', undefined, undefined, {santaBookings:false,emailSending:false,emailScheduling:false}))).toThrow();
   });
   it('sending readiness alone does not enable scheduling', () => {
     const c = campaignCapabilities('BASIC', { payments: false, cash: false, purchaseWishQR: false, liveData: true }, undefined, { santaBookings: false, emailSending: true, emailScheduling: false });

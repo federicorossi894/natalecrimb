@@ -11,20 +11,21 @@ describe('Verified providers and explicit payment execution', () => {
     expect(LIVE_PROVIDER_READINESS.sumup.configured).toBe(true);
     expect(LIVE_PROVIDER_READINESS.paypal.configured).toBe(true);
     for (const mode of ['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const) {
-      const c = campaignCapabilities(mode, { ...ready, cash: false });
+      const c = campaignCapabilities(mode, { ...ready, cash: false }, undefined, undefined, {sumup:{...providers.sumup,webhookVerified:false},paypal:{...providers.paypal,webhookVerified:false}});
       expect(campaignPaymentMethods(c)).toEqual([]);
       expect(() => assertCampaignPayment('sumup', 'live', c)).toThrow();
       expect(() => assertCampaignPayment('paypal', 'live', c)).toThrow();
     }
   });
   it('DEMO retains SumUp/PayPal simulators and cash, never live execution', () => {
-    expect(campaignPaymentMethods(CAMPAIGN)).toEqual(['sumup', 'paypal', 'cash']);
-    expect(() => assertCampaignPayment('sumup', 'demo')).not.toThrow();
-    expect(() => assertCampaignPayment('sumup', 'live')).toThrow();
-    expect(() => assertCampaignPayment('cash', 'live')).toThrow();
+    const demo=campaignCapabilities('DEMO');
+    expect(campaignPaymentMethods(demo)).toEqual(['sumup', 'paypal', 'cash']);
+    expect(() => assertCampaignPayment('sumup', 'demo', demo)).not.toThrow();
+    expect(() => assertCampaignPayment('sumup', 'live', demo)).toThrow();
+    expect(() => assertCampaignPayment('cash', 'live', demo)).toThrow();
   });
-  it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s currently remains fail-closed', mode => {
-    expect(campaignPaymentMethods(campaignCapabilities(mode))).toEqual([]);
+  it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s uses the verified online providers', mode => {
+    expect(campaignPaymentMethods(campaignCapabilities(mode))).toEqual(['sumup','paypal']);
   });
   it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s ready offers verified online methods and tier-appropriate cash', mode => {
     const c = campaignCapabilities(mode, ready, undefined, undefined, providers);
@@ -57,7 +58,7 @@ describe('Verified providers and explicit payment execution', () => {
     expect(() => assertCampaignPayment('paypal', 'live', c)).toThrow();
   });
   it.each(['ADVANCED_1', 'ADVANCED_2'] as const)('%s cash readiness is independent from online provider readiness', mode => {
-    const c = campaignCapabilities(mode, ready);
+    const c = campaignCapabilities(mode, ready, undefined, undefined, {sumup:{...providers.sumup,webhookVerified:false},paypal:{...providers.paypal,webhookVerified:false}});
     expect(campaignPaymentMethods(c)).toEqual(['cash']);
     expect(() => assertCampaignPayment('cash', 'live', c)).not.toThrow();
     expect(() => assertCampaignPayment('sumup', 'live', c)).toThrow();

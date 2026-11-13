@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+vi.mock('@/lib/campaign', async (original) => { const actual = await original<typeof import('@/lib/campaign')>(); return { ...actual, CAMPAIGN: actual.campaignCapabilities('DEMO') }; });
+import { describe, expect, it, vi } from "vitest";
 import { DEMO_UNTIL, DEMO_WISH_CODE, WISH_MAX, contactHints, createDemoWishApi, wallWishes, wishSchema } from "@/lib/wishes";
 
 describe("Muro degli auguri rules", () => {

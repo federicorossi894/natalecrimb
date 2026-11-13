@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+vi.mock('@/lib/campaign', async (original) => { const actual = await original<typeof import('@/lib/campaign')>(); return { ...actual, CAMPAIGN: actual.campaignCapabilities('DEMO') }; });
+import { describe, expect, it, vi } from "vitest";
 import { TV_DURATION, tvSequence } from "@/components/xmas/TreeTV";
 
 describe("casetta TV director", () => {

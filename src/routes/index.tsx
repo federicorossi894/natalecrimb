@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Il Natale che fa bene – Croce Rossa Monza" },
-      { name: "description", content: ONLINE_GIFT ? "Fai un regalo solidale a qualcuno che ami. Quattro progetti CRI Monza, una pallina digitale e una cartolina. DEMO senza pagamento reale." : `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
+      { name: "description", content: ONLINE_GIFT ? `Fai un regalo solidale a qualcuno che ami. Quattro progetti CRI Monza, una pallina digitale e una cartolina.${CAMPAIGN.demo ? " DEMO senza pagamento reale." : ""}` : `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
       { property: "og:title", content: "Il Natale che fa bene – Croce Rossa Monza" },
       { property: "og:description", content: "Quest’anno regala qualcosa che non si scarta. Un regalo solidale a qualcuno che ami." },
       { property: "og:type", content: "website" },

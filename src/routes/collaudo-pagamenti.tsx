@@ -13,6 +13,11 @@ export const Route=createFileRoute("/collaudo-pagamenti")({
   validateSearch:z.object({d:z.string().uuid().optional(),token:z.string().optional(),PayerID:z.string().optional(),annullato:z.coerce.number().optional()}),
   head:()=>({meta:[
     {title:"Collaudo riservato · Pagamenti CRI Monza"},
+    {name:"description",content:"Registro riservato delle verifiche di pagamento della campagna Natale CRI Monza."},
+    {property:"og:title",content:"Collaudo pagamenti riservato · CRI Monza"},
+    {property:"og:description",content:"Verifiche riservate della campagna Natale; nessun accesso pubblico alle prove."},
+    {property:"og:type",content:"website"},
+    {name:"twitter:card",content:"summary"},
     {name:"robots",content:"noindex,nofollow,noarchive"},
     {name:"referrer",content:"no-referrer"},
   ]}),

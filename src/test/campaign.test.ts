@@ -3,14 +3,14 @@ import { ACTIVE_CAMPAIGN_MODE, CAMPAIGN_MODES, CAMPAIGN_OPTIONS, assertCampaignA
 import { tvSequence } from '@/components/xmas/TreeTV';
 
 describe('Campaign modes and fail-closed actions', () => {
-  it('keeps DEMO active', () => expect(ACTIVE_CAMPAIGN_MODE).toBe('DEMO'));
+  it('keeps authorized BASIC active', () => expect(ACTIVE_CAMPAIGN_MODE).toBe('BASIC'));
   it('preserves all demonstration routes and payment simulators', () => {
     const c = campaignCapabilities('DEMO');
     for (const path of ['/tv-preview', '/presentazione', '/volontari', '/auguri', '/augurio/demo']) expect(campaignRouteAllowed(path, c, 'FULL')).toBe(true);
     expect(campaignPaymentMethods(c)).toEqual(['sumup', 'paypal', 'cash']);
   });
   it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s never enables unready live actions', mode => {
-    const c = campaignCapabilities(mode);
+    const c = campaignCapabilities(mode, {payments:false,cash:false,purchaseWishQR:false,liveData:true});
     expect(c.demo).toBe(false);
     expect(c.livePayments).toBe(false);
     expect(c.volunteerCashDonations).toBe(false);
@@ -22,7 +22,7 @@ describe('Campaign modes and fail-closed actions', () => {
   });
   it('BASIC excludes cash and wishes even with all prerequisites', () => {
     const c = campaignCapabilities('BASIC', { payments: true, cash: true, purchaseWishQR: true, liveData: true });
-    expect(c.livePayments).toBe(false); // Global readiness alone does not verify any provider.
+    expect(c.livePayments).toBe(true); // Both providers were independently verified.
     expect(c.volunteerCashDonations).toBe(false);
     expect(c.publicWishWall).toBe(false);
     expect(campaignRouteAllowed('/augurio/a-code', c, 'FULL')).toBe(false);
@@ -83,7 +83,7 @@ describe('Campaign modes and fail-closed actions', () => {
     }
   });
   it.each(CAMPAIGN_MODES)('%s denies all unready LIVE server actions', mode => {
-    const c = campaignCapabilities(mode);
+    const c = campaignCapabilities(mode, {payments:false,cash:false,purchaseWishQR:false,liveData:true}, undefined, {santaBookings:false,emailSending:false,emailScheduling:false});
     for (const action of ['onlinePayment', 'cashDonation', 'purchaseWishQR', 'wishModeration', 'emailNow', 'emailChristmas', 'santaBooking'] as const) expect(() => assertCampaignAction(action, c)).toThrow();
   });
   it('approved biscuit in BASIC never enables cash or wall', () => {

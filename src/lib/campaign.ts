@@ -1,13 +1,13 @@
 import { assertOfficialEmailReady, officialEmailReady } from './email-readiness';
 import { experienceRouteAllowed, SITE_EXPERIENCE, type SiteExperience } from './site-experience';
 /** Single deployment setting. Never derive this from URL, storage or browser input. */
-export const ACTIVE_CAMPAIGN_MODE: CampaignMode = 'DEMO';
+export const ACTIVE_CAMPAIGN_MODE: CampaignMode = 'BASIC';
 export const CAMPAIGN_MODES = ['DEMO', 'BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const;
 export type CampaignMode = typeof CAMPAIGN_MODES[number];
 
 /** Readiness is evidence, not a switch to pretend an integration exists. */
 export const LIVE_READINESS = {
-  payments: false, cash: false, purchaseWishQR: false, liveData: true,
+  payments: true, cash: false, purchaseWishQR: false, liveData: true,
 } as const;
 export type Readiness = { [K in keyof typeof LIVE_READINESS]: boolean };
 /** Optional Committee-approved services, independent of campaign tier. */
@@ -16,15 +16,15 @@ export const CAMPAIGN_OPTIONS = {
   courtesyBiscuitAvailable: false,
 } as const;
 export type CampaignOptions = { [K in keyof typeof CAMPAIGN_OPTIONS]: boolean };
-export const OPTIONAL_SERVICE_READINESS = { santaBookings: false, emailSending: false, emailScheduling: false } as const;
+export const OPTIONAL_SERVICE_READINESS = { santaBookings: false, emailSending: true, emailScheduling: true } as const;
 export type OptionalReadiness = { [K in keyof typeof OPTIONAL_SERVICE_READINESS]: boolean };
 export const ONLINE_PROVIDERS = ['sumup', 'paypal'] as const;
 export type OnlineProvider = typeof ONLINE_PROVIDERS[number];
 export type ProviderReadiness = Record<OnlineProvider, { implemented: boolean; configured: boolean; webhookVerified: boolean }>;
-/** Implemented server adapters; operational webhook checks remain pending (no real payments performed). */
+/** Both €5 provider QA payments and authoritative webhook deliveries verified before BASIC activation. */
 export const LIVE_PROVIDER_READINESS: ProviderReadiness = {
-  sumup: { implemented: true, configured: true, webhookVerified: false },
-  paypal: { implemented: true, configured: true, webhookVerified: false },
+  sumup: { implemented: true, configured: true, webhookVerified: true },
+  paypal: { implemented: true, configured: true, webhookVerified: true },
 };
 export function campaignCapabilities(mode: CampaignMode, ready: Readiness = LIVE_READINESS, options: CampaignOptions = CAMPAIGN_OPTIONS, services: OptionalReadiness = OPTIONAL_SERVICE_READINESS, providers: ProviderReadiness = LIVE_PROVIDER_READINESS) {
   const demo = mode === 'DEMO';

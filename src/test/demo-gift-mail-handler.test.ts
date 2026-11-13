@@ -1,3 +1,4 @@
+vi.mock('@/lib/campaign', async (original) => { const actual = await original<typeof import('@/lib/campaign')>(); return { ...actual, CAMPAIGN: actual.campaignCapabilities('DEMO') }; });
 // @vitest-environment node
 import { it,expect,vi,beforeEach } from 'vitest';
 const mocks=vi.hoisted(()=>({auth:vi.fn(),identity:vi.fn(),claim:vi.fn(),finish:vi.fn(),send:vi.fn(),single:vi.fn(),middleware:vi.fn()}));

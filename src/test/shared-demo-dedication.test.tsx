@@ -1,3 +1,4 @@
+vi.mock('@/lib/campaign', async (original) => { const actual = await original<typeof import('@/lib/campaign')>(); return { ...actual, CAMPAIGN: actual.campaignCapabilities('DEMO') }; });
 import { act, renderHook, cleanup } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 const read = vi.hoisted(() => vi.fn());

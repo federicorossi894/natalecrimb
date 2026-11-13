@@ -152,18 +152,12 @@ describe("Paid-only, idempotent delivery orchestration with mocked IO", () => {
 });
 describe("Official sender hard gate and protected QA", () => {
   it("DEMO remains active and can initialize without email", () => {
-    expect(ACTIVE_CAMPAIGN_MODE).toBe("DEMO");
+    expect(ACTIVE_CAMPAIGN_MODE).toBe("BASIC");
     expect(() => assertCampaignDeployment("DEMO")).not.toThrow();
   });
-  it.each(["BASIC", "ADVANCED_1", "ADVANCED_2"] as const)(
-    "mode-only switch to %s is rejected",
-    (mode) =>
-      expect(() => assertCampaignDeployment(mode)).toThrow(
-        "ATTENZIONE: le email LIVE devono essere collaudate su donazioni pagate prima dell’attivazione pubblica.",
-      ),
-  );
-  it("official LIVE sender stays unavailable independently of manual Gmail QA", () => {
-    expect(officialEmailReady()).toBe(false);
+  it.each(["BASIC", "ADVANCED_1", "ADVANCED_2"] as const)("verified email prerequisites allow %s initialization", mode => expect(() => assertCampaignDeployment(mode)).not.toThrow());
+  it("verified official sender is ready independently of manual QA", () => {
+    expect(officialEmailReady()).toBe(true);
     expect(DEMO_EMAIL_QA.confirmedRecipients).toEqual(["natale@crimonza.org"]);
     expect(DEMO_EMAIL_QA.enabled).toBe(true);
   });

@@ -16,6 +16,7 @@ afterEach(()=>{
   Object.assign(CAMPAIGN,snapshot);
 });
 it("keeps real checkout disabled until provider verification is complete",()=>{
+  Object.assign(CAMPAIGN,{livePayments:false,liveOnlineProviders:[]});
   render(<LiveGiftFlow project={project} amount={5} onBack={()=>undefined}/>);
   expect(screen.getByRole("button",{name:/Procedi alla donazione di 5/})).toBeDisabled();
   expect(checkout).not.toHaveBeenCalled();

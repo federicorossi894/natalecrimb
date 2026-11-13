@@ -366,7 +366,7 @@ describe("Mock-only pre-live hardening", () => {
   it.each(["BASIC", "ADVANCED_1", "ADVANCED_2"] as const)(
     "%s remains closed with actual unverified readiness",
     async (mode) => {
-      Object.assign(CAMPAIGN, campaignCapabilities(mode));
+      Object.assign(CAMPAIGN, campaignCapabilities(mode, {...ready,payments:false}));
       await expect(handlePaypalWebhook(webhook())).rejects.toThrow();
       await expect(recoverLivePayments()).rejects.toThrow();
       expect(fetchMock).not.toHaveBeenCalled();
@@ -409,7 +409,7 @@ describe("Mock-only pre-live hardening", () => {
         ),
       );
       expect((await recoverLivePayments()).manual).toBe(1);
-      expect(fetchMock.mock.calls.every(([, init]) => init.method === "GET")).toBe(true);
+      expect(fetchMock.mock.calls.filter(([url])=>String(url).includes("/udc_sumup/")).every(([, init]) => init.method === "GET")).toBe(true);
     },
   );
   it("unique SumUp reference restores an orphan checkout and confirms via trusted status", async () => {
@@ -431,7 +431,7 @@ describe("Mock-only pre-live hardening", () => {
       response(String(url).includes("?") ? [found] : found),
     );
     expect(await recoverLivePayments()).toEqual({ checked: 1, paid: 1, manual: 0, errors: 0 });
-    expect(fetchMock.mock.calls.every(([, init]) => init.method === "GET")).toBe(true);
+    expect(fetchMock.mock.calls.filter(([url])=>String(url).includes("/udc_sumup/")).every(([, init]) => init.method === "GET")).toBe(true);
   });
   it("database capture claim failure prevents capture", async () => {
     db.rpc.mockResolvedValue({ error: {} });

@@ -74,9 +74,9 @@ it("recovery failure requests retry without exposing internal errors", async () 
   expect(result.status).toBe(503);
   expect(await result.text()).not.toContain("internal");
 });
-it("deployment mode and payment verification flags stay explicitly off", () => {
-  expect(ACTIVE_CAMPAIGN_MODE).toBe("DEMO");
-  expect(LIVE_READINESS.payments).toBe(false);
-  expect(LIVE_PROVIDER_READINESS.sumup.webhookVerified).toBe(false);
-  expect(LIVE_PROVIDER_READINESS.paypal.webhookVerified).toBe(false);
+it("deployment mode and verified provider flags reflect authorized BASIC", () => {
+  expect(ACTIVE_CAMPAIGN_MODE).toBe("BASIC");
+  expect(LIVE_READINESS.payments).toBe(true);
+  expect(LIVE_PROVIDER_READINESS.sumup.webhookVerified).toBe(true);
+  expect(LIVE_PROVIDER_READINESS.paypal.webhookVerified).toBe(true);
 });

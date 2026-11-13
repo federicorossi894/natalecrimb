@@ -13,7 +13,7 @@ const request=(body:unknown,auth=true)=>new Request("https://natale.crimonza.org
   headers:auth?{authorization:`Bearer ${"a".repeat(64)}`}:{},
   body:JSON.stringify(body),
 });
-beforeEach(()=>{mocks.auth.mockReset().mockResolvedValue({data:true,error:null});mocks.send.mockReset();mocks.dispatch.mockReset();});
+beforeEach(()=>{mocks.auth.mockReset().mockResolvedValue({data:true,error:null});mocks.send.mockReset();mocks.dispatch.mockReset().mockResolvedValue({state:"checked",processed:0});});
 it("unauthorized jobs never reach the sender",async()=>{
   expect((await post({request:request({kind:"due-gifts"},false)})).status).toBe(401);
   expect(mocks.auth).not.toHaveBeenCalled();
@@ -22,7 +22,8 @@ it("unauthorized jobs never reach the sender",async()=>{
 it("a valid Vault token is checked BEFORE accepting the job body",async()=>{
   const r=await post({request:request({kind:"due-gifts"})});
   expect(mocks.auth).toHaveBeenCalledWith("verify_natal_cron_token",{p_token:"a".repeat(64)});
-  expect(await r.json()).toEqual({state:"blocked",reason:"live_not_active"});
+  expect(await r.json()).toEqual({state:"checked",processed:0});
+  expect(mocks.dispatch).toHaveBeenCalledOnce();
   expect(mocks.send).not.toHaveBeenCalled();
 });
 it("forged tokens are rejected",async()=>{
