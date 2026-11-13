@@ -89,7 +89,7 @@ describe("Real payment adapters, no external requests", () => {
       .mockResolvedValueOnce(response({id:"qa-checkout",hosted_checkout_url:"https://checkout.sumup.com/qa"}));
     const result=await createProviderCheckout("sumup",id,500,"https://natale.crimonza.org",true);
     expect(result.providerId).toBe("qa-checkout");
-    const body=JSON.parse(fetchMock.mock.calls[1][1].body);
+    const body=JSON.parse(fetchMock.mock.calls[1]![1].body);
     expect(body.amount).toBe(5);
     expect(body.redirect_url).toBe(`https://natale.crimonza.org/collaudo-pagamenti?d=${id}`);
     expect(fetchMock).toHaveBeenCalledTimes(2);

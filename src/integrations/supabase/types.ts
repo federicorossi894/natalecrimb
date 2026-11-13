@@ -343,6 +343,33 @@ export type Database = {
           },
         ]
       }
+      natale_payment_qa_2026: {
+        Row: {
+          actor: string
+          created_at: string
+          donation_id: string
+          expires_at: string
+          provider: string
+          webhook_verified_at: string | null
+        }
+        Insert: {
+          actor: string
+          created_at?: string
+          donation_id: string
+          expires_at?: string
+          provider: string
+          webhook_verified_at?: string | null
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          donation_id?: string
+          expires_at?: string
+          provider?: string
+          webhook_verified_at?: string | null
+        }
+        Relationships: []
+      }
       online_gift_mails: {
         Row: {
           created_at: string
@@ -887,6 +914,7 @@ export type Database = {
           wish_status: string
         }[]
       }
+      verify_natal_cron_token: { Args: { p_token: string }; Returns: boolean }
       volunteer_add_ornament: {
         Args: {
           _amount_cents: number

@@ -10,7 +10,7 @@ import { Route } from "@/routes/api/public/christmas-gift-email";
 const post=(Route.options as unknown as {server:{handlers:{POST:(arg:{request:Request})=>Promise<Response>}}}).server.handlers.POST;
 const request=(body:unknown,auth=true)=>new Request("https://natale.crimonza.org/api/public/christmas-gift-email",{
   method:"POST",
-  headers:auth?{authorization:`Bearer ${"a".repeat(64)}`}:undefined,
+  headers:auth?{authorization:`Bearer ${"a".repeat(64)}`}:{},
   body:JSON.stringify(body),
 });
 beforeEach(()=>{mocks.auth.mockReset().mockResolvedValue({data:true,error:null});mocks.send.mockReset();mocks.dispatch.mockReset();});

@@ -6,7 +6,7 @@ export async function authenticateInternalScheduler(request: Request): Promise<R
   const match = /^Bearer ([a-f0-9]{64})$/.exec(request.headers.get("authorization") ?? "");
   if (!match) return new Response("Unauthorized", { status: 401 });
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const verify = await supabaseAdmin.rpc("verify_natal_cron_token", { p_token: match[1] });
+  const verify = await supabaseAdmin.rpc("verify_natal_cron_token", { p_token: match[1] ?? "" });
   if (verify.error) return new Response("Scheduler configuration unavailable", { status: 503 });
   if (verify.data !== true) return new Response("Unauthorized", { status: 401 });
   return null;

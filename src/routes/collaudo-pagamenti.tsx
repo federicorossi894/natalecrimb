@@ -129,7 +129,7 @@ function PaymentQaPage(){
     setBusy(true);setError("");
     try{
       const result=await schedule({data:access});
-      setMessage(`Invio programmato: ${new Intl.DateTimeFormat("it-IT",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Rome"}).format(new Date(result.dueAt))}. Non partirà prima.`);
+      setMessage(`Invio programmato: ${new Intl.DateTimeFormat("it-IT",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Rome"}).format(new Date(String(result.dueAt)))}. Non partirà prima.`);
       await refresh();
     }catch(e){setError(e instanceof Error?e.message:"Programmazione da verificare.");}
     finally{setBusy(false);}
