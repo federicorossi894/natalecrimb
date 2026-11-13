@@ -23,9 +23,9 @@ export const Route = createFileRoute("/regali/")({
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:url", content: "https://natalecrimb.lovable.app/regali" },
+      { property: "og:url", content: "https://natale.crimonza.org/regali" },
     ],
-    links: [{ rel: "canonical", href: "https://natalecrimb.lovable.app/regali" }],
+    links: [{ rel: "canonical", href: "https://natale.crimonza.org/regali" }],
   }),
   component: Regali,
 });

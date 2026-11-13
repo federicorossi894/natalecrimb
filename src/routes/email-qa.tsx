@@ -7,7 +7,15 @@ import { AuthBox } from '@/components/xmas/AuthBox';
 import { supabase } from '@/integrations/supabase/client';
 import { testDemoEmail } from '@/lib/gift-email.functions';
 import { Button } from '@/components/ui/button';
-export const Route=createFileRoute('/email-qa')({head:()=>({meta:[
+import { CAMPAIGN } from '@/lib/campaign';
+export const Route=createFileRoute('/email-qa')({head:()=>({meta:!CAMPAIGN.demo ? [
+  {title:'Pagina non disponibile · Il Natale che fa bene · CRI Monza'},
+  {name:'description',content:'La pagina richiesta non è disponibile.'},
+  {property:'og:title',content:'Pagina non disponibile · CRI Monza'},
+  {property:'og:description',content:'La pagina richiesta non è disponibile.'},
+  {property:'og:type',content:'website'},{name:'twitter:card',content:'summary'},
+  {name:'robots',content:'noindex,nofollow,noarchive'},
+] : [
   {title:'Prove email riservate · Il Natale che fa bene · CRI Monza'},
   {name:'description',content:'Accesso autorizzato alle tre prove email DEMO, esclusivamente da e a natale@crimonza.org.'},
   {property:'og:title',content:'Prove email riservate · CRI Monza'},

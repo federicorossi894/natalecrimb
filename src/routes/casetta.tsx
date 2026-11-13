@@ -1,4 +1,5 @@
 import { ONLINE_GIFT } from "@/lib/site-experience";
+import { CAMPAIGN } from "@/lib/campaign";
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/casetta")({
   head: () => ({
     meta: [
       { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },
-      { name: "description", content: "Panettone e pandoro, riso da 500 g, tisane e altri pensieri solidali in Piazza San Paolo, dal 21 novembre al 6 gennaio. Orario indicativo 10–18." },
+      { name: "description", content: "Dolci e regali solidali alla casetta CRI in Piazza San Paolo, Monza, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
       { property: "og:title", content: "La casetta di Natale · Sapori e regali solidali" },
       { property: "og:description", content: "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
       { property: "og:type", content: "website" },
@@ -240,7 +241,7 @@ function OnlineCasetta() {
         </div>
         <div className="mt-10 border-t border-border pt-8">
           <h2 className="font-display text-2xl">Regala un gesto solidale</h2>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">Scegli uno dei quattro progetti CRI Monza e dedica una pallina sull’albero digitale. In questa DEMO il pagamento è soltanto simulato.</p>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">Scegli uno dei quattro progetti CRI Monza e dedica una pallina sull’albero digitale.{CAMPAIGN.demo && " In questa DEMO il pagamento è soltanto simulato."}</p>
           <Button asChild className="mt-5 rounded-full"><Link to="/regali"><Gift className="h-4 w-4" /> Regala a qualcuno <ArrowRight className="h-4 w-4" /></Link></Button>
         </div>
       </section>

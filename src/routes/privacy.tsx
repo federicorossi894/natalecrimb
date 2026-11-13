@@ -4,7 +4,7 @@ import { Shell } from "@/components/xmas/Shell";
 /** Information based on the real 2026 campaign data flows. No false claim that
  * data is never stored or erased simply by hiding the website. The organisation
  * remains responsible for verifying supplier contracts, DPO and end-of-campaign
- * deletion before enabling real payments.
+ * deletion throughout the campaign.
  */
 export const Route = createFileRoute("/privacy")({
   head: () => ({ meta: [
@@ -60,13 +60,13 @@ function Privacy() {
         </section>
         <section>
           <h2 className="font-display text-2xl">5. Servizi utilizzati</h2>
-          <p className="mt-3">Per la campagna possono intervenire i fornitori di hosting e database collegati al progetto <strong>Lovable Cloud</strong>, il servizio di posta <strong>Google Workspace/Gmail</strong> e, quando saranno attivati i pagamenti reali, <strong>SumUp</strong> e <strong>PayPal</strong>. Il sito carica inoltre caratteri tipografici tramite <strong>Google Fonts</strong>.</p>
+          <p className="mt-3">La campagna utilizza i fornitori di hosting e database collegati al progetto <strong>Lovable Cloud</strong>, il servizio di posta <strong>Google Workspace/Gmail</strong> e i prestatori di pagamento <strong>SumUp</strong> e <strong>PayPal</strong>. Il sito carica inoltre caratteri tipografici tramite <strong>Google Fonts</strong>.</p>
           <p className="mt-2">I fornitori trattano i dati nei limiti necessari al proprio servizio e secondo le rispettive condizioni e informative; per pagamenti e infrastrutture possono esistere conservazioni autonome e trattamenti internazionali. Le garanzie per eventuali trasferimenti fuori dallo Spazio economico europeo vanno considerate secondo le regole GDPR e le configurazioni del fornitore. Puoi chiederci informazioni sui servizi effettivamente attivi.</p>
           <p className="mt-2">Non raccogliamo direttamente, nei moduli di questo sito, i dati completi delle carte di pagamento: vengono gestiti dal prestatore scelto.</p>
         </section>
         <section>
           <h2 className="font-display text-2xl">6. Quanto tempo restano i dati</h2>
-          <p className="mt-3"><strong>La campagna è temporanea.</strong> Alla chiusura dell'iniziativa è prevista la dismissione del sito e la cancellazione dei dati applicativi non più necessari, comprese le dediche pubbliche e le registrazioni operative della DEMO, dopo la conclusione delle verifiche tecniche e delle eventuali consegne ancora pendenti. Non è previsto un archivio storico nominativo dell'Albero di Monza.</p>
+          <p className="mt-3"><strong>La campagna è temporanea.</strong> Alla chiusura dell'iniziativa è prevista la dismissione del sito e la cancellazione dei dati applicativi non più necessari, comprese le dediche pubbliche, dopo la conclusione delle verifiche tecniche e delle eventuali consegne ancora pendenti. Restano ferme le esigenze di conservazione delle transazioni e delle registrazioni di controllo descritte sotto. Non è previsto un archivio storico nominativo dell'Albero di Monza.</p>
           <p className="mt-2">Per le email, l'indirizzo e il messaggio possono essere mantenuti nei sistemi operativi fino alla gestione dell'invio. Una volta accettata la spedizione, il sistema LIVE è progettato per eliminare dalla coda il contenuto e l'indirizzo; possono rimanere identificativi ed esiti tecnici necessari a evitare duplicazioni. <strong>Le email già inviate possono invece rimanere</strong> nella casella del Comitato e in quella del destinatario, secondo le rispettive impostazioni di conservazione.</p>
           <p className="mt-2">Le registrazioni contabili e dei pagamenti possono dover essere conservate anche dopo la chiusura del sito, per i termini previsti dalla normativa applicabile. Anche le copie di sicurezza e i log dei fornitori possono seguire cicli tecnici di cancellazione propri. <strong>Chiudere una pagina web, da solo, non cancella il database né le registrazioni dei prestatori di pagamento.</strong></p>
         </section>
@@ -79,10 +79,6 @@ function Privacy() {
           <h2 className="font-display text-2xl">8. I tuoi diritti</h2>
           <p className="mt-3">Nei casi previsti dal GDPR puoi chiedere accesso, rettifica, cancellazione o limitazione dei dati, opporti al trattamento e richiedere la portabilità quando applicabile. Per la pubblicazione della dedica puoi revocare il consenso. Scrivi a <a href="mailto:monza@cri.it" className="font-semibold underline underline-offset-4">monza@cri.it</a>, indicando se possibile il riferimento della pallina o del regalo, senza inviare password o dati di pagamento.</p>
           <p className="mt-2">Hai inoltre diritto di proporre reclamo al <a className="underline underline-offset-4" href="https://www.garanteprivacy.it/" target="_blank" rel="noopener noreferrer">Garante per la protezione dei dati personali</a>.</p>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl">9. Quando è attiva la modalità DEMO</h2>
-          <p className="mt-3">Nella DEMO i pagamenti sono simulati e non comportano donazioni reali; alcuni invii di prova via email sono invece effettivi. I dati tecnici e le eventuali dediche pubbliche di prova possono essere registrati nel database della DEMO. Nel sito verrà segnalato quando saranno abilitati i pagamenti reali.</p>
         </section>
       </div>
       <p className="mt-10 border-t border-gold/35 pt-6 text-xs leading-relaxed text-muted-foreground">Questa informativa si riferisce esclusivamente alla campagna «Il Natale che fa bene» su natale.crimonza.org, non agli altri siti o servizi della Croce Rossa Italiana.</p>

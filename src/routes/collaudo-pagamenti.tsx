@@ -8,10 +8,20 @@ import { Shell, PageHead } from "@/components/xmas/Shell";
 import { Button } from "@/components/ui/button";
 import { newDonationAccess, saveDonationAccess, loadDonationAccess } from "@/lib/payment-device";
 import { startPaymentQa, checkPaymentQa, paymentQaSummary, schedulePaymentQaChristmas, sendPaymentQaGiftNow } from "@/lib/payment-qa.functions";
+import { CAMPAIGN } from "@/lib/campaign";
 type Provider = "sumup"|"paypal";
 export const Route=createFileRoute("/collaudo-pagamenti")({
   validateSearch:z.object({d:z.string().uuid().optional(),token:z.string().optional(),PayerID:z.string().optional(),annullato:z.coerce.number().optional()}),
-  head:()=>({meta:[
+  head:()=>({meta:!CAMPAIGN.demo ? [
+    {title:"Pagina non disponibile · Il Natale che fa bene · CRI Monza"},
+    {name:"description",content:"La pagina richiesta non è disponibile."},
+    {property:"og:title",content:"Pagina non disponibile · CRI Monza"},
+    {property:"og:description",content:"La pagina richiesta non è disponibile."},
+    {property:"og:type",content:"website"},
+    {name:"twitter:card",content:"summary"},
+    {name:"robots",content:"noindex,nofollow,noarchive"},
+    {name:"referrer",content:"no-referrer"},
+  ] : [
     {title:"Collaudo riservato · Pagamenti CRI Monza"},
     {name:"description",content:"Registro riservato delle verifiche di pagamento della campagna Natale CRI Monza."},
     {property:"og:title",content:"Collaudo pagamenti riservato · CRI Monza"},

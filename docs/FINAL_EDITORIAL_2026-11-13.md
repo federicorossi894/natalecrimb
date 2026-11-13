@@ -1,0 +1,27 @@
+# Final BASIC editorial refinement — 13 November 2026
+
+## Scope and exact changes
+- `src/routes/privacy.tsx`: providers described as active, obsolete DEMO retention wording replaced by explicit transaction/audit retention, obsolete section 9 removed. Existing 12 November notice date, controller, rights, lawful bases, private/public separation, email retention and accounting exceptions preserved. No legal compliance certification claimed.
+- `src/routes/casetta.tsx`: simulation sentence is now historical-DEMO-only; final metadata describes location, confirmed dates and sale exclusively at the casetta. Catalog, hours, images and layout unchanged.
+- `src/lib/qa-route-policy.ts` and `src/routes/__root.tsx`: root SSR/navigation gate returns notFound for both QA routes outside DEMO; ordinary routes and historical DEMO preserved. Existing backend authorization untouched. Existing 404 text translated into Italian without layout changes.
+- `src/routes/email-qa.tsx`, `src/routes/collaudo-pagamenti.tsx`: neutral unavailable-page/noindex metadata in BASIC; historical guarded metadata retained. Audit screens/source and server protections not removed.
+- `src/routes/index.tsx`, `src/routes/regali.index.tsx`: canonical and og:url now self-reference https://natale.crimonza.org, rather than the legacy host. Existing social artwork URL unchanged; no new image or share-image change.
+- `src/test/qa-route-policy.test.ts`: three concrete policy tests for closed QA paths, trailing slash/descendants and preserved normal/DEMO access.
+- `AGENTS.md`, `roadmap.md`: record route boundary and current task outcome; prior operational documents retained.
+
+## Verification
+- Full Vitest suite: **517 PASS, 0 FAIL, 62 files**, exit 0; final run 08:10:15–08:10:30 UTC. Baseline 514 tests retained, three new policy tests added. Existing payment, privacy, email, claim, idempotency and Christmas-worker suites all pass using isolated/mocked IO; no real sender or charge invoked.
+- Automatic preview compilation: newest observed entry **build OK**, 2026-11-13 08:08:51 UTC. Manual typecheck and release build are forbidden by this environment and were **not executed**; this is not independent release/typecheck certification.
+- Chromium 390×1800 and 1280×1800: visited actual official published pages first, then corrected local candidate. Home, gift list, all four projects, tree, privacy, casetta, calendar, academy, payment-return page without credentials and both QA paths checked. Candidate: **zero visible DEMO/simulation/collaudo matches, zero such metadata matches, no horizontal overflow or page runtime errors** on those 14 pages per viewport. Both QA paths return **HTTP 404**, without login invitation or private content. No checkout initiated.
+- Real candidate gift UX: clicked Continue and selected both SumUp and PayPal without clicking the donation button. Menu contains only home, gifts, tree, casetta, calendar and academy; Santa/TV/volunteers/wall remain unexposed. Existing tree reads **2 gifts** from the live store. Screenshots inspected for tree, provider form, privacy, casetta and QA 404.
+- Source audit: public email MIME/HTML and postcard outputs gate DEMO labels on CAMPAIGN.demo; BASIC real email templates have no simulation banner. Confirmation remains explicitly informational, not a fiscal receipt. Immediate/Christmas sending, recipient expectation, private payment ownership, service claims and cron authentication unchanged. Paid completion/recipient email was inspected in source and existing tests, not exercised with production access tokens or a real send.
+- Checkout source allowlist remains exactly https://natale.crimonza.org; SumUp/PayPal return to /pagamento; capture/webhook/idempotency code untouched.
+- Read-only Cloud verification: both QA donations remain **500 cents, paid/completed, one ornament each**, donor confirmation accepted and webhook verified. SumUp gift **accepted, 1 attempt, no due date**. PayPal gift **blocked, 0 attempts, due 2026-12-24T23:05Z** (25 December 00:05 Europe/Rome). No early gift transmission.
+- Safe schedule listing: Christmas job **active**, `*/5 * 24-26 12 *`; payment recovery **active**, `*/5 * * 11,12,1 *`. No job changes. Direct cron-table read was refused; only approved safe metadata listing used afterwards.
+- Repository contains no sitemap; no public navigation links to QA pages. Existing robots file unchanged; QA emits noindex and 404.
+
+## Boundaries and residual exceptions
+- BASIC, ONLINE_GIFT, all readiness flags, providers, checkout, webhook, Gmail, cron/claims, authentication/storage permissions, data, secrets and Gala are unchanged.
+- Historical DEMO source, hidden legacy pages, unit tests and technical documents intentionally remain. Ordinary game words such as “riprova” remain appropriate. No residual simulation copy was observed in tested accessible BASIC pages/metadata.
+- No new payment, refund, capture, email, webhook or deployment performed. Future Christmas delivery is scheduled, **not observed delivered**.
+- The official live site still serves the pre-refinement privacy/casetta/QA wording until the owner publishes this commit; preview verification does not change the published site. A post-publication public check remains necessary.

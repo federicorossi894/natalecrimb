@@ -1,4 +1,5 @@
 import { CAMPAIGN, campaignRouteAllowed } from "@/lib/campaign";
+import { qaRouteAllowed } from "@/lib/qa-route-policy";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -22,16 +23,16 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina non disponibile</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          La pagina che cerchi non è disponibile.
         </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go home
+            Torna alla home
           </Link>
         </div>
       </div>
@@ -78,7 +79,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  beforeLoad: ({ location }) => { if (!campaignRouteAllowed(location.pathname)) throw notFound(); },
+  beforeLoad: ({ location }) => { if (!campaignRouteAllowed(location.pathname) || !qaRouteAllowed(location.pathname)) throw notFound(); },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

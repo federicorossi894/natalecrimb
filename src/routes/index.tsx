@@ -28,9 +28,9 @@ export const Route = createFileRoute("/")({
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Il Natale che fa bene · Croce Rossa Italiana, Comitato di Monza" },
       { name: "twitter:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:url", content: "https://natalecrimb.lovable.app/" },
+      { property: "og:url", content: "https://natale.crimonza.org/" },
     ],
-    links: [{ rel: "canonical", href: "https://natalecrimb.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://natale.crimonza.org/" }],
   }),
   component: Home,
 });
