@@ -156,3 +156,5 @@
 - [ ] Collegare il sottodominio in Impostazioni → Domini (NON primario) e far creare i record DNS a chi gestisce crimonza.org — attende il Comitato
 - [ ] Prova reale con la password vera su due telefoni + TV — attende il proprietario (unico a conoscere la password)
 - [ ] QR auguri con password condivisa — non approvato
+
+- [x] PayPal LIVE webhook Natale created (Gala untouched), PAYPAL_WEBHOOK_ID secret set — signed delivery still to be proven by next real event/resend
