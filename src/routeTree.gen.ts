@@ -16,6 +16,7 @@ import { Route as AuguriRouteImport } from './routes/auguri'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
+import { Route as CollaudoPagamentiRouteImport } from './routes/collaudo-pagamenti'
 import { Route as CreditiMusicaRouteImport } from './routes/crediti-musica'
 import { Route as EmailQaRouteImport } from './routes/email-qa'
 import { Route as GiochiRouteImport } from './routes/giochi'
@@ -68,6 +69,11 @@ const CalendarioRoute = CalendarioRouteImport.update({
 const CasettaRoute = CasettaRouteImport.update({
   id: '/casetta',
   path: '/casetta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollaudoPagamentiRoute = CollaudoPagamentiRouteImport.update({
+  id: '/collaudo-pagamenti',
+  path: '/collaudo-pagamenti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreditiMusicaRoute = CreditiMusicaRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
   '/giochi': typeof GiochiRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
     | '/giochi'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
     | '/giochi'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
     | '/giochi'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   BabboNataleRoute: typeof BabboNataleRoute
   CalendarioRoute: typeof CalendarioRoute
   CasettaRoute: typeof CasettaRoute
+  CollaudoPagamentiRoute: typeof CollaudoPagamentiRoute
   CreditiMusicaRoute: typeof CreditiMusicaRoute
   EmailQaRoute: typeof EmailQaRoute
   GiochiRoute: typeof GiochiRoute
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/casetta'
       fullPath: '/casetta'
       preLoaderRoute: typeof CasettaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collaudo-pagamenti': {
+      id: '/collaudo-pagamenti'
+      path: '/collaudo-pagamenti'
+      fullPath: '/collaudo-pagamenti'
+      preLoaderRoute: typeof CollaudoPagamentiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crediti-musica': {
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   BabboNataleRoute: BabboNataleRoute,
   CalendarioRoute: CalendarioRoute,
   CasettaRoute: CasettaRoute,
+  CollaudoPagamentiRoute: CollaudoPagamentiRoute,
   CreditiMusicaRoute: CreditiMusicaRoute,
   EmailQaRoute: EmailQaRoute,
   GiochiRoute: GiochiRoute,
