@@ -1,6 +1,7 @@
 import type { Project } from './data';
 import { CAMPAIGN } from './campaign';
 import { drawBauble } from './postcard-share';
+import { CRI_RED, LOCKUP, TERRITORIAL_LABEL, lockupText } from './cri-lockup';
 import rossoLogo from '@/assets/cri-rosso-orizzontale.png.asset.json';
 
 /** An original story-format image: public campaign facts only, never a recipient, amount or private message. */
@@ -17,6 +18,20 @@ function officialMark(src: string): Promise<HTMLImageElement | null> {
     image.onerror = () => { clearTimeout(timer); resolve(null); };
     image.src = src;
   });
+}
+
+/** Canvas geometry of the story's single CRI Monza lockup, derived from the measured official PNG. */
+export function storyLockupLayout(width = 1080, top = 228, drawWidth = 660) {
+  const g = LOCKUP.horizontal, [vx, vy, vw, vh] = g.view, s = drawWidth / vw;
+  const t = lockupText('horizontal');
+  const x = (width - drawWidth) / 2, h = vh * s;
+  return {
+    x, y: top, w: drawWidth, h, scale: s,
+    textX: x + (t.x - vx) * s,
+    textBaseline: top + (t.baseline - vy) * s,
+    fontSize: Math.round(t.fontSize * s * 10) / 10,
+    separatorY: Math.round(top + h + 34),
+  };
 }
 
 export async function renderSolidarityStory(project: Project): Promise<File | null> {
@@ -51,17 +66,19 @@ export async function renderSolidarityStory(project: Project): Promise<File | nu
   ctx.beginPath();ctx.roundRect(97,183,886,1554,24);ctx.stroke();
 
   const logo = await officialMark(rossoLogo.url);
+  const mark = storyLockupLayout();
   if (logo) {
-    const maxW=535, maxH=110, ratio=Math.min(maxW/logo.width,maxH/logo.height);
-    const w=logo.width*ratio, h=logo.height*ratio;
-    ctx.drawImage(logo,(width-w)/2,248,w,h);
+    const [vx,vy,vw,vh]=LOCKUP.horizontal.view, k=logo.width/LOCKUP.horizontal.w;
+    ctx.drawImage(logo,vx*k,vy*k,vw*k,vh*k,mark.x,mark.y,mark.w,mark.h);
   } else {
-    ctx.fillStyle='#b42438';ctx.textAlign='center';ctx.font='700 29px Manrope, Arial, sans-serif';
-    ctx.fillText('CROCE ROSSA ITALIANA',width/2,300);
+    ctx.fillStyle=CRI_RED;ctx.textAlign='center';ctx.font='700 40px Arial, sans-serif';
+    ctx.fillText('Croce Rossa Italiana',mark.textX,mark.textBaseline-mark.fontSize*1.3);
   }
-  ctx.textAlign='center'; ctx.fillStyle='#274936';
-  ctx.font='600 26px Manrope, Arial, sans-serif';ctx.fillText('COMITATO DI MONZA',540,400);
-  ctx.strokeStyle='#c9ad76';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(344,446);ctx.lineTo(736,446);ctx.stroke();
+  // Territorial line of the single CRI Monza lockup (manual §1.3): Arial Regular, mark red, under the words.
+  ctx.textAlign='center'; ctx.fillStyle=CRI_RED;
+  ctx.font=`400 ${mark.fontSize}px Arial, Helvetica, sans-serif`;
+  ctx.fillText(TERRITORIAL_LABEL,mark.textX,mark.textBaseline);
+  ctx.strokeStyle='#c9ad76';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(344,mark.separatorY);ctx.lineTo(736,mark.separatorY);ctx.stroke();
 
   drawBauble(ctx,project.ornament,540,765,192);
   ctx.fillStyle='#8b1c30';ctx.font='700 22px Manrope, Arial, sans-serif';
