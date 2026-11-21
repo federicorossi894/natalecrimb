@@ -13,7 +13,7 @@ describe('Christmas campaign search visibility', () => {
   it('exposes only the canonical public routes in the static sitemap', () => {
     expect(sitemap).toMatch(/^<\\?xml version="1.0" encoding="UTF-8"\\?>/);
     expect(sitemap).toContain('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
-    const locations = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]);
+    const locations = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]!);
     expect(locations).toHaveLength(publicRoutes.length);
     expect(new Set(locations).size).toBe(locations.length);
     expect(locations.sort()).toEqual(publicRoutes.map(path => `${SEO_ORIGIN}${path}`).sort());
@@ -33,7 +33,7 @@ describe('Christmas campaign search visibility', () => {
       expect(head.meta).toContainEqual({ property: 'og:url', content: canonical });
       expect(head.meta).toContainEqual({ property: 'og:image', content: SEO_SHARE_IMAGE });
       expect(page.description).toMatch(/Monza/i);
-      const script = head.scripts[0];
+      const script = head.scripts[0]!;
       expect(script.type).toBe('application/ld+json');
       const data = JSON.parse(script.children);
       expect(data['@context']).toBe('https://schema.org');
@@ -43,13 +43,14 @@ describe('Christmas campaign search visibility', () => {
   });
 
   it('publishes NGO and WebSite only on the homepage, with valid breadcrumbs elsewhere', () => {
-    const home = JSON.parse(seoHead('/', PUBLIC_SEO['/']).scripts[0].children)['@graph'];
+    const home = JSON.parse(seoHead('/', PUBLIC_SEO['/']).scripts[0]!.children)['@graph'];
     expect(home.map((node: { '@type': string }) => node['@type'])).toEqual(['WebPage', 'NGO', 'WebSite']);
     const gift = projectSeoHead(PROJECTS[0]);
-    const graph = JSON.parse(gift.scripts![0]!.children)['@graph'];
+    if (!('scripts' in gift) || !gift.scripts) throw new Error('Gift SEO missing JSON-LD');
+    const graph = JSON.parse(gift.scripts[0]!.children)['@graph'];
     const crumbs = graph.find((node: { '@type': string }) => node['@type'] === 'BreadcrumbList');
     expect(crumbs.itemListElement).toHaveLength(3);
-    expect(crumbs.itemListElement[2].item).toBe(`${SEO_ORIGIN}/regali/${PROJECTS[0].id}`);
+    expect(crumbs.itemListElement[2].item).toBe(`${SEO_ORIGIN}/regali/${PROJECTS[0]!.id}`);
   });
 
   it('does not index an unknown gift project', () => {
