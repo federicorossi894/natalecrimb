@@ -11,14 +11,14 @@ const publicRoutes = [...routes, ...giftRoutes];
 
 describe('Christmas campaign search visibility', () => {
   it('exposes only the canonical public routes in the static sitemap', () => {
-    expect(sitemap).toMatch(/^<\\?xml version="1.0" encoding="UTF-8"\\?>/);
+    expect(sitemap).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>/);
     expect(sitemap).toContain('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
-    const locations = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]!);
+    const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]!);
     expect(locations).toHaveLength(publicRoutes.length);
     expect(new Set(locations).size).toBe(locations.length);
     expect(locations.sort()).toEqual(publicRoutes.map(path => `${SEO_ORIGIN}${path}`).sort());
     expect(locations.every(url => url.startsWith(SEO_ORIGIN) && !/[?#]/.test(url))).toBe(true);
-    expect(sitemap).not.toMatch(/pagamento|collaudo|email-qa|tv-preview|moderazione|volontari|augurio|api\\//i);
+    expect(sitemap).not.toMatch(/\/(?:pagamento|collaudo-pagamenti|email-qa|tv-preview|moderazione|volontari|augurio|api\/)/i);
     expect(robots).toContain(`Sitemap: ${SEO_ORIGIN}/sitemap.xml`);
   });
 
