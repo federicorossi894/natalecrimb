@@ -5,6 +5,7 @@ import { officialEmailReady } from "@/lib/email-readiness";
 import { authenticateInternalScheduler } from "@/lib/internal-cron-auth.server";
 
 export const Route = createFileRoute("/api/public/christmas-gift-email")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

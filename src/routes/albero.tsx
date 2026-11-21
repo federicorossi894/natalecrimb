@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Shell } from '@/components/xmas/Shell';
 import { TreeExperience } from '@/components/xmas/TreeExperience';
 export const Route=createFileRoute('/albero')({
+  staticData: { sitemap: true },
   head:()=>({meta:[
     {title:`Albero dei Regali 3D – CRI Monza${CAMPAIGN.demo ? ' · DEMO' : ''}`},
     {name:'description',content:'L’Albero dei Regali di Monza: addobbi e dediche approvate.'},

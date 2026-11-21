@@ -11,6 +11,7 @@ import { PROJECTS, getProject } from "@/lib/data";
 import { loadCashGift, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Regala a qualcuno · Quattro progetti CRI Monza" },

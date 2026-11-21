@@ -1,3 +1,8 @@
+# SEO pubblico — 21 novembre 2026
+- [ ] Metadati locali, canonical, JSON-LD e sitemap delle sole pagine pubbliche attive.
+- [ ] Suite completa e verifica SSR/mobile/desktop senza pagamenti o email.
+- [ ] Pubblicazione SEO e verifica del dominio ufficiale; rapporto e passaggi Search Console.
+
 # Online gift DEMO — 9 November 2026
 - [x] Final LIVE editorial refinement: privacy/casetta copy, BASIC QA-page HTTP404/neutral metadata, official canonical URLs; 517 tests/62 files, automatic build OK, Chromium390/1280 audit clean, two real gifts and Christmas queue/jobs unchanged; no publish or economic/email actions. Independent manual release/typecheck unavailable under environment rules; report docs/FINAL_EDITORIAL_2026-11-13.md.
 - [x] 13 November BASIC candidate: verified online flags only, 514 tests/61 files, Chromium390/1280 live tree two QA ornaments and provider/privacy navigation; automatic build OK; no publish/payment/email/DB changes.

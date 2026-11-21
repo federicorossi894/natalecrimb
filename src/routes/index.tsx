@@ -15,6 +15,7 @@ import { CasettaPoster } from "@/components/xmas/CasettaMedia";
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Il Natale che fa bene – Croce Rossa Monza" },

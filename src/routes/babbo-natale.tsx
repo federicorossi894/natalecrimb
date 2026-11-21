@@ -12,6 +12,7 @@ import {
 } from "@/lib/santa";
 
 export const Route = createFileRoute("/babbo-natale")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: `Babbo Natale – CRI Monza${CAMPAIGN.demo ? " · DEMO" : ""}` },

@@ -7,6 +7,7 @@ import { Shell, PageHead } from "@/components/xmas/Shell";
 import { AGENDA_TODAY, CRI } from "@/lib/data";
 
 export const Route = createFileRoute("/piazza")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Oggi in Piazza San Paolo – Casetta CRI Monza" },

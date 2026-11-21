@@ -7,6 +7,7 @@ import { Shell } from "@/components/xmas/Shell";
  * deletion throughout the campaign.
  */
 export const Route = createFileRoute("/privacy")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Privacy e dati personali · Il Natale che fa bene – CRI Monza" },
     { name: "description", content: "Come vengono usati e protetti i dati relativi ai regali solidali, all'Albero di Monza e alle comunicazioni della campagna." },

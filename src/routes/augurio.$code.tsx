@@ -6,6 +6,7 @@ import { WishWriter } from "@/components/xmas/WishWall";
 import { DEMO_WISH_CODE, createDemoWishApi, realWishApi } from "@/lib/wishes";
 
 export const Route = createFileRoute("/augurio/$code")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Il tuo augurio · Muro degli Auguri – CRI Monza" },

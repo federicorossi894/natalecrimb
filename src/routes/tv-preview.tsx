@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
  * straight to each scene and a quick 35-second run. The public /albero-live stays autonomous, with no controls.
  */
 export const Route = createFileRoute("/tv-preview")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Anteprima regia TV · DEMO – CRI Monza" },

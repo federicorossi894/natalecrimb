@@ -4,6 +4,7 @@ import { CAMPAIGN } from "@/lib/campaign";
 import { authenticateInternalScheduler } from "@/lib/internal-cron-auth.server";
 
 export const Route = createFileRoute("/api/public/payment-reconciliation")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

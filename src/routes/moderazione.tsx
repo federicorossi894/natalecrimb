@@ -16,6 +16,7 @@ import type { OrnamentKind } from "@/lib/data";
 import { SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES } from "@/lib/santa";
 
 export const Route = createFileRoute("/moderazione")({
+  staticData: { sitemap: 'exclude-subtree' },
   head: () => ({
     meta: [
       {

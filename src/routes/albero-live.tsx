@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TreeTV } from "@/components/xmas/TreeTV";
 
 export const Route = createFileRoute("/albero-live")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Albero di Monza · Modalità TV – CRI Monza" },

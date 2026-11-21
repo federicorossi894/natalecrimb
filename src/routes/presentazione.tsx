@@ -18,6 +18,7 @@ const EXAMPLE = {
 } as const;
 
 export const Route = createFileRoute("/presentazione")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Esempi per la presentazione – Il Natale che fa bene · DEMO" },

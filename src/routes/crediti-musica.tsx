@@ -3,6 +3,7 @@ import { Shell, PageHead } from '@/components/xmas/Shell';
 import { TV_TRACKS, uniqueSeconds } from '@/lib/tv-audio-manifest';
 
 export const Route = createFileRoute('/crediti-musica')({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: 'Crediti musicali · Il Natale che fa bene – CRI Monza' },
     { name: 'description', content: 'Titoli, fonti e licenza della colonna sonora strumentale della TV natalizia CRI Monza.' },

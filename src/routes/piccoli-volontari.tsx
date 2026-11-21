@@ -19,6 +19,7 @@ type View = MissionId | "diploma";
 const VIEWS: View[] = ["citta", "zaino", "battito", "diploma"];
 
 export const Route = createFileRoute("/piccoli-volontari")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Accademia dei piccoli aiutanti di Babbo Natale – CRI Monza" },

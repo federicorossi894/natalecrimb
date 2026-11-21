@@ -11,6 +11,7 @@ import { startPaymentQa, checkPaymentQa, paymentQaSummary, schedulePaymentQaChri
 import { CAMPAIGN } from "@/lib/campaign";
 type Provider = "sumup"|"paypal";
 export const Route=createFileRoute("/collaudo-pagamenti")({
+  staticData: { sitemap: false },
   validateSearch:z.object({d:z.string().uuid().optional(),token:z.string().optional(),PayerID:z.string().optional(),annullato:z.coerce.number().optional()}),
   head:()=>({meta:!CAMPAIGN.demo ? [
     {title:"Pagina non disponibile · Il Natale che fa bene · CRI Monza"},

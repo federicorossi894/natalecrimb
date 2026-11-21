@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { testDemoEmail } from '@/lib/gift-email.functions';
 import { Button } from '@/components/ui/button';
 import { CAMPAIGN } from '@/lib/campaign';
-export const Route=createFileRoute('/email-qa')({head:()=>({meta:!CAMPAIGN.demo ? [
+export const Route=createFileRoute('/email-qa')({
+  staticData: { sitemap: false },head:()=>({meta:!CAMPAIGN.demo ? [
   {title:'Pagina non disponibile · Il Natale che fa bene · CRI Monza'},
   {name:'description',content:'La pagina richiesta non è disponibile.'},
   {property:'og:title',content:'Pagina non disponibile · CRI Monza'},

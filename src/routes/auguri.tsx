@@ -6,6 +6,7 @@ import { WishWall } from "@/components/xmas/WishWall";
 import { DEMO_UNTIL, usePublicWishes, wallWishes } from "@/lib/wishes";
 
 export const Route = createFileRoute("/auguri")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Muro degli Auguri · Il Natale che fa bene – CRI Monza" },

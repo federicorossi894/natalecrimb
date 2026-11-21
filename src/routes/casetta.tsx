@@ -11,6 +11,7 @@ import { CASETTA, CASETTA_PRODUCTS } from "@/lib/casetta";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/casetta")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },

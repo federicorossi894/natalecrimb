@@ -47,6 +47,7 @@ import { volunteerLogin, volunteerLogout, volunteerMe, volunteerRpc, createShare
 const QrScanner = lazy(() => import("@/components/xmas/QrScanner"));
 
 export const Route = createFileRoute("/volontari")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Area volontari · CRI Monza" },

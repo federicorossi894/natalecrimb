@@ -79,6 +79,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   beforeLoad: ({ location }) => { if (!campaignRouteAllowed(location.pathname) || !qaRouteAllowed(location.pathname)) throw notFound(); },
   head: () => ({
     meta: [

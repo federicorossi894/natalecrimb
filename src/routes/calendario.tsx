@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendario")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Calendario della Gentilezza · 24 gesti per Natale – CRI Monza" },

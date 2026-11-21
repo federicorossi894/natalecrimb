@@ -22,6 +22,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { MAX_GIFT_EURO, MIN_GIFT_EURO, amountSchema, cashRequestResult, clearCashGift, createCashRequest, euro, formatCode, loadCashGift, saveCashGift, type CashStatus, type PaymentChoice, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/$id")({
+  staticData: { sitemap: true },
   loader: ({ params }) => {
     const p = getProject(params.id);
     if (!p) throw notFound();

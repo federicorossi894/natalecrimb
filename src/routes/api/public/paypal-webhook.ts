@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CAMPAIGN } from "@/lib/campaign";
 export const Route = createFileRoute("/api/public/paypal-webhook")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

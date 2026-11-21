@@ -17,6 +17,7 @@ import { PaidGiftEmail } from '@/components/xmas/PaidGiftEmail';
 import { loadGiftSession } from "@/lib/online-gift-session";
 const LiveGiftCompletion = lazy(async()=>({default:(await import("@/components/xmas/LiveGiftCompletion")).LiveGiftCompletion}));
 export const Route = createFileRoute("/pagamento")({
+  staticData: { sitemap: false },
   validateSearch: z.object({
     id: z.string().uuid().optional(),
     annullato: z.coerce.number().optional(),
