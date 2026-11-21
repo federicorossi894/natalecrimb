@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { ONLINE_GIFT, ONLINE_OPTIONS } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -16,23 +17,7 @@ import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
-  head: () => ({
-    meta: [
-      { title: "Il Natale che fa bene – Croce Rossa Monza" },
-      { name: "description", content: ONLINE_GIFT ? `Fai un regalo solidale a qualcuno che ami. Quattro progetti CRI Monza, una pallina digitale e una cartolina.${CAMPAIGN.demo ? " DEMO senza pagamento reale." : ""}` : `Questo Natale, scegli cosa regalare a Monza. ${CAMPAIGN.demo ? "Demo della campagna" : "Campagna"} natalizia di Croce Rossa Italiana – Comitato di Monza, Piazza San Paolo.` },
-      { property: "og:title", content: "Il Natale che fa bene – Croce Rossa Monza" },
-      { property: "og:description", content: "Quest’anno regala qualcosa che non si scarta. Un regalo solidale a qualcuno che ami." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Il Natale che fa bene · Croce Rossa Italiana, Comitato di Monza" },
-      { name: "twitter:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:url", content: "https://natale.crimonza.org/" },
-    ],
-    links: [{ rel: "canonical", href: "https://natale.crimonza.org/" }],
-  }),
+  head: () => seoHead('/', PUBLIC_SEO['/'], { image: true }),
   component: Home,
 });
 
