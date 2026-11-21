@@ -1,6 +1,8 @@
 name: SEO quality gate
 
 on:
+  push:
+    branches: ['seo/**']
   pull_request:
     branches: [main]
     paths:
