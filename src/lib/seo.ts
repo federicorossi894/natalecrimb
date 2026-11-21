@@ -94,7 +94,7 @@ export function projectSeoHead(project: Project | undefined) {
   return seoHead(path, {
     title: `${project.title} | Regalo solidale Natale – CRI Monza`,
     description: projectDescriptions[project.id] ?? project.intro, name: project.title,
-  }, { breadcrumbs: [homeCrumb, { name: 'Regali solidali', path: '/regali' }, { name: project.title, path }] });
+  }, { image: true, breadcrumbs: [homeCrumb, { name: 'Regali solidali', path: '/regali' }, { name: project.title, path }] });
 }
 
 export function unavailableSeoHead() {

@@ -1,3 +1,4 @@
+import { projectSeoHead } from '@/lib/seo';
 import { CAMPAIGN, assertCampaignPayment, campaignPaymentMethods } from "@/lib/campaign";
 import { ONLINE_GIFT } from '@/lib/site-experience';
 import { OnlineGiftFlow } from '@/components/xmas/OnlineGiftFlow';
@@ -28,20 +29,7 @@ export const Route = createFileRoute("/regali/$id")({
     if (!p) throw notFound();
     return { id: p.id };
   },
-  head: ({ loaderData }) => {
-    const p = loaderData ? getProject(loaderData.id) : undefined;
-    const t = p ? `${p.title} – Il Natale che fa bene · CRI Monza` : "Regalo non trovato";
-    return {
-      meta: [
-        { title: t },
-        { name: "description", content: p?.intro ?? "" },
-        { property: "og:title", content: t },
-        { property: "og:description", content: p?.opening ?? "" },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
-  },
+  head: ({ loaderData }) => projectSeoHead(loaderData ? getProject(loaderData.id) : undefined),
   component: Detail,
 });
 

@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -15,16 +16,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendario")({
   staticData: { sitemap: true },
-  head: () => ({
-    meta: [
-      { title: "Calendario della Gentilezza · 24 gesti per Natale – CRI Monza" },
-      { name: "description", content: "Dal 1 al 24 dicembre, una finestrella al giorno sulla sede natalizia della Croce Rossa Italiana – Comitato di Monza, con un piccolo gesto gentile da fare a Monza, a casa o a scuola." },
-      { property: "og:title", content: "Calendario della Gentilezza · Il Natale che fa bene" },
-      { property: "og:description", content: "24 finestrelle sulla sede CRI di Monza, 24 piccoli gesti gentili: una al giorno fino alla Vigilia." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => seoHead('/calendario', PUBLIC_SEO['/calendario'], { image: true }),
   component: Calendario,
 });
 

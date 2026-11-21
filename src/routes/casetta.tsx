@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { Button } from "@/components/ui/button";
@@ -12,16 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/casetta")({
   staticData: { sitemap: true },
-  head: () => ({
-    meta: [
-      { title: "La casetta di Natale · Sapori e regali solidali – CRI Monza" },
-      { name: "description", content: "Dolci e regali solidali alla casetta CRI in Piazza San Paolo, Monza, dal 21 novembre al 6 gennaio. Vendita solo alla casetta." },
-      { property: "og:title", content: "La casetta di Natale · Sapori e regali solidali" },
-      { property: "og:description", content: "Il Natale ha un sapore ancora più buono quando lo condividi. Ti aspettiamo in Piazza San Paolo, Monza." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => seoHead('/casetta', PUBLIC_SEO['/casetta'], { image: true }),
   component: Casetta,
 });
 

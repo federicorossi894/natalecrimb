@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { createFileRoute } from "@tanstack/react-router";
 import { Shell } from "@/components/xmas/Shell";
 
@@ -8,14 +9,7 @@ import { Shell } from "@/components/xmas/Shell";
  */
 export const Route = createFileRoute("/privacy")({
   staticData: { sitemap: true },
-  head: () => ({ meta: [
-    { title: "Privacy e dati personali · Il Natale che fa bene – CRI Monza" },
-    { name: "description", content: "Come vengono usati e protetti i dati relativi ai regali solidali, all'Albero di Monza e alle comunicazioni della campagna." },
-    { property: "og:title", content: "Privacy e dati personali · CRI Monza" },
-    { property: "og:description", content: "Informativa sui dati dei regali solidali, delle dediche pubbliche e delle comunicazioni della campagna." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => seoHead('/privacy', PUBLIC_SEO['/privacy'], { image: false }),
   component: Privacy,
 });
 
