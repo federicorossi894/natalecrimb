@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { ONLINE_GIFT } from "@/lib/site-experience";
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -12,22 +13,7 @@ import { loadCashGift, type StoredCashGift } from "@/lib/cash";
 
 export const Route = createFileRoute("/regali/")({
   staticData: { sitemap: true },
-  head: () => ({
-    meta: [
-      { title: "Regala a qualcuno · Quattro progetti CRI Monza" },
-      { name: "description", content: "Scegli un regalo solidale per qualcuno che ami: calore, un battito, prossimità o dove serve di più." },
-      { property: "og:title", content: "Regala a qualcuno · Quattro progetti CRI Monza" },
-      { property: "og:description", content: "Quattro regali concreti per le persone che vivono a Monza." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:image", content: "https://natalecrimb.lovable.app/og-natale-cri-monza.png" },
-      { property: "og:url", content: "https://natale.crimonza.org/regali" },
-    ],
-    links: [{ rel: "canonical", href: "https://natale.crimonza.org/regali" }],
-  }),
+  head: () => seoHead('/regali', PUBLIC_SEO['/regali'], { image: true }),
   component: Regali,
 });
 
