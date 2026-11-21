@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { ONLINE_GIFT } from '@/lib/site-experience';
 import { CAMPAIGN } from "@/lib/campaign";
 import { createFileRoute } from '@tanstack/react-router';
@@ -5,13 +6,7 @@ import { Shell } from '@/components/xmas/Shell';
 import { TreeExperience } from '@/components/xmas/TreeExperience';
 export const Route=createFileRoute('/albero')({
   staticData: { sitemap: true },
-  head:()=>({meta:[
-    {title:`Albero dei Regali 3D – CRI Monza${CAMPAIGN.demo ? ' · DEMO' : ''}`},
-    {name:'description',content:'L’Albero dei Regali di Monza: addobbi e dediche approvate.'},
-    {property:'og:title',content:`L’Albero dei Regali di Monza${CAMPAIGN.demo ? ' · DEMO' : ''}`},
-    {property:'og:description',content:'L’Albero dei Regali di Monza.'},
-    {property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}
-  ]}),
+  head: () => seoHead('/albero', PUBLIC_SEO['/albero'], { image: true }),
   validateSearch:(s:Record<string,unknown>):{trova?:number;addobbo?:string}=>{const a=typeof s['addobbo']==='string'&&/^[0-9a-f-]{36}$/i.test(s['addobbo'])?{addobbo:s['addobbo']}:{};return {...(s['trova']===1||s['trova']==='1'?{trova:1}:{}),...a};},
   component:Albero,
 });
