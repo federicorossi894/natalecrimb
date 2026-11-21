@@ -1,3 +1,4 @@
+import { seoHead, PUBLIC_SEO } from '@/lib/seo';
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ONLINE_GIFT } from "@/lib/site-experience";
 import { useState } from "react";
@@ -20,16 +21,7 @@ const VIEWS: View[] = ["citta", "zaino", "battito", "diploma"];
 
 export const Route = createFileRoute("/piccoli-volontari")({
   staticData: { sitemap: true },
-  head: () => ({
-    meta: [
-      { title: "Accademia dei piccoli aiutanti di Babbo Natale – CRI Monza" },
-      { name: "description", content: ONLINE_GIFT ? "Accademia dei Piccoli Volontari: tre missioni digitali per bambini dai 6 ai 12 anni, per imparare ad aiutare e ottenere un diploma sul proprio dispositivo." : "Tre missioni illustrate per bambini dai 6 ai 12 anni: accorgersi di chi ha bisogno, preparare lo zaino per la neve e allenare il ritmo del cuore. Poi il diploma da mostrare alla casetta." },
-      { property: "og:title", content: "Accademia dei piccoli aiutanti di Babbo Natale" },
-      { property: "og:description", content: ONLINE_GIFT ? "Tre missioni autonome di gentilezza e sicurezza, con un diploma digitale per i piccoli aiutanti." : "Tre missioni per imparare ad aiutare, e un diploma da mostrare ai volontari in Piazza San Paolo." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => seoHead('/piccoli-volontari', PUBLIC_SEO['/piccoli-volontari'], { image: true }),
   validateSearch: (s: Record<string, unknown>): { missione?: View } =>
     VIEWS.includes(s["missione"] as View) ? { missione: s["missione"] as View } : {},
   component: Academy,
