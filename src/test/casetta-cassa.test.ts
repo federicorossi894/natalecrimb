@@ -2,8 +2,8 @@ import { describe,expect,it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { reportHtml,receiptHtml,romeClock,type CasettaReport } from '@/lib/casetta-report.server';
 
-const sql=readFileSync(new URL('../../drizzle/migrations/0023_casetta_cassa.sql',import.meta.url),'utf8');
-const ui=readFileSync(new URL('../routes/cassa.tsx',import.meta.url),'utf8');
+const sql=readFileSync('drizzle/migrations/0023_casetta_cassa.sql','utf8');
+const ui=readFileSync('src/routes/cassa.tsx','utf8');
 const receipt={
  id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
  claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
@@ -28,7 +28,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
  it('separates finance and stock recipients',()=>{
   const finance=reportHtml(report,'finance');
   const stock=reportHtml(report,'stock');
-  expect(finance).toContain('9.400');
+  expect(finance).toContain('94,00');
   expect(finance).toContain('Andamento ultimi 7 giorni');
   expect(finance).not.toContain('Panettone cartone');
   expect(finance).not.toContain('Vendite per orario');
@@ -42,6 +42,14 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('https://natale.crimonza.org/regali');
   expect(html).toContain('Panettone cartone');
   expect(html).toContain('22,00');
+  expect(html).toContain('Croce Rossa Italiana');
+  expect(html).toContain('Comitato di Monza');
+  expect(html).toContain('cri-rosso-orizzontale.png');
+  expect(html).toContain('La magia può continuare');
+  expect(html).toContain('Non è un’iscrizione a newsletter');
+  expect(html).not.toContain('❌');
+  expect(html).toContain('https://natale.crimonza.org/privacy');
+
  });
  it('does not require a QR, password or admin interface',()=>{
   expect(ui).toContain("createFileRoute('/cassa')");

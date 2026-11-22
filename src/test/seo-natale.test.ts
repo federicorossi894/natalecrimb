@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import { PROJECTS } from '@/lib/data';
 import { PUBLIC_SEO, SEO_ORIGIN, SEO_SHARE_IMAGE, projectSeoHead, seoHead } from '@/lib/seo';
 
-const sitemap = readFileSync(new URL('../../public/sitemap.xml', import.meta.url), 'utf8');
-const robots = readFileSync(new URL('../../public/robots.txt', import.meta.url), 'utf8');
+const sitemap = readFileSync('public/sitemap.xml', 'utf8');
+const robots = readFileSync('public/robots.txt', 'utf8');
 const routes = Object.keys(PUBLIC_SEO);
 const giftRoutes = PROJECTS.map(project => `/regali/${project.id}`);
 const publicRoutes = [...routes, ...giftRoutes];
@@ -47,7 +47,7 @@ describe('Christmas campaign search visibility', () => {
     expect(home.map((node: { '@type': string }) => node['@type'])).toEqual(['WebPage', 'NGO', 'WebSite']);
     const gift = projectSeoHead(PROJECTS[0]);
     if (!('scripts' in gift) || !gift.scripts) throw new Error('Gift SEO missing JSON-LD');
-    const graph = JSON.parse(gift.scripts[0]!.children)['@graph'];
+    const graph = JSON.parse((gift.scripts as Array<{children:string}>)[0]!.children)['@graph'];
     const crumbs = graph.find((node: { '@type': string }) => node['@type'] === 'BreadcrumbList');
     expect(crumbs.itemListElement).toHaveLength(3);
     expect(crumbs.itemListElement[2].item).toBe(`${SEO_ORIGIN}/regali/${PROJECTS[0]!.id}`);
