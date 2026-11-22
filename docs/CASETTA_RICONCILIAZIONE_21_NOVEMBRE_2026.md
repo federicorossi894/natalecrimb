@@ -1,28 +1,38 @@
-# Casetta di Natale — registri cartacei del 21 novembre 2026
+# Casetta CRI Monza — pre-utilizzo cassa, 21 novembre 2026
 
-Fonte: fotografia inviata il 22/11/2026 con due registri "Registro vendite mercatini di natale" del Comitato di Monza, turni 10–14 e 14–18, data manoscritta 21/11/26.
+Fonte: due registri cartacei dei turni 10–14 e 14–18, trascritti il 22/11/2026. I valori sono stati confermati dall'organizzatore come venduto del 21/11 e registrati nel database operativo come **pre-utilizzo cassa**.
 
-**Questo documento e' una trascrizione di lavoro, NON un import di vendite reali e NON un registro fiscale.**
-Mancano nominativi, metodi di pagamento e conferma dei prezzi. Non aggiungere al database delle vendite giornaliere.
+| Prodotto | Pezzi | Prezzo | Importo |
+|---|---:|---:|---:|
+| Panettone in latta | 11 | 16 € | 176 € |
+| Cioccolatini | 3 | 10 € | 30 € |
+| Riso 500 g | 20 | 5 € | 100 € |
+| Riso 1 kg | 4 | 8 € | 32 € |
+| Tisane | 24 | 5 € | 120 € |
+| Tè | 6 | 5 € | 30 € |
+| Panettone in scatola | 1 | 14 € | 14 € |
+| Candy cane | 8 | 3 € | 24 € |
+| **Totale** | **77** | | **526 €** |
 
-| Prodotto | 10–14 | 14–18 | Totale leggibile | Note |
-|---|---:|---:|---:|---|
-| Panettone scatola | 0 | 1 | 1 | 14 euro indicati |
-| Panettone latta | 6 | 5 | 11 | 16 euro indicati |
-| Pandoro | 0 | 0 | 0 | Nessuna riga dedicata |
-| Cioccolatini | 2 | 1 | 3 | **10 euro sul foglio, 8 euro nel listino digitale**: sentire Guido |
-| Riso 500 g | 17 | 3 | 20 | Il totale 17 e' annotato sul primo foglio |
-| Riso 1 kg | almeno 2 | 2 | almeno 4 | Terza annotazione nel turno 10–14 pesantemente cancellata, da chiarire |
-| Tisane | 17 | 7 | 24 | Conteggio da singole colonne |
-| Confezione te' | 3 | 3 | 6 | Distinzione verde/rosso non presente |
-| Candy cane | almeno 3 | 5 | almeno 8 | Una seconda cifra nel turno 10–14 e' cancellata, da chiarire |
+I dati sono registrati per prodotto nella tabella privata `casetta_preuse_sales`: **otto righe aggregate, non 77 transazioni individuali**. Non sono noti i nomi degli acquirenti, gli orari esatti né la ripartizione contanti/POS. Non attribuire dati di pagamento inventati e non spedire ricevute retroattive. La tabella ha chiave `(sale_day,product_id)` e l'importazione SQL usa `ON CONFLICT DO NOTHING` per evitare duplicazioni.
 
-## Giacenze iniziali comunicate da Michela il 22/11
+I report finanziari includono i 526 € nella giornata del 21/11 e nel cumulativo; li mostrano separatamente come `preUseCents` e `unallocatedCents`. L'Excel ha la colonna **Origine**, con `Pre-utilizzo cassa` e `Non rilevato` per i pagamenti storici. Il grafico delle ore non inventa timestamps.
 
-Panettone scatola 100; panettone latta 36; pandoro 10; cioccolatini 73; riso 500 g 60; riso 1 kg 12. Non sono stati forniti i conteggi di tisane, te' e bastoncini.
+## Scorte registrate il 22/11/2026
 
-**Prima di rettificare il magazzino occorre confermare se questi numeri si riferiscono alla merce prima o dopo le vendite del 21/11.** In caso di conteggio pre-vendite, registrare le quantita' vendute come correzioni di inventario dopo aver confermato i numeri cancellati; in caso di conteggio post-vendite, non sottrarle di nuovo.
+- Panettone scatola: 100
+- Panettone latta: 36
+- Pandoro: 10
+- Cioccolatini: 73
+- Riso 500 g: 60
+- Riso 1 kg: 12
+- Tisane, tè e bastoncini: **DA CENSIRE**
 
-## Prezzi e attivazione
+**Manca una sola informazione cruciale:** queste sei quantità sono state contate prima o dopo le vendite del 21 novembre? Finché non è chiaro, le vendite storiche hanno `stock_reconciliation='pending'`, sono visibili nello storico e negli avvisi di magazzino, ma **NON** scalano nuovamente le sei giacenze comunicate il 22/11. Quando si conferma la base, impostare per singolo articolo `apply_to_opening` (quantità 22/11 pre-vendite) oppure `already_in_count` (già comprese nel conteggio). Non cambiare tali stati senza evidenza.
 
-Il listino digitale e' invariato fino alla conferma di Guido; il nuovo SKU Pandoro eredita provvisoriamente 16 euro dal precedente SKU condiviso panettone/pandoro in latta. L'applicazione rimane in DEMO; i report delle 20:00 non partono.
+## Invio e DEMO
+
+- Il report giornaliero è programmato a partire dalle **19:00 Europe/Rome** (primo tick del job ogni 2 minuti), e parte solo quando `casetta_settings.mode='live'`.
+- La modalità **DEMO resta attiva fino al via libera di Guido**; le ricevute DEMO su richiesta continuano, i report gestionali no.
+- Il listino corrente mostra cioccolatini 10 € e tè 5 €.
+- L'orario della cassa (08:00–20:00) è per ora distinto dall'orario del report; eventuali operazioni successive alle 19 non compaiono nel riepilogo già inviato. Da verificare operativamente prima di LIVE.
