@@ -27,6 +27,8 @@ export const Route=createFileRoute('/api/public/casetta-export')({
     'X-Content-Type-Options':'nosniff',
     'Content-Security-Policy':"default-src 'none'",
    };
+   if(new URL(request.url).searchParams.get('health')==='1')
+    return Response.json({service:'casetta-export',healthy:true},{headers});
    const token=new URL(request.url).searchParams.get('token')??'';
    if(!/^[a-f0-9]{64}$/.test(token))
     return new Response('Link non valido o scaduto.',{status:404,headers});
