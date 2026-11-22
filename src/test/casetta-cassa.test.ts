@@ -2,8 +2,8 @@ import { describe,expect,it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { reportHtml,receiptHtml,romeClock,type CasettaReport } from '@/lib/casetta-report.server';
 
-const sql=readFileSync(new URL('../../drizzle/migrations/0023_casetta_cassa.sql',import.meta.url),'utf8');
-const ui=readFileSync(new URL('../routes/cassa.tsx',import.meta.url),'utf8');
+const sql=readFileSync('drizzle/migrations/0023_casetta_cassa.sql','utf8');
+const ui=readFileSync('src/routes/cassa.tsx','utf8');
 const receipt={
  id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
  claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
