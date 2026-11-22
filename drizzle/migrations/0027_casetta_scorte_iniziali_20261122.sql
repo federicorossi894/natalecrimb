@@ -3,13 +3,20 @@
 -- cartaceo del 21/11: la riconciliazione resta in sospeso.
 -- Prezzi invariati in attesa di conferma di Guido.
 -- Sicurezza: non attiva LIVE, non invia email, non tocca le vendite DEMO.
-DO $$
+DO $
 BEGIN
- IF (SELECT mode FROM public.casetta_settings WHERE singleton=true) <> 'test'
- THEN RAISE EXCEPTION 'Caricamento scorte consentito solo in DEMO'; END IF;
- IF EXISTS (SELECT 1 FROM public.casetta_sales WHERE mode='live')
- THEN RAISE EXCEPTION 'Vendite reali gia presenti: serve riconciliazione manuale'; END IF;
-END $$;
+ -- La migrazione puo' essere ripetuta dopo l'attivazione LIVE soltanto
+ -- se tutte le scorte note erano gia' state censite: nessuna riscrittura.
+ IF EXISTS (
+   SELECT 1 FROM public.casetta_inventory_config
+   WHERE product_id IN ('panettone_cartone','latta_panettone_pandoro',
+     'pandoro','cioccolatini','riso_500','riso_1000')
+   AND opening_qty IS NULL
+ ) AND (
+   (SELECT mode FROM public.casetta_settings WHERE singleton=true) <> 'test'
+   OR EXISTS (SELECT 1 FROM public.casetta_sales WHERE mode='live')
+ ) THEN RAISE EXCEPTION 'Nuove scorte iniziali consentite solo prima di LIVE'; END IF;
+END $;
 
 -- Il vecchio SKU unificato conserva il proprio ID, per non alterare gli
 -- eventuali movimenti storici. Da oggi identifica solo il panettone in latta.
