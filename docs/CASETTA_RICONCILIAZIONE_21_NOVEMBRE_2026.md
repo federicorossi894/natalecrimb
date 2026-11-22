@@ -28,7 +28,20 @@ I report finanziari includono i 526 € nella giornata del 21/11 e nel cumulativ
 - Riso 1 kg: 12
 - Tisane, tè e bastoncini: **DA CENSIRE**
 
-**Manca una sola informazione cruciale:** queste sei quantità sono state contate prima o dopo le vendite del 21 novembre? Finché non è chiaro, le vendite storiche hanno `stock_reconciliation='pending'`, sono visibili nello storico e negli avvisi di magazzino, ma **NON** scalano nuovamente le sei giacenze comunicate il 22/11. Quando si conferma la base, impostare per singolo articolo `apply_to_opening` (quantità 22/11 pre-vendite) oppure `already_in_count` (già comprese nel conteggio). Non cambiare tali stati senza evidenza.
+**Conferma dell'organizzatore (22/11):** le quantità di Michela sono il **magazzino iniziale, prima delle vendite del 21 novembre**. Ho registrato la riconciliazione nel database con `stock_reconciliation='apply_to_opening'` per i cinque prodotti con giacenza iniziale nota e venduto positivo, mediante `drizzle/migrations/0030_casetta_stock_michela_opening_20261121.sql`. Il pandoro non è stato venduto il 21 novembre, perciò rimane 10.
+
+| Prodotto | Magazzino iniziale | Vendite 21/11 | Giacenza teorica dopo il 21/11 |
+|---|---:|---:|---:|
+| Panettone in scatola | 100 | 1 | **99** |
+| Panettone in latta | 36 | 11 | **25** |
+| Pandoro | 10 | 0 | **10** |
+| Cioccolatini | 73 | 3 | **70** |
+| Riso 500 g | 60 | 20 | **40** |
+| Riso 1 kg | 12 | 4 | **8** |
+
+Le vendite del 21 novembre di tisane (24), tè (6) e candy cane (8) **restano contabilizzate** come vendite storiche, ma non esiste ancora un magazzino iniziale per calcolarne la giacenza residua. Per questi tre SKU lo stato resta `pending` e la disponibilità è **sconosciuta**, non zero. Quando arriva un conteggio fisico bisogna stabilire a quale data si riferisce e applicare la correzione in modo coerente, senza sottrarre nuovamente il 21/11 se già compreso.
+
+Al momento delle verifiche non risultavano vendite in modalità LIVE né movimenti manuali di magazzino. Le vendite del **22 novembre** devono essere importate come storico cartaceo del 22/11 quando arriveranno i registri, senza attribuire nomi/metodi inventati, e senza passare in LIVE finché Guido non autorizza. La cassa digitale dovrebbe diventare il canale ordinario dal 23/11 dopo approvazione e collaudo.
 
 ## Invio e DEMO
 
