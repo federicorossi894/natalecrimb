@@ -68,10 +68,10 @@ Job attivato il 22 novembre 2026 in modalità prova: invia le sole ricevute DEMO
 
 ## Stato operativo 22 novembre 2026
 - **Modalità DEMO (test) confermata**: 9 prodotti (panettone latta e pandoro separati); zero vendite reali. I test non entrano negli incassi e non scalano le giacenze.
-- Scorte iniziali registrate dalla comunicazione di Michela: 100 panettoni in scatola, 36 in latta, 10 pandori, 73 cioccolatini, 60 riso 500 g, 12 riso 1 kg. Tisane, tè e bastoncini ancora da censire.
-- **21/11 registrato nel database come pre-utilizzo cassa**: 77 articoli, 526 € su 8 righe aggregate; metodo di pagamento sconosciuto. Lo storico compare nel cumulativo, nelle statistiche, nel report e nell'Excel. Mancando la conferma sulle giacenze pre/post vendite, non viene effettuato un secondo scarico. Dettagli in docs/CASETTA_RICONCILIAZIONE_21_NOVEMBRE_2026.md.
+- **Magazzino iniziale Michela** (prima delle vendite del 21/11): 100 panettoni in scatola, 36 in latta, 10 pandori, 73 cioccolatini, 60 riso 500 g, 12 riso 1 kg. **Rimanenze dopo il venduto del 21/11: 99, 25, 10, 70, 40, 8** rispettivamente. Tisane, tè e bastoncini ancora da censire.
+- **21/11 registrato e riconciliato per i sei prodotti censiti**: 77 articoli, 526 € su 8 righe aggregate; metodo di pagamento sconosciuto. I cinque prodotti con vendite e apertura nota sono marcati `apply_to_opening`, senza riscrivere la giacenza iniziale; il pandoro non ha avuto vendite. Le giacenze di tisane, tè e candy cane rimangono sconosciute. Dettagli in docs/CASETTA_RICONCILIAZIONE_21_NOVEMBRE_2026.md.
 - Tè confermato a 5 € e cioccolatini portati a 10 € nel database. Prezzo del pandoro ancora da confermare con Guido.
 - Email a Manuela (amministrazione) e a Michela (sviluppo) con Federico in CCN: **solo dopo LIVE**, dopo le 19:00; Michela riceve gli avvisi evidenti per scorte basse/esaurite e giacenze da censire.
 - Ricevuta cliente DEMO: opzionale, marcata simulazione, con Federico in CCN. Ricevute reali senza CCN a Federico per minimizzare la diffusione dei dati cliente.
 - **Consegna Gmail non ancora verificata end-to-end**: non dichiarare gli invii riusciti senza controllare esiti e casella destinatario.
-- Prima di LIVE: conferma di Guido, prezzi, inventario residuo (incluso 21/11), collaudo reale della mail.
+- Prima di LIVE: conferma di Guido, conteggi mancanti per tisane/tè/bastoncini, import cartaceo del 22/11 quando disponibile, collaudo reale della mail e riconciliazione POS/contanti. La giacenza nota del 21/11 è già riconciliata.
