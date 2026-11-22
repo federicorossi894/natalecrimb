@@ -50,7 +50,10 @@ BEGIN
  v_first:=trim(regexp_replace(coalesce(_first_name,''),'[[:space:]]+',' ','g'));
  v_last:=trim(regexp_replace(coalesce(_last_name,''),'[[:space:]]+',' ','g'));
  IF length(v_first) NOT BETWEEN 2 AND 80 OR length(v_last) NOT BETWEEN 2 AND 80
-    OR v_first !~ '^[[:alpha:]À-ÿ ''-]+
+    OR v_first !~ $name$^[[:alpha:]À-ÿ '-]+$$name$
+    OR v_last !~ $name$^[[:alpha:]À-ÿ '-]+$$name$
+ THEN RAISE EXCEPTION 'Nome e cognome obbligatori'; END IF;
+ v_email:=nullif(lower(trim(coalesce(_email,''))),'');
  IF v_email IS NOT NULL AND (length(v_email)>254 OR v_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$')
  THEN RAISE EXCEPTION 'Email non valida'; END IF;
  IF v_email IS NOT NULL AND (SELECT count(*) FROM public.casetta_sales
@@ -77,74 +80,6 @@ BEGIN
   CASE WHEN v_mode='live' THEN v_email ELSE NULL END,
   CASE WHEN v_mode='live' AND v_email IS NOT NULL THEN 'pending' ELSE 'none' END,
  v_first,v_last)
- RETURNING id INTO v_id;
- INSERT INTO public.casetta_sale_items(sale_id,product_id,product_label,quantity,unit_price_cents,line_total_cents)
- SELECT v_id,p.id,p.label,(x.value->>'quantity')::integer,p.price_cents,
-  p.price_cents*(x.value->>'quantity')::integer
- FROM jsonb_array_elements(_items) AS x(value) JOIN public.casetta_products p ON p.id=x.value->>'id';
- RETURN jsonb_build_object('id',v_id,'totalCents',v_total,'mode',v_mode,'alreadyRecorded',false);
-END $$;
- OR v_last !~ '^[[:alpha:]À-ÿ ''-]+
- IF v_email IS NOT NULL AND (length(v_email)>254 OR v_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$')
- THEN RAISE EXCEPTION 'Email non valida'; END IF;
- IF v_email IS NOT NULL AND (SELECT count(*) FROM public.casetta_sales
-   WHERE customer_email=v_email AND mode='live' AND created_at>now()-interval '1 day')>=4
- THEN RAISE EXCEPTION 'Troppi invii alla stessa email'; END IF;
- FOR v_item IN SELECT value FROM jsonb_array_elements(_items) AS x(value) LOOP
-  IF jsonb_typeof(v_item) IS DISTINCT FROM 'object'
-    OR jsonb_typeof(v_item->'id') IS DISTINCT FROM 'string'
-    OR jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number'
-    OR (v_item->>'quantity') !~ '^[0-9]{1,2}$'
-  THEN RAISE EXCEPTION 'Prodotto o quantità non validi'; END IF;
-  v_pid:=v_item->>'id'; v_qty:=(v_item->>'quantity')::integer;
-  IF v_qty NOT BETWEEN 1 AND 99 THEN RAISE EXCEPTION 'Quantità non valida'; END IF;
-  SELECT id,label,price_cents INTO v_product FROM public.casetta_products WHERE id=v_pid AND active;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Prodotto non disponibile'; END IF;
-  IF (SELECT count(*) FROM jsonb_array_elements(_items) AS y(value) WHERE y.value->>'id'=v_pid)>1
-  THEN RAISE EXCEPTION 'Prodotto duplicato'; END IF;
-  v_total:=v_total+v_product.price_cents*v_qty;
-  v_count:=v_count+v_qty;
- END LOOP;
- IF v_total NOT BETWEEN 1 AND 100000 OR v_count>200 THEN RAISE EXCEPTION 'Importo fuori limite'; END IF;
- INSERT INTO public.casetta_sales(request_id,mode,method,total_cents,client_tag,customer_email,receipt_state)
- VALUES(_request_id,v_mode,_method,v_total,_client_tag,
-  CASE WHEN v_mode='live' THEN v_email ELSE NULL END,
-  CASE WHEN v_mode='live' AND v_email IS NOT NULL THEN 'pending' ELSE 'none' END)
- RETURNING id INTO v_id;
- INSERT INTO public.casetta_sale_items(sale_id,product_id,product_label,quantity,unit_price_cents,line_total_cents)
- SELECT v_id,p.id,p.label,(x.value->>'quantity')::integer,p.price_cents,
-  p.price_cents*(x.value->>'quantity')::integer
- FROM jsonb_array_elements(_items) AS x(value) JOIN public.casetta_products p ON p.id=x.value->>'id';
- RETURN jsonb_build_object('id',v_id,'totalCents',v_total,'mode',v_mode,'alreadyRecorded',false);
-END $$;
-
- THEN RAISE EXCEPTION 'Nome e cognome obbligatori'; END IF;
- v_email:=nullif(lower(trim(coalesce(_email,''))),'');
- IF v_email IS NOT NULL AND (length(v_email)>254 OR v_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$')
- THEN RAISE EXCEPTION 'Email non valida'; END IF;
- IF v_email IS NOT NULL AND (SELECT count(*) FROM public.casetta_sales
-   WHERE customer_email=v_email AND mode='live' AND created_at>now()-interval '1 day')>=4
- THEN RAISE EXCEPTION 'Troppi invii alla stessa email'; END IF;
- FOR v_item IN SELECT value FROM jsonb_array_elements(_items) AS x(value) LOOP
-  IF jsonb_typeof(v_item) IS DISTINCT FROM 'object'
-    OR jsonb_typeof(v_item->'id') IS DISTINCT FROM 'string'
-    OR jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number'
-    OR (v_item->>'quantity') !~ '^[0-9]{1,2}$'
-  THEN RAISE EXCEPTION 'Prodotto o quantità non validi'; END IF;
-  v_pid:=v_item->>'id'; v_qty:=(v_item->>'quantity')::integer;
-  IF v_qty NOT BETWEEN 1 AND 99 THEN RAISE EXCEPTION 'Quantità non valida'; END IF;
-  SELECT id,label,price_cents INTO v_product FROM public.casetta_products WHERE id=v_pid AND active;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Prodotto non disponibile'; END IF;
-  IF (SELECT count(*) FROM jsonb_array_elements(_items) AS y(value) WHERE y.value->>'id'=v_pid)>1
-  THEN RAISE EXCEPTION 'Prodotto duplicato'; END IF;
-  v_total:=v_total+v_product.price_cents*v_qty;
-  v_count:=v_count+v_qty;
- END LOOP;
- IF v_total NOT BETWEEN 1 AND 100000 OR v_count>200 THEN RAISE EXCEPTION 'Importo fuori limite'; END IF;
- INSERT INTO public.casetta_sales(request_id,mode,method,total_cents,client_tag,customer_email,receipt_state)
- VALUES(_request_id,v_mode,_method,v_total,_client_tag,
-  CASE WHEN v_mode='live' THEN v_email ELSE NULL END,
-  CASE WHEN v_mode='live' AND v_email IS NOT NULL THEN 'pending' ELSE 'none' END)
  RETURNING id INTO v_id;
  INSERT INTO public.casetta_sale_items(sale_id,product_id,product_label,quantity,unit_price_cents,line_total_cents)
  SELECT v_id,p.id,p.label,(x.value->>'quantity')::integer,p.price_cents,
