@@ -55,7 +55,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(migration).toContain("interval '7 days'");
   expect(route).toContain("'Cache-Control':'private, no-store, max-age=0'");
   expect(route).toContain('casetta_export_sales');
-  expect(reportHtml(report,'finance','https://natale.crimonza.org/api/casetta/export?token=test'))
+  expect(reportHtml(report,'finance','https://natale.crimonza.org/api/public/casetta-export?token=test'))
     .toContain('Scarica Excel vendite');
  });
 
