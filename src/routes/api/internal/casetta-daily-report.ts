@@ -13,7 +13,7 @@ export const Route=createFileRoute('/api/internal/casetta-daily-report')({
    try{
     const client=supabaseAdmin as unknown as {rpc:(name:string)=>PromiseLike<{data:unknown,error:unknown}>};
     const {data,error}=await client.rpc('casetta_catalog');
-    if(error||!data)return Response.json({error:'Cassa unavailable'},{status:503});
+    if(error||!data)return Response.json({error:'Cassa unavailable',rpcCode:(error as {code?:string}|null)?.code??'none',rpcMessage:(error as {message?:string}|null)?.message??'empty'},{status:503});
     const catalog=data as {mode:'test'|'live'};
     if(catalog.mode!=='live')return Response.json({status:'test_mode_no_mail'});
     const receipts=await dispatchCasettaReceipts();
