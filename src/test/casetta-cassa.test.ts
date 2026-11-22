@@ -32,6 +32,9 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(stock).toContain('ESAURITO');
   expect(stock).toContain('Da censire');
   expect(stock).toContain('1 prodotti esauriti, 1 sotto soglia');
+  expect(stock).toContain('ATTENZIONE · SCORTE DA RIASSORTIRE');
+  expect(stock).toContain('Soglia: 5 pz');
+  expect(stock).toContain('Giacenze ancora da censire');
   expect(stock).toContain('Le prove DEMO non scalano nulla');
   expect(reportHtml(report,'finance',undefined,inventory)).not.toContain('Magazzino · giacenze residue');
  });
@@ -144,7 +147,22 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(sql).toContain('REVOKE ALL ON TABLE');
   expect(sql).toContain('REVOKE ALL ON FUNCTION');
  });
- it('uses the exact eight-item listino',()=>{
+ it('keeps the original eight SKUs and adds separate pandoro with Michela initial stock',()=>{
+  const initial=readFileSync('drizzle/migrations/0027_casetta_scorte_iniziali_20261122.sql','utf8');
+  expect(initial).toContain("('panettone_cartone',100,15)");
+  expect(initial).toContain("('latta_panettone_pandoro',36,8)");
+  expect(initial).toContain("('pandoro',10,4)");
+  expect(initial).toContain("('cioccolatini',73,12)");
+  expect(initial).toContain("('riso_500',60,10)");
+  expect(initial).toContain("('riso_1000',12,4)");
+  expect(initial).toContain("INSERT INTO public.casetta_products");
+  expect(initial).toContain("c.opening_qty IS NULL");
+  expect(initial).toContain("mode FROM public.casetta_settings");
+  const reportCode=readFileSync('src/lib/casetta-report.server.ts','utf8');
+  expect(reportCode).toContain("const STOCK='monza.sviluppo@lombardia.cri.it'");
+  expect(reportCode).toContain("const AUDIT_BCC='federico.rossi@crimonza.org'");
+  expect(reportCode).toContain("r.mode==='test'?AUDIT_BCC:undefined");
+  expect(reportCode).toContain("'casetta-'+audience+'-'+date,AUDIT_BCC");
   for(const sku of ['panettone_cartone','latta_panettone_pandoro','cioccolatini','tisane_etiche',
     'riso_500','riso_1000','the_verde_rosso','bastoncino_zucchero'])expect(sql).toContain(sku);
  });
