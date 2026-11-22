@@ -46,7 +46,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   const current=readFileSync('src/routes/cassa.tsx','utf8');
   const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
   const migration=readFileSync('drizzle/migrations/0024_casetta_nominativi_export.sql','utf8');
-  const route=readFileSync('src/routes/api/casetta/export.ts','utf8');
+  const route=readFileSync('src/routes/api/public/casetta-export.ts','utf8');
   expect(current).toContain('Dati cliente · obbligatori');
   expect(current).toContain('Il cliente desidera ricevere l’email');
   expect(server).toContain('_first_name:data.firstName');
@@ -55,7 +55,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(migration).toContain("interval '7 days'");
   expect(route).toContain("'Cache-Control':'private, no-store, max-age=0'");
   expect(route).toContain('casetta_export_sales');
-  expect(reportHtml(report,'finance','https://natale.crimonza.org/api/casetta/export?token=test'))
+  expect(reportHtml(report,'finance','https://natale.crimonza.org/api/public/casetta-export?token=test'))
     .toContain('Scarica Excel vendite');
  });
 

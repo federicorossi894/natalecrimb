@@ -34,6 +34,7 @@ import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
 import { Route as ApiCasettaExportRouteImport } from './routes/api/casetta/export'
 import { Route as ApiInternalCasettaDailyReportRouteImport } from './routes/api/internal/casetta-daily-report'
+import { Route as ApiPublicCasettaExportRouteImport } from './routes/api/public/casetta-export'
 import { Route as ApiPublicChristmasGiftEmailRouteImport } from './routes/api/public/christmas-gift-email'
 import { Route as ApiPublicPaymentReconciliationRouteImport } from './routes/api/public/payment-reconciliation'
 import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal-webhook'
@@ -164,6 +165,11 @@ const ApiInternalCasettaDailyReportRoute = ApiInternalCasettaDailyReportRouteImp
   path: '/api/internal/casetta-daily-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCasettaExportRoute = ApiPublicCasettaExportRouteImport.update({
+  id: '/api/public/casetta-export',
+  path: '/api/public/casetta-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicChristmasGiftEmailRoute =
   ApiPublicChristmasGiftEmailRouteImport.update({
     id: '/api/public/christmas-gift-email',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/regali/': typeof RegaliIndexRoute
   '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
+  '/api/public/casetta-export': typeof ApiPublicCasettaExportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/regali': typeof RegaliIndexRoute
   '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
+  '/api/public/casetta-export': typeof ApiPublicCasettaExportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/regali/': typeof RegaliIndexRoute
   '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
+  '/api/public/casetta-export': typeof ApiPublicCasettaExportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/regali/'
     | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
+    | '/api/public/casetta-export'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/regali'
     | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
+    | '/api/public/casetta-export'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/regali/'
     | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
+    | '/api/public/casetta-export'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   RegaliIndexRoute: typeof RegaliIndexRoute
   ApiCasettaExportRoute: typeof ApiCasettaExportRoute
   ApiInternalCasettaDailyReportRoute: typeof ApiInternalCasettaDailyReportRoute
+  ApiPublicCasettaExportRoute: typeof ApiPublicCasettaExportRoute
   ApiPublicChristmasGiftEmailRoute: typeof ApiPublicChristmasGiftEmailRoute
   ApiPublicPaymentReconciliationRoute: typeof ApiPublicPaymentReconciliationRoute
   ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalCasettaDailyReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/casetta-export': {
+      id: '/api/public/casetta-export'
+      path: '/api/public/casetta-export'
+      fullPath: '/api/public/casetta-export'
+      preLoaderRoute: typeof ApiPublicCasettaExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/christmas-gift-email': {
       id: '/api/public/christmas-gift-email'
       path: '/api/public/christmas-gift-email'
@@ -643,6 +663,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegaliIndexRoute: RegaliIndexRoute,
   ApiCasettaExportRoute: ApiCasettaExportRoute,
   ApiInternalCasettaDailyReportRoute: ApiInternalCasettaDailyReportRoute,
+  ApiPublicCasettaExportRoute: ApiPublicCasettaExportRoute,
   ApiPublicChristmasGiftEmailRoute: ApiPublicChristmasGiftEmailRoute,
   ApiPublicPaymentReconciliationRoute: ApiPublicPaymentReconciliationRoute,
   ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
