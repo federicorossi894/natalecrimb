@@ -16,6 +16,15 @@ export const Route=createFileRoute('/cassa')({
 const euro=(c:number)=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(c/100);
 type Phase='cart'|'review'|'sending'|'success';
 type Method='cash'|'pos';
+/** Parse Italian money as decimal euros, converting to integer cents.
+ * Never use binary floating-point arithmetic for the amount collected. */
+function donationEuroCents(input:string):number|null {
+  const normalized=input.trim().replace(',','.');
+  if(!/^\d{1,4}(\.\d{1,2})?$/.test(normalized))return null;
+  const [euro,decimal='']=normalized.split('.');
+  const cents=Number(euro)*100+Number(decimal.padEnd(2,'0'));
+  return Number.isSafeInteger(cents)&&cents>0&&cents<=100000?cents:null;
+}
 const big='min-h-16 rounded-2xl px-5 py-4 text-xl font-extrabold shadow-sm transition active:scale-[.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 disabled:cursor-not-allowed disabled:opacity-40';
 function deviceId(){
   const key='cri-casetta-device-v1';
@@ -32,13 +41,15 @@ function CasettaCassa(){
   const [error,setError]=useState('');
   const [qty,setQty]=useState<Record<string,number>>({});
   const [method,setMethod]=useState<Method>('cash');
+  const [wantsExtraDonation,setWantsExtraDonation]=useState(false);
+  const [extraDonationEuro,setExtraDonationEuro]=useState('');
   const [firstName,setFirstName]=useState('');
   const [lastName,setLastName]=useState('');
   const [wantsEmail,setWantsEmail]=useState(false);
   const [email,setEmail]=useState('');
   const [phase,setPhase]=useState<Phase>('cart');
   const [requestId,setRequestId]=useState('');
-  const [result,setResult]=useState<{totalCents:number;mode:'test'|'live'}|null>(null);
+  const [result,setResult]=useState<{totalCents:number;productsCents:number;extraDonationCents:number;mode:'test'|'live'}|null>(null);
   useEffect(()=>{
     let active=true;
     const refresh=async()=>{
@@ -55,6 +66,8 @@ function CasettaCassa(){
   const lines=useMemo(()=>catalog?.products.filter(p=>(qty[p.id]??0)>0).map(p=>({...p,quantity:qty[p.id]??0}))??[],[catalog,qty]);
   const count=lines.reduce((n,p)=>n+p.quantity,0);
   const total=lines.reduce((n,p)=>n+p.quantity*p.priceCents,0);
+  const enteredDonationCents=wantsExtraDonation?donationEuroCents(extraDonationEuro):0;
+  const grandTotal=total+(enteredDonationCents??0);
   const open=Boolean(catalog?.open&&online);
   function adjust(id:string,step:number){
     if(phase!=='cart')return;
@@ -63,10 +76,14 @@ function CasettaCassa(){
   }
   function reset(){
     setQty({});setFirstName('');setLastName('');setWantsEmail(false);setEmail('');setMethod('cash');setRequestId('');
+    setWantsExtraDonation(false);setExtraDonationEuro('');
     setResult(null);setError('');setPhase('cart');
   }
   async function submit(){
     if(!open||!lines.length||phase!=='review')return;
+    if(wantsExtraDonation&&(enteredDonationCents===null||grandTotal>100000)){
+      setError('Inserisci una donazione extra valida (es. 5 oppure 5,50). Il totale massimo della vendita è 1.000 €.');return;
+    }
     if(!/^[\p{L} '-]{2,80}$/u.test(firstName.trim())||!/^[\p{L} '-]{2,80}$/u.test(lastName.trim())){
       setError('Inserisci nome e cognome del cliente (entrambi obbligatori).');return;
     }
@@ -79,11 +96,12 @@ function CasettaCassa(){
     try{
       const saved=await save({data:{
         requestId:id,deviceId:deviceId(),method,
+        extraDonationCents:wantsExtraDonation?(enteredDonationCents??0):0,
         firstName:firstName.trim(),lastName:lastName.trim(),
         items:lines.map(p=>({id:p.id,quantity:p.quantity})),
         email:wantsEmail?email.trim():'',
       }});
-      setResult({totalCents:saved.totalCents,mode:saved.mode});
+      setResult({totalCents:saved.totalCents,productsCents:saved.productsCents,extraDonationCents:saved.extraDonationCents,mode:saved.mode});
       setPhase('success');
     }catch(e){
       setPhase('review');
@@ -98,7 +116,7 @@ function CasettaCassa(){
         <p className="mt-2 text-base">Una vendita, pochi tocchi. Nessun accesso richiesto.</p>
       </header>
       {catalog?.mode==='test'&&<div role="status" className="mt-4 rounded-2xl border-2 border-amber-500 bg-amber-100 p-4 text-center text-lg font-black text-amber-950">
-        🧪 MODALITÀ DEMO · Ordini di prova, esclusi dagli incassi e dal magazzino. Email al cliente solo se richiesta. Report delle 20:00 sospesi.
+        🧪 MODALITÀ DEMO · Ordini di prova, esclusi dagli incassi e dal magazzino. Email al cliente solo se richiesta. Report delle 19:00 sospesi.
       </div>}
       {!online&&<div role="alert" className="mt-4 flex items-center gap-2 rounded-2xl bg-red-100 p-4 text-lg font-bold text-red-900"><WifiOff/> Senza connessione non si possono registrare vendite.</div>}
       {loading&&<p className="p-10 text-center text-2xl">Caricamento cassa…</p>}
@@ -142,7 +160,33 @@ function CasettaCassa(){
         <div className="space-y-3">{lines.map(p=><div key={p.id} className="flex justify-between gap-3 border-b pb-3 text-lg">
           <span><strong>{p.quantity} ×</strong> {p.label}</span><strong className="whitespace-nowrap">{euro(p.quantity*p.priceCents)}</strong>
         </div>)}</div>
-        <div className="my-5 flex justify-between border-t-2 pt-4 text-3xl font-black"><span>TOTALE</span><span>{euro(total)}</span></div>
+        <div className="mt-5 rounded-2xl border-2 border-[#b7c7b8] bg-[#faf9f4] p-4">
+          <h3 className="text-xl font-black">Donazione extra?</h3>
+          <p className="mt-1 text-sm text-[#516357]">Il cliente vuole lasciare qualcosa in più rispetto al prezzo dei prodotti?</p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button type="button" disabled={phase==='sending'||Boolean(requestId)} aria-pressed={!wantsExtraDonation}
+              onClick={()=>{setWantsExtraDonation(false);setExtraDonationEuro('');setError('');}}
+              className={`${big} border-2 ${!wantsExtraDonation?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>NO</button>
+            <button type="button" disabled={phase==='sending'||Boolean(requestId)} aria-pressed={wantsExtraDonation}
+              onClick={()=>{setWantsExtraDonation(true);setError('');}}
+              className={`${big} border-2 ${wantsExtraDonation?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>SÌ</button>
+          </div>
+          {wantsExtraDonation&&<label htmlFor="casetta-extra-donation" className="mt-4 block text-lg font-extrabold">
+            Importo della donazione extra (€) *
+            <input id="casetta-extra-donation" type="text" inputMode="decimal" autoComplete="off"
+              placeholder="Es. 6,00" maxLength={7} required
+              disabled={phase==='sending'||Boolean(requestId)} value={extraDonationEuro}
+              onChange={e=>{setExtraDonationEuro(e.target.value);setError('');}}
+              className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-xl font-normal focus:outline-4 focus:outline-amber-500"
+              aria-invalid={extraDonationEuro.trim().length>0&&enteredDonationCents===null}/>
+            <span className="mt-2 block text-sm font-normal text-[#516357]">Inserisci solo l’importo aggiuntivo, non il totale pagato. Esempio: prodotti 14 €, il cliente lascia 20 € → donazione extra 6 €.</span>
+          </label>}
+        </div>
+        <div className="my-5 space-y-2 border-t-2 pt-4">
+          <div className="flex justify-between text-lg"><span>Totale prodotti</span><strong>{euro(total)}</strong></div>
+          {wantsExtraDonation&&<div className="flex justify-between text-lg"><span>Donazione extra</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}
+          <div className="flex justify-between gap-2 border-t pt-3 text-3xl font-black"><span>TOTALE DA INCASSARE</span><span className="whitespace-nowrap">{euro(grandTotal)}</span></div>
+        </div>
         <h3 className="mb-3 text-center text-xl font-black">Come ha pagato?</h3>
         <div className="grid grid-cols-2 gap-3">
           <button disabled={phase==='sending'||Boolean(requestId)} aria-pressed={method==='cash'} onClick={()=>setMethod('cash')}
@@ -190,6 +234,7 @@ function CasettaCassa(){
         <CheckCircle2 className="mx-auto text-[#236343]" size={80}/>
         <h2 className="mt-4 text-3xl font-black">{result?.mode==='test'?'Vendita di prova registrata!':'Vendita registrata!'}</h2>
         <p className="mt-4 text-4xl font-black">{euro(result?.totalCents??0)}</p>
+        {Boolean(result?.extraDonationCents)&&<p className="mt-2 text-base">Prodotti: {euro(result?.productsCents??0)} · Donazione extra: {euro(result?.extraDonationCents??0)}</p>}
         <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
         <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':'POS'}</p>
         {wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
