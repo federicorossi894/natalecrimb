@@ -200,7 +200,7 @@ export async function dispatchCasettaReports(){
    await db.rpc('casetta_finish_report',{_day:date,_audience:audience,_claim:claimId,_state:'failed',_message_id:null});
    outcomes[audience]='export_unavailable';continue;
   }
-  const exportUrl='https://natale.crimonza.org/api/casetta/export?token='+token;
+  const exportUrl='https://natale.crimonza.org/api/public/casetta-export?token='+token;
   const sent=await sendMail(to,'CRI Monza · Casetta '+date+' · '+
    (audience==='finance'?'Riepilogo economico':'Vendite e prodotti'),
    reportHtml(report,audience,exportUrl),'casetta-'+audience+'-'+date);
