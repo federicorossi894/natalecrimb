@@ -12,14 +12,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22'
-      - name: Install
-        run: npm install --no-audit --no-fund
+          bun-version: "1.3"
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: bunx tsc --noEmit
       - name: Cash register regression tests
-        run: npm run test -- src/test/casetta-cassa.test.ts
+        run: bun run test -- src/test/casetta-cassa.test.ts
       - name: Production build
-        run: npm run build
+        run: bun run build
