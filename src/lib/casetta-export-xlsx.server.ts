@@ -4,6 +4,7 @@
  */
 export type CasettaExportRow={
   date:string;firstName:string;lastName:string;amountCents:number;
+  productsCents?:number;extraDonationCents?:number;
   method:'cash'|'pos'|'unknown';source?:string;quantities:Record<string,number>;
 };
 export type CasettaExportProduct={id:string;label:string};
@@ -72,16 +73,19 @@ function zip(files:Array<[string,string]>){
 }
 export function casettaXlsx(rows:CasettaExportRow[],products:CasettaExportProduct[]){
  if(rows.length>100000)throw new Error('Esportazione troppo grande');
- const headers=['Data e ora','Nome','Cognome','Importo (€)','Pagamento','Origine',...products.map(p=>p.label)];
+ const headers=['Data e ora','Nome','Cognome','Totale incassato (€)','Prodotti (€)','Donazione extra (€)','Pagamento','Origine',...products.map(p=>p.label)];
  const last=col(headers.length-1);
  const header='<row r="1" ht="31" customHeight="1">'+headers.map((h,i)=>textCell(col(i)+'1',h,1)).join('')+'</row>';
  const body=rows.map((r,i)=>{
   const n=i+2;
   const cells=[
    textCell('A'+n,r.date),textCell('B'+n,r.firstName),textCell('C'+n,r.lastName),
-   numCell('D'+n,r.amountCents/100,2),textCell('E'+n,r.method==='cash'?'Contanti':r.method==='pos'?'POS':'Non rilevato'),
-   textCell('F'+n,r.source??'Cassa'),
-   ...products.map((p,j)=>numCell(col(j+6)+n,r.quantities[p.id]||0)),
+   numCell('D'+n,r.amountCents/100,2),
+   numCell('E'+n,(r.productsCents??(r.amountCents-(r.extraDonationCents??0)))/100,2),
+   numCell('F'+n,(r.extraDonationCents??0)/100,2),
+   textCell('G'+n,r.method==='cash'?'Contanti':r.method==='pos'?'POS':'Non rilevato'),
+   textCell('H'+n,r.source??'Cassa'),
+   ...products.map((p,j)=>numCell(col(j+8)+n,r.quantities[p.id]||0)),
   ];
   return '<row r="'+n+'">'+cells.join('')+'</row>';
  }).join('');
@@ -89,7 +93,7 @@ export function casettaXlsx(rows:CasettaExportRow[],products:CasettaExportProduc
   '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
   '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'+
   '<sheetFormatPr defaultRowHeight="19"/><cols>'+
-  headers.map((_,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+(i===0?22:i===1||i===2?22:i===3?16:i===4||i===5?22:24)+'" customWidth="1"/>').join('')+
+  headers.map((_,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+(i===0?22:i===1||i===2?22:i>=3&&i<=5?22:i===6||i===7?22:24)+'" customWidth="1"/>').join('')+
   '</cols><sheetData>'+header+body+'</sheetData>'+
   '<autoFilter ref="A1:'+last+Math.max(2,rows.length+1)+'"/></worksheet>';
  return zip([
