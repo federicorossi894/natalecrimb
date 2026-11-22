@@ -24,9 +24,9 @@ export const PUBLIC_SEO = {
     name: 'Casetta di Natale',
   },
   '/calendario': {
-    title: 'Calendario della Gentilezza | Natale Croce Rossa Monza',
-    description: 'Dal 1° al 24 dicembre, scopri un gesto gentile al giorno nel calendario digitale di Croce Rossa Monza. Un Natale da condividere a casa e a scuola.',
-    name: 'Calendario della Gentilezza',
+    title: 'Calendario dell’Avvento – Calendario della Gentilezza | Croce Rossa Monza',
+    description: 'Il Calendario della Gentilezza è il calendario dell’Avvento di Croce Rossa Monza: apri ogni giorno una delle 24 finestrelle della sede natalizia e scopri un gesto gentile.',
+    name: 'Calendario dell’Avvento · Calendario della Gentilezza',
   },
   '/piccoli-volontari': {
     title: 'Accademia dei Piccoli Volontari | Natale CRI Monza',
