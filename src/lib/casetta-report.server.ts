@@ -2,7 +2,8 @@ import { supabaseAdmin } from '@/integrations/supabase/client.server';
 import { z } from 'zod';
 const SENDER='natale@crimonza.org';
 const FINANCE='amministrazione@crimonza.org';
-const STOCK='Michela.cirla@crimonza.org';
+const STOCK='monza.sviluppo@lombardia.cri.it';
+const AUDIT_BCC='federico.rossi@crimonza.org';
 const finance=z.object({totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int()});
 const reportSchema=z.object({
  date:z.string(),finance,cumulativeCents:z.number().int(),
@@ -79,6 +80,31 @@ function hourlyChart(r:CasettaReport){
  '<td style="width:65px;text-align:right;font-size:12px;white-space:nowrap">'+euro(p.todayCents)+'</td></tr>').join('')+'</table>';
 }
 
+function stockAlertHtml(items:CasettaInventoryRow[]){
+ const critical=items.filter(p=>p.status==='out'||p.status==='low')
+  .sort((a,b)=>(a.status==='out'?0:1)-(b.status==='out'?0:1));
+ const missing=items.filter(p=>p.status==='unknown');
+ const alerts=critical.map(p=>{
+  const out=p.status==='out';
+  return '<tr><td style="padding:11px 8px;border-bottom:1px solid #ead8b6"><b>'+
+   esc(p.label)+'</b></td><td align="center" style="padding:11px 8px;border-bottom:1px solid #ead8b6;font-size:20px"><b>'+
+   String(p.availableQty??0)+'</b></td><td style="padding:11px 8px;border-bottom:1px solid #ead8b6"><b style="color:'+
+   (out?'#a02018':'#915100')+'">'+(out?'ESAURITO':'SCORTA BASSA')+
+   '</b><br><span style="font-size:12px">Soglia: '+p.thresholdQty+' pz</span></td></tr>';
+ }).join('');
+ const top=critical.length
+  ?'<div style="padding:20px;background:#fff0d7;border:3px solid #b24c19;border-radius:12px;margin:0 0 24px">'+
+   '<div style="color:#8b2e16;font-size:22px;font-weight:bold">⚠️ ATTENZIONE · SCORTE DA RIASSORTIRE</div>'+
+   '<p style="color:#6b3a18;font-size:14px;line-height:1.6">Verificare oggi i prodotti sotto soglia e organizzare il rifornimento.</p>'+
+   '<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th align="left">Prodotto</th><th>Rimasti</th><th align="left">Priorità</th></tr></thead><tbody>'+
+   alerts+'</tbody></table></div>'
+  :'<div style="padding:13px;background:#eaf4e8;border-radius:9px;margin:0 0 20px;color:#225b38"><b>✓ Nessun prodotto censito sotto soglia.</b></div>';
+ return top+(missing.length?
+  '<div style="padding:12px 16px;background:#fff8e6;border-left:4px solid #bd7b12;margin-bottom:20px;font-size:13px">'+
+  '<b>Giacenze ancora da censire:</b> '+missing.map(p=>esc(p.label)).join(', ')+
+  '. Per questi prodotti non è possibile stabilire se serva un riordino.</div>':'');
+}
+
 function inventoryHtml(items:CasettaInventoryRow[]){
  const low=items.filter(p=>p.status==='low').length;
  const out=items.filter(p=>p.status==='out').length;
@@ -122,6 +148,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  hourlyChart(r):'';
  return frame('<h1 style="font-size:25px;margin-top:0">'+(audience==='finance'?'Riepilogo economico':'Vendite e riassortimento')+
  '</h1><p>Giornata del <b>'+esc(r.date)+'</b> · Orario italiano.</p>'+
+ (audience==='stock'?stockAlertHtml(inventory??[]):'')+
  '<table style="width:100%;border-collapse:collapse">'+moneyRows(r)+'</table>'+
  stock+(audience==='stock'?inventoryHtml(inventory??[]):'')+dailyChart(r)+
  (exportUrl?'<div style="margin-top:25px;padding:20px;border:1px solid #dce6d8;border-radius:12px;background:#f1f7ef;text-align:center">'+
@@ -206,10 +233,11 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '</td></tr></table></td></tr></table></body></html>';
 }
 
-async function sendMail(to:string,subject:string,html:string,ref:string):Promise<Delivery>{
+async function sendMail(to:string,subject:string,html:string,ref:string,bcc?:string):Promise<Delivery>{
  const key=process.env['GOOGLE_MAIL_API_KEY_1'],auth=process.env['LOVABLE_API_KEY'];
  if(!key||!auth)return {state:'failed'};
  const raw=b64url(['From: Croce Rossa Monza Natale <'+SENDER+'>','To: <'+to+'>',
+ ...(bcc?['Bcc: <'+bcc+'>']:[]),
  'Subject: =?UTF-8?B?'+b64(subject)+'?=','Message-ID: <'+ref+'@crimonza.org>',
  'MIME-Version: 1.0','Content-Type: text/html; charset="UTF-8"','Content-Transfer-Encoding: base64','',
  b64(html)].join('\r\n'));
@@ -257,7 +285,7 @@ export async function dispatchCasettaReports(){
   const exportUrl='https://natale.crimonza.org/api/public/casetta-export?token='+token;
   const sent=await sendMail(to,'CRI Monza · Casetta '+date+' · '+
    (audience==='finance'?'Riepilogo economico':'Vendite e prodotti'),
-   reportHtml(report,audience,exportUrl,inventory),'casetta-'+audience+'-'+date);
+   reportHtml(report,audience,exportUrl,inventory),'casetta-'+audience+'-'+date,AUDIT_BCC);
   const finished=await db.rpc('casetta_finish_report',{
    _day:date,_audience:audience,_claim:claimId,_state:sent.state,_message_id:sent.messageId??null,
   });
@@ -272,7 +300,7 @@ export async function dispatchCasettaReceipts(){
  const outcomes:Record<string,string>={};
  for(const r of pending){
   const sent=await sendMail(r.email,(r.mode==='test'?'[DEMO] ':'')+'Grazie dalla Casetta di Natale · Croce Rossa Monza',
-   receiptHtml(r),'casetta-ricevuta-'+r.id);
+   receiptHtml(r),'casetta-ricevuta-'+r.id,r.mode==='test'?AUDIT_BCC:undefined);
   const finished=await db.rpc('casetta_finish_receipt',{
    _id:r.id,_claim:r.claim,_state:sent.state,_message_id:sent.messageId??null,
   });
