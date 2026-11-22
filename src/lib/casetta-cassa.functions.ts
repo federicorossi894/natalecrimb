@@ -46,7 +46,7 @@ export const casettaActivateQr = createServerFn({ method:'POST' })
 export const casettaSession = createServerFn({ method:'GET' }).handler(async () => {
   const hash = await tokenHash();
   if (!hash) return { authorized:false as const, products:[] as CasettaProduct[] };
-  const { data, error } = await db().rpc('casetta_catalog', { _token_hash:hash });
+  const { data, error } = await (await db()).rpc('casetta_catalog', { _token_hash:hash });
   if (error) return { authorized:false as const, products:[] as CasettaProduct[] };
   return { authorized:true as const, products:z.array(productSchema).parse(data) };
 });
@@ -56,7 +56,7 @@ export const casettaRecordSale = createServerFn({ method:'POST' })
     requireSameOrigin();
     const hash = await tokenHash();
     if (!hash) throw new Error('Accesso scaduto: scansiona nuovamente il QR.');
-    const { data: result,error } = await db().rpc('casetta_record_sale',{
+    const { data: result,error } = await (await db()).rpc('casetta_record_sale',{
       _token_hash:hash,_request_id:data.requestId,_method:data.method,_items:data.items,
     });
     if (error) throw new Error('Vendita non registrata. Controlla la connessione e riprova senza modificare la vendita.');
