@@ -143,8 +143,8 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(finance).not.toContain('Panettone cartone');
   expect(finance).not.toContain('Vendite per orario');
   expect(stock).toContain('Panettone cartone');
-  expect(finance).toContain('cri-monza-email-v2.png');
-  expect(stock).toContain('cri-monza-email-v2.png');
+  expect(finance).toContain('cri-emblema-email-192.png');
+  expect(stock).toContain('cri-emblema-email-192.png');
   expect(finance).toContain('href="https://natale.crimonza.org/"');
   expect(stock).toContain('Vendite per orario');
   expect(stock).toContain('Quantità vendute, non giacenze');
@@ -158,9 +158,12 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('22,00');
   expect(html).toContain('Croce Rossa Italiana');
   expect(html).toContain('Comitato di Monza');
-  expect(html).toContain('cri-monza-email-v2.png');
+  expect(html).toContain('cri-emblema-email-192.png');
+  expect(html).not.toContain('cri-monza-email-v2.png');
+  expect(html).toContain('font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700');
   expect(html).toContain('https://natale.crimonza.org/calendario');
-  expect(html).toContain('Il Calendario della Gentilezza');
+  expect(html).toContain('Il nostro Calendario dell’Avvento');
+  expect(html).toContain('Calendario della Gentilezza');
   expect(html).not.toContain('margin:-37px');
   expect(html).toContain('La magia può continuare');
   expect(html).toContain('Scopri il Natale che fa bene');
