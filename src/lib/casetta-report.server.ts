@@ -19,11 +19,13 @@ const euro = (cents:number)=>new Intl.NumberFormat('it-IT',{style:'currency',cur
 const esc=(value:string)=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]??c));
 const b64=(s:string)=>btoa(Array.from(new TextEncoder().encode(s),b=>String.fromCharCode(b)).join(''));
 const base64url=(s:string)=>b64(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-function recipients(audience:Audience) {
-  const raw=process.env[audience==='finance'?'CASETTA_FINANCE_EMAILS':'CASETTA_STOCK_EMAILS']||'';
-  const addresses=raw.split(',').map(s=>s.trim()).filter(Boolean);
-  if(!addresses.length || addresses.length>8 || addresses.some(a=>!/^[-\w.+]+@[-\w.]+\.[A-Za-z]{2,}$/.test(a))) return [];
-  return [...new Set(addresses)];
+async function recipients(audience:Audience):Promise<string[]> {
+  const client=supabaseAdmin as unknown as {
+    from:(table:string)=>{select:(columns:string)=>{eq:(column:string,value:string)=>PromiseLike<{data:{email:string}[]|null,error:unknown}>}};
+  };
+  const {data,error}=await client.from('casetta_report_recipients').select('email').eq('audience',audience);
+  if(error||!data)return [];
+  return [...new Set(data.map(row=>row.email))].slice(0,8);
 }
 export function previousRomeDate(now=new Date()) {
   const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Rome',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
@@ -80,7 +82,7 @@ export async function dispatchCasettaReport(day:string=previousRomeDate()) {
   const report=reportSchema.parse(data);
   const outcomes:Record<string,string>={};
   for(const audience of ['finance','stock'] as const){
-    const to=recipients(audience);
+    const to=await recipients(audience);
     if(!to.length){outcomes[audience]='not_configured';continue;}
     const claim=await db.rpc('casetta_claim_report',{_day:day,_audience:audience});
     if(claim.error){outcomes[audience]='claim_error';continue;}
