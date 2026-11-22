@@ -32,6 +32,9 @@ function CasettaCassa(){
   const [error,setError]=useState('');
   const [qty,setQty]=useState<Record<string,number>>({});
   const [method,setMethod]=useState<Method>('cash');
+  const [firstName,setFirstName]=useState('');
+  const [lastName,setLastName]=useState('');
+  const [wantsEmail,setWantsEmail]=useState(false);
   const [email,setEmail]=useState('');
   const [phase,setPhase]=useState<Phase>('cart');
   const [requestId,setRequestId]=useState('');
@@ -59,12 +62,16 @@ function CasettaCassa(){
     setError('');
   }
   function reset(){
-    setQty({});setEmail('');setMethod('cash');setRequestId('');
+    setQty({});setFirstName('');setLastName('');setWantsEmail(false);setEmail('');setMethod('cash');setRequestId('');
     setResult(null);setError('');setPhase('cart');
   }
   async function submit(){
     if(!open||!lines.length||phase!=='review')return;
-    if(email.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){
+    if(!/^[\p{L} '-]{2,80}$/u.test(firstName.trim())||!/^[\p{L} '-]{2,80}$/u.test(lastName.trim())){
+      setError('Inserisci nome e cognome del cliente (entrambi obbligatori).');return;
+    }
+    if(wantsEmail&&!email.trim()){setError('Inserisci l’email richiesta dal cliente oppure togli la spunta.');return;}
+    if(wantsEmail&&email.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){
       setError('Controlla l’indirizzo email oppure lascialo vuoto.');return;
     }
     const id=requestId||crypto.randomUUID();
@@ -72,8 +79,9 @@ function CasettaCassa(){
     try{
       const saved=await save({data:{
         requestId:id,deviceId:deviceId(),method,
+        firstName:firstName.trim(),lastName:lastName.trim(),
         items:lines.map(p=>({id:p.id,quantity:p.quantity})),
-        email:email.trim(),
+        email:wantsEmail?email.trim():'',
       }});
       setResult({totalCents:saved.totalCents,mode:saved.mode});
       setPhase('success');
@@ -139,11 +147,35 @@ function CasettaCassa(){
             className={`${big} border-2 ${method==='pos'?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>💳<span className="block">POS</span></button>
         </div>
         <p className="mt-3 text-center text-base text-[#516357]">{method==='pos'?'Incassa prima sul POS fisico, poi conferma.':'Ricevi prima i contanti, poi conferma.'}</p>
-        <label htmlFor="casetta-email" className="mt-6 flex items-center gap-2 text-lg font-extrabold"><Mail size={22}/> Email cliente (facoltativa)</label>
-        <input id="casetta-email" type="email" inputMode="email" autoComplete="email" disabled={phase==='sending'||Boolean(requestId)}
-          value={email} onChange={e=>setEmail(e.target.value)} placeholder="nome@email.it"
-          className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-lg focus:outline-4 focus:outline-amber-500"/>
-        <p className="mt-2 text-sm text-[#516357]">Se inserita, invieremo una conferma non fiscale della vendita e un invito ai regali solidali. Nessuna email in modalità prova.</p>
+        <div className="mt-6 rounded-2xl border-2 border-[#b7c7b8] bg-[#faf9f4] p-4">
+          <h3 className="text-xl font-black">Dati cliente · obbligatori</h3>
+          <p className="mt-1 text-sm text-[#516357]">Scrivi nome e cognome come sul blocchetto delle offerte.</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label htmlFor="casetta-first-name" className="text-lg font-extrabold">Nome *
+              <input id="casetta-first-name" type="text" autoComplete="given-name" maxLength={80} required
+                disabled={phase==='sending'||Boolean(requestId)} value={firstName} onChange={e=>setFirstName(e.target.value)}
+                placeholder="Nome" className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-xl font-normal focus:outline-4 focus:outline-amber-500"/>
+            </label>
+            <label htmlFor="casetta-last-name" className="text-lg font-extrabold">Cognome *
+              <input id="casetta-last-name" type="text" autoComplete="family-name" maxLength={80} required
+                disabled={phase==='sending'||Boolean(requestId)} value={lastName} onChange={e=>setLastName(e.target.value)}
+                placeholder="Cognome" className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-xl font-normal focus:outline-4 focus:outline-amber-500"/>
+            </label>
+          </div>
+        </div>
+        <label className="mt-6 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-[#b7c7b8] bg-white p-4 text-lg font-extrabold">
+          <input type="checkbox" checked={wantsEmail} disabled={phase==='sending'||Boolean(requestId)}
+            onChange={e=>{setWantsEmail(e.target.checked);if(!e.target.checked)setEmail('');}}
+            className="h-7 w-7 shrink-0 accent-[#236343]"/>
+          <Mail size={25} className="shrink-0"/> Il cliente desidera ricevere l’email di ringraziamento?
+        </label>
+        {wantsEmail&&<div className="mt-3">
+          <label htmlFor="casetta-email" className="text-lg font-extrabold">Email cliente (solo su richiesta)</label>
+          <input id="casetta-email" type="email" inputMode="email" autoComplete="email" disabled={phase==='sending'||Boolean(requestId)}
+            value={email} onChange={e=>setEmail(e.target.value)} placeholder="nome@email.it"
+            className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-lg focus:outline-4 focus:outline-amber-500"/>
+          <p className="mt-2 text-sm text-[#516357]">Invieremo una conferma non fiscale e un invito ai regali solidali. Nessuna newsletter.</p>
+        </div>}
         {error&&<div role="alert" className="mt-4 rounded-2xl bg-red-100 p-4 text-base font-bold text-red-900">{error}</div>}
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>
           {phase==='sending'?'REGISTRAZIONE IN CORSO…':requestId?'RIPROVA LA CONFERMA':'CONFERMA VENDITA'}
@@ -154,8 +186,9 @@ function CasettaCassa(){
         <CheckCircle2 className="mx-auto text-[#236343]" size={80}/>
         <h2 className="mt-4 text-3xl font-black">{result?.mode==='test'?'Vendita di prova registrata!':'Vendita registrata!'}</h2>
         <p className="mt-4 text-4xl font-black">{euro(result?.totalCents??0)}</p>
+        <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
         <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':'POS'}</p>
-        {email&&result?.mode==='live'&&<p className="mt-2 text-base">Conferma email in preparazione, soggetta al servizio di invio.</p>}
+        {wantsEmail&&email&&result?.mode==='live'&&<p className="mt-2 text-base">Conferma email in preparazione, soggetta al servizio di invio.</p>}
         <button onClick={reset} className={`${big} mt-8 flex w-full items-center justify-center gap-3 bg-[#236343] text-white`}><RotateCcw/> NUOVA VENDITA</button>
       </section>}
       <p className="mt-8 text-center text-sm text-[#596a60]">Vendite in presenza · Non è un registratore fiscale · Orario 08:00–20:00</p>
