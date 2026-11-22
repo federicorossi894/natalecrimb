@@ -143,6 +143,9 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(finance).not.toContain('Panettone cartone');
   expect(finance).not.toContain('Vendite per orario');
   expect(stock).toContain('Panettone cartone');
+  expect(finance).toContain('cri-monza-email-v2.png');
+  expect(stock).toContain('cri-monza-email-v2.png');
+  expect(finance).toContain('href="https://natale.crimonza.org/"');
   expect(stock).toContain('Vendite per orario');
   expect(stock).toContain('Quantità vendute, non giacenze');
  });
