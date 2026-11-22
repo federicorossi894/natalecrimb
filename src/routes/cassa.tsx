@@ -43,7 +43,7 @@ function CasettaCassa(){
     let active=true;
     const refresh=async()=>{
       try{const state=await load();if(active){setCatalog(state);setError('');}}
-      catch{if(active)setError('Impossibile aggiornare la cassa. Controlla la connessione.');}
+      catch{if(active)setError('Il servizio della cassa non risponde. Riprova tra poco.');}
       finally{if(active)setLoading(false);}
     };
     const network=()=>setOnline(navigator.onLine);
@@ -98,11 +98,15 @@ function CasettaCassa(){
         <p className="mt-2 text-base">Una vendita, pochi tocchi. Nessun accesso richiesto.</p>
       </header>
       {catalog?.mode==='test'&&<div role="status" className="mt-4 rounded-2xl border-2 border-amber-500 bg-amber-100 p-4 text-center text-lg font-black text-amber-950">
-        🧪 MODALITÀ PROVA · Le vendite non sono incassi reali e non partono email
+        🧪 MODALITÀ DEMO · Ordini di prova, esclusi dagli incassi e dal magazzino. Email al cliente solo se richiesta. Report delle 20:00 sospesi.
       </div>}
       {!online&&<div role="alert" className="mt-4 flex items-center gap-2 rounded-2xl bg-red-100 p-4 text-lg font-bold text-red-900"><WifiOff/> Senza connessione non si possono registrare vendite.</div>}
       {loading&&<p className="p-10 text-center text-2xl">Caricamento cassa…</p>}
-      {!loading&&!catalog&&<div role="alert" className="mt-5 rounded-2xl bg-white p-8 text-center text-xl font-bold">{error||'Cassa non disponibile'}</div>}
+      {!loading&&!catalog&&<div role="alert" className="mt-5 rounded-2xl bg-white p-8 text-center">
+        <p className="text-xl font-bold">{error||'Cassa temporaneamente non disponibile'}</p>
+        <button type="button" onClick={()=>window.location.reload()}
+          className={`${big} mt-6 bg-[#236343] text-white`}>RIPROVA A CARICARE</button>
+      </div>}
       {catalog&&!catalog.open&&phase!=='success'&&<section className="mt-5 rounded-3xl bg-white p-8 text-center shadow-sm">
         <LockKeyhole className="mx-auto mb-4 text-[#236343]" size={64}/>
         <h2 className="text-3xl font-black">Cassa chiusa</h2>
