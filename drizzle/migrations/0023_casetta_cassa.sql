@@ -83,6 +83,7 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(_request_id::text,7401));
  SELECT id,total_cents,mode INTO v_id,v_total,v_mode FROM public.casetta_sales WHERE request_id=_request_id;
  IF FOUND THEN RETURN jsonb_build_object('id',v_id,'totalCents',v_total,'mode',v_mode,'alreadyRecorded',true); END IF;
+ v_total:=0;
  IF (now() AT TIME ZONE 'Europe/Rome')::time NOT BETWEEN time '08:00' AND time '19:59:59.999999'
  THEN RAISE EXCEPTION 'Cassa chiusa dalle 20 alle 08'; END IF;
  SELECT mode INTO v_mode FROM public.casetta_settings WHERE singleton=true;
