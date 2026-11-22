@@ -3,7 +3,9 @@
 ## Utilizzo
 - URL: **https://natale.crimonza.org/cassa**. Nessun QR, codice, login o area amministrativa.
 - Aperta **08:00–20:00 ora italiana**, controllo server nel database; dopo le 20:00 le vendite vengono rifiutate anche se la pagina è rimasta aperta.
-- Il volontario tocca le icone, cambia quantità, seleziona **Contanti** o **POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma.
+- Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi seleziona **Contanti** o **POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma.
+- Con **SÌ** inserisce **solo la cifra aggiuntiva** in euro (virgola decimale ammessa), non l'importo totale: panettone 14 €, cliente lascia 20 € → donazione extra 6 €, **totale da incassare 20 €**. Con NO la donazione è zero. La vendita resta un solo pagamento; il database conserva `extra_donation_cents` separatamente dai prodotti.
+- La donazione extra **non è un prodotto**: non altera listino, quantità vendute o magazzino. L'incasso e il POS/contante comprendono invece la cifra totale effettivamente ricevuta. Per mantenere il vincolo della cassa il totale della singola operazione non può superare 1.000 €.
 - Nome e cognome del cliente sono obbligatori e devono coincidere con il blocchetto delle offerte. L'email viene richiesta solo se il cliente spunta esplicitamente la casella per ricevere il ringraziamento.
 - Il registro cartaceo storico viene importato come totale aggregato e non genera ricevute individuali. La cassa non è un registratore fiscale; il POS va effettivamente incassato sul terminale e il contante va riconciliato.
 - Chiunque conosca l'URL può registrare vendite: limitazioni anti-abuso e assenza dalla sitemap riducono il rischio, **non garantiscono che sia solo per volontari**.
@@ -23,6 +25,13 @@
 
 Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 
+## Donazione extra nel database e negli export
+- Migrazione **`0031_casetta_extra_donazione.sql`**: colonna `casetta_sales.extra_donation_cents` (default 0 per vecchie operazioni), nuova RPC atomica con argomento `_extra_donation_cents` e piena idempotenza del `request_id`. La precedente firma della RPC resta disponibile per le richieste già in corso durante il deploy.
+- La mail cliente mostra una riga **Donazione extra** soltanto quando positiva; non viene inserita tra le righe prodotto.
+- Il riepilogo economico distingue **di cui prodotti**, **di cui donazioni extra** e **donazioni extra cumulative**, senza modificare il totale incassato contanti/POS.
+- L'Excel privato contiene **Totale incassato (€)**, **Prodotti (€)** e **Donazione extra (€)** in tre colonne distinte; le vecchie vendite e il registro pre-utilizzo sono considerati donazione extra = 0.
+- La modalità DEMO continua a NON incidere su incassi reali e giacenze.
+
 ## Test e produzione
 - `casetta_settings.mode` nasce `test`. Le vendite di prova restano salvate ma **non contano** nei report e **non riducono il magazzino**. Se il cliente spunta la richiesta, parte una ricevuta DEMO chiaramente marcata come simulazione; i report gestionali delle 19:00 restano sospesi.
 - Dopo collaudo e verifica email, passare a `live` con `UPDATE public.casetta_settings SET mode='live' WHERE singleton=true;`.
@@ -30,10 +39,10 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 
 ## Email
 - Da **natale@crimonza.org** tramite connessione Gmail già usata dal sito.
-- **amministrazione@crimonza.org**: totale giornata, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
-- **monza.sviluppo@lombardia.cri.it**: stessi numeri, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
+- **amministrazione@crimonza.org**: totale giornata con separazione **prodotti / donazioni extra**, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
+- **monza.sviluppo@lombardia.cri.it**: stessi numeri con donazioni extra separate, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
 - **CCN Federico**: federico.rossi@crimonza.org **solo nel riepilogo di magazzino inviato a Michela (monza.sviluppo@lombardia.cri.it)**. Nessun CCN in quello per Manuela o nelle ricevute ai clienti (DEMO e LIVE).
-- **Cliente (facoltativa, solo su richiesta)**: ricevuta non fiscale personalizzata con articoli e importo, pulsante principale verso la home `https://natale.crimonza.org/` e secondo riquadro dedicato al Calendario della Gentilezza `https://natale.crimonza.org/calendario`. In tutte le mail usare il marchio territoriale CRI Monza ingrandito.
+- **Cliente (facoltativa, solo su richiesta)**: ricevuta non fiscale personalizzata con articoli, donazione extra distinta e totale effettivamente incassato, pulsante principale verso la home `https://natale.crimonza.org/` e secondo riquadro dedicato al Calendario della Gentilezza `https://natale.crimonza.org/calendario`. In tutte le mail usare il marchio territoriale CRI Monza ingrandito.
 - Alle **19:00 ora italiana** (primo tick disponibile dello scheduler) parte il report della giornata, solo in LIVE. L'orario operativo della cassa continua a consentire inserimenti fino alle 20:00; le vendite registrate dopo le 19:00 richiederanno riconciliazione aggiuntiva, perché il recap giornaliero è già stato inviato. Il job lavora ogni 2 minuti dalle 08:00 alle 20:59 (CET) e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
 
 ## Cron (solo dopo deploy, migrazione e collaudo)
