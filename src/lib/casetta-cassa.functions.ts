@@ -8,6 +8,7 @@ const saleInput=z.object({
   requestId:z.string().uuid(),
   deviceId:z.string().uuid(),
   method:z.enum(['cash','pos']),
+  extraDonationCents:z.number().int().min(0).max(100000),
   items:z.array(z.object({id:z.string().regex(/^[a-z0-9_-]{2,40}$/),quantity:z.number().int().min(1).max(99)}).strict()).min(1).max(20),
   firstName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
   lastName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
@@ -48,6 +49,7 @@ export const casettaRecordSale=createServerFn({method:'POST'})
      _request_id:data.requestId,_method:data.method,_items:data.items,
      _email:data.email||null,_client_tag:await tagFor(data.deviceId),
      _first_name:data.firstName,_last_name:data.lastName,
+     _extra_donation_cents:data.extraDonationCents,
    });
    if(error){
      if(/chiusa|20 alle 08/i.test(error.message))throw new Error('Cassa chiusa: riapre alle 08:00.');
@@ -55,7 +57,8 @@ export const casettaRecordSale=createServerFn({method:'POST'})
      throw new Error('Registrazione non confermata. Riprova con lo stesso riepilogo.');
    }
    return z.object({
-     id:z.string().uuid(),totalCents:z.number().int(),mode:z.enum(['test','live']),
+     id:z.string().uuid(),totalCents:z.number().int(),productsCents:z.number().int(),
+     extraDonationCents:z.number().int(),mode:z.enum(['test','live']),
      alreadyRecorded:z.boolean(),
    }).parse(result);
  });
