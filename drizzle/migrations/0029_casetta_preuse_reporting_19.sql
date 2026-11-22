@@ -91,8 +91,8 @@ BEGIN
  INTO pre_rows FROM public.casetta_preuse_sales h
  JOIN public.casetta_products p ON p.id=h.product_id WHERE h.sale_day<=d;
  RETURN b||jsonb_build_object('rows',pre_rows||(
-  SELECT coalesce(jsonb_agg(rowval||jsonb_build_object('source','Cassa')),
-   '[]'::jsonb) FROM jsonb_array_elements(b->'rows') rowval));
+  SELECT coalesce(jsonb_agg(live_row.value||jsonb_build_object('source','Cassa')),
+   '[]'::jsonb) FROM jsonb_array_elements(b->'rows') AS live_row(value)));
 END $body$;
 
 CREATE OR REPLACE FUNCTION public.casetta_claim_report(_day date,_audience text)
