@@ -4,6 +4,7 @@ const SENDER='natale@crimonza.org';
 const FINANCE='amministrazione@crimonza.org';
 const STOCK='monza.sviluppo@lombardia.cri.it';
 const AUDIT_BCC='federico.rossi@crimonza.org';
+const EMAIL_LOGO_URL='https://natale.crimonza.org/cri-monza-email-v2.png';
 const finance=z.object({
  totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int(),
  preUseCents:z.number().int().default(0),preUseUnits:z.number().int().default(0),
@@ -45,6 +46,9 @@ export function romeClock(now=new Date()){
 function frame(body:string){
  return '<!doctype html><html lang="it"><body style="margin:0;padding:24px 10px;background:#f4f1e9;font-family:Arial,sans-serif;color:#173d30">'+
  '<div style="max-width:630px;margin:0 auto;background:white;border-radius:18px;overflow:hidden">'+
+ '<div style="padding:16px 20px;background:#fefefe;text-align:center">'+
+ '<img src="'+EMAIL_LOGO_URL+'" alt="Croce Rossa Italiana — Comitato di Monza" width="540" height="121" border="0" style="display:block;width:100%;max-width:540px;height:auto;margin:0 auto;border:0" />'+
+ '</div>'+
  '<div style="background:#173d30;color:white;padding:24px;text-align:center">'+
  '<div style="font-size:12px;letter-spacing:1px">CROCE ROSSA ITALIANA · COMITATO DI MONZA</div>'+
  '<div style="font-size:26px;font-weight:bold;margin-top:9px">🎄 Il Natale che fa bene</div></div>'+
@@ -185,7 +189,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  */
 export function receiptHtml(r:z.infer<typeof receiptSchema>){
  const date=new Intl.DateTimeFormat('it-IT',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Rome'}).format(new Date(r.createdAt));
- const logo='https://natale.crimonza.org/cri-monza-email-v2.png';
+ const logo=EMAIL_LOGO_URL;
  const rows=r.items.map(p=>'<tr>'+
   '<td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
   p.quantity+' × '+esc(p.label)+'</td>'+
