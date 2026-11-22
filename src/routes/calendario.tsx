@@ -8,7 +8,6 @@ import { Shell, PageHead } from "@/components/xmas/Shell";
 import { Modal } from "@/components/xmas/Modal";
 import { AdventScene, type DoorState } from "@/components/xmas/AdventScene";
 import { useReducedMotion } from "@/components/xmas/TreeExperience";
-import { plaqueOf } from "@/lib/advent-layout";
 import {
   DOORS, calendarPhase, demoDoor, loadOpened, saveOpened, seasonYear, useKindnessCalendar, type Door,
 } from "@/lib/kindness";
@@ -43,7 +42,10 @@ function Calendario() {
   const [opening, setOpening] = useState<number | null>(null);
   const [show, setShow] = useState<Shown | null>(null);
   const [hint, setHint] = useState("");
-  const [zoom, setZoom] = useState(true);
+  // Start with the entire building visible; zoom is an explicit visitor action.
+  const [zoomScale, setZoomScale] = useState(1);
+  const scaleRef = useRef(1);
+  const pinch = useRef<{distance:number;scale:number;focus:number}|null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { if (ready) setOpened(loadOpened(season)); }, [ready, season]);
@@ -63,13 +65,64 @@ function Calendario() {
     s === "locked" ? `Finestrella ${day}, chiusa: si apre il ${day} dicembre` :
     s === "today" ? `Finestrella ${day}, quella di oggi: aprila` : `Finestrella ${day}, disponibile: aprila`;
 
-  // When zoomed in on a phone, start with today's plaque (or the main door) in view.
+  const changeScale = (value:number) => {
+    const next = Math.min(3.5,Math.max(1,value));
+    scaleRef.current=next;
+    setZoomScale(next);
+  };
+  // Native non-passive two-finger handling zooms the illustration (not the whole page).
+  // Single-finger gestures remain native scroll/pan; plaque clicks still open their doors.
   useEffect(() => {
-    const el = scroller.current;
-    if (!el || el.scrollWidth <= el.clientWidth) return;
-    const p = plaqueOf(today || 24)!;
-    el.scrollLeft = p.cx * el.scrollWidth - el.clientWidth / 2;
-  }, [zoom, today, ready]);
+    const el=scroller.current;
+    if(!el)return;
+    const distance=(touches:TouchList)=>Math.hypot(
+      touches[0]!.clientX-touches[1]!.clientX,
+      touches[0]!.clientY-touches[1]!.clientY,
+    );
+    const start=(event:TouchEvent)=>{
+      if(event.touches.length!==2)return;
+      const rect=el.getBoundingClientRect();
+      const midX=(event.touches[0]!.clientX+event.touches[1]!.clientX)/2-rect.left;
+      pinch.current={
+        distance:Math.max(distance(event.touches),1),
+        scale:scaleRef.current,
+        focus:(el.scrollLeft+midX)/Math.max(el.scrollWidth,1),
+      };
+    };
+    const move=(event:TouchEvent)=>{
+      if(event.touches.length!==2||!pinch.current)return;
+      event.preventDefault();
+      const p=pinch.current;
+      const next=Math.min(3.5,Math.max(1,p.scale*distance(event.touches)/p.distance));
+      scaleRef.current=next;
+      setZoomScale(next);
+      const rect=el.getBoundingClientRect();
+      const midX=(event.touches[0]!.clientX+event.touches[1]!.clientX)/2-rect.left;
+      requestAnimationFrame(()=>{el.scrollLeft=p.focus*el.scrollWidth-midX;});
+    };
+    const end=(event:TouchEvent)=>{
+      if(event.touches.length<2)pinch.current=null;
+    };
+    el.addEventListener('touchstart',start,{passive:true});
+    el.addEventListener('touchmove',move,{passive:false});
+    el.addEventListener('touchend',end);
+    el.addEventListener('touchcancel',end);
+    return ()=>{
+      el.removeEventListener('touchstart',start);
+      el.removeEventListener('touchmove',move);
+      el.removeEventListener('touchend',end);
+      el.removeEventListener('touchcancel',end);
+    };
+  },[]);
+  const toggleZoom=()=>{
+    const next=zoomScale>1.01?1:2.5;
+    changeScale(next);
+    const el=scroller.current;
+    if(el)requestAnimationFrame(()=>{
+      el.scrollLeft=next===1?0:(el.scrollWidth-el.clientWidth)/2;
+      if(next===1)el.scrollTop=0;
+    });
+  };
 
   const openDoor = (day: number) => {
     if (!ready || opening !== null) return;
@@ -91,8 +144,8 @@ function Calendario() {
 
   return (
     <Shell>
-      <PageHead kicker="Calendario della Gentilezza" title={<>24 finestrelle, <em className="text-gold">24 gesti gentili.</em></>}>
-        Dal 1 al 24 dicembre, sulla sede natalizia della Croce Rossa di Monza si apre ogni giorno una finestrella con un piccolo gesto da fare a Monza, a casa o a scuola. Per grandi e piccoli, senza bisogno di niente: solo un po' di attenzione per chi ci sta intorno.
+      <PageHead kicker="Il nostro Calendario dell’Avvento" title={<>Calendario della Gentilezza: <em className="text-gold">24 finestrelle, 24 gesti.</em></>}>
+        Questo è il nostro <strong>Calendario dell’Avvento</strong>, e si chiama <strong>Calendario della Gentilezza</strong>: dal 1° al 24 dicembre apri ogni giorno una nuova casellina sulla sede natalizia della Croce Rossa di Monza e scopri un piccolo gesto gentile da fare a Monza, a casa o a scuola. Tocca una finestrella per aprirla; ingrandisci la sede se vuoi esplorarla da vicino.
       </PageHead>
 
       <section className="mx-auto max-w-6xl px-4">
@@ -122,17 +175,20 @@ function Calendario() {
         )}
 
         <div className="advent-frame" data-testid="advent">
-          <div ref={scroller} className={cn("advent-scroll", zoom && "is-zoomed")}>
-            <AdventScene state={stateOf} label={labelOf} onSelect={openDoor} opening={opening} />
+          <div ref={scroller} className={cn("advent-scroll",zoomScale>1.01&&"is-zoomed")} data-zoom={zoomScale>1.01?"zoomed":"fit"}>
+            <div className="advent-scaled" style={{width:`${zoomScale*100}%`}}>
+              <AdventScene state={stateOf} label={labelOf} onSelect={openDoor} opening={opening} />
+            </div>
           </div>
           {demo && <span className="advent-demo-chip">DEMO · {demoDay} dicembre simulato</span>}
         </div>
-        <div className="mt-3 flex justify-end lg:hidden">
-          <button type="button" onClick={() => setZoom((z) => !z)} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-xs font-semibold" data-testid="advent-zoom">
-            {zoom ? <><Minimize2 className="h-3.5 w-3.5" aria-hidden />Vedi tutta la sede</> : <><Maximize2 className="h-3.5 w-3.5" aria-hidden />Ingrandisci</>}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">La sede è mostrata per intero. Puoi ingrandire con due dita oppure con il pulsante.</p>
+          <button type="button" onClick={toggleZoom} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-xs font-semibold" data-testid="advent-zoom" aria-pressed={zoomScale>1.01}>
+            {zoomScale>1.01?<><Minimize2 className="h-3.5 w-3.5" aria-hidden />Vedi tutta la sede</>:<><Maximize2 className="h-3.5 w-3.5" aria-hidden />Ingrandisci la sede</>}
           </button>
         </div>
-        {zoom && <p className="mt-2 text-xs text-muted-foreground lg:hidden">Scorri di lato per vedere tutte le finestrelle.</p>}
+        {zoomScale>1.01 && <p className="mt-2 text-xs text-muted-foreground">Trascina la sede per esplorare le finestrelle; avvicina o allontana due dita per regolare l’ingrandimento.</p>}
         <p className="mt-3 min-h-5 text-center text-sm text-gold" role="status">{hint || (today ? `${demo ? "DEMO · " : "Oggi è il "}${today} dicembre: la finestrella ${today} ti aspetta.` : "")}</p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
