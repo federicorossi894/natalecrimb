@@ -12,7 +12,9 @@ const payload=z.object({
  products:z.array(z.object({id:z.string(),label:z.string()})),
  rows:z.array(z.object({
   date:z.string(),firstName:z.string(),lastName:z.string(),amountCents:z.number().int(),
-  method:z.enum(['cash','pos']),quantities:z.record(z.string(),z.number().int()),
+  productsCents:z.number().int().nonnegative().optional(),extraDonationCents:z.number().int().nonnegative().default(0),
+  method:z.enum(['cash','pos','unknown']),source:z.string().optional(),
+  quantities:z.record(z.string(),z.number().int()),
  })),
 });
 export const Route=createFileRoute('/api/public/casetta-export')({
