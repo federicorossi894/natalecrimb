@@ -174,7 +174,7 @@ function CasettaCassa(){
           <input id="casetta-email" type="email" inputMode="email" autoComplete="email" disabled={phase==='sending'||Boolean(requestId)}
             value={email} onChange={e=>setEmail(e.target.value)} placeholder="nome@email.it"
             className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-lg focus:outline-4 focus:outline-amber-500"/>
-          <p className="mt-2 text-sm text-[#516357]">Invieremo una conferma non fiscale e un invito ai regali solidali. Nessuna newsletter.</p>
+          <p className="mt-2 text-sm text-[#516357]">Invieremo una conferma non fiscale e un invito ai regali solidali. Nessuna newsletter. In DEMO riceverà una mail di simulazione, non una conferma di acquisto reale.</p>
         </div>}
         {error&&<div role="alert" className="mt-4 rounded-2xl bg-red-100 p-4 text-base font-bold text-red-900">{error}</div>}
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>
@@ -188,7 +188,7 @@ function CasettaCassa(){
         <p className="mt-4 text-4xl font-black">{euro(result?.totalCents??0)}</p>
         <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
         <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':'POS'}</p>
-        {wantsEmail&&email&&result?.mode==='live'&&<p className="mt-2 text-base">Conferma email in preparazione, soggetta al servizio di invio.</p>}
+        {wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
         <button onClick={reset} className={`${big} mt-8 flex w-full items-center justify-center gap-3 bg-[#236343] text-white`}><RotateCcw/> NUOVA VENDITA</button>
       </section>}
       <p className="mt-8 text-center text-sm text-[#596a60]">Vendite in presenza · Non è un registratore fiscale · Orario 08:00–20:00</p>
