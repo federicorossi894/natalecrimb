@@ -57,3 +57,30 @@ describe("TV 12:00 camera", () => {
     }
   });
 });
+
+
+// UI regression: initially show the entire sede, make zoom optional, and
+// explain clearly that Gentilezza is CRI Monza's Advent calendar.
+describe("Advent calendar website UX", () => {
+  it("starts with a complete building and supports two-finger pinch zoom", async () => {
+    const { readFileSync } = await import("node:fs");
+    const route = readFileSync("src/routes/calendario.tsx", "utf8");
+    const styles = readFileSync("src/styles.css", "utf8");
+    expect(route).toContain("useState(1)");
+    expect(route).not.toContain("useState(true);\n  const scroller");
+    expect(route).toContain("addEventListener('touchmove',move,{passive:false})");
+    expect(route).toContain("event.preventDefault()");
+    expect(route).toContain("Ingrandisci la sede");
+    expect(route).toContain("Vedi tutta la sede");
+    expect(styles).toContain(".advent-scroll { width: 100%; aspect-ratio: 3 / 2");
+    expect(styles).toContain(".advent-scaled { width: 100%; }");
+  });
+  it("identifies Advent in navigation, heading and page description", async () => {
+    const { readFileSync } = await import("node:fs");
+    const menu = readFileSync("src/components/xmas/Shell.tsx", "utf8");
+    const route = readFileSync("src/routes/calendario.tsx", "utf8");
+    expect(menu).toContain('label: "Calendario dell’Avvento"');
+    expect(route).toContain('Questo è il nostro <strong>Calendario dell’Avvento</strong>');
+    expect(route).toContain('<strong>Calendario della Gentilezza</strong>');
+  });
+});
