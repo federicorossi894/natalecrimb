@@ -96,7 +96,7 @@ BEGIN
   RETURN jsonb_build_object('id',v_id,'totalCents',v_total,'alreadyRecorded',true);
  END IF;
  v_total:=0;
- FOR v_item IN SELECT value FROM jsonb_array_elements(_items) LOOP
+ FOR v_item IN SELECT elem.value FROM jsonb_array_elements(_items) AS elem(value) LOOP
   IF jsonb_typeof(v_item) IS DISTINCT FROM 'object'
    OR jsonb_typeof(v_item->'id') IS DISTINCT FROM 'string'
    OR jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number'
@@ -107,9 +107,9 @@ BEGIN
   SELECT id,label,price_cents INTO v_product FROM public.casetta_products
    WHERE id=v_product_id AND active=true AND price_cents IS NOT NULL;
   IF NOT FOUND THEN RAISE EXCEPTION 'Prodotto non disponibile'; END IF;
-  IF EXISTS (SELECT 1 FROM jsonb_array_elements(_items) x
-     WHERE x->>'id'=v_product_id
-     GROUP BY x->>'id' HAVING count(*)>1) THEN RAISE EXCEPTION 'Prodotto duplicato'; END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(_items) AS elem(value)
+     WHERE elem.value->>'id'=v_product_id
+     GROUP BY elem.value->>'id' HAVING count(*)>1) THEN RAISE EXCEPTION 'Prodotto duplicato'; END IF;
   v_total:=v_total+v_product.price_cents*v_n;
   v_qty:=v_qty+v_n;
  END LOOP;
@@ -118,7 +118,7 @@ BEGIN
  VALUES(_request_id,v_key,_method,v_total) RETURNING id INTO v_id;
  INSERT INTO public.casetta_sale_items(sale_id,product_id,product_label,quantity,unit_price_cents,line_total_cents)
  SELECT v_id,p.id,p.label,(x.value->>'quantity')::integer,p.price_cents,p.price_cents*(x.value->>'quantity')::integer
- FROM jsonb_array_elements(_items) x JOIN public.casetta_products p ON p.id=x.value->>'id';
+ FROM jsonb_array_elements(_items) AS x(value) JOIN public.casetta_products p ON p.id=x.value->>'id';
  RETURN jsonb_build_object('id',v_id,'totalCents',v_total,'alreadyRecorded',false);
 END $$;
 
