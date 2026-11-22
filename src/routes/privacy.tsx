@@ -18,7 +18,7 @@ function Privacy() {
     <article className="mx-auto max-w-3xl px-5 pb-16 pt-12 text-foreground">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Il Natale che fa bene · Trasparenza</p>
       <h1 className="mt-3 font-display text-4xl sm:text-5xl">Informativa sulla privacy</h1>
-      <p className="mt-4 text-sm text-muted-foreground">Aggiornamento: 12 novembre 2026 · Informazioni ai sensi degli articoli 13 e, ove applicabile, 14 del Regolamento (UE) 2016/679.</p>
+      <p className="mt-4 text-sm text-muted-foreground">Aggiornamento: 22 novembre 2026 · Informazioni ai sensi degli articoli 13 e, ove applicabile, 14 del Regolamento (UE) 2016/679.</p>
       <div className="mt-7 rounded-2xl border border-gold/40 bg-secondary/60 p-5">
         <h2 className="font-display text-xl">In breve</h2>
         <p className="mt-2 text-sm leading-relaxed">I dati servono per gestire il tuo gesto solidale, creare la pallina e, se lo chiedi, inviare il regalo o la conferma. <strong>La dedica e la firma diventano pubbliche soltanto se scegli esplicitamente di pubblicarle.</strong> Non ti iscriviamo automaticamente a newsletter e non creiamo un elenco di contatti per attività promozionali. Al termine della campagna è prevista la dismissione del sito e la rimozione dei dati operativi non più necessari, con le eccezioni spiegate sotto.</p>
@@ -36,6 +36,12 @@ function Privacy() {
           <p className="mt-2">Se scegli la cartolina o l'email: nome del destinatario, firma e testo personale, eventuale indirizzo email del destinatario o del donatore e dati tecnici dell'invio. La cartolina WhatsApp viene preparata sul tuo dispositivo: scegli tu a chi inoltrarla.</p>
           <p className="mt-2">Per far funzionare e proteggere il servizio: identificativi tecnici, informazioni di navigazione e sicurezza, registrazioni necessarie a prevenire invii o addebiti ripetuti. Il sistema prevede un database operativo durante la campagna; non è corretto dire che non viene memorizzato alcun dato.</p>
           <p className="mt-2">Nell'Accademia dei Piccoli Volontari i progressi e il nome eventualmente inserito nel diploma restano sul dispositivo; per partecipare non è richiesta la registrazione di un bambino.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-2xl">Cassa della Casetta di Natale</h2>
+          <p className="mt-3">Per le vendite in presenza registriamo articoli, quantità, prezzi, totale, modalità dichiarata di pagamento (contanti o POS), data e ora, oltre a identificativi tecnici pseudonimi per prevenire registrazioni duplicate o automatizzate. Non raccogliamo numeri di carte di pagamento: il POS fisico opera separatamente.</p>
+          <p className="mt-2">Se chiedi la conferma via email, utilizziamo l'indirizzo inserito esclusivamente per inviare il riepilogo non fiscale della vendita e un invito a conoscere i regali solidali. Non si tratta di un'iscrizione a newsletter e non conserviamo un elenco marketing. L'indirizzo è facoltativo; il servizio di invio utilizza la casella istituzionale della campagna.</p>
+          <p className="mt-2">I dati economici e le quantità vendute sono aggregati nei riepiloghi interni destinati ad amministrazione e referente del magazzino. Le vendite di prova sono distinte da quelle reali. I dati vengono conservati per il tempo necessario alla gestione e agli obblighi amministrativi applicabili; per la cancellazione o altre richieste puoi scrivere ai recapiti del titolare sopra indicati.</p>
         </section>
         <section>
           <h2 className="font-display text-2xl">3. Perché li trattiamo e su quale base</h2>
