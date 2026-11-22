@@ -31,14 +31,14 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - **amministrazione@crimonza.org**: totale giornata, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
 - **Michela.cirla@crimonza.org**: stessi numeri, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
 - **Cliente (facoltativa)**: conferma non fiscale con articoli, importo e invito a `/regali`.
-- Alle **20:00** (primo tick disponibile dello scheduler) parte il report della giornata. Il job lavora ogni minuto e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
+- Alle **20:00** (primo tick disponibile dello scheduler) parte il report della giornata. Il job lavora ogni 2 minuti dalle 08:00 alle 20:59 (CET) e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
 
 ## Cron (solo dopo deploy, migrazione e collaudo)
 Il token `natale_2026_cron_token` esiste già in Supabase Vault.
 Il job usa lo stesso autenticatore delle altre automazioni del sito.
 
 ```sql
-SELECT cron.schedule('natale-2026-casetta-automation','* * * * *',$job$
+SELECT cron.schedule('natale-2026-casetta-automation','*/2 7-19 * 11,12 *',$job$
   SELECT net.http_post(
     url := 'https://natale.crimonza.org/api/internal/casetta-daily-report',
     body := '{}'::jsonb,
@@ -51,7 +51,7 @@ SELECT cron.schedule('natale-2026-casetta-automation','* * * * *',$job$
 $job$);
 ```
 
-Non schedulare prima del collaudo. Stop a fine campagna:
+Job attivato il 22 novembre 2026 in modalità prova: non invia email finché la cassa resta in modalità test. Stop a fine campagna:
 `SELECT cron.unschedule('natale-2026-casetta-automation');`.
 
 ## Controlli obbligatori
