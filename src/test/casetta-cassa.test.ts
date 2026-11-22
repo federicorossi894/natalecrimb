@@ -42,6 +42,14 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('https://natale.crimonza.org/regali');
   expect(html).toContain('Panettone cartone');
   expect(html).toContain('22,00');
+  expect(html).toContain('Croce Rossa Italiana');
+  expect(html).toContain('Comitato di Monza');
+  expect(html).toContain('cri-rosso-orizzontale.png');
+  expect(html).toContain('La magia può continuare');
+  expect(html).toContain('Non è un’iscrizione a newsletter');
+  expect(html).not.toContain('❌');
+  expect(html).toContain('https://natale.crimonza.org/privacy');
+
  });
  it('does not require a QR, password or admin interface',()=>{
   expect(ui).toContain("createFileRoute('/cassa')");
