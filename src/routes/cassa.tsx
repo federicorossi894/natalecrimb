@@ -13,11 +13,6 @@ export const Route=createFileRoute('/cassa')({
   ]}),
   component:CasettaCassa,
 });
-const icons:Record<string,string>={
-  panettone_cartone:'🎁',latta_panettone_pandoro:'🎄',cioccolatini:'🍫',
-  tisane_etiche:'🫖',riso_500:'🍚',riso_1000:'🍚',
-  the_verde_rosso:'🍵',bastoncino_zucchero:'🍭',
-};
 const euro=(c:number)=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(c/100);
 type Phase='cart'|'review'|'sending'|'success';
 type Method='cash'|'pos';
@@ -109,12 +104,11 @@ function CasettaCassa(){
       {catalog?.open&&phase==='cart'&&<>
         <h2 className="my-5 text-center text-2xl font-black">Tocca i prodotti venduti</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {catalog.products.map(p=><div key={p.id} className="flex min-h-48 flex-col justify-between rounded-3xl border-2 border-[#d5dacd] bg-white p-3 shadow-sm">
+          {catalog.products.map(p=><div key={p.id} className="flex min-h-52 flex-col justify-between rounded-3xl border-2 border-[#d5dacd] bg-white p-3 shadow-sm">
             <button type="button" disabled={!open} onClick={()=>adjust(p.id,1)} aria-label={`Aggiungi ${p.label}`}
-              className="flex min-h-28 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-center focus-visible:outline-4 focus-visible:outline-amber-500">
-              <span aria-hidden className="text-5xl">{icons[p.id]||'🎀'}</span>
-              <span className="text-base font-extrabold leading-tight sm:text-lg">{p.label}</span>
-              <span className="text-xl font-black">{euro(p.priceCents)}</span>
+              className="flex min-h-36 flex-1 flex-col items-center justify-center gap-3 rounded-xl px-1 text-center focus-visible:outline-4 focus-visible:outline-amber-500">
+              <span className="text-xl font-extrabold leading-snug sm:text-2xl">{p.label}</span>
+              <span className="text-2xl font-black tabular-nums">{euro(p.priceCents)}</span>
             </button>
             <div className="mt-2 flex items-center justify-between gap-1">
               <button disabled={!open||!qty[p.id]} onClick={()=>adjust(p.id,-1)} aria-label={`Rimuovi uno ${p.label}`}
