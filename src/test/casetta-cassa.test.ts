@@ -88,7 +88,8 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   const migration=readFileSync('drizzle/migrations/0024_casetta_nominativi_export.sql','utf8');
   const route=readFileSync('src/routes/api/public/casetta-export.ts','utf8');
   expect(current).toContain('Dati cliente · obbligatori');
-  expect(current).toContain('Il cliente desidera ricevere l’email');
+  expect(current).toContain('Il cliente desidera ricevere la ricevuta NON fiscale');
+  expect(current).toContain('ricevuta NON fiscale con il riepilogo');
   expect(server).toContain('_first_name:data.firstName');
   expect(server).toContain('_last_name:data.lastName');
   expect(migration).toContain('casetta_export_tokens');
@@ -119,13 +120,16 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
  it('sends a non-fiscal purchase summary and online gift invitation',()=>{
   const html=receiptHtml(receipt);
   expect(html).toContain('Conferma informativa non fiscale');
-  expect(html).toContain('https://natale.crimonza.org/regali');
+  expect(html).toContain('href="https://natale.crimonza.org/"');
+  expect(html).not.toContain('href="https://natale.crimonza.org/regali"');
   expect(html).toContain('Panettone cartone');
   expect(html).toContain('22,00');
   expect(html).toContain('Croce Rossa Italiana');
   expect(html).toContain('Comitato di Monza');
-  expect(html).toContain('cri-rosso-orizzontale.png');
+  expect(html).toContain('cri-monza-email.png');
+  expect(html).not.toContain('margin:-37px');
   expect(html).toContain('La magia può continuare');
+  expect(html).toContain('Scopri il Natale che fa bene');
   expect(html).toContain('Grazie, Giulia.');
   expect(html).toContain('Non è un’iscrizione a newsletter');
   expect(html).not.toContain('❌');

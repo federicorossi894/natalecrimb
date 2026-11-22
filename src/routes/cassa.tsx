@@ -171,14 +171,14 @@ function CasettaCassa(){
           <input type="checkbox" checked={wantsEmail} disabled={phase==='sending'||Boolean(requestId)}
             onChange={e=>{setWantsEmail(e.target.checked);if(!e.target.checked)setEmail('');}}
             className="h-7 w-7 shrink-0 accent-[#236343]"/>
-          <Mail size={25} className="shrink-0"/> Il cliente desidera ricevere l’email di ringraziamento?
+          <Mail size={25} className="shrink-0"/> Il cliente desidera ricevere la ricevuta NON fiscale e l’email di ringraziamento?
         </label>
         {wantsEmail&&<div className="mt-3">
           <label htmlFor="casetta-email" className="text-lg font-extrabold">Email cliente (solo su richiesta)</label>
           <input id="casetta-email" type="email" inputMode="email" autoComplete="email" disabled={phase==='sending'||Boolean(requestId)}
             value={email} onChange={e=>setEmail(e.target.value)} placeholder="nome@email.it"
             className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-lg focus:outline-4 focus:outline-amber-500"/>
-          <p className="mt-2 text-sm text-[#516357]">Invieremo una conferma non fiscale e un invito ai regali solidali. Nessuna newsletter. In DEMO riceverà una mail di simulazione, non una conferma di acquisto reale.</p>
+          <p className="mt-2 text-sm text-[#516357]">Invieremo la ricevuta NON fiscale con il riepilogo dell’acquisto, un ringraziamento e un invito a visitare il sito di Natale. Nessuna newsletter. In DEMO riceverà una mail di simulazione, non una conferma di acquisto reale.</p>
         </div>}
         {error&&<div role="alert" className="mt-4 rounded-2xl bg-red-100 p-4 text-base font-bold text-red-900">{error}</div>}
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>

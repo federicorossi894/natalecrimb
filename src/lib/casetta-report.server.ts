@@ -159,16 +159,15 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  '<p style="margin-top:22px;font-size:12px;color:#647267">I dati della cassa non sostituiscono la riconciliazione con contanti e terminale POS.</p>');
 }
 
-/**
- * Customer-only Christmas receipt. The red CRI logo is the original unaltered
- * institutional PNG already hosted by the project; the territorial wording is
- * presented separately in Arial Regular as required by the 2017 CRI manual.
- * The logo is NOT recoloured, overlaid, cut, rotated or used as a decoration.
- * All styling is inline for Gmail and mobile email clients.
+/** Customer-only Christmas receipt.
+ * The email uses a single, compact PNG lockup generated from the original
+ * official CRI mark with only transparent margins removed and a separate
+ * Arial Regular territorial label. Avoids Gmail's inconsistent negative
+ * margins and preserves alignment on mobile.
  */
 export function receiptHtml(r:z.infer<typeof receiptSchema>){
  const date=new Intl.DateTimeFormat('it-IT',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Rome'}).format(new Date(r.createdAt));
- const logo='https://natale.crimonza.org/__l5e/assets-v1/60fe216a-eabb-46c4-9e7b-5e4c7d09decb/cri-rosso-orizzontale.png';
+ const logo='https://natale.crimonza.org/cri-monza-email.png';
  const rows=r.items.map(p=>'<tr>'+
   '<td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
   p.quantity+' × '+esc(p.label)+'</td>'+
@@ -186,9 +185,8 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f0e7">'+
   '<tr><td align="center" style="padding:22px 12px 32px">'+
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">'+
-  '<tr><td align="center" style="padding:15px 18px 12px;background:#ffffff">'+
-  '<img src="'+logo+'" alt="Croce Rossa Italiana" width="330" border="0" style="display:block;width:100%;max-width:330px;height:auto;border:0" />'+
-  '<p style="margin:-37px 0 5px 70px;color:#cc0000;font:400 17px/1.3 Arial,sans-serif;text-align:center">Comitato di Monza</p>'+
+  '<tr><td align="center" style="padding:18px 18px 16px;background:#ffffff">'+
+  '<img src="'+logo+'" alt="Croce Rossa Italiana — Comitato di Monza" width="440" height="99" border="0" style="display:block;width:100%;max-width:440px;height:auto;border:0" />'+
   '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
@@ -218,8 +216,8 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<p style="margin:0 0 9px;color:#80602e;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.5px">UN ALTRO MODO DI FARE DEL BENE</p>'+
   '<h2 style="margin:0 0 11px;color:#234434;font:normal 25px/1.3 Georgia,serif">La magia può continuare.</h2>'+
   '<p style="margin:0 0 20px;color:#45564b;font:15px/1.65 Arial,sans-serif">'+
-  'Vuoi regalare un sorriso anche a chi è lontano? Scopri i nostri regali solidali e dedica un pensiero speciale a qualcuno.</p>'+
-  '<a href="https://natale.crimonza.org/regali" style="display:inline-block;padding:14px 22px;border-radius:9px;background:#236343;color:#ffffff;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Scopri i regali solidali 🎁</a>'+
+  'Vuoi continuare a fare del bene? Visita il nostro sito di Natale: scopri il progetto, i regali solidali e come sostenere le attività di Croce Rossa Monza.</p>'+
+  '<a href="https://natale.crimonza.org/" style="display:inline-block;padding:14px 22px;border-radius:9px;background:#236343;color:#ffffff;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Scopri il Natale che fa bene 🎄</a>'+
   '</td></tr></table>'+
   '<p style="margin:27px 0 0;text-align:center;color:#234434;font:italic 19px/1.5 Georgia,serif">Ti auguriamo un Natale pieno di piccoli gesti belli.</p>'+
   '<p style="margin:8px 0 0;text-align:center;color:#53685a;font:14px/1.5 Arial,sans-serif">I volontari di Croce Rossa Monza ❤️</p>'+
