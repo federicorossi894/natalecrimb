@@ -177,7 +177,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  stock+(audience==='stock'?inventoryHtml(inventory??[]):'')+dailyChart(r)+
  (exportUrl?'<div style="margin-top:25px;padding:20px;border:1px solid #dce6d8;border-radius:12px;background:#f1f7ef;text-align:center">'+
  '<p style="margin:0 0 12px;color:#173d30;font:700 17px/1.5 Arial,sans-serif">Registro completo dei pagamenti</p>'+
- '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica l'Excel con vendite LIVE e pre-utilizzo cassa chiaramente distinti. Per le registrazioni cartacee del 21/11 nome, orario esatto e metodo di pagamento restano non rilevati.</p>'+
+ '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica l\'Excel con vendite LIVE e pre-utilizzo cassa chiaramente distinti. Per le registrazioni cartacee del 21/11 nome, orario esatto e metodo di pagamento restano non rilevati.</p>'+
  '<a href="'+esc(exportUrl)+'" style="display:inline-block;padding:14px 20px;background:#236343;border-radius:9px;color:white;text-decoration:none;font:700 15px Arial,sans-serif">Scarica Excel vendite</a>'+
  '<p style="margin:12px 0 0;color:#65746b;font:12px/1.5 Arial,sans-serif">Link personale valido 7 giorni. Contiene dati dei clienti: non inoltrare.</p></div>':'')+
  '<p style="margin-top:22px;font-size:12px;color:#647267">I dati della cassa non sostituiscono la riconciliazione con contanti e terminale POS.</p>');
