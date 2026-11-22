@@ -9,6 +9,8 @@ const saleInput=z.object({
   deviceId:z.string().uuid(),
   method:z.enum(['cash','pos']),
   items:z.array(z.object({id:z.string().regex(/^[a-z0-9_-]{2,40}$/),quantity:z.number().int().min(1).max(99)}).strict()).min(1).max(20),
+  firstName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
+  lastName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
   email:z.union([z.string().email().max(254),z.literal('')]).optional(),
 }).strict();
 export type CasettaProduct=z.infer<typeof productSchema>;
@@ -45,6 +47,7 @@ export const casettaRecordSale=createServerFn({method:'POST'})
    const {data:result,error}=await rpc('casetta_record_sale',{
      _request_id:data.requestId,_method:data.method,_items:data.items,
      _email:data.email||null,_client_tag:await tagFor(data.deviceId),
+     _first_name:data.firstName,_last_name:data.lastName,
    });
    if(error){
      if(/chiusa|20 alle 08/i.test(error.message))throw new Error('Cassa chiusa: riapre alle 08:00.');
