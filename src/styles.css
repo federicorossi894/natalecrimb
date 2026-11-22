@@ -380,8 +380,9 @@ button.wish-note:hover, button.wish-note:focus-visible { transform: translateY(v
 
 /* ---------- Calendario della Gentilezza: the approved sede illustration with 24 hinged plaques ---------- */
 .advent-frame { position: relative; border-radius: 1.6rem; overflow: hidden; border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); box-shadow: var(--shadow-deep); background: var(--scene-night); }
-.advent-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
-.advent-scroll.is-zoomed > .advent-sede { width: max(100%, 56rem); }
+.advent-scroll { width: 100%; aspect-ratio: 3 / 2; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.advent-scaled { width: 100%; }
+.advent-scroll.is-zoomed { cursor: grab; }
 .advent-sede { position: relative; width: 100%; aspect-ratio: 3 / 2; container-type: inline-size; overflow: hidden; user-select: none; -webkit-user-select: none; }
 .advent-sede-img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .advent-plaque { position: absolute; display: block; margin: 0; padding: 0; border: 0; background: none; perspective: 16cqw; -webkit-tap-highlight-color: transparent; }
