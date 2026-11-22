@@ -1,61 +1,64 @@
-# Cassa digitale casetta — attivazione controllata (2026)
+# Cassa Casetta · CRI Monza (novembre 2026)
 
-## Separazione dei sistemi
-La cassa è una funzione **nuova e isolata** su `https://natale.crimonza.org/cassa`.
-NON modifica né usa `live_donations`, `live_ornaments`, pagamenti PayPal/SumUp online, né il vecchio flusso volontari.
-Il metodo "POS" registra un incasso già effettuato sul terminale fisico; **non incassa**.
-Tutti i dati sono in centesimi di euro, prezzi salvati come snapshot in ciascuna vendita.
+## Utilizzo
+- URL: **https://natale.crimonza.org/cassa**. Nessun QR, codice, login o area amministrativa.
+- Aperta **08:00–20:00 ora italiana**, controllo server nel database; dopo le 20:00 le vendite vengono rifiutate anche se la pagina è rimasta aperta.
+- Il volontario tocca le icone, cambia quantità, seleziona **Contanti** o **POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma.
+- La cassa non è un registratore fiscale; il POS va effettivamente incassato sul terminale e il contante va riconciliato.
+- Chiunque conosca l'URL può registrare vendite: limitazioni anti-abuso e assenza dalla sitemap riducono il rischio, **non garantiscono che sia solo per volontari**.
 
-## Sicurezza
-- Il QR porta un segreto casuale da 256 bit. Niente password per i volontari, ma **chiunque possieda il QR può registrare vendite**: non pubblicarlo sui social, non esporlo nella casetta all'esterno, ruotarlo se fotografato, usare un QR diverso per ciascun tablet.
-- La pagina rimuove subito il token dalla barra URL e usa un cookie HttpOnly Secure SameSite=Strict. Accessi revocabili da DB.
-- Tabelle RLS, nessun permesso `anon` o `authenticated`; RPC solo `service_role`. Nessuna API di emissione QR pubblica.
-- Ogni conferma usa un UUID di idempotenza: un doppio tap o retry non crea doppia vendita.
-- Non sono previste vendite offline: se manca rete, nessuna conferma.
-- La pagina /cassa non è in sitemap e ha `noindex`.
+## Listino dalla foto del 22/11/2026
+| Prodotto | Euro |
+|---|---:|
+| Panettone cartone | 14 |
+| Panettone / Pandoro latta | 16 |
+| Cioccolatini | 8 |
+| Tisane etiche | 5 |
+| Riso 500 g | 5 |
+| Riso 1 kg | 8 |
+| Tè verde / rosso | 5 |
+| Bastoncino di zucchero | 3 |
 
-## Checklist di attivazione — NON procedere senza dati e test
-1. Ricevere **listino ufficiale completo** (varianti e prezzi; non inventare).
-2. Ricevere indirizzi esatti per **amministrazione** e **Michela** (stock).
-3. Applicare la migrazione `drizzle/migrations/0023_casetta_cassa.sql` su DB collegato solo dopo review e test.
-4. Configurare i prodotti; esempi (sostituire prezzi con listino reale):
-   ```sql
-   -- NON eseguire senza prezzi verificati:
-   -- UPDATE public.casetta_products SET price_cents = <centesimi_verificati>, active = true WHERE id = 'panettone';
-   ```
-   Inserire varianti (es. panettone in latta) come SKU separati con prezzo proprio.
-5. Inserire destinatari (solo indirizzi verificati):
-   ```sql
-   -- INSERT INTO public.casetta_report_recipients(audience,email) VALUES
-   -- ('finance','amministrazione@dominio-verificato.it'),
-   -- ('stock','michela@dominio-verificato.it');
-   ```
-6. Generare QR **solo su server/database service-role**, per ogni tablet:
-   ```sql
-   SELECT public.casetta_issue_key('Tablet casetta 1',45);
-   ```
-   La risposta è un segreto da usare UNA VOLTA per creare il QR:
-   `https://natale.crimonza.org/cassa?access=TOKEN`.
-   **Non committare il token**, non inserirlo in documenti pubblici.
-   Revoca: `UPDATE public.casetta_access_keys SET revoked_at=now() WHERE label='Tablet casetta 1';`
-7. Collaudo con prodotto TEST dedicato non confondibile con vendite vere, oppure in ambiente di staging. Verificare quantità, totale, cash/POS, doppio tap, retry, QR revocato, giorno Italia e report. Eliminare dati test prima del go-live.
-8. Configurare scheduler solo DOPO verifica Gmail e destinatari, usando token già presente in Vault. A 00:15 UTC viene inviato il giorno precedente nel fuso Europe/Rome.
-   ```sql
-   -- ESEGUIRE SOLO DOPO COLLAUDO
-   -- SELECT cron.schedule('casetta-2026-daily-report','15 0 * * *',$cron$
-   --   SELECT net.http_post(
-   --     url := 'https://natale.crimonza.org/api/internal/casetta-daily-report',
-   --     body := '{}'::jsonb,
-   --     headers := jsonb_build_object(
-   --       'Content-Type','application/json',
-   --       'Authorization','Bearer '||(SELECT decrypted_secret FROM vault.decrypted_secrets
-   --        WHERE name='natale_2026_cron_token' LIMIT 1)),
-   --     timeout_milliseconds := 20000);
-   -- $cron$);
-   ```
-   Fermare il job dopo il 7 gennaio: `SELECT cron.unschedule('casetta-2026-daily-report');`
-9. Report email: amministrazione riceve solo transazioni, totale, contanti e POS; Michela riceve gli stessi numeri **più quantità per prodotto**. Non è un inventario con giacenze (mancano carichi e scorte iniziali). Per riordini automatici futuri servirebbe un magazzino.
-10. Riconciliare incassi con contanti reali e riepilogo terminale POS. La cassa non è un registratore fiscale e non sostituisce gli obblighi contabili/fiscali applicabili.
+Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 
-## Stato attuale
-**Codice preparato in branch GitHub. Non operativo finché migrazione, listino, destinatari, QR, collaudo e scheduler non sono completati.**
+## Test e produzione
+- `casetta_settings.mode` nasce `test`. Le vendite di prova restano salvate ma **non contano** nei report e **non inviano email**.
+- Dopo collaudo e verifica email, passare a `live` con `UPDATE public.casetta_settings SET mode='live' WHERE singleton=true;`.
+- Tutte le tabelle dedicate hanno RLS e solo `service_role` può usarle. Non modificare i flussi di donazioni online.
+
+## Email
+- Da **natale@crimonza.org** tramite connessione Gmail già usata dal sito.
+- **amministrazione@crimonza.org**: totale giornata, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
+- **Michela.cirla@crimonza.org**: stessi numeri, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
+- **Cliente (facoltativa)**: conferma non fiscale con articoli, importo e invito a `/regali`.
+- Alle **20:00** (primo tick disponibile dello scheduler) parte il report della giornata. Il job lavora ogni minuto e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
+
+## Cron (solo dopo deploy, migrazione e collaudo)
+Il token `natale_2026_cron_token` esiste già in Supabase Vault.
+Il job usa lo stesso autenticatore delle altre automazioni del sito.
+
+```sql
+SELECT cron.schedule('natale-2026-casetta-automation','* * * * *',$job$
+  SELECT net.http_post(
+    url := 'https://natale.crimonza.org/api/internal/casetta-daily-report',
+    body := '{}'::jsonb,
+    headers := jsonb_build_object(
+      'Content-Type','application/json',
+      'Authorization','Bearer '||(
+        SELECT decrypted_secret FROM vault.decrypted_secrets
+        WHERE name='natale_2026_cron_token' LIMIT 1)),
+    timeout_milliseconds := 30000);
+$job$);
+```
+
+Non schedulare prima del collaudo. Stop a fine campagna:
+`SELECT cron.unschedule('natale-2026-casetta-automation');`.
+
+## Controlli obbligatori
+1. Compilazione e test (typecheck, Vitest, build) prima del merge.
+2. Migrazione SQL provata in transazione con rollback e vendita duplicata idempotente.
+3. In test mode: vendite di prova 8 prodotti, POS, contanti, email non inviate, chiusura 20:00.
+4. In live mode: un acquisto controllato, una email cliente, report e scheduler verificati; controllare stato `casetta_sales.receipt_state` e `casetta_report_dispatch`.
+5. Riconciliazione contanti/POS e audit delle vendite. Non assumere che il solo riepilogo corrisponda al denaro reale.
+
+**Nota**: il grafico "oggi vs media" confronta la fascia oraria odierna con la media dei giorni precedenti con vendite registrate. Non misura ingressi o affluenza. Le quantità vendute non equivalgono alle giacenze.
