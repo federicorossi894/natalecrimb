@@ -1,64 +1,58 @@
 import { createServerFn } from '@tanstack/react-start';
-import { getCookie, getRequest, getRequestHeader, setCookie } from '@tanstack/react-start/server';
+import { getRequest, getRequestHeader } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
-const COOKIE = 'cri_casetta_pos';
-const COOKIE_AGE = 60 * 60 * 24 * 45;
-const tokenPattern = /^[A-Za-z0-9_-]{40,64}$/;
-const productSchema = z.object({ id: z.string().regex(/^[a-z0-9_-]{2,40}$/), label: z.string(), priceCents: z.number().int().positive() });
-const itemsSchema = z.array(z.object({ id: z.string().regex(/^[a-z0-9_-]{2,40}$/), quantity: z.number().int().min(1).max(99) }).strict()).min(1).max(25);
-const saleSchema = z.object({
-  requestId: z.string().uuid(), method: z.enum(['cash','pos']), items: itemsSchema,
+const productSchema=z.object({id:z.string(),label:z.string(),priceCents:z.number().int().positive()});
+const catalogSchema=z.object({mode:z.enum(['test','live']),open:z.boolean(),products:z.array(productSchema)});
+const saleInput=z.object({
+  requestId:z.string().uuid(),
+  deviceId:z.string().uuid(),
+  method:z.enum(['cash','pos']),
+  items:z.array(z.object({id:z.string().regex(/^[a-z0-9_-]{2,40}$/),quantity:z.number().int().min(1).max(99)}).strict()).min(1).max(20),
+  email:z.union([z.string().email().max(254),z.literal('')]).optional(),
 }).strict();
-export type CasettaProduct = z.infer<typeof productSchema>;
-export type CasettaSaleInput = z.infer<typeof saleSchema>;
+export type CasettaProduct=z.infer<typeof productSchema>;
+export type CasettaCatalog=z.infer<typeof catalogSchema>;
+export type CasettaSaleInput=z.infer<typeof saleInput>;
 
-const db = async () => (await import('@/integrations/supabase/client.server')).supabaseAdmin as unknown as {
-  rpc: (name: string, params: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-};
-const hashToken = async (token: string) => {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
-  return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2,'0')).join('');
-};
-function requireSameOrigin() {
-  const request = getRequest();
-  const origin = getRequestHeader('origin');
-  // Origin is mandatory on writes; no cross-origin requests even with a stolen cookie.
-  if (!origin || new URL(origin).origin !== new URL(request.url).origin) throw new Error('Origine non autorizzata.');
+async function rpc(name:string,params:Record<string,unknown>={}) {
+  const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
+  return (supabaseAdmin as unknown as {
+    rpc:(fn:string,args:Record<string,unknown>)=>PromiseLike<{data:unknown,error:{message:string}|null}>
+  }).rpc(name,params);
 }
-async function tokenHash() {
-  const token = getCookie(COOKIE);
-  return token && tokenPattern.test(token) ? hashToken(token) : null;
+function sameOrigin(){
+  const origin=getRequestHeader('origin');
+  const request=getRequest();
+  if(!origin || new URL(origin).origin!==new URL(request.url).origin)
+    throw new Error('Richiesta non autorizzata.');
 }
-async function catalogFor(token: string) {
-  const { data, error } = await (await db()).rpc('casetta_catalog', { _token_hash: await hashToken(token) });
-  if (error) throw new Error('QR scaduto o non autorizzato.');
-  return z.array(productSchema).parse(data);
+async function tagFor(deviceId:string){
+  const ip=(getRequestHeader('cf-connecting-ip')||getRequestHeader('x-forwarded-for')||'unknown').split(',')[0]!.trim();
+  const day=new Date().toISOString().slice(0,10);
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode([ip,deviceId,day].join('|')));
+  return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 }
-export const casettaActivateQr = createServerFn({ method:'POST' })
-  .inputValidator((input) => z.object({ token: z.string().regex(tokenPattern) }).strict().parse(input))
-  .handler(async ({ data }) => {
-    requireSameOrigin();
-    const products = await catalogFor(data.token);
-    setCookie(COOKIE,data.token,{httpOnly:true,secure:true,sameSite:'strict',path:'/',maxAge:COOKIE_AGE});
-    return { ok:true as const, products };
-  });
-export const casettaSession = createServerFn({ method:'GET' }).handler(async () => {
-  const hash = await tokenHash();
-  if (!hash) return { authorized:false as const, products:[] as CasettaProduct[] };
-  const { data, error } = await (await db()).rpc('casetta_catalog', { _token_hash:hash });
-  if (error) return { authorized:false as const, products:[] as CasettaProduct[] };
-  return { authorized:true as const, products:z.array(productSchema).parse(data) };
+export const casettaState=createServerFn({method:'GET'}).handler(async()=>{
+  const {data,error}=await rpc('casetta_catalog');
+  if(error)throw new Error('Cassa temporaneamente non disponibile.');
+  return catalogSchema.parse(data);
 });
-export const casettaRecordSale = createServerFn({ method:'POST' })
-  .inputValidator((input) => saleSchema.parse(input))
-  .handler(async ({ data }) => {
-    requireSameOrigin();
-    const hash = await tokenHash();
-    if (!hash) throw new Error('Accesso scaduto: scansiona nuovamente il QR.');
-    const { data: result,error } = await (await db()).rpc('casetta_record_sale',{
-      _token_hash:hash,_request_id:data.requestId,_method:data.method,_items:data.items,
-    });
-    if (error) throw new Error('Vendita non registrata. Controlla la connessione e riprova senza modificare la vendita.');
-    return z.object({id:z.string().uuid(),totalCents:z.number().int(),alreadyRecorded:z.boolean()}).parse(result);
-  });
+export const casettaRecordSale=createServerFn({method:'POST'})
+ .inputValidator(input=>saleInput.parse(input))
+ .handler(async({data})=>{
+   sameOrigin();
+   const {data:result,error}=await rpc('casetta_record_sale',{
+     _request_id:data.requestId,_method:data.method,_items:data.items,
+     _email:data.email||null,_client_tag:await tagFor(data.deviceId),
+   });
+   if(error){
+     if(/chiusa|20 alle 08/i.test(error.message))throw new Error('Cassa chiusa: riapre alle 08:00.');
+     if(/Troppe|occupata/i.test(error.message))throw new Error('Troppe operazioni. Attendi un minuto.');
+     throw new Error('Registrazione non confermata. Riprova con lo stesso riepilogo.');
+   }
+   return z.object({
+     id:z.string().uuid(),totalCents:z.number().int(),mode:z.enum(['test','live']),
+     alreadyRecorded:z.boolean(),
+   }).parse(result);
+ });
