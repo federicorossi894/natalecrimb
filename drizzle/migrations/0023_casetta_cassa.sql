@@ -61,8 +61,7 @@ CREATE OR REPLACE FUNCTION public.casetta_catalog()
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 DECLARE v_mode text; v_clock time;
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  SELECT mode INTO v_mode FROM public.casetta_settings WHERE singleton=true;
  v_clock:=(now() AT TIME ZONE 'Europe/Rome')::time;
  RETURN jsonb_build_object(
@@ -77,8 +76,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 DECLARE v_mode text; v_id uuid; v_total integer:=0; v_count integer:=0;
  v_item jsonb; v_product record; v_pid text; v_qty integer; v_email text;
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  IF _request_id IS NULL THEN RAISE EXCEPTION 'ID obbligatorio'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(_request_id::text,7401));
  SELECT id,total_cents,mode INTO v_id,v_total,v_mode FROM public.casetta_sales WHERE request_id=_request_id;
@@ -135,8 +133,7 @@ CREATE OR REPLACE FUNCTION public.casetta_daily_report(_day date)
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 DECLARE v_fin jsonb; v_stock jsonb; v_hourly jsonb; v_daily jsonb; v_cumulative bigint;
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  SELECT jsonb_build_object('totalCents',coalesce(sum(total_cents),0),
    'cashCents',coalesce(sum(total_cents) FILTER(WHERE method='cash'),0),
    'posCents',coalesce(sum(total_cents) FILTER(WHERE method='pos'),0),'transactions',count(*))
@@ -177,8 +174,7 @@ CREATE OR REPLACE FUNCTION public.casetta_claim_report(_day date,_audience text)
 RETURNS uuid LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 DECLARE v_claim uuid;
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  IF _audience NOT IN ('finance','stock') OR _day<>(now() AT TIME ZONE 'Europe/Rome')::date
    OR (now() AT TIME ZONE 'Europe/Rome')::time<time '20:00'
  THEN RAISE EXCEPTION 'Report consentito solo dopo le 20'; END IF;
@@ -194,8 +190,7 @@ CREATE OR REPLACE FUNCTION public.casetta_finish_report(
  _day date,_audience text,_claim uuid,_state text,_message_id text DEFAULT NULL)
 RETURNS boolean LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  IF _state NOT IN ('accepted','failed','unknown') THEN RAISE EXCEPTION 'Stato non valido'; END IF;
  UPDATE public.casetta_report_dispatch SET state=_state,
   sent_at=CASE WHEN _state='accepted' THEN now() ELSE NULL END,message_id=_message_id
@@ -207,8 +202,7 @@ CREATE OR REPLACE FUNCTION public.casetta_claim_receipts(_limit integer DEFAULT 
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 DECLARE v_result jsonb;
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  WITH picked AS (
   SELECT id FROM public.casetta_sales WHERE mode='live' AND receipt_state IN ('pending','failed')
    ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT least(greatest(_limit,1),10)
@@ -230,8 +224,7 @@ CREATE OR REPLACE FUNCTION public.casetta_finish_receipt(
  _id uuid,_claim uuid,_state text,_message_id text DEFAULT NULL)
 RETURNS boolean LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
 BEGIN
- IF current_setting('request.jwt.claim.role',true) IS DISTINCT FROM 'service_role'
- THEN RAISE EXCEPTION 'Server only' USING ERRCODE='42501'; END IF;
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
  IF _state NOT IN ('accepted','failed','unknown') THEN RAISE EXCEPTION 'Stato non valido'; END IF;
  UPDATE public.casetta_sales SET receipt_state=_state,receipt_message_id=_message_id
  WHERE id=_id AND receipt_claim=_claim AND receipt_state='claimed';
