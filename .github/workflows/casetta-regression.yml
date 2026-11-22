@@ -1,0 +1,27 @@
+name: Casetta regression and production build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  casetta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3"
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Verify cash register, receipts, exports and Advent site
+        run: bunx vitest run src/test/casetta-cassa.test.ts src/test/advent-layout.test.ts
+      - name: Production build
+        run: bun run build
