@@ -11,7 +11,8 @@ export const Route=createFileRoute('/api/internal/casetta-daily-report')({
    const denied=await authenticateInternalScheduler(request);
    if(denied)return denied;
    try{
-    const {data,error}=await supabaseAdmin.rpc('casetta_catalog');
+    const client=supabaseAdmin as unknown as {rpc:(name:string)=>PromiseLike<{data:unknown,error:unknown}>};
+    const {data,error}=await client.rpc('casetta_catalog');
     if(error||!data)return Response.json({error:'Cassa unavailable'},{status:503});
     const catalog=data as {mode:'test'|'live'};
     if(catalog.mode!=='live')return Response.json({status:'test_mode_no_mail'});
