@@ -8,7 +8,7 @@ const route=readFileSync(new URL('../routes/cassa.tsx',import.meta.url),'utf8');
 describe('Casetta cash register safety and daily recaps',()=>{
   it('uses Europe/Rome dates including the DST boundary',()=>{
     expect(previousRomeDate(new Date('2026-11-22T09:00:00Z'))).toBe('2026-11-21');
-    expect(previousRomeDate(new Date('2026-03-29T22:30:00Z'))).toBe('2026-03-28');
+    expect(previousRomeDate(new Date('2026-03-29T22:30:00Z'))).toBe('2026-03-29');
     expect(previousRomeDate(new Date('2026-10-25T23:30:00Z'))).toBe('2026-10-25');
   });
   const report:CasettaReport={
