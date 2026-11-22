@@ -155,7 +155,9 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('22,00');
   expect(html).toContain('Croce Rossa Italiana');
   expect(html).toContain('Comitato di Monza');
-  expect(html).toContain('cri-monza-email.png');
+  expect(html).toContain('cri-monza-email-v2.png');
+  expect(html).toContain('https://natale.crimonza.org/calendario');
+  expect(html).toContain('Il Calendario della Gentilezza');
   expect(html).not.toContain('margin:-37px');
   expect(html).toContain('La magia può continuare');
   expect(html).toContain('Scopri il Natale che fa bene');
@@ -194,8 +196,9 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   const reportCode=readFileSync('src/lib/casetta-report.server.ts','utf8');
   expect(reportCode).toContain("const STOCK='monza.sviluppo@lombardia.cri.it'");
   expect(reportCode).toContain("const AUDIT_BCC='federico.rossi@crimonza.org'");
-  expect(reportCode).toContain("r.mode==='test'?AUDIT_BCC:undefined");
-  expect(reportCode).toContain("'casetta-'+audience+'-'+date,AUDIT_BCC");
+  expect(reportCode).not.toContain("r.mode==='test'?AUDIT_BCC:undefined");
+  expect(reportCode).toContain("receiptHtml(r),'casetta-ricevuta-'+r.id);");
+  expect(reportCode).toContain("'casetta-'+audience+'-'+date,audience==='stock'?AUDIT_BCC:undefined");
   for(const sku of ['panettone_cartone','latta_panettone_pandoro','cioccolatini','tisane_etiche',
     'riso_500','riso_1000','the_verde_rosso','bastoncino_zucchero'])expect(sql).toContain(sku);
  });
