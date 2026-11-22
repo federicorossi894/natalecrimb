@@ -15,9 +15,11 @@ export const Route=createFileRoute('/api/internal/casetta-daily-report')({
     const {data,error}=await client.rpc('casetta_catalog');
     if(error||!data)return Response.json({error:'Cassa unavailable',rpcCode:(error as {code?:string}|null)?.code??'none',rpcMessage:(error as {message?:string}|null)?.message??'empty'},{status:503});
     const catalog=data as {mode:'test'|'live'};
-    if(catalog.mode!=='live')return Response.json({status:'test_mode_no_mail'});
     const receipts=await dispatchCasettaReceipts();
-    const reports=await dispatchCasettaReports();
+    // The management reports are strictly disabled throughout demo, even after 20:00.
+    const reports=catalog.mode==='live'
+      ?await dispatchCasettaReports()
+      :{status:'demo_reports_paused'};
     return Response.json({receipts,reports},{headers:{'Cache-Control':'no-store'}});
    }catch{
     return Response.json({error:'Invio non disponibile: verificare il log del server'},{status:503});

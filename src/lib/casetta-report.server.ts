@@ -11,7 +11,7 @@ const reportSchema=z.object({
  daily:z.array(z.object({date:z.string(),totalCents:z.number().int()})),
 });
 const receiptSchema=z.object({
- id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),firstName:z.string(),totalCents:z.number().int(),
+ id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),mode:z.enum(['live','test']),firstName:z.string(),totalCents:z.number().int(),
  createdAt:z.string(),items:z.array(z.object({label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
 });
 export type CasettaReport=z.infer<typeof reportSchema>;
@@ -107,6 +107,9 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   p.quantity+' × '+esc(p.label)+'</td>'+
   '<td align="right" style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:700 15px/1.45 Arial,sans-serif;color:#294738;white-space:nowrap">'+
   euro(p.totalCents)+'</td></tr>').join('');
+ const demoNote=r.mode==='test'
+   ?'<div style="background:#fff0c5;border:2px solid #b75b00;padding:15px;margin-bottom:18px;text-align:center;color:#6d3100;font:700 16px/1.5 Arial,sans-serif">SIMULAZIONE / DEMO — Non è una vendita reale. Nessun pagamento o acquisto è stato registrato.</div>'
+   :'';
  return '<!doctype html><html lang="it"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;padding:0;background:#f5f0e7;color:#203c30;font-family:Arial,sans-serif">'+
@@ -122,6 +125,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
+  demoNote+
   '<h1 style="margin:0;color:#fff9e9;font:normal 37px/1.13 Georgia,serif">Grazie, '+esc(r.firstName||'davvero')+'.</h1>'+
   '<p style="margin:15px 0 0;color:#f5e8cf;font:18px/1.5 Georgia,serif">Anche un piccolo acquisto può portare<br />un po’ di calore molto lontano. ✨</p>'+
   '</td></tr>'+
@@ -217,7 +221,7 @@ export async function dispatchCasettaReceipts(){
  const pending=z.array(receiptSchema).parse(data);
  const outcomes:Record<string,string>={};
  for(const r of pending){
-  const sent=await sendMail(r.email,'Grazie dalla Casetta di Natale · Croce Rossa Monza',
+  const sent=await sendMail(r.email,(r.mode==='test'?'[DEMO] ':'')+'Grazie dalla Casetta di Natale · Croce Rossa Monza',
    receiptHtml(r),'casetta-ricevuta-'+r.id);
   const finished=await db.rpc('casetta_finish_receipt',{
    _id:r.id,_claim:r.claim,_state:sent.state,_message_id:sent.messageId??null,

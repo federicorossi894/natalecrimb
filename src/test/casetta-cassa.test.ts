@@ -8,7 +8,7 @@ const ui=readFileSync('src/routes/cassa.tsx','utf8');
 const receipt={
  id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
  claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
- email:'person@example.org',firstName:'Giulia',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
+ email:'person@example.org',mode:'live' as const,firstName:'Giulia',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
  items:[{label:'Panettone cartone',quantity:1,totalCents:1400},{label:'Cioccolatini',quantity:1,totalCents:800}],
 };
 const report:CasettaReport={
@@ -20,6 +20,16 @@ const report:CasettaReport={
  daily:[{date:'2026-11-21',totalCents:6200},{date:'2026-11-22',totalCents:3200}],
 };
 describe('Casetta register: isolated no-login 08–20 service',()=>{
+ it('demo receipts are visibly marked as a simulation and internal reports remain paused',()=>{
+  expect(receiptHtml({...receipt,mode:'test'})).toContain('SIMULAZIONE / DEMO');
+  expect(receiptHtml(receipt)).not.toContain('SIMULAZIONE / DEMO');
+  const handler=readFileSync('src/routes/api/internal/casetta-daily-report.ts','utf8');
+  expect(handler).toContain("catalog.mode==='live'");
+  expect(handler).toContain('demo_reports_paused');
+  const migration=readFileSync('drizzle/migrations/0025_casetta_demo_optin_email.sql','utf8');
+  expect(migration).toContain("WHERE mode IN ('live','test')");
+  expect(migration).toContain("CASE WHEN v_email IS NOT NULL THEN 'pending'");
+ });
  it('generates a valid Office Open XML ZIP with private payment rows and eight product columns',()=>{
   const products=[
    {id:'panettone_cartone',label:'Panettone cartone'},
