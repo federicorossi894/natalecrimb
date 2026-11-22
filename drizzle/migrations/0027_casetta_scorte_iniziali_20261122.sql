@@ -3,7 +3,7 @@
 -- cartaceo del 21/11: la riconciliazione resta in sospeso.
 -- Prezzi invariati in attesa di conferma di Guido.
 -- Sicurezza: non attiva LIVE, non invia email, non tocca le vendite DEMO.
-DO $
+DO $guard$
 BEGIN
  -- La migrazione puo' essere ripetuta dopo l'attivazione LIVE soltanto
  -- se tutte le scorte note erano gia' state censite: nessuna riscrittura.
@@ -16,7 +16,7 @@ BEGIN
    (SELECT mode FROM public.casetta_settings WHERE singleton=true) <> 'test'
    OR EXISTS (SELECT 1 FROM public.casetta_sales WHERE mode='live')
  ) THEN RAISE EXCEPTION 'Nuove scorte iniziali consentite solo prima di LIVE'; END IF;
-END $;
+END $guard$;
 
 -- Il vecchio SKU unificato conserva il proprio ID, per non alterare gli
 -- eventuali movimenti storici. Da oggi identifica solo il panettone in latta.

@@ -12,7 +12,7 @@ const receipt={
  items:[{label:'Panettone cartone',quantity:1,totalCents:1400},{label:'Cioccolatini',quantity:1,totalCents:800}],
 };
 const report:CasettaReport={
- date:'2026-11-22',finance:{totalCents:3200,cashCents:2000,posCents:1200,transactions:3},
+ date:'2026-11-22',finance:{totalCents:3200,cashCents:2000,posCents:1200,transactions:3,preUseCents:0,preUseUnits:0,preUseGroups:0,unallocatedCents:0},
  cumulativeCents:9400,
  stock:[{id:'panettone_cartone',label:'Panettone cartone',quantity:2,totalCents:2800},
  {id:'riso_500',label:'Riso 500 g',quantity:1,totalCents:400}],
@@ -22,9 +22,9 @@ const report:CasettaReport={
 describe('Casetta register: isolated no-login 08–20 service',()=>{
  it('shows Michela available stock and low/out/unknown warnings, not Manuela',()=>{
   const inventory=[
-   {id:'panettone_cartone',label:'Panettone cartone',openingQty:20,receivedToday:10,soldToday:3,availableQty:4,thresholdQty:5,status:'low' as const},
-   {id:'riso_500',label:'Riso 500 g',openingQty:5,receivedToday:0,soldToday:2,availableQty:0,thresholdQty:5,status:'out' as const},
-   {id:'riso_1000',label:'Riso 1 kg',openingQty:null,receivedToday:0,soldToday:0,availableQty:null,thresholdQty:5,status:'unknown' as const},
+   {id:'panettone_cartone',label:'Panettone cartone',openingQty:20,receivedToday:10,soldToday:3,availableQty:4,thresholdQty:5,status:'low' as const,preUseSoldToday:0,preUsePending:2},
+   {id:'riso_500',label:'Riso 500 g',openingQty:5,receivedToday:0,soldToday:2,availableQty:0,thresholdQty:5,status:'out' as const,preUseSoldToday:0,preUsePending:0},
+   {id:'riso_1000',label:'Riso 1 kg',openingQty:null,receivedToday:0,soldToday:0,availableQty:null,thresholdQty:5,status:'unknown' as const,preUseSoldToday:0,preUsePending:0},
   ];
   const stock=reportHtml(report,'stock',undefined,inventory);
   expect(stock).toContain('Magazzino · giacenze residue');
@@ -35,6 +35,8 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(stock).toContain('ATTENZIONE · SCORTE DA RIASSORTIRE');
   expect(stock).toContain('Soglia: 5 pz');
   expect(stock).toContain('Giacenze ancora da censire');
+  expect(stock).toContain('Pre-utilizzo cassa · scorte da riconciliare');
+  expect(stock).toContain('2 pz da riconciliare');
   expect(stock).toContain('Le prove DEMO non scalano nulla');
   expect(reportHtml(report,'finance',undefined,inventory)).not.toContain('Magazzino · giacenze residue');
  });
@@ -76,6 +78,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(raw).toContain('Rossi');
   expect(raw.includes('>Contanti<')).toBe(false);
   expect(raw).toContain('POS');
+  expect(raw).toContain('Origine');
   expect(raw).toContain('Panettone cartone');
   expect(raw).toContain('Riso 500 g');
   expect(raw).toContain('<v>19</v>');
@@ -105,6 +108,32 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(romeClock(new Date('2026-03-29T06:00:00Z')).hour).toBe(8);
   expect(romeClock(new Date('2026-10-25T19:00:00Z')).hour).toBe(20);
   expect(romeClock(new Date('2026-11-22T19:00:00Z')).hour).toBe(20);
+ });
+ it('accounts for paper sales separately and sends managerial reports from 19:00',()=>{
+  const history=readFileSync('drizzle/migrations/0028_casetta_preuse_sales.sql','utf8');
+  const reporting=readFileSync('drizzle/migrations/0029_casetta_preuse_reporting_19.sql','utf8');
+  const mail=readFileSync('src/lib/casetta-report.server.ts','utf8');
+  const exportCode=readFileSync('src/lib/casetta-export-xlsx.server.ts','utf8');
+  expect(history).toContain("('2026-11-21','the_verde_rosso',6,500)");
+  expect(history).toContain("('2026-11-21','cioccolatini',3,1000)");
+  expect(history).toContain("ON CONFLICT(sale_day,product_id) DO NOTHING");
+  expect(history).toContain("stock_reconciliation text NOT NULL DEFAULT 'pending'");
+  expect(reporting).toContain("public.casetta_daily_report_base(_day)");
+  expect(reporting).toContain("public.casetta_inventory_snapshot_base(_day)");
+  expect(reporting).toContain("preUseCents");
+  expect(reporting).toContain("time '19:00'");
+  expect(mail).toContain('if(hour<19)');
+  expect(mail).toContain('Pre-utilizzo cassa · metodo non rilevato');
+  expect(exportCode).toContain("'Pagamento','Origine'");
+  expect(exportCode).toContain("'Non rilevato'");
+  const historicalXlsx=casettaXlsx([{
+    date:'21/11/2026',firstName:'',lastName:'',amountCents:3000,
+    method:'unknown',source:'Pre-utilizzo cassa',quantities:{the_verde_rosso:6},
+  }],[{id:'the_verde_rosso',label:'Tè verde / rosso'}]);
+  const xml=new TextDecoder().decode(historicalXlsx);
+  expect(xml).toContain('Pre-utilizzo cassa');
+  expect(xml).toContain('Non rilevato');
+  expect(xml).toContain('<v>6</v>');
  });
  it('separates finance and stock recipients',()=>{
   const finance=reportHtml(report,'finance');
