@@ -8,12 +8,12 @@ const ui=readFileSync('src/routes/cassa.tsx','utf8');
 const receipt={
  id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
  claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
- email:'person@example.org',mode:'live' as const,firstName:'Giulia',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
+ email:'person@example.org',mode:'live' as const,firstName:'Giulia',totalCents:2200,productsCents:2200,extraDonationCents:0,createdAt:'2026-11-22T11:00:00Z',
  items:[{label:'Panettone cartone',quantity:1,totalCents:1400},{label:'Cioccolatini',quantity:1,totalCents:800}],
 };
 const report:CasettaReport={
- date:'2026-11-22',finance:{totalCents:3200,cashCents:2000,posCents:1200,transactions:3,preUseCents:0,preUseUnits:0,preUseGroups:0,unallocatedCents:0},
- cumulativeCents:9400,
+ date:'2026-11-22',finance:{totalCents:3200,productsCents:3200,extraDonationCents:0,cashCents:2000,posCents:1200,transactions:3,preUseCents:0,preUseUnits:0,preUseGroups:0,unallocatedCents:0},
+ cumulativeCents:9400,cumulativeExtraDonationCents:0,
  stock:[{id:'panettone_cartone',label:'Panettone cartone',quantity:2,totalCents:2800},
  {id:'riso_500',label:'Riso 500 g',quantity:1,totalCents:400}],
  hourly:[{hour:8,todayCents:800,averageCents:500},{hour:9,todayCents:2400,averageCents:900}],
@@ -79,6 +79,8 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(raw.includes('>Contanti<')).toBe(false);
   expect(raw).toContain('POS');
   expect(raw).toContain('Origine');
+  expect(raw).toContain('Donazione extra (€)');
+  expect(raw).toContain('Prodotti (€)');
   expect(raw).toContain('Panettone cartone');
   expect(raw).toContain('Riso 500 g');
   expect(raw).toContain('<v>19</v>');
@@ -172,6 +174,41 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).not.toContain('❌');
   expect(html).toContain('https://natale.crimonza.org/privacy');
 
+ });
+ it('handles extra donation independently of products, email and daily totals',()=>{
+  const mail=receiptHtml({...receipt,totalCents:2800,productsCents:2200,extraDonationCents:600});
+  expect(mail).toContain('Donazione extra');
+  expect(mail).toContain('6,00');
+  expect(mail).toContain('28,00');
+  const finance=reportHtml({
+    ...report,cumulativeExtraDonationCents:600,
+    finance:{...report.finance,totalCents:3800,productsCents:3200,extraDonationCents:600},
+  },'finance');
+  expect(finance).toContain('Di cui donazioni extra');
+  expect(finance).toContain('6,00');
+  expect(finance).toContain('Di cui prodotti');
+  const book=new TextDecoder().decode(casettaXlsx([{
+    date:'22/11/2026 11:00',firstName:'Mario',lastName:'Rossi',
+    amountCents:2000,productsCents:1400,extraDonationCents:600,
+    method:'pos',source:'Cassa',quantities:{panettone_cartone:1},
+  }],[{id:'panettone_cartone',label:'Panettone cartone'}]));
+  expect(book).toContain('Donazione extra (€)');
+  expect(book).toContain('Totale incassato (€)');
+  expect(book).toContain('<v>20</v>');
+  expect(book).toContain('<v>14</v>');
+  expect(book).toContain('<v>6</v>');
+  const migration=readFileSync('drizzle/migrations/0031_casetta_extra_donazione.sql','utf8');
+  expect(migration).toContain('extra_donation_cents integer NOT NULL DEFAULT 0');
+  expect(migration).toContain("v_products:=v_products+v_product.price_cents*v_qty");
+  expect(migration).toContain("v_total:=v_products+_extra_donation_cents");
+  const uiCode=readFileSync('src/routes/cassa.tsx','utf8');
+  expect(uiCode).toContain('Donazione extra?');
+  expect(uiCode).toContain('donationEuroCents');
+  expect(uiCode).toContain('TOTALE DA INCASSARE');
+  const serverCode=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  expect(serverCode).toContain('_extra_donation_cents:data.extraDonationCents');
+  const apiCode=readFileSync('src/routes/api/public/casetta-export.ts','utf8');
+  expect(apiCode).toContain("z.enum(['cash','pos','unknown'])");
  });
  it('does not require a QR, password or admin interface',()=>{
   expect(ui).toContain("createFileRoute('/cassa')");
