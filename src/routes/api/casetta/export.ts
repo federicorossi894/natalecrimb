@@ -32,7 +32,10 @@ export const Route=createFileRoute('/api/casetta/export')({
     return new Response('Link non valido o scaduto.',{status:404,headers});
    const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));
    const hash=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
-   const {data,error}=await supabaseAdmin.rpc('casetta_export_sales',{_token_hash:hash});
+   const client=supabaseAdmin as unknown as {
+    rpc:(name:string,args:Record<string,unknown>)=>PromiseLike<{data:unknown,error:{message:string}|null}>
+   };
+   const {data,error}=await client.rpc('casetta_export_sales',{_token_hash:hash});
    if(error)return new Response('Esportazione temporaneamente non disponibile.',{status:503,headers});
    if(!data)return new Response('Link scaduto o revocato.',{status:404,headers});
    const parsed=payload.safeParse(data);
