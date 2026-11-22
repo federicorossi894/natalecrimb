@@ -34,7 +34,7 @@ BEGIN
   ) mixed GROUP BY id,label
  ) grouped;
  SELECT coalesce(jsonb_agg(
-   d.value || jsonb_build_object('totalCents',(d.value->>'totalCents')::bigint+
+   jsonb_set(d.value,'{date}',to_jsonb(left(d.value->>'date',10))) || jsonb_build_object('totalCents',(d.value->>'totalCents')::bigint+
     coalesce((SELECT sum(h.total_cents) FROM public.casetta_preuse_sales h
       WHERE h.sale_day=(d.value->>'date')::date),0))
    ORDER BY d.value->>'date'),'[]'::jsonb)
