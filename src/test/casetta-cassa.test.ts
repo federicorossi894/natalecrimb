@@ -91,7 +91,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   const migration=readFileSync('drizzle/migrations/0024_casetta_nominativi_export.sql','utf8');
   const route=readFileSync('src/routes/api/public/casetta-export.ts','utf8');
   expect(current).toContain('Dati cliente · obbligatori');
-  expect(current).toContain('Il cliente desidera ricevere la ricevuta NON fiscale');
+  expect(current).toContain('Il cliente desidera ricevere via email la ricevuta NON fiscale e il messaggio di ringraziamento?');
   expect(current).toContain('ricevuta NON fiscale con il riepilogo');
   expect(server).toContain('_first_name:data.firstName');
   expect(server).toContain('_last_name:data.lastName');
