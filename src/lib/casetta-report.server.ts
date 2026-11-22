@@ -11,7 +11,7 @@ const reportSchema=z.object({
  daily:z.array(z.object({date:z.string(),totalCents:z.number().int()})),
 });
 const receiptSchema=z.object({
- id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),totalCents:z.number().int(),
+ id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),firstName:z.string(),totalCents:z.number().int(),
  createdAt:z.string(),items:z.array(z.object({label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
 });
 export type CasettaReport=z.infer<typeof reportSchema>;
@@ -71,7 +71,7 @@ function hourlyChart(r:CasettaReport){
  bar(p.averageCents,max,'#d5b57a')+'</td>'+
  '<td style="width:65px;text-align:right;font-size:12px;white-space:nowrap">'+euro(p.todayCents)+'</td></tr>').join('')+'</table>';
 }
-export function reportHtml(r:CasettaReport,audience:Audience){
+export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string){
  const stock=audience==='stock'?
  '<h2 style="margin-top:26px;font-size:19px">Prodotti venduti</h2>'+
  '<table style="width:100%;border-collapse:collapse">'+
@@ -84,6 +84,11 @@ export function reportHtml(r:CasettaReport,audience:Audience){
  '</h1><p>Giornata del <b>'+esc(r.date)+'</b> · Orario italiano.</p>'+
  '<table style="width:100%;border-collapse:collapse">'+moneyRows(r)+'</table>'+
  stock+dailyChart(r)+
+ (exportUrl?'<div style="margin-top:25px;padding:20px;border:1px solid #dce6d8;border-radius:12px;background:#f1f7ef;text-align:center">'+
+ '<p style="margin:0 0 12px;color:#173d30;font:700 17px/1.5 Arial,sans-serif">Registro completo dei pagamenti</p>'+
+ '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica il file Excel con data e ora, nome, cognome, importo, Contanti/POS e quantità di ciascun prodotto. Include tutte le vendite reali registrate fino a oggi.</p>'+
+ '<a href="'+esc(exportUrl)+'" style="display:inline-block;padding:14px 20px;background:#236343;border-radius:9px;color:white;text-decoration:none;font:700 15px Arial,sans-serif">Scarica Excel vendite</a>'+
+ '<p style="margin:12px 0 0;color:#65746b;font:12px/1.5 Arial,sans-serif">Link personale valido 7 giorni. Contiene dati dei clienti: non inoltrare.</p></div>':'')+
  '<p style="margin-top:22px;font-size:12px;color:#647267">I dati della cassa non sostituiscono la riconciliazione con contanti e terminale POS.</p>');
 }
 
@@ -117,7 +122,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
-  '<h1 style="margin:0;color:#fff9e9;font:normal 37px/1.13 Georgia,serif">Grazie, davvero.</h1>'+
+  '<h1 style="margin:0;color:#fff9e9;font:normal 37px/1.13 Georgia,serif">Grazie, '+esc(r.firstName||'davvero')+'.</h1>'+
   '<p style="margin:15px 0 0;color:#f5e8cf;font:18px/1.5 Georgia,serif">Anche un piccolo acquisto può portare<br />un po’ di calore molto lontano. ✨</p>'+
   '</td></tr>'+
   '<tr><td style="padding:31px 28px 34px">'+
@@ -186,9 +191,19 @@ export async function dispatchCasettaReports(){
   if(claim.error){outcomes[audience]='claim_failed';continue;}
   if(!claim.data){outcomes[audience]='already_processed';continue;}
   const claimId=z.string().uuid().parse(claim.data);
+  // A separate 256-bit bearer token for each internal recipient, SHA-256 only in DB.
+  const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));
+  const tokenHash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+  const issued=await db.rpc('casetta_create_export',{_token_hash:tokenHash,_day:date,_audience:audience});
+  if(issued.error||issued.data!==true){
+   await db.rpc('casetta_finish_report',{_day:date,_audience:audience,_claim:claimId,_state:'failed',_message_id:null});
+   outcomes[audience]='export_unavailable';continue;
+  }
+  const exportUrl='https://natale.crimonza.org/api/casetta/export?token='+token;
   const sent=await sendMail(to,'CRI Monza · Casetta '+date+' · '+
    (audience==='finance'?'Riepilogo economico':'Vendite e prodotti'),
-   reportHtml(report,audience),'casetta-'+audience+'-'+date);
+   reportHtml(report,audience,exportUrl),'casetta-'+audience+'-'+date);
   const finished=await db.rpc('casetta_finish_report',{
    _day:date,_audience:audience,_claim:claimId,_state:sent.state,_message_id:sent.messageId??null,
   });

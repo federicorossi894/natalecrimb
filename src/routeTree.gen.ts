@@ -32,6 +32,7 @@ import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
+import { Route as ApiCasettaExportRouteImport } from './routes/api/casetta/export'
 import { Route as ApiInternalCasettaDailyReportRouteImport } from './routes/api/internal/casetta-daily-report'
 import { Route as ApiPublicChristmasGiftEmailRouteImport } from './routes/api/public/christmas-gift-email'
 import { Route as ApiPublicPaymentReconciliationRouteImport } from './routes/api/public/payment-reconciliation'
@@ -153,6 +154,11 @@ const RegaliIdRoute = RegaliIdRouteImport.update({
   path: '/regali/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCasettaExportRoute = ApiCasettaExportRouteImport.update({
+  id: '/api/casetta/export',
+  path: '/api/casetta/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInternalCasettaDailyReportRoute = ApiInternalCasettaDailyReportRouteImport.update({
   id: '/api/internal/casetta-daily-report',
   path: '/api/internal/casetta-daily-report',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
+  '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/casetta/export': typeof ApiCasettaExportRoute
   '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali'
+    | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/casetta/export'
     | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
@@ -389,6 +401,7 @@ export interface RootRouteChildren {
   AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
+  ApiCasettaExportRoute: typeof ApiCasettaExportRoute
   ApiInternalCasettaDailyReportRoute: typeof ApiInternalCasettaDailyReportRoute
   ApiPublicChristmasGiftEmailRoute: typeof ApiPublicChristmasGiftEmailRoute
   ApiPublicPaymentReconciliationRoute: typeof ApiPublicPaymentReconciliationRoute
@@ -559,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegaliIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/casetta/export': {
+      id: '/api/casetta/export'
+      path: '/api/casetta/export'
+      fullPath: '/api/casetta/export'
+      preLoaderRoute: typeof ApiCasettaExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/casetta-daily-report': {
       id: '/api/internal/casetta-daily-report'
       path: '/api/internal/casetta-daily-report'
@@ -621,6 +641,7 @@ const rootRouteChildren: RootRouteChildren = {
   AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
+  ApiCasettaExportRoute: ApiCasettaExportRoute,
   ApiInternalCasettaDailyReportRoute: ApiInternalCasettaDailyReportRoute,
   ApiPublicChristmasGiftEmailRoute: ApiPublicChristmasGiftEmailRoute,
   ApiPublicPaymentReconciliationRoute: ApiPublicPaymentReconciliationRoute,
