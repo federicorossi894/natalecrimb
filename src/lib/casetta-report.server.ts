@@ -9,15 +9,17 @@ const finance=z.object({
  totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int(),
  preUseCents:z.number().int().default(0),preUseUnits:z.number().int().default(0),
  preUseGroups:z.number().int().default(0),unallocatedCents:z.number().int().default(0),
+ productsCents:z.number().int().default(0),extraDonationCents:z.number().int().default(0),
 });
 const reportSchema=z.object({
- date:z.string(),finance,cumulativeCents:z.number().int(),
+ date:z.string(),finance,cumulativeCents:z.number().int(),cumulativeExtraDonationCents:z.number().int().default(0),
  stock:z.array(z.object({id:z.string(),label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
  hourly:z.array(z.object({hour:z.number().int(),todayCents:z.number().int(),averageCents:z.number().int()})),
  daily:z.array(z.object({date:z.string(),totalCents:z.number().int()})),
 });
 const receiptSchema=z.object({
  id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),mode:z.enum(['live','test']),firstName:z.string(),totalCents:z.number().int(),
+ productsCents:z.number().int().default(0),extraDonationCents:z.number().int().default(0),
  createdAt:z.string(),items:z.array(z.object({label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
 });
 const inventoryRowSchema=z.object({
@@ -73,7 +75,11 @@ function frame(body:string){
 function moneyRows(r:CasettaReport){
  const f=r.finance;
  const pairs:Array<[string,string]>=[
- ['Incasso della giornata',euro(f.totalCents)],['Contanti',euro(f.cashCents)],
+ ['Incasso della giornata',euro(f.totalCents)],
+ ['Di cui prodotti',euro(f.productsCents)],
+ ['Di cui donazioni extra',euro(f.extraDonationCents)],
+ ['Donazioni extra cumulative',euro(r.cumulativeExtraDonationCents)],
+ ['Contanti',euro(f.cashCents)],
  ['POS',euro(f.posCents)],
  ...(f.preUseCents>0?[
   ['Pre-utilizzo cassa · metodo non rilevato',euro(f.preUseCents)],
@@ -209,6 +215,11 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   p.quantity+' × '+esc(p.label)+'</td>'+
   '<td align="right" style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:700 15px/1.45 Arial,sans-serif;color:#294738;white-space:nowrap">'+
   euro(p.totalCents)+'</td></tr>').join('');
+ const donationRow=r.extraDonationCents>0?
+  '<tr><td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
+  '<strong>Donazione extra</strong></td>'+
+  '<td align="right" style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:700 15px/1.45 Arial,sans-serif;color:#294738;white-space:nowrap">'+
+  euro(r.extraDonationCents)+'</td></tr>':'';
  const demoNote=r.mode==='test'
    ?'<div style="background:#fff0c5;border:2px solid #b75b00;padding:15px;margin-bottom:18px;text-align:center;color:#6d3100;font:700 16px/1.5 Arial,sans-serif">SIMULAZIONE / DEMO — Non è una vendita reale. Nessun pagamento o acquisto è stato registrato.</div>'
    :'';
@@ -241,6 +252,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<p style="margin:0 0 5px;color:#8a652e;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.5px">IL TUO ACQUISTO</p>'+
   '<p style="margin:0 0 15px;color:#607166;font:13px/1.5 Arial,sans-serif">'+esc(date)+'</p>'+
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">'+rows+
+  donationRow+
   '<tr><td style="padding:18px 0 0;color:#173d30;font:700 18px/1.3 Arial,sans-serif">Totale</td>'+
   '<td align="right" style="padding:18px 0 0;color:#173d30;font:700 24px/1.3 Arial,sans-serif;white-space:nowrap">'+euro(r.totalCents)+'</td></tr>'+
   '</table></td></tr></table>'+
