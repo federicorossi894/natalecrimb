@@ -4,7 +4,11 @@ const SENDER='natale@crimonza.org';
 const FINANCE='amministrazione@crimonza.org';
 const STOCK='monza.sviluppo@lombardia.cri.it';
 const AUDIT_BCC='federico.rossi@crimonza.org';
-const finance=z.object({totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int()});
+const finance=z.object({
+ totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int(),
+ preUseCents:z.number().int().default(0),preUseUnits:z.number().int().default(0),
+ preUseGroups:z.number().int().default(0),unallocatedCents:z.number().int().default(0),
+});
 const reportSchema=z.object({
  date:z.string(),finance,cumulativeCents:z.number().int(),
  stock:z.array(z.object({id:z.string(),label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
@@ -19,7 +23,7 @@ const inventoryRowSchema=z.object({
  id:z.string(),label:z.string(),openingQty:z.number().int().nullable(),
  receivedToday:z.number().int(),soldToday:z.number().int(),
  availableQty:z.number().int().nullable(),thresholdQty:z.number().int(),
- status:z.enum(['unknown','ok','low','out']),
+ status:z.enum(['unknown','ok','low','out']),preUseSoldToday:z.number().int().default(0),preUsePending:z.number().int().default(0),
 });
 export type CasettaInventoryRow=z.infer<typeof inventoryRowSchema>;
 export type CasettaReport=z.infer<typeof reportSchema>;
@@ -49,9 +53,16 @@ function frame(body:string){
 }
 function moneyRows(r:CasettaReport){
  const f=r.finance;
- const pairs=[['Incasso della giornata',euro(f.totalCents)],['Contanti',euro(f.cashCents)],
- ['POS',euro(f.posCents)],['Vendite registrate',String(f.transactions)],
- ['Totale cumulativo campagna',euro(r.cumulativeCents)]];
+ const pairs:Array<[string,string]>=[
+ ['Incasso della giornata',euro(f.totalCents)],['Contanti',euro(f.cashCents)],
+ ['POS',euro(f.posCents)],
+ ...(f.preUseCents>0?[
+  ['Pre-utilizzo cassa · metodo non rilevato',euro(f.preUseCents)],
+  ['Articoli da registro cartaceo',String(f.preUseUnits)]
+ ] as Array<[string,string]>:[]),
+ ['Operazioni registrate nella cassa',String(f.transactions)],
+ ['Totale cumulativo campagna',euro(r.cumulativeCents)]
+];
  return pairs.map(([label,value],i)=>'<tr'+(i===0?' style="background:#e5f2e8"':'')+'>'+
  '<td style="padding:11px;border-bottom:1px solid #e4e6de">'+esc(label!)+'</td>'+
  '<td style="padding:11px;text-align:right;border-bottom:1px solid #e4e6de"><b>'+esc(value!)+'</b></td></tr>').join('');
@@ -84,6 +95,7 @@ function stockAlertHtml(items:CasettaInventoryRow[]){
  const critical=items.filter(p=>p.status==='out'||p.status==='low')
   .sort((a,b)=>(a.status==='out'?0:1)-(b.status==='out'?0:1));
  const missing=items.filter(p=>p.status==='unknown');
+ const pending=items.filter(p=>p.preUsePending>0);
  const alerts=critical.map(p=>{
   const out=p.status==='out';
   return '<tr><td style="padding:11px 8px;border-bottom:1px solid #ead8b6"><b>'+
@@ -99,7 +111,11 @@ function stockAlertHtml(items:CasettaInventoryRow[]){
    '<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th align="left">Prodotto</th><th>Rimasti</th><th align="left">Priorità</th></tr></thead><tbody>'+
    alerts+'</tbody></table></div>'
   :'<div style="padding:13px;background:#eaf4e8;border-radius:9px;margin:0 0 20px;color:#225b38"><b>✓ Nessun prodotto censito sotto soglia.</b></div>';
- return top+(missing.length?
+ return top+(pending.length?
+  '<div style="padding:12px 16px;background:#fff3df;border-left:4px solid #b65f19;margin-bottom:20px;font-size:13px">'+
+  '<b>Pre-utilizzo cassa · scorte da riconciliare:</b> '+
+  pending.map(p=>esc(p.label)+' ('+p.preUsePending+' pz)').join(', ')+
+  '. Le vendite storiche sono registrate, ma non sottratte automaticamente alle giacenze del 22/11.</div>':'')+(missing.length?
   '<div style="padding:12px 16px;background:#fff8e6;border-left:4px solid #bd7b12;margin-bottom:20px;font-size:13px">'+
   '<b>Giacenze ancora da censire:</b> '+missing.map(p=>esc(p.label)).join(', ')+
   '. Per questi prodotti non è possibile stabilire se serva un riordino.</div>':'');
@@ -118,14 +134,16 @@ function inventoryHtml(items:CasettaInventoryRow[]){
  const rows=items.map(p=>{
   const highlight=p.status==='out'?'#ffe4dc':p.status==='low'?'#fff0d7':'transparent';
   const qty=p.availableQty===null?'—':String(p.availableQty);
+  const pending=p.preUsePending>0
+   ?'<span style="display:block;font-size:11px;color:#9a5b12">Pre-utilizzo: '+p.preUsePending+' pz da riconciliare</span>':'';
   return '<tr style="background:'+highlight+'">'+
-   '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de">'+esc(p.label)+'</td>'+
+   '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de">'+esc(p.label)+pending+'</td>'+
    '<td style="padding:10px 5px;text-align:center;border-bottom:1px solid #e4e6de"><b>'+qty+'</b></td>'+
    '<td style="padding:10px 5px;text-align:center;border-bottom:1px solid #e4e6de">−'+p.soldToday+' / +'+p.receivedToday+'</td>'+
    '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de;font-size:12px"><b>'+esc(statusText(p))+'</b></td></tr>';
  }).join('');
  return '<h2 style="margin-top:30px;font-size:21px">📦 Magazzino · giacenze residue</h2>'+
-  '<p style="color:#526557;font-size:13px;line-height:1.5">Disponibilità teorica alle 20:00, calcolata da giacenza iniziale + rifornimenti/correzioni − <b>sole vendite reali</b>. Le prove DEMO non scalano nulla.</p>'+
+  '<p style="color:#526557;font-size:13px;line-height:1.5">Disponibilità teorica da giacenza iniziale + rifornimenti/correzioni − vendite LIVE. Le vendite pre-utilizzo saranno detratte solo dopo verifica del conteggio fisico. Le prove DEMO non scalano nulla.</p>'+
   summary+
   '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
   '<thead><tr style="background:#e7efe8"><th align="left" style="padding:9px 5px">Prodotto</th>'+
@@ -144,7 +162,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  (r.stock.map(p=>'<tr><td style="padding:9px 4px;border-bottom:1px solid #e4e6de">'+esc(p.label)+
  '</td><td style="padding:9px 4px;text-align:right;border-bottom:1px solid #e4e6de"><b>'+
  p.quantity+' pz</b></td></tr>').join('')||'<tr><td>Nessuna vendita</td></tr>')+'</table>'+
- '<p style="font-size:12px;color:#647267">Quantità vendute, non giacenze di magazzino.</p>'+
+ '<p style="font-size:12px;color:#647267">Quantità vendute, non giacenze di magazzino. Le vendite cartacee prive di orario non compaiono nel grafico orario.</p>'+
  hourlyChart(r):'';
  return frame('<h1 style="font-size:25px;margin-top:0">'+(audience==='finance'?'Riepilogo economico':'Vendite e riassortimento')+
  '</h1><p>Giornata del <b>'+esc(r.date)+'</b> · Orario italiano.</p>'+
@@ -153,7 +171,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  stock+(audience==='stock'?inventoryHtml(inventory??[]):'')+dailyChart(r)+
  (exportUrl?'<div style="margin-top:25px;padding:20px;border:1px solid #dce6d8;border-radius:12px;background:#f1f7ef;text-align:center">'+
  '<p style="margin:0 0 12px;color:#173d30;font:700 17px/1.5 Arial,sans-serif">Registro completo dei pagamenti</p>'+
- '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica il file Excel con data e ora, nome, cognome, importo, Contanti/POS e quantità di ciascun prodotto. Include tutte le vendite reali registrate fino a oggi.</p>'+
+ '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica l'Excel con vendite LIVE e pre-utilizzo cassa chiaramente distinti. Per le registrazioni cartacee del 21/11 nome, orario esatto e metodo di pagamento restano non rilevati.</p>'+
  '<a href="'+esc(exportUrl)+'" style="display:inline-block;padding:14px 20px;background:#236343;border-radius:9px;color:white;text-decoration:none;font:700 15px Arial,sans-serif">Scarica Excel vendite</a>'+
  '<p style="margin:12px 0 0;color:#65746b;font:12px/1.5 Arial,sans-serif">Link personale valido 7 giorni. Contiene dati dei clienti: non inoltrare.</p></div>':'')+
  '<p style="margin-top:22px;font-size:12px;color:#647267">I dati della cassa non sostituiscono la riconciliazione con contanti e terminale POS.</p>');
@@ -251,7 +269,7 @@ async function sendMail(to:string,subject:string,html:string,ref:string,bcc?:str
 }
 export async function dispatchCasettaReports(){
  const {date,hour}=romeClock();
- if(hour<20)return {date,status:'before_close'};
+ if(hour<19)return {date,status:'before_close'};
  const {data,error}=await db.rpc('casetta_daily_report',{_day:date});
  if(error)throw new Error('Report unavailable');
  const report=reportSchema.parse(data);
