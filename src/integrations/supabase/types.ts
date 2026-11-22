@@ -77,6 +77,117 @@ export type Database = {
         }
         Relationships: []
       }
+      casetta_inventory_config: {
+        Row: {
+          initialized_at: string | null
+          low_stock_threshold: number
+          opening_qty: number | null
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          initialized_at?: string | null
+          low_stock_threshold?: number
+          opening_qty?: number | null
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          initialized_at?: string | null
+          low_stock_threshold?: number
+          opening_qty?: number | null
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casetta_inventory_config_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "casetta_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      casetta_inventory_movements: {
+        Row: {
+          created_at: string
+          delta_qty: number
+          external_ref: string
+          id: string
+          kind: string
+          note: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta_qty: number
+          external_ref: string
+          id?: string
+          kind: string
+          note: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          delta_qty?: number
+          external_ref?: string
+          id?: string
+          kind?: string
+          note?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casetta_inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "casetta_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      casetta_preuse_sales: {
+        Row: {
+          imported_at: string
+          product_id: string
+          quantity: number
+          sale_day: string
+          source_note: string
+          stock_reconciliation: string
+          total_cents: number | null
+          unit_price_cents: number
+        }
+        Insert: {
+          imported_at?: string
+          product_id: string
+          quantity: number
+          sale_day: string
+          source_note?: string
+          stock_reconciliation?: string
+          total_cents?: number | null
+          unit_price_cents: number
+        }
+        Update: {
+          imported_at?: string
+          product_id?: string
+          quantity?: number
+          sale_day?: string
+          source_note?: string
+          stock_reconciliation?: string
+          total_cents?: number | null
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casetta_preuse_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "casetta_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casetta_products: {
         Row: {
           active: boolean
@@ -846,7 +957,12 @@ export type Database = {
         Returns: boolean
       }
       casetta_daily_report: { Args: { _day: string }; Returns: Json }
+      casetta_daily_report_base: { Args: { _day: string }; Returns: Json }
       casetta_export_sales: { Args: { _token_hash: string }; Returns: Json }
+      casetta_export_sales_base: {
+        Args: { _token_hash: string }
+        Returns: Json
+      }
       casetta_finish_receipt: {
         Args: {
           _claim: string
@@ -866,6 +982,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      casetta_inventory_snapshot: { Args: { _day: string }; Returns: Json }
+      casetta_inventory_snapshot_base: { Args: { _day: string }; Returns: Json }
       casetta_record_sale:
         | {
             Args: {
