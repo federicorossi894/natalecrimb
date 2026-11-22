@@ -12,6 +12,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Diagnose public site and cassa endpoints
+        shell: bash
+        run: |
+          for url in "https://natale.crimonza.org/cassa" "https://natalecrimb.lovable.app/cassa" "https://natale.crimonza.org/api/public/casetta-export?health=1"; do
+            echo "CHECK: ${url%%\?*}"
+            curl -L -sS --connect-timeout 8 --max-time 15 -o /tmp/casetta-check -w 'HTTP %{http_code} type %{content_type} size %{size_download}\n' "$url" || true
+            head -c 160 /tmp/casetta-check 2>/dev/null | tr '\n' ' ' || true
+            echo
+          done
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3"
