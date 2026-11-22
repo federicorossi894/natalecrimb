@@ -4,7 +4,7 @@ const SENDER='natale@crimonza.org';
 const FINANCE='amministrazione@crimonza.org';
 const STOCK='monza.sviluppo@lombardia.cri.it';
 const AUDIT_BCC='federico.rossi@crimonza.org';
-const EMAIL_LOGO_URL='https://natale.crimonza.org/cri-monza-email-v2.png';
+const EMAIL_EMBLEM_URL='https://natale.crimonza.org/cri-emblema-email-192.png';
 const finance=z.object({
  totalCents:z.number().int(),cashCents:z.number().int(),posCents:z.number().int(),transactions:z.number().int(),
  preUseCents:z.number().int().default(0),preUseUnits:z.number().int().default(0),
@@ -37,6 +37,21 @@ const euro=(c:number)=>new Intl.NumberFormat('it-IT',{style:'currency',currency:
 const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]??c));
 const b64=(s:string)=>btoa(Array.from(new TextEncoder().encode(s),b=>String.fromCharCode(b)).join(''));
 const b64url=(s:string)=>b64(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+/** Email-safe lockup: authentic CRI emblem at Retina resolution and real
+ * Arial text for both lines (never enlarge a bitmap of the whole wordmark).
+ * Tables and inline styles work in Gmail for iOS and common mail clients. */
+function emailInstitutionalLockup(){
+ const home='https://natale.crimonza.org/';
+ return '<table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;margin:0 auto;max-width:100%">'+
+  '<tr><td width="54" valign="middle" style="padding:0 9px 0 0;vertical-align:middle;width:54px">'+
+  '<a href="'+home+'" style="display:block;text-decoration:none">'+
+  '<img src="'+EMAIL_EMBLEM_URL+'" alt="Emblema della Croce Rossa Italiana" width="54" height="54" border="0" style="display:block;width:54px;height:54px;border:0" />'+
+  '</a></td><td valign="middle" style="padding:0;vertical-align:middle">'+
+  '<a href="'+home+'" style="display:block;color:#cc0000;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;line-height:1.15;white-space:nowrap">Croce Rossa Italiana</a>'+
+  '<div style="text-align:center;color:#cc0000;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:400;line-height:1.2;padding-top:4px">Comitato di Monza</div>'+
+  '</td></tr></table>';
+}
+
 export function romeClock(now=new Date()){
  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Rome',year:'numeric',month:'2-digit',
   day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now);
@@ -46,10 +61,8 @@ export function romeClock(now=new Date()){
 function frame(body:string){
  return '<!doctype html><html lang="it"><body style="margin:0;padding:24px 10px;background:#f4f1e9;font-family:Arial,sans-serif;color:#173d30">'+
  '<div style="max-width:630px;margin:0 auto;background:white;border-radius:18px;overflow:hidden">'+
- '<div style="padding:16px 20px;background:#fefefe;text-align:center">'+
- '<a href="https://natale.crimonza.org/" style="text-decoration:none;display:block">'+
- '<img src="'+EMAIL_LOGO_URL+'" alt="Croce Rossa Italiana — Comitato di Monza" width="540" height="121" border="0" style="display:block;width:100%;max-width:540px;height:auto;margin:0 auto;border:0" />'+
- '</a>'+
+ '<div style="padding:23px 10px;background:#ffffff;text-align:center">'+
+ emailInstitutionalLockup()+
  '</div>'+
  '<div style="background:#173d30;color:white;padding:24px;text-align:center">'+
  '<div style="font-size:12px;letter-spacing:1px">CROCE ROSSA ITALIANA · COMITATO DI MONZA</div>'+
@@ -191,7 +204,6 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  */
 export function receiptHtml(r:z.infer<typeof receiptSchema>){
  const date=new Intl.DateTimeFormat('it-IT',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Rome'}).format(new Date(r.createdAt));
- const logo=EMAIL_LOGO_URL;
  const rows=r.items.map(p=>'<tr>'+
   '<td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
   p.quantity+' × '+esc(p.label)+'</td>'+
@@ -209,11 +221,9 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f0e7">'+
   '<tr><td align="center" style="padding:22px 12px 32px">'+
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">'+
-  '<tr><td align="center" style="padding:18px 18px 16px;background:#ffffff">'+
-  '<a href="https://natale.crimonza.org/" style="text-decoration:none;display:block">'+
- '<img src="'+logo+'" alt="Croce Rossa Italiana — Comitato di Monza" width="540" height="121" border="0" style="display:block;width:100%;max-width:540px;height:auto;border:0" />'+
- '</a>'+
-  '</td></tr>'+
+  '<tr><td align="center" style="padding:24px 10px 23px;background:#ffffff">'+
+ emailInstitutionalLockup()+
+ '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
   demoNote+
@@ -248,9 +258,9 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:16px;background:#f4f7ed;border:1px solid #dde8d7;border-radius:12px">'+
   '<tr><td align="center" style="padding:23px 20px 26px">'+
   '<p style="margin:0 0 8px;color:#617b55;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.2px">UN PICCOLO GESTO OGNI GIORNO</p>'+
-  '<h2 style="margin:0 0 10px;color:#234434;font:normal 24px/1.3 Georgia,serif">Il Calendario della Gentilezza ✨</h2>'+
-  '<p style="margin:0 0 19px;color:#45564b;font:15px/1.65 Arial,sans-serif">Ogni giorno una nuova occasione per regalare un sorriso: scopri il nostro Calendario della Gentilezza e porta un po’ di magia anche fuori dalla Casetta.</p>'+
-  '<a href="https://natale.crimonza.org/calendario" style="display:inline-block;padding:13px 20px;border-radius:9px;background:#e6eedc;border:1px solid #a1b99e;color:#173d30;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Apri il Calendario della Gentilezza</a>'+
+  '<h2 style="margin:0 0 10px;color:#234434;font:normal 24px/1.3 Georgia,serif">Il nostro Calendario dell’Avvento ✨</h2>'+
+  '<p style="margin:0 0 19px;color:#45564b;font:15px/1.65 Arial,sans-serif">Il calendario dell’Avvento di Croce Rossa Monza si chiama <b>Calendario della Gentilezza</b>: dal 1° al 24 dicembre apri ogni giorno una nuova finestrella e scopri un piccolo gesto gentile da condividere.</p>'+
+  '<a href="https://natale.crimonza.org/calendario" style="display:inline-block;padding:13px 20px;border-radius:9px;background:#e6eedc;border:1px solid #a1b99e;color:#173d30;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Apri il Calendario dell’Avvento</a>'+
   '</td></tr></table>'+
   '<p style="margin:27px 0 0;text-align:center;color:#234434;font:italic 19px/1.5 Georgia,serif">Ti auguriamo un Natale pieno di piccoli gesti belli.</p>'+
   '<p style="margin:8px 0 0;text-align:center;color:#53685a;font:14px/1.5 Arial,sans-serif">I volontari di Croce Rossa Monza ❤️</p>'+
