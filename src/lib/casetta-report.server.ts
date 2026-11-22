@@ -143,7 +143,7 @@ function inventoryHtml(items:CasettaInventoryRow[]){
    '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de;font-size:12px"><b>'+esc(statusText(p))+'</b></td></tr>';
  }).join('');
  return '<h2 style="margin-top:30px;font-size:21px">📦 Magazzino · giacenze residue</h2>'+
-  '<p style="color:#526557;font-size:13px;line-height:1.5">Disponibilità teorica da giacenza iniziale + rifornimenti/correzioni − vendite LIVE. Le vendite pre-utilizzo saranno detratte solo dopo verifica del conteggio fisico. Le prove DEMO non scalano nulla.</p>'+
+  '<p style="color:#526557;font-size:13px;line-height:1.5">Giacenza teorica = magazzino iniziale + rifornimenti/correzioni − vendite LIVE − vendite pre-utilizzo già riconciliate. Per i prodotti senza magazzino iniziale la disponibilità resta sconosciuta. Le prove DEMO non scalano nulla.</p>'+
   summary+
   '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
   '<thead><tr style="background:#e7efe8"><th align="left" style="padding:9px 5px">Prodotto</th>'+
