@@ -1,13 +1,14 @@
 import { describe,expect,it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { reportHtml,receiptHtml,romeClock,type CasettaReport } from '@/lib/casetta-report.server';
+import { casettaXlsx } from '@/lib/casetta-export-xlsx.server';
 
 const sql=readFileSync('drizzle/migrations/0023_casetta_cassa.sql','utf8');
 const ui=readFileSync('src/routes/cassa.tsx','utf8');
 const receipt={
  id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
  claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
- email:'person@example.org',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
+ email:'person@example.org',firstName:'Giulia',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
  items:[{label:'Panettone cartone',quantity:1,totalCents:1400},{label:'Cioccolatini',quantity:1,totalCents:800}],
 };
 const report:CasettaReport={
@@ -19,6 +20,45 @@ const report:CasettaReport={
  daily:[{date:'2026-11-21',totalCents:6200},{date:'2026-11-22',totalCents:3200}],
 };
 describe('Casetta register: isolated no-login 08–20 service',()=>{
+ it('generates a valid Office Open XML ZIP with private payment rows and eight product columns',()=>{
+  const products=[
+   {id:'panettone_cartone',label:'Panettone cartone'},
+   {id:'riso_500',label:'Riso 500 g'},
+  ];
+  const bytes=casettaXlsx([{
+   date:'22/11/2026 10:34',firstName:'Giulia',lastName:'Rossi',amountCents:1900,
+   method:'pos',quantities:{panettone_cartone:1,riso_500:1},
+  }],products);
+  expect(bytes[0]).toBe(0x50);expect(bytes[1]).toBe(0x4b);
+  const raw=new TextDecoder().decode(bytes);
+  expect(raw).toContain('xl/worksheets/sheet1.xml');
+  expect(raw).toContain('Giulia');
+  expect(raw).toContain('Rossi');
+  expect(raw.includes('>Contanti<')).toBe(false);
+  expect(raw).toContain('POS');
+  expect(raw).toContain('Panettone cartone');
+  expect(raw).toContain('Riso 500 g');
+  expect(raw).toContain('<v>19</v>');
+  expect(raw).toContain('autoFilter');
+  expect(raw).toContain('frozen');
+ });
+ it('requires names, opt-in customer email and keeps ledger link private',()=>{
+  const current=readFileSync('src/routes/cassa.tsx','utf8');
+  const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  const migration=readFileSync('drizzle/migrations/0024_casetta_nominativi_export.sql','utf8');
+  const route=readFileSync('src/routes/api/casetta/export.ts','utf8');
+  expect(current).toContain('Dati cliente · obbligatori');
+  expect(current).toContain('Il cliente desidera ricevere l’email');
+  expect(server).toContain('_first_name:data.firstName');
+  expect(server).toContain('_last_name:data.lastName');
+  expect(migration).toContain('casetta_export_tokens');
+  expect(migration).toContain("interval '7 days'");
+  expect(route).toContain("'Cache-Control':'private, no-store, max-age=0'");
+  expect(route).toContain('casetta_export_sales');
+  expect(reportHtml(report,'finance','https://natale.crimonza.org/api/casetta/export?token=test'))
+    .toContain('Scarica Excel vendite');
+ });
+
  it('handles DST correctly in Europe/Rome',()=>{
   expect(romeClock(new Date('2026-03-29T05:59:00Z')).hour).toBe(7);
   expect(romeClock(new Date('2026-03-29T06:00:00Z')).hour).toBe(8);
@@ -46,6 +86,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('Comitato di Monza');
   expect(html).toContain('cri-rosso-orizzontale.png');
   expect(html).toContain('La magia può continuare');
+  expect(html).toContain('Grazie, Giulia.');
   expect(html).toContain('Non è un’iscrizione a newsletter');
   expect(html).not.toContain('❌');
   expect(html).toContain('https://natale.crimonza.org/privacy');
