@@ -86,23 +86,77 @@ export function reportHtml(r:CasettaReport,audience:Audience){
  stock+dailyChart(r)+
  '<p style="margin-top:22px;font-size:12px;color:#647267">I dati della cassa non sostituiscono la riconciliazione con contanti e terminale POS.</p>');
 }
+
+/**
+ * Customer-only Christmas receipt. The red CRI logo is the original unaltered
+ * institutional PNG already hosted by the project; the territorial wording is
+ * presented separately in Arial Regular as required by the 2017 CRI manual.
+ * The logo is NOT recoloured, overlaid, cut, rotated or used as a decoration.
+ * All styling is inline for Gmail and mobile email clients.
+ */
 export function receiptHtml(r:z.infer<typeof receiptSchema>){
  const date=new Intl.DateTimeFormat('it-IT',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Rome'}).format(new Date(r.createdAt));
- const rows=r.items.map(p=>'<tr><td style="padding:9px 4px;border-bottom:1px solid #e4e6de">'+
- p.quantity+' × '+esc(p.label)+'</td><td style="padding:9px 4px;border-bottom:1px solid #e4e6de;text-align:right">'+
- euro(p.totalCents)+'</td></tr>').join('');
- return frame('<h1 style="font-size:25px;margin-top:0">Grazie per essere passato a trovarci! ❤️</h1>'+
- '<p>Con il tuo acquisto alla Casetta di Natale sostieni le attività della Croce Rossa Italiana – Comitato di Monza.</p>'+
- '<h2 style="font-size:19px">Riepilogo del tuo acquisto</h2><p>Data: '+esc(date)+'</p>'+
- '<table style="width:100%;border-collapse:collapse">'+rows+
- '<tr><td style="padding:13px 4px"><b>Totale</b></td><td style="padding:13px 4px;text-align:right"><b>'+
- euro(r.totalCents)+'</b></td></tr></table>'+
- '<p style="font-size:13px;color:#647267"><b>Conferma informativa non fiscale.</b> Questa email non è uno scontrino né una ricevuta fiscale e non attesta una donazione detraibile.</p>'+
- '<div style="margin-top:25px;padding:18px;background:#f3eee2;border-radius:12px">'+
- '<h2 style="font-size:20px;margin-top:0">La magia può continuare 🎁</h2>'+
- '<p>Scopri i nostri regali solidali online: un altro modo per fare del bene, anche a distanza.</p>'+
- '<a href="https://natale.crimonza.org/regali" style="display:inline-block;padding:13px 18px;border-radius:9px;background:#236343;color:white;text-decoration:none;font-weight:bold">Scopri i regali solidali</a></div>');
+ const logo='https://natale.crimonza.org/__l5e/assets-v1/60fe216a-eabb-46c4-9e7b-5e4c7d09decb/cri-rosso-orizzontale.png';
+ const rows=r.items.map(p=>'<tr>'+
+  '<td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
+  p.quantity+' × '+esc(p.label)+'</td>'+
+  '<td align="right" style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:700 15px/1.45 Arial,sans-serif;color:#294738;white-space:nowrap">'+
+  euro(p.totalCents)+'</td></tr>').join('');
+ return '<!doctype html><html lang="it"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
+  '<body style="margin:0;padding:0;background:#f5f0e7;color:#203c30;font-family:Arial,sans-serif">'+
+  '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">'+
+  'Un grazie speciale dalla Casetta di Natale di Croce Rossa Monza. Ecco il riepilogo del tuo acquisto.'+
+  '</div>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f0e7">'+
+  '<tr><td align="center" style="padding:22px 12px 32px">'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">'+
+  '<tr><td align="center" style="padding:15px 18px 12px;background:#ffffff">'+
+  '<img src="'+logo+'" alt="Croce Rossa Italiana" width="330" border="0" style="display:block;width:100%;max-width:330px;height:auto;border:0" />'+
+  '<p style="margin:-10px 0 5px 70px;color:#cc0000;font:400 17px/1.3 Arial,sans-serif;text-align:center">Comitato di Monza</p>'+
+  '</td></tr>'+
+  '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
+  '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
+  '<h1 style="margin:0;color:#fff9e9;font:normal 37px/1.13 Georgia,serif">Grazie, davvero.</h1>'+
+  '<p style="margin:15px 0 0;color:#f5e8cf;font:18px/1.5 Georgia,serif">Anche un piccolo acquisto può portare<br />un po’ di calore molto lontano. ✨</p>'+
+  '</td></tr>'+
+  '<tr><td style="padding:31px 28px 34px">'+
+  '<p style="margin:0 0 15px;color:#294738;font:19px/1.5 Georgia,serif">Che bello averti incontrato alla nostra Casetta di Natale!</p>'+
+  '<p style="margin:0 0 22px;color:#43584d;font:15px/1.75 Arial,sans-serif">'+
+  'Tra luci, sorrisi e piccoli doni, hai scelto di sostenere le attività della '+
+  '<strong>Croce Rossa Italiana – Comitato di Monza</strong>. '+
+  'È grazie a gesti come il tuo che questo Natale può fare davvero bene.</p>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#faf6ee;border:1px solid #e8ddc8;border-radius:12px">'+
+  '<tr><td style="padding:23px 20px 18px">'+
+  '<p style="margin:0 0 5px;color:#8a652e;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.5px">IL TUO ACQUISTO</p>'+
+  '<p style="margin:0 0 15px;color:#607166;font:13px/1.5 Arial,sans-serif">'+esc(date)+'</p>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">'+rows+
+  '<tr><td style="padding:18px 0 0;color:#173d30;font:700 18px/1.3 Arial,sans-serif">Totale</td>'+
+  '<td align="right" style="padding:18px 0 0;color:#173d30;font:700 24px/1.3 Arial,sans-serif;white-space:nowrap">'+euro(r.totalCents)+'</td></tr>'+
+  '</table></td></tr></table>'+
+  '<p style="margin:14px 0 27px;color:#66736a;font:12px/1.65 Arial,sans-serif">'+
+  '<strong>Conferma informativa non fiscale.</strong> Questo messaggio non sostituisce uno scontrino o una ricevuta fiscale '+
+  'e non certifica una donazione detraibile.</p>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f2e7d2;border-radius:12px">'+
+  '<tr><td align="center" style="padding:25px 19px 27px">'+
+  '<p style="margin:0 0 9px;color:#80602e;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.5px">UN ALTRO MODO DI FARE DEL BENE</p>'+
+  '<h2 style="margin:0 0 11px;color:#234434;font:normal 25px/1.3 Georgia,serif">La magia può continuare.</h2>'+
+  '<p style="margin:0 0 20px;color:#45564b;font:15px/1.65 Arial,sans-serif">'+
+  'Vuoi regalare un sorriso anche a chi è lontano? Scopri i nostri regali solidali e dedica un pensiero speciale a qualcuno.</p>'+
+  '<a href="https://natale.crimonza.org/regali" style="display:inline-block;padding:14px 22px;border-radius:9px;background:#236343;color:#ffffff;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Scopri i regali solidali 🎁</a>'+
+  '</td></tr></table>'+
+  '<p style="margin:27px 0 0;text-align:center;color:#234434;font:italic 19px/1.5 Georgia,serif">Ti auguriamo un Natale pieno di piccoli gesti belli.</p>'+
+  '<p style="margin:8px 0 0;text-align:center;color:#53685a;font:14px/1.5 Arial,sans-serif">I volontari di Croce Rossa Monza ❤️</p>'+
+  '</td></tr>'+
+  '<tr><td align="center" style="padding:20px 24px;background:#f3efe6;border-top:1px solid #e8e0d2">'+
+  '<p style="margin:0 0 8px;color:#526557;font:12px/1.5 Arial,sans-serif">Croce Rossa Italiana · Comitato di Monza</p>'+
+  '<p style="margin:0 0 8px;color:#526557;font:12px/1.5 Arial,sans-serif">'+
+  '<a href="https://natale.crimonza.org" style="color:#236343">natale.crimonza.org</a> · '+
+  '<a href="https://natale.crimonza.org/privacy" style="color:#236343">Privacy</a></p>'+
+  '<p style="margin:0;color:#738074;font:11px/1.5 Arial,sans-serif">Ricevi questa email perché è stato inserito il tuo indirizzo al momento dell’acquisto alla Casetta. Non è un’iscrizione a newsletter.</p>'+
+  '</td></tr></table></td></tr></table></body></html>';
 }
+
 async function sendMail(to:string,subject:string,html:string,ref:string):Promise<Delivery>{
  const key=process.env['GOOGLE_MAIL_API_KEY_1'],auth=process.env['LOVABLE_API_KEY'];
  if(!key||!auth)return {state:'failed'};
