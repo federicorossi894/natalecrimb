@@ -14,6 +14,13 @@ const receiptSchema=z.object({
  id:z.string().uuid(),claim:z.string().uuid(),email:z.string().email(),mode:z.enum(['live','test']),firstName:z.string(),totalCents:z.number().int(),
  createdAt:z.string(),items:z.array(z.object({label:z.string(),quantity:z.number().int(),totalCents:z.number().int()})),
 });
+const inventoryRowSchema=z.object({
+ id:z.string(),label:z.string(),openingQty:z.number().int().nullable(),
+ receivedToday:z.number().int(),soldToday:z.number().int(),
+ availableQty:z.number().int().nullable(),thresholdQty:z.number().int(),
+ status:z.enum(['unknown','ok','low','out']),
+});
+export type CasettaInventoryRow=z.infer<typeof inventoryRowSchema>;
 export type CasettaReport=z.infer<typeof reportSchema>;
 type Audience='finance'|'stock';
 type Delivery={state:'accepted'|'failed'|'unknown';messageId?:string};
@@ -71,7 +78,40 @@ function hourlyChart(r:CasettaReport){
  bar(p.averageCents,max,'#d5b57a')+'</td>'+
  '<td style="width:65px;text-align:right;font-size:12px;white-space:nowrap">'+euro(p.todayCents)+'</td></tr>').join('')+'</table>';
 }
-export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string){
+
+function inventoryHtml(items:CasettaInventoryRow[]){
+ const low=items.filter(p=>p.status==='low').length;
+ const out=items.filter(p=>p.status==='out').length;
+ const unknown=items.filter(p=>p.status==='unknown').length;
+ const summary=out||low
+  ?'<p style="padding:12px;background:#fff0d7;border:1px solid #e9c389;border-radius:8px;color:#75451a"><b>Da controllare:</b> '+out+' prodotti esauriti, '+low+' sotto soglia.</p>'
+  :'<p style="padding:12px;background:#eaf4e8;border-radius:8px;color:#2a5d3d">Nessun prodotto sotto soglia'+(unknown?' tra quelli già censiti':'')+'.</p>';
+ const statusText=(p:CasettaInventoryRow)=>p.status==='unknown'?'Da censire':
+   p.status==='out'?'ESAURITO':
+   p.status==='low'?'SCORTA BASSA (≤ '+p.thresholdQty+')':'OK';
+ const rows=items.map(p=>{
+  const highlight=p.status==='out'?'#ffe4dc':p.status==='low'?'#fff0d7':'transparent';
+  const qty=p.availableQty===null?'—':String(p.availableQty);
+  return '<tr style="background:'+highlight+'">'+
+   '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de">'+esc(p.label)+'</td>'+
+   '<td style="padding:10px 5px;text-align:center;border-bottom:1px solid #e4e6de"><b>'+qty+'</b></td>'+
+   '<td style="padding:10px 5px;text-align:center;border-bottom:1px solid #e4e6de">−'+p.soldToday+' / +'+p.receivedToday+'</td>'+
+   '<td style="padding:10px 5px;border-bottom:1px solid #e4e6de;font-size:12px"><b>'+esc(statusText(p))+'</b></td></tr>';
+ }).join('');
+ return '<h2 style="margin-top:30px;font-size:21px">📦 Magazzino · giacenze residue</h2>'+
+  '<p style="color:#526557;font-size:13px;line-height:1.5">Disponibilità teorica alle 20:00, calcolata da giacenza iniziale + rifornimenti/correzioni − <b>sole vendite reali</b>. Le prove DEMO non scalano nulla.</p>'+
+  summary+
+  '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+  '<thead><tr style="background:#e7efe8"><th align="left" style="padding:9px 5px">Prodotto</th>'+
+  '<th style="padding:9px 5px">Rimasti</th><th style="padding:9px 5px">Oggi: vend. / car.</th>'+
+  '<th align="left" style="padding:9px 5px">Stato</th></tr></thead><tbody>'+
+  (rows||'<tr><td colspan="4" style="padding:12px">Giacenze non ancora configurate</td></tr>')+
+  '</tbody></table>'+
+  (unknown?'<p style="color:#9a5b12;font-size:13px"><b>'+unknown+' prodotti ancora da censire.</b> Comunicare le quantità iniziali prima di usare questi numeri per i riordini.</p>':'')+
+  '<p style="color:#647267;font-size:12px">Le soglie sono impostate inizialmente a 5 confezioni per prodotto, modificabili su richiesta. Verificare sempre con un conteggio fisico.</p>';
+}
+
+export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,inventory?:CasettaInventoryRow[]){
  const stock=audience==='stock'?
  '<h2 style="margin-top:26px;font-size:19px">Prodotti venduti</h2>'+
  '<table style="width:100%;border-collapse:collapse">'+
@@ -83,7 +123,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string){
  return frame('<h1 style="font-size:25px;margin-top:0">'+(audience==='finance'?'Riepilogo economico':'Vendite e riassortimento')+
  '</h1><p>Giornata del <b>'+esc(r.date)+'</b> · Orario italiano.</p>'+
  '<table style="width:100%;border-collapse:collapse">'+moneyRows(r)+'</table>'+
- stock+dailyChart(r)+
+ stock+(audience==='stock'?inventoryHtml(inventory??[]):'')+dailyChart(r)+
  (exportUrl?'<div style="margin-top:25px;padding:20px;border:1px solid #dce6d8;border-radius:12px;background:#f1f7ef;text-align:center">'+
  '<p style="margin:0 0 12px;color:#173d30;font:700 17px/1.5 Arial,sans-serif">Registro completo dei pagamenti</p>'+
  '<p style="margin:0 0 15px;color:#43594b;font:14px/1.5 Arial,sans-serif">Scarica il file Excel con data e ora, nome, cognome, importo, Contanti/POS e quantità di ciascun prodotto. Include tutte le vendite reali registrate fino a oggi.</p>'+
@@ -204,10 +244,20 @@ export async function dispatchCasettaReports(){
    await db.rpc('casetta_finish_report',{_day:date,_audience:audience,_claim:claimId,_state:'failed',_message_id:null});
    outcomes[audience]='export_unavailable';continue;
   }
+  let inventory:CasettaInventoryRow[]|undefined;
+  if(audience==='stock'){
+   const snapshot=await db.rpc('casetta_inventory_snapshot',{_day:date});
+   const parsed=z.array(inventoryRowSchema).safeParse(snapshot.data);
+   if(snapshot.error||!parsed.success){
+    await db.rpc('casetta_finish_report',{_day:date,_audience:audience,_claim:claimId,_state:'failed',_message_id:null});
+    outcomes[audience]='inventory_unavailable';continue;
+   }
+   inventory=parsed.data;
+  }
   const exportUrl='https://natale.crimonza.org/api/public/casetta-export?token='+token;
   const sent=await sendMail(to,'CRI Monza · Casetta '+date+' · '+
    (audience==='finance'?'Riepilogo economico':'Vendite e prodotti'),
-   reportHtml(report,audience,exportUrl),'casetta-'+audience+'-'+date);
+   reportHtml(report,audience,exportUrl,inventory),'casetta-'+audience+'-'+date);
   const finished=await db.rpc('casetta_finish_report',{
    _day:date,_audience:audience,_claim:claimId,_state:sent.state,_message_id:sent.messageId??null,
   });
