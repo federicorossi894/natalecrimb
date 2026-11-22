@@ -50,6 +50,192 @@ export type Database = {
         }
         Relationships: []
       }
+      casetta_export_tokens: {
+        Row: {
+          audience: string
+          created_at: string
+          expires_at: string
+          report_date: string
+          revoked_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          expires_at: string
+          report_date: string
+          revoked_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          expires_at?: string
+          report_date?: string
+          revoked_at?: string | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      casetta_products: {
+        Row: {
+          active: boolean
+          id: string
+          label: string
+          price_cents: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          id: string
+          label: string
+          price_cents: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          id?: string
+          label?: string
+          price_cents?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      casetta_report_dispatch: {
+        Row: {
+          audience: string
+          claim_id: string | null
+          claimed_at: string | null
+          message_id: string | null
+          report_date: string
+          sent_at: string | null
+          state: string
+        }
+        Insert: {
+          audience: string
+          claim_id?: string | null
+          claimed_at?: string | null
+          message_id?: string | null
+          report_date: string
+          sent_at?: string | null
+          state?: string
+        }
+        Update: {
+          audience?: string
+          claim_id?: string | null
+          claimed_at?: string | null
+          message_id?: string | null
+          report_date?: string
+          sent_at?: string | null
+          state?: string
+        }
+        Relationships: []
+      }
+      casetta_sale_items: {
+        Row: {
+          line_total_cents: number
+          product_id: string
+          product_label: string
+          quantity: number
+          sale_id: string
+          unit_price_cents: number
+        }
+        Insert: {
+          line_total_cents: number
+          product_id: string
+          product_label: string
+          quantity: number
+          sale_id: string
+          unit_price_cents: number
+        }
+        Update: {
+          line_total_cents?: number
+          product_id?: string
+          product_label?: string
+          quantity?: number
+          sale_id?: string
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casetta_sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "casetta_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "casetta_sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "casetta_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      casetta_sales: {
+        Row: {
+          client_tag: string
+          created_at: string
+          customer_email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          method: string
+          mode: string
+          receipt_claim: string | null
+          receipt_message_id: string | null
+          receipt_state: string
+          request_id: string
+          total_cents: number
+        }
+        Insert: {
+          client_tag: string
+          created_at?: string
+          customer_email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          method: string
+          mode: string
+          receipt_claim?: string | null
+          receipt_message_id?: string | null
+          receipt_state?: string
+          request_id: string
+          total_cents: number
+        }
+        Update: {
+          client_tag?: string
+          created_at?: string
+          customer_email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          method?: string
+          mode?: string
+          receipt_claim?: string | null
+          receipt_message_id?: string | null
+          receipt_state?: string
+          request_id?: string
+          total_cents?: number
+        }
+        Relationships: []
+      }
+      casetta_settings: {
+        Row: {
+          mode: string
+          singleton: boolean
+        }
+        Insert: {
+          mode?: string
+          singleton?: boolean
+        }
+        Update: {
+          mode?: string
+          singleton?: boolean
+        }
+        Relationships: []
+      }
       cash_requests: {
         Row: {
           amount_cents: number
@@ -649,6 +835,60 @@ export type Database = {
         Args: { _args: Json; _name: string; _token_hash: string }
         Returns: Json
       }
+      casetta_catalog: { Args: never; Returns: Json }
+      casetta_claim_receipts: { Args: { _limit?: number }; Returns: Json }
+      casetta_claim_report: {
+        Args: { _audience: string; _day: string }
+        Returns: string
+      }
+      casetta_create_export: {
+        Args: { _audience: string; _day: string; _token_hash: string }
+        Returns: boolean
+      }
+      casetta_daily_report: { Args: { _day: string }; Returns: Json }
+      casetta_export_sales: { Args: { _token_hash: string }; Returns: Json }
+      casetta_finish_receipt: {
+        Args: {
+          _claim: string
+          _id: string
+          _message_id?: string
+          _state: string
+        }
+        Returns: boolean
+      }
+      casetta_finish_report: {
+        Args: {
+          _audience: string
+          _claim: string
+          _day: string
+          _message_id?: string
+          _state: string
+        }
+        Returns: boolean
+      }
+      casetta_record_sale:
+        | {
+            Args: {
+              _client_tag: string
+              _email: string
+              _items: Json
+              _method: string
+              _request_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _client_tag: string
+              _email: string
+              _first_name: string
+              _items: Json
+              _last_name: string
+              _method: string
+              _request_id: string
+            }
+            Returns: Json
+          }
       cash_code_hash: { Args: { _code: string }; Returns: string }
       cash_request_lookup: {
         Args: { _code: string }
