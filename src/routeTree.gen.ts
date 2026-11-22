@@ -16,6 +16,7 @@ import { Route as AuguriRouteImport } from './routes/auguri'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
+import { Route as CassaRouteImport } from './routes/cassa'
 import { Route as CollaudoPagamentiRouteImport } from './routes/collaudo-pagamenti'
 import { Route as CreditiMusicaRouteImport } from './routes/crediti-musica'
 import { Route as EmailQaRouteImport } from './routes/email-qa'
@@ -31,6 +32,7 @@ import { Route as VolontariRouteImport } from './routes/volontari'
 import { Route as AugurioCodeRouteImport } from './routes/augurio.$code'
 import { Route as RegaliIndexRouteImport } from './routes/regali.index'
 import { Route as RegaliIdRouteImport } from './routes/regali.$id'
+import { Route as ApiInternalCasettaDailyReportRouteImport } from './routes/api/internal/casetta-daily-report'
 import { Route as ApiPublicChristmasGiftEmailRouteImport } from './routes/api/public/christmas-gift-email'
 import { Route as ApiPublicPaymentReconciliationRouteImport } from './routes/api/public/payment-reconciliation'
 import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal-webhook'
@@ -69,6 +71,11 @@ const CalendarioRoute = CalendarioRouteImport.update({
 const CasettaRoute = CasettaRouteImport.update({
   id: '/casetta',
   path: '/casetta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CassaRoute = CassaRouteImport.update({
+  id: '/cassa',
+  path: '/cassa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CollaudoPagamentiRoute = CollaudoPagamentiRouteImport.update({
@@ -146,6 +153,11 @@ const RegaliIdRoute = RegaliIdRouteImport.update({
   path: '/regali/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInternalCasettaDailyReportRoute = ApiInternalCasettaDailyReportRouteImport.update({
+  id: '/api/internal/casetta-daily-report',
+  path: '/api/internal/casetta-daily-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicChristmasGiftEmailRoute =
   ApiPublicChristmasGiftEmailRouteImport.update({
     id: '/api/public/christmas-gift-email',
@@ -177,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/cassa': typeof CassaRoute
   '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
@@ -192,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -205,6 +219,7 @@ export interface FileRoutesByTo {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/cassa': typeof CassaRoute
   '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
@@ -220,6 +235,7 @@ export interface FileRoutesByTo {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali': typeof RegaliIndexRoute
+  '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -234,6 +250,7 @@ export interface FileRoutesById {
   '/babbo-natale': typeof BabboNataleRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
+  '/cassa': typeof CassaRoute
   '/collaudo-pagamenti': typeof CollaudoPagamentiRoute
   '/crediti-musica': typeof CreditiMusicaRoute
   '/email-qa': typeof EmailQaRoute
@@ -249,6 +266,7 @@ export interface FileRoutesById {
   '/augurio/$code': typeof AugurioCodeRoute
   '/regali/$id': typeof RegaliIdRoute
   '/regali/': typeof RegaliIndexRoute
+  '/api/internal/casetta-daily-report': typeof ApiInternalCasettaDailyReportRoute
   '/api/public/christmas-gift-email': typeof ApiPublicChristmasGiftEmailRoute
   '/api/public/payment-reconciliation': typeof ApiPublicPaymentReconciliationRoute
   '/api/public/paypal-webhook': typeof ApiPublicPaypalWebhookRoute
@@ -264,6 +282,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/cassa'
     | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
@@ -279,6 +298,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -292,6 +312,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/cassa'
     | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
@@ -307,6 +328,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali'
+    | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -320,6 +342,7 @@ export interface FileRouteTypes {
     | '/babbo-natale'
     | '/calendario'
     | '/casetta'
+    | '/cassa'
     | '/collaudo-pagamenti'
     | '/crediti-musica'
     | '/email-qa'
@@ -335,6 +358,7 @@ export interface FileRouteTypes {
     | '/augurio/$code'
     | '/regali/$id'
     | '/regali/'
+    | '/api/internal/casetta-daily-report'
     | '/api/public/christmas-gift-email'
     | '/api/public/payment-reconciliation'
     | '/api/public/paypal-webhook'
@@ -349,6 +373,7 @@ export interface RootRouteChildren {
   BabboNataleRoute: typeof BabboNataleRoute
   CalendarioRoute: typeof CalendarioRoute
   CasettaRoute: typeof CasettaRoute
+  CassaRoute: typeof CassaRoute
   CollaudoPagamentiRoute: typeof CollaudoPagamentiRoute
   CreditiMusicaRoute: typeof CreditiMusicaRoute
   EmailQaRoute: typeof EmailQaRoute
@@ -364,6 +389,7 @@ export interface RootRouteChildren {
   AugurioCodeRoute: typeof AugurioCodeRoute
   RegaliIdRoute: typeof RegaliIdRoute
   RegaliIndexRoute: typeof RegaliIndexRoute
+  ApiInternalCasettaDailyReportRoute: typeof ApiInternalCasettaDailyReportRoute
   ApiPublicChristmasGiftEmailRoute: typeof ApiPublicChristmasGiftEmailRoute
   ApiPublicPaymentReconciliationRoute: typeof ApiPublicPaymentReconciliationRoute
   ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
@@ -419,6 +445,13 @@ declare module '@tanstack/react-router' {
       path: '/casetta'
       fullPath: '/casetta'
       preLoaderRoute: typeof CasettaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cassa': {
+      id: '/cassa'
+      path: '/cassa'
+      fullPath: '/cassa'
+      preLoaderRoute: typeof CassaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/collaudo-pagamenti': {
@@ -526,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegaliIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/casetta-daily-report': {
+      id: '/api/internal/casetta-daily-report'
+      path: '/api/internal/casetta-daily-report'
+      fullPath: '/api/internal/casetta-daily-report'
+      preLoaderRoute: typeof ApiInternalCasettaDailyReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/christmas-gift-email': {
       id: '/api/public/christmas-gift-email'
       path: '/api/public/christmas-gift-email'
@@ -565,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   BabboNataleRoute: BabboNataleRoute,
   CalendarioRoute: CalendarioRoute,
   CasettaRoute: CasettaRoute,
+  CassaRoute: CassaRoute,
   CollaudoPagamentiRoute: CollaudoPagamentiRoute,
   CreditiMusicaRoute: CreditiMusicaRoute,
   EmailQaRoute: EmailQaRoute,
@@ -580,6 +621,7 @@ const rootRouteChildren: RootRouteChildren = {
   AugurioCodeRoute: AugurioCodeRoute,
   RegaliIdRoute: RegaliIdRoute,
   RegaliIndexRoute: RegaliIndexRoute,
+  ApiInternalCasettaDailyReportRoute: ApiInternalCasettaDailyReportRoute,
   ApiPublicChristmasGiftEmailRoute: ApiPublicChristmasGiftEmailRoute,
   ApiPublicPaymentReconciliationRoute: ApiPublicPaymentReconciliationRoute,
   ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
