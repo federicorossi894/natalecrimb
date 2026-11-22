@@ -113,7 +113,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">'+
   '<tr><td align="center" style="padding:15px 18px 12px;background:#ffffff">'+
   '<img src="'+logo+'" alt="Croce Rossa Italiana" width="330" border="0" style="display:block;width:100%;max-width:330px;height:auto;border:0" />'+
-  '<p style="margin:-10px 0 5px 70px;color:#cc0000;font:400 17px/1.3 Arial,sans-serif;text-align:center">Comitato di Monza</p>'+
+  '<p style="margin:-37px 0 5px 70px;color:#cc0000;font:400 17px/1.3 Arial,sans-serif;text-align:center">Comitato di Monza</p>'+
   '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
