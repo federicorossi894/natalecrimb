@@ -20,6 +20,33 @@ const report:CasettaReport={
  daily:[{date:'2026-11-21',totalCents:6200},{date:'2026-11-22',totalCents:3200}],
 };
 describe('Casetta register: isolated no-login 08–20 service',()=>{
+ it('shows Michela available stock and low/out/unknown warnings, not Manuela',()=>{
+  const inventory=[
+   {id:'panettone_cartone',label:'Panettone cartone',openingQty:20,receivedToday:10,soldToday:3,availableQty:4,thresholdQty:5,status:'low' as const},
+   {id:'riso_500',label:'Riso 500 g',openingQty:5,receivedToday:0,soldToday:2,availableQty:0,thresholdQty:5,status:'out' as const},
+   {id:'riso_1000',label:'Riso 1 kg',openingQty:null,receivedToday:0,soldToday:0,availableQty:null,thresholdQty:5,status:'unknown' as const},
+  ];
+  const stock=reportHtml(report,'stock',undefined,inventory);
+  expect(stock).toContain('Magazzino · giacenze residue');
+  expect(stock).toContain('SCORTA BASSA');
+  expect(stock).toContain('ESAURITO');
+  expect(stock).toContain('Da censire');
+  expect(stock).toContain('1 prodotti esauriti, 1 sotto soglia');
+  expect(stock).toContain('Le prove DEMO non scalano nulla');
+  expect(reportHtml(report,'finance',undefined,inventory)).not.toContain('Magazzino · giacenze residue');
+ });
+ it('inventory snapshot ignores demo sales and does not assume unknown stock is zero',()=>{
+  const migration=readFileSync('drizzle/migrations/0026_casetta_inventory.sql','utf8');
+  expect(migration).toContain("sa.mode='live'");
+  expect(migration).toContain('WHEN c.opening_qty IS NULL THEN NULL');
+  expect(migration).toContain('casetta_inventory_movements');
+  expect(migration).toContain('external_ref text NOT NULL UNIQUE');
+  expect(migration).toContain('low_stock_threshold integer NOT NULL DEFAULT 5');
+  expect(migration).toContain('ENABLE ROW LEVEL SECURITY');
+  const cron=readFileSync('src/routes/api/internal/casetta-daily-report.ts','utf8');
+  expect(cron).toContain("catalog.mode==='live'");
+ });
+
  it('demo receipts are visibly marked as a simulation and internal reports remain paused',()=>{
   expect(receiptHtml({...receipt,mode:'test'})).toContain('SIMULAZIONE / DEMO');
   expect(receiptHtml(receipt)).not.toContain('SIMULAZIONE / DEMO');
