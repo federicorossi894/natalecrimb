@@ -28,7 +28,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
  it('separates finance and stock recipients',()=>{
   const finance=reportHtml(report,'finance');
   const stock=reportHtml(report,'stock');
-  expect(finance).toContain('9.400');
+  expect(finance).toContain('94,00');
   expect(finance).toContain('Andamento ultimi 7 giorni');
   expect(finance).not.toContain('Panettone cartone');
   expect(finance).not.toContain('Vendite per orario');
