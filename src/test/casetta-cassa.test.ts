@@ -1,44 +1,65 @@
 import { describe,expect,it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { previousRomeDate,reportHtml,type CasettaReport } from '@/lib/casetta-report.server';
+import { reportHtml,receiptHtml,romeClock,type CasettaReport } from '@/lib/casetta-report.server';
 
-const migration=readFileSync(new URL('../../drizzle/migrations/0023_casetta_cassa.sql',import.meta.url),'utf8');
-const route=readFileSync(new URL('../routes/cassa.tsx',import.meta.url),'utf8');
-
-describe('Casetta cash register safety and daily recaps',()=>{
-  it('uses Europe/Rome dates including the DST boundary',()=>{
-    expect(previousRomeDate(new Date('2026-11-22T09:00:00Z'))).toBe('2026-11-21');
-    expect(previousRomeDate(new Date('2026-03-29T22:30:00Z'))).toBe('2026-03-29');
-    expect(previousRomeDate(new Date('2026-10-25T23:30:00Z'))).toBe('2026-10-25');
-  });
-  const report:CasettaReport={
-    date:'2026-11-22',
-    finance:{totalCents:3200,cashCents:2000,posCents:1200,transactions:3},
-    stock:[{id:'panettone',label:'Panettone',quantity:2,totalCents:2000},
-      {id:'cioccolatini',label:'Cioccolatini',quantity:3,totalCents:1200}],
-  };
-  it('sends finance-only numbers to administration',()=>{
-    const html=reportHtml(report,'finance');
-    expect(html).toContain('32,00');
-    expect(html).toContain('Contanti');
-    expect(html).toContain('POS');
-    expect(html).not.toContain('Panettone');
-    expect(html).not.toContain('Cioccolatini');
-  });
-  it('sends financial figures and product counts to stock manager',()=>{
-    const html=reportHtml(report,'stock');
-    expect(html).toContain('32,00');
-    expect(html).toContain('Panettone');
-    expect(html).toContain('Cioccolatini');
-    expect(html).toContain('Quantità vendute, non giacenze effettive');
-  });
-  it('does not seed prices, grant anonymous access or create a live QR',()=>{
-    expect(migration).toContain('price_cents integer');
-    expect(migration).toContain('active boolean NOT NULL DEFAULT false');
-    expect(migration).toContain('REVOKE ALL ON TABLE');
-    expect(migration).toContain('REVOKE ALL ON FUNCTION');
-    expect(migration).not.toContain('INSERT INTO public.casetta_access_keys');
-    expect(route).toContain('noindex, nofollow, noarchive');
-    expect(route).toContain('no-referrer');
-  });
+const sql=readFileSync(new URL('../../drizzle/migrations/0023_casetta_cassa.sql',import.meta.url),'utf8');
+const ui=readFileSync(new URL('../routes/cassa.tsx',import.meta.url),'utf8');
+const receipt={
+ id:'d66a06a8-778d-4214-8e8b-a3c90c9d4444',
+ claim:'e43f34a9-5e28-4d34-8e24-2dfe0a82c999',
+ email:'person@example.org',totalCents:2200,createdAt:'2026-11-22T11:00:00Z',
+ items:[{label:'Panettone cartone',quantity:1,totalCents:1400},{label:'Cioccolatini',quantity:1,totalCents:800}],
+};
+const report:CasettaReport={
+ date:'2026-11-22',finance:{totalCents:3200,cashCents:2000,posCents:1200,transactions:3},
+ cumulativeCents:9400,
+ stock:[{id:'panettone_cartone',label:'Panettone cartone',quantity:2,totalCents:2800},
+ {id:'riso_500',label:'Riso 500 g',quantity:1,totalCents:400}],
+ hourly:[{hour:8,todayCents:800,averageCents:500},{hour:9,todayCents:2400,averageCents:900}],
+ daily:[{date:'2026-11-21',totalCents:6200},{date:'2026-11-22',totalCents:3200}],
+};
+describe('Casetta register: isolated no-login 08–20 service',()=>{
+ it('handles DST correctly in Europe/Rome',()=>{
+  expect(romeClock(new Date('2026-03-29T05:59:00Z')).hour).toBe(7);
+  expect(romeClock(new Date('2026-03-29T06:00:00Z')).hour).toBe(8);
+  expect(romeClock(new Date('2026-10-25T19:00:00Z')).hour).toBe(20);
+  expect(romeClock(new Date('2026-11-22T19:00:00Z')).hour).toBe(20);
+ });
+ it('separates finance and stock recipients',()=>{
+  const finance=reportHtml(report,'finance');
+  const stock=reportHtml(report,'stock');
+  expect(finance).toContain('9.400');
+  expect(finance).toContain('Andamento ultimi 7 giorni');
+  expect(finance).not.toContain('Panettone cartone');
+  expect(finance).not.toContain('Vendite per orario');
+  expect(stock).toContain('Panettone cartone');
+  expect(stock).toContain('Vendite per orario');
+  expect(stock).toContain('Quantità vendute, non giacenze');
+ });
+ it('sends a non-fiscal purchase summary and online gift invitation',()=>{
+  const html=receiptHtml(receipt);
+  expect(html).toContain('Conferma informativa non fiscale');
+  expect(html).toContain('https://natale.crimonza.org/regali');
+  expect(html).toContain('Panettone cartone');
+  expect(html).toContain('22,00');
+ });
+ it('does not require a QR, password or admin interface',()=>{
+  expect(ui).toContain("createFileRoute('/cassa')");
+  expect(ui).not.toContain('casettaActivateQr');
+  expect(ui).not.toContain('password');
+  expect(ui).toContain('noindex, nofollow, noarchive');
+ });
+ it('keeps test sales out of financial reports and closes at 20:00',()=>{
+  expect(sql).toContain("DEFAULT 'test'");
+  expect(sql).toContain("WHERE mode='live'");
+  expect(sql).toContain("time '08:00'");
+  expect(sql).toContain("time '20:00'");
+  expect(sql).toContain('UNIQUE');
+  expect(sql).toContain('REVOKE ALL ON TABLE');
+  expect(sql).toContain('REVOKE ALL ON FUNCTION');
+ });
+ it('uses the exact eight-item listino',()=>{
+  for(const sku of ['panettone_cartone','latta_panettone_pandoro','cioccolatini','tisane_etiche',
+    'riso_500','riso_1000','the_verde_rosso','bastoncino_zucchero'])expect(sql).toContain(sku);
+ });
 });
