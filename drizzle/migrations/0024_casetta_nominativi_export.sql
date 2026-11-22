@@ -50,8 +50,8 @@ BEGIN
  v_first:=trim(regexp_replace(coalesce(_first_name,''),'[[:space:]]+',' ','g'));
  v_last:=trim(regexp_replace(coalesce(_last_name,''),'[[:space:]]+',' ','g'));
  IF length(v_first) NOT BETWEEN 2 AND 80 OR length(v_last) NOT BETWEEN 2 AND 80
-    OR v_first !~ $name$^[[:alpha:]À-ÿ '-]+$$name$
-    OR v_last !~ $name$^[[:alpha:]À-ÿ '-]+$$name$
+    OR v_first ~ $name$[^[:alpha:]À-ÿ '-]$name$
+    OR v_last ~ $name$[^[:alpha:]À-ÿ '-]$name$
  THEN RAISE EXCEPTION 'Nome e cognome obbligatori'; END IF;
  v_email:=nullif(lower(trim(coalesce(_email,''))),'');
  IF v_email IS NOT NULL AND (length(v_email)>254 OR v_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$')
