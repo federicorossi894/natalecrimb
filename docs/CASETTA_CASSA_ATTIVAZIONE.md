@@ -32,8 +32,8 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - Da **natale@crimonza.org** tramite connessione Gmail già usata dal sito.
 - **amministrazione@crimonza.org**: totale giornata, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
 - **monza.sviluppo@lombardia.cri.it**: stessi numeri, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
-- **CCN Federico**: federico.rossi@crimonza.org per entrambi i report gestionali; in DEMO anche per le ricevute cliente, ma non per quelle reali.
-- **Cliente (facoltativa, solo su richiesta)**: conferma non fiscale personalizzata con articoli, importo e invito a `/regali`.
+- **CCN Federico**: federico.rossi@crimonza.org **solo nel riepilogo di magazzino inviato a Michela (monza.sviluppo@lombardia.cri.it)**. Nessun CCN in quello per Manuela o nelle ricevute ai clienti (DEMO e LIVE).
+- **Cliente (facoltativa, solo su richiesta)**: ricevuta non fiscale personalizzata con articoli e importo, pulsante principale verso la home `https://natale.crimonza.org/` e secondo riquadro dedicato al Calendario della Gentilezza `https://natale.crimonza.org/calendario`. In tutte le mail usare il marchio territoriale CRI Monza ingrandito.
 - Alle **19:00 ora italiana** (primo tick disponibile dello scheduler) parte il report della giornata, solo in LIVE. L'orario operativo della cassa continua a consentire inserimenti fino alle 20:00; le vendite registrate dopo le 19:00 richiederanno riconciliazione aggiuntiva, perché il recap giornaliero è già stato inviato. Il job lavora ogni 2 minuti dalle 08:00 alle 20:59 (CET) e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
 
 ## Cron (solo dopo deploy, migrazione e collaudo)
@@ -71,7 +71,7 @@ Job attivato il 22 novembre 2026 in modalità prova: invia le sole ricevute DEMO
 - **Magazzino iniziale Michela** (prima delle vendite del 21/11): 100 panettoni in scatola, 36 in latta, 10 pandori, 73 cioccolatini, 60 riso 500 g, 12 riso 1 kg. **Rimanenze dopo il venduto del 21/11: 99, 25, 10, 70, 40, 8** rispettivamente. Tisane, tè e bastoncini ancora da censire.
 - **21/11 registrato e riconciliato per i sei prodotti censiti**: 77 articoli, 526 € su 8 righe aggregate; metodo di pagamento sconosciuto. I cinque prodotti con vendite e apertura nota sono marcati `apply_to_opening`, senza riscrivere la giacenza iniziale; il pandoro non ha avuto vendite. Le giacenze di tisane, tè e candy cane rimangono sconosciute. Dettagli in docs/CASETTA_RICONCILIAZIONE_21_NOVEMBRE_2026.md.
 - Tè confermato a 5 € e cioccolatini portati a 10 € nel database. Prezzo del pandoro ancora da confermare con Guido.
-- Email a Manuela (amministrazione) e a Michela (sviluppo) con Federico in CCN: **solo dopo LIVE**, dopo le 19:00; Michela riceve gli avvisi evidenti per scorte basse/esaurite e giacenze da censire.
-- Ricevuta cliente DEMO: opzionale, marcata simulazione, con Federico in CCN. Ricevute reali senza CCN a Federico per minimizzare la diffusione dei dati cliente.
+- Email a Manuela (amministrazione) e a Michela (sviluppo): **solo dopo LIVE**, dopo le 19:00; **Federico in CCN solo a Michela**. Michela riceve gli avvisi evidenti per scorte basse/esaurite e giacenze da censire.
+- Ricevuta cliente DEMO: opzionale, marcata simulazione, **senza Federico in CCN**. Lo stesso vale per le ricevute LIVE, per minimizzare la diffusione dei dati cliente.
 - **Consegna Gmail non ancora verificata end-to-end**: non dichiarare gli invii riusciti senza controllare esiti e casella destinatario.
 - Prima di LIVE: conferma di Guido, conteggi mancanti per tisane/tè/bastoncini, import cartaceo del 22/11 quando disponibile, collaudo reale della mail e riconciliazione POS/contanti. La giacenza nota del 21/11 è già riconciliata.
