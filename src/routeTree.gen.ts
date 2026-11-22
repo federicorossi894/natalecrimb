@@ -160,11 +160,12 @@ const ApiCasettaExportRoute = ApiCasettaExportRouteImport.update({
   path: '/api/casetta/export',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiInternalCasettaDailyReportRoute = ApiInternalCasettaDailyReportRouteImport.update({
-  id: '/api/internal/casetta-daily-report',
-  path: '/api/internal/casetta-daily-report',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ApiInternalCasettaDailyReportRoute =
+  ApiInternalCasettaDailyReportRouteImport.update({
+    id: '/api/internal/casetta-daily-report',
+    path: '/api/internal/casetta-daily-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCasettaExportRoute = ApiPublicCasettaExportRouteImport.update({
   id: '/api/public/casetta-export',
   path: '/api/public/casetta-export',
