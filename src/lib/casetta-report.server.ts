@@ -185,7 +185,7 @@ export function reportHtml(r:CasettaReport,audience:Audience,exportUrl?:string,i
  */
 export function receiptHtml(r:z.infer<typeof receiptSchema>){
  const date=new Intl.DateTimeFormat('it-IT',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Rome'}).format(new Date(r.createdAt));
- const logo='https://natale.crimonza.org/cri-monza-email.png';
+ const logo='https://natale.crimonza.org/cri-monza-email-v2.png';
  const rows=r.items.map(p=>'<tr>'+
   '<td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
   p.quantity+' × '+esc(p.label)+'</td>'+
@@ -204,7 +204,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<tr><td align="center" style="padding:22px 12px 32px">'+
   '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">'+
   '<tr><td align="center" style="padding:18px 18px 16px;background:#ffffff">'+
-  '<img src="'+logo+'" alt="Croce Rossa Italiana — Comitato di Monza" width="440" height="99" border="0" style="display:block;width:100%;max-width:440px;height:auto;border:0" />'+
+  '<img src="'+logo+'" alt="Croce Rossa Italiana — Comitato di Monza" width="540" height="121" border="0" style="display:block;width:100%;max-width:540px;height:auto;border:0" />'+
   '</td></tr>'+
   '<tr><td align="center" style="padding:34px 26px 37px;background:#173d30;color:#fff9e9">'+
   '<p style="margin:0 0 14px;color:#e8ca8d;font:700 11px/1.6 Arial,sans-serif;letter-spacing:2px">✦ IL NATALE CHE FA BENE ✦</p>'+
@@ -236,6 +236,13 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   '<p style="margin:0 0 20px;color:#45564b;font:15px/1.65 Arial,sans-serif">'+
   'Vuoi continuare a fare del bene? Visita il nostro sito di Natale: scopri il progetto, i regali solidali e come sostenere le attività di Croce Rossa Monza.</p>'+
   '<a href="https://natale.crimonza.org/" style="display:inline-block;padding:14px 22px;border-radius:9px;background:#236343;color:#ffffff;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Scopri il Natale che fa bene 🎄</a>'+
+  '</td></tr></table>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:16px;background:#f4f7ed;border:1px solid #dde8d7;border-radius:12px">'+
+  '<tr><td align="center" style="padding:23px 20px 26px">'+
+  '<p style="margin:0 0 8px;color:#617b55;font:700 11px/1.4 Arial,sans-serif;letter-spacing:1.2px">UN PICCOLO GESTO OGNI GIORNO</p>'+
+  '<h2 style="margin:0 0 10px;color:#234434;font:normal 24px/1.3 Georgia,serif">Il Calendario della Gentilezza ✨</h2>'+
+  '<p style="margin:0 0 19px;color:#45564b;font:15px/1.65 Arial,sans-serif">Ogni giorno una nuova occasione per regalare un sorriso: scopri il nostro Calendario della Gentilezza e porta un po’ di magia anche fuori dalla Casetta.</p>'+
+  '<a href="https://natale.crimonza.org/calendario" style="display:inline-block;padding:13px 20px;border-radius:9px;background:#e6eedc;border:1px solid #a1b99e;color:#173d30;font:700 15px/1.4 Arial,sans-serif;text-decoration:none">Apri il Calendario della Gentilezza</a>'+
   '</td></tr></table>'+
   '<p style="margin:27px 0 0;text-align:center;color:#234434;font:italic 19px/1.5 Georgia,serif">Ti auguriamo un Natale pieno di piccoli gesti belli.</p>'+
   '<p style="margin:8px 0 0;text-align:center;color:#53685a;font:14px/1.5 Arial,sans-serif">I volontari di Croce Rossa Monza ❤️</p>'+
@@ -301,7 +308,7 @@ export async function dispatchCasettaReports(){
   const exportUrl='https://natale.crimonza.org/api/public/casetta-export?token='+token;
   const sent=await sendMail(to,'CRI Monza · Casetta '+date+' · '+
    (audience==='finance'?'Riepilogo economico':'Vendite e prodotti'),
-   reportHtml(report,audience,exportUrl,inventory),'casetta-'+audience+'-'+date,AUDIT_BCC);
+   reportHtml(report,audience,exportUrl,inventory),'casetta-'+audience+'-'+date,audience==='stock'?AUDIT_BCC:undefined);
   const finished=await db.rpc('casetta_finish_report',{
    _day:date,_audience:audience,_claim:claimId,_state:sent.state,_message_id:sent.messageId??null,
   });
@@ -316,7 +323,7 @@ export async function dispatchCasettaReceipts(){
  const outcomes:Record<string,string>={};
  for(const r of pending){
   const sent=await sendMail(r.email,(r.mode==='test'?'[DEMO] ':'')+'Grazie dalla Casetta di Natale · Croce Rossa Monza',
-   receiptHtml(r),'casetta-ricevuta-'+r.id,r.mode==='test'?AUDIT_BCC:undefined);
+   receiptHtml(r),'casetta-ricevuta-'+r.id);
   const finished=await db.rpc('casetta_finish_receipt',{
    _id:r.id,_claim:r.claim,_state:sent.state,_message_id:sent.messageId??null,
   });
