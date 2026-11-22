@@ -14,7 +14,7 @@ const NAV = [
   { to: "/albero", label: "Albero di Monza" },
   { to: "/piazza", label: "Oggi in Piazza" },
   { to: "/casetta", label: "La casetta" },
-  { to: "/calendario", label: "Calendario della Gentilezza" },
+  { to: "/calendario", label: "Calendario dell’Avvento" },
   { to: "/auguri", label: "Muro degli Auguri" },
   { to: "/babbo-natale", label: "Babbo Natale" },
   { to: "/piccoli-volontari", label: "Piccoli volontari" },
