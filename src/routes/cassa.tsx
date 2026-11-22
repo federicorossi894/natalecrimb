@@ -171,7 +171,7 @@ function CasettaCassa(){
           <input type="checkbox" checked={wantsEmail} disabled={phase==='sending'||Boolean(requestId)}
             onChange={e=>{setWantsEmail(e.target.checked);if(!e.target.checked)setEmail('');}}
             className="h-7 w-7 shrink-0 accent-[#236343]"/>
-          <Mail size={25} className="shrink-0"/> Il cliente desidera ricevere la ricevuta NON fiscale e l’email di ringraziamento?
+          <Mail size={25} className="shrink-0"/> Il cliente desidera ricevere via email la ricevuta NON fiscale e il messaggio di ringraziamento?
         </label>
         {wantsEmail&&<div className="mt-3">
           <label htmlFor="casetta-email" className="text-lg font-extrabold">Email cliente (solo su richiesta)</label>
