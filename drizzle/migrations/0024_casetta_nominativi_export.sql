@@ -204,3 +204,27 @@ REVOKE ALL ON FUNCTION public.casetta_export_sales(text)
 GRANT EXECUTE ON FUNCTION public.casetta_export_sales(text) TO service_role;
 -- Old 5-argument RPC must not be used to bypass mandatory names.
 REVOKE EXECUTE ON FUNCTION public.casetta_record_sale(uuid,text,jsonb,text,text) FROM service_role;
+
+-- Personalize opt-in receipts with the customer's first name.
+CREATE OR REPLACE FUNCTION public.casetta_claim_receipts(_limit integer DEFAULT 10)
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$
+DECLARE v_result jsonb;
+BEGIN
+ -- Access controlled by REVOKE/GRANT and SECURITY INVOKER, not JWT claim text.
+ WITH picked AS (
+  SELECT id FROM public.casetta_sales WHERE mode='live' AND receipt_state IN ('pending','failed')
+   ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT least(greatest(_limit,1),10)
+ ), claimed AS (
+  UPDATE public.casetta_sales s SET receipt_state='claimed',receipt_claim=gen_random_uuid()
+  FROM picked p WHERE s.id=p.id
+  RETURNING s.id,s.receipt_claim,s.customer_email,s.total_cents,s.created_at,s.first_name
+ )
+ SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'claim',receipt_claim,
+   'email',customer_email,'firstName',coalesce(first_name,''),'totalCents',total_cents,'createdAt',created_at,
+   'items',(SELECT coalesce(jsonb_agg(jsonb_build_object('label',i.product_label,'quantity',i.quantity,
+     'totalCents',i.line_total_cents) ORDER BY i.product_label),'[]'::jsonb)
+     FROM public.casetta_sale_items i WHERE i.sale_id=claimed.id))),'[]'::jsonb)
+ INTO v_result FROM claimed;
+ RETURN v_result;
+END $$;
+
