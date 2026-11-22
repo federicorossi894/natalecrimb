@@ -1,7 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getCookie, getRequest, getRequestHeader, setCookie } from '@tanstack/react-start/server';
 import { z } from 'zod';
-import { supabaseAdmin } from '@/integrations/supabase/client.server';
 
 const COOKIE = 'cri_casetta_pos';
 const COOKIE_AGE = 60 * 60 * 24 * 45;
@@ -14,7 +13,7 @@ const saleSchema = z.object({
 export type CasettaProduct = z.infer<typeof productSchema>;
 export type CasettaSaleInput = z.infer<typeof saleSchema>;
 
-const db = () => supabaseAdmin as unknown as {
+const db = async () => (await import('@/integrations/supabase/client.server')).supabaseAdmin as unknown as {
   rpc: (name: string, params: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
 };
 const hashToken = async (token: string) => {
@@ -32,7 +31,7 @@ async function tokenHash() {
   return token && tokenPattern.test(token) ? hashToken(token) : null;
 }
 async function catalogFor(token: string) {
-  const { data, error } = await db().rpc('casetta_catalog', { _token_hash: await hashToken(token) });
+  const { data, error } = await (await db()).rpc('casetta_catalog', { _token_hash: await hashToken(token) });
   if (error) throw new Error('QR scaduto o non autorizzato.');
   return z.array(productSchema).parse(data);
 }
@@ -41,7 +40,7 @@ export const casettaActivateQr = createServerFn({ method:'POST' })
   .handler(async ({ data }) => {
     requireSameOrigin();
     const products = await catalogFor(data.token);
-    setCookie(COOKIE,data.token,{httpOnly:true,secure:true,sameSite:'strict',path:'/cassa',maxAge:COOKIE_AGE});
+    setCookie(COOKIE,data.token,{httpOnly:true,secure:true,sameSite:'strict',path:'/',maxAge:COOKIE_AGE});
     return { ok:true as const, products };
   });
 export const casettaSession = createServerFn({ method:'GET' }).handler(async () => {
