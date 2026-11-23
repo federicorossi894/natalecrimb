@@ -175,6 +175,22 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('https://natale.crimonza.org/privacy');
 
  });
+ it('allows evening read-only preview of the actual checkout without recording sales',()=>{
+  const ui=readFileSync('src/routes/cassa.tsx','utf8');
+  const database=readFileSync('drizzle/migrations/0034_casetta_orario_09_19_live_24nov.sql','utf8');
+  expect(ui).toContain('const preview=Boolean(catalog&&!catalog.open)');
+  expect(ui).toContain('const canBrowse=Boolean(catalog&&online)');
+  expect(ui).toContain('data-testid="casetta-readonly-preview"');
+  expect(ui).toContain('Cassa chiusa · Anteprima');
+  expect(ui).toContain("{catalog&&phase==='cart'&&");
+  expect(ui).toContain("{catalog&&(phase==='review'||phase==='sending')&&");
+  expect(ui).toContain('disabled={!canBrowse||!count}');
+  expect(ui).toContain('disabled={!open||phase===\'sending\'} onClick={()=>void submit()}');
+  expect(ui).toContain("if(!open||!lines.length||phase!=='review')return");
+  expect(ui).toContain('CONFERMA NON DISPONIBILE IN ANTEPRIMA');
+  expect(database).toContain("v_clock>=time '09:00' AND v_clock<time '19:00'");
+  expect(database).toContain("time >= time '19:00'");
+ });
  it('requires a deliberate cash-or-POS choice and uses the corrected chocolate price',()=>{
   const current=readFileSync('src/routes/cassa.tsx','utf8');
   const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
