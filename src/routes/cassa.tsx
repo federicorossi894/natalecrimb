@@ -40,7 +40,7 @@ function CasettaCassa(){
   const [online,setOnline]=useState(true);
   const [error,setError]=useState('');
   const [qty,setQty]=useState<Record<string,number>>({});
-  const [method,setMethod]=useState<Method>('cash');
+  const [method,setMethod]=useState<Method|null>(null);
   const [wantsExtraDonation,setWantsExtraDonation]=useState(false);
   const [extraDonationEuro,setExtraDonationEuro]=useState('');
   const [firstName,setFirstName]=useState('');
@@ -75,12 +75,15 @@ function CasettaCassa(){
     setError('');
   }
   function reset(){
-    setQty({});setFirstName('');setLastName('');setWantsEmail(false);setEmail('');setMethod('cash');setRequestId('');
+    setQty({});setFirstName('');setLastName('');setWantsEmail(false);setEmail('');setMethod(null);setRequestId('');
     setWantsExtraDonation(false);setExtraDonationEuro('');
     setResult(null);setError('');setPhase('cart');
   }
   async function submit(){
     if(!open||!lines.length||phase!=='review')return;
+    if(method!=='cash'&&method!=='pos'){
+      setError('Seleziona obbligatoriamente il metodo di pagamento: CONTANTI oppure POS.');return;
+    }
     if(wantsExtraDonation&&(enteredDonationCents===null||grandTotal>100000)){
       setError('Inserisci una donazione extra valida (es. 5 oppure 5,50). Il totale massimo della vendita è 1.000 €.');return;
     }
@@ -187,14 +190,16 @@ function CasettaCassa(){
           {wantsExtraDonation&&<div className="flex justify-between text-lg"><span>Donazione extra</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}
           <div className="flex justify-between gap-2 border-t pt-3 text-3xl font-black"><span>TOTALE DA INCASSARE</span><span className="whitespace-nowrap">{euro(grandTotal)}</span></div>
         </div>
-        <h3 className="mb-3 text-center text-xl font-black">Come ha pagato?</h3>
+        <h3 className="mb-3 text-center text-xl font-black">Come ha pagato? *</h3>
         <div className="grid grid-cols-2 gap-3">
-          <button disabled={phase==='sending'||Boolean(requestId)} aria-pressed={method==='cash'} onClick={()=>setMethod('cash')}
+          <button disabled={phase==='sending'||Boolean(requestId)} aria-pressed={method==='cash'} onClick={()=>{setMethod('cash');setError('');}}
             className={`${big} border-2 ${method==='cash'?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>💶<span className="block">CONTANTI</span></button>
-          <button disabled={phase==='sending'||Boolean(requestId)} aria-pressed={method==='pos'} onClick={()=>setMethod('pos')}
+          <button disabled={phase==='sending'||Boolean(requestId)} aria-pressed={method==='pos'} onClick={()=>{setMethod('pos');setError('');}}
             className={`${big} border-2 ${method==='pos'?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>💳<span className="block">POS</span></button>
         </div>
-        <p className="mt-3 text-center text-base text-[#516357]">{method==='pos'?'Incassa prima sul POS fisico, poi conferma.':'Ricevi prima i contanti, poi conferma.'}</p>
+        <p className="mt-3 text-center text-base font-semibold text-[#516357]" role="status">
+          {method==='pos'?'Incassa prima sul POS fisico, poi conferma.':method==='cash'?'Ricevi prima i contanti, poi conferma.':'Seleziona CONTANTI o POS: il metodo di pagamento è obbligatorio.'}
+        </p>
         <div className="mt-6 rounded-2xl border-2 border-[#b7c7b8] bg-[#faf9f4] p-4">
           <h3 className="text-xl font-black">Dati cliente · obbligatori</h3>
           <p className="mt-1 text-sm text-[#516357]">Scrivi nome e cognome come sul blocchetto delle offerte.</p>
@@ -236,7 +241,7 @@ function CasettaCassa(){
         <p className="mt-4 text-4xl font-black">{euro(result?.totalCents??0)}</p>
         {Boolean(result?.extraDonationCents)&&<p className="mt-2 text-base">Prodotti: {euro(result?.productsCents??0)} · Donazione extra: {euro(result?.extraDonationCents??0)}</p>}
         <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
-        <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':'POS'}</p>
+        <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':method==='pos'?'POS':'Non selezionato'}</p>
         {wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
         <button onClick={reset} className={`${big} mt-8 flex w-full items-center justify-center gap-3 bg-[#236343] text-white`}><RotateCcw/> NUOVA VENDITA</button>
       </section>}
