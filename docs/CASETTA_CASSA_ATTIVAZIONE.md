@@ -34,7 +34,7 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 
 ## Test e produzione
 - `casetta_settings.mode` resta `test` **fino al 24/11/2026 alle 09:00 Europe/Rome**. Le prove DEMO rimangono nello storico ma **non contano** nei report e **non riducono il magazzino**. Nessuna ricevuta cliente, neppure DEMO, è inviata dal momento della disattivazione. Nessun report gestionale deve essere inviato il 23/11.
-- Il passaggio a `live` è **programmato e automatizzato** con `pg_cron` il **24 novembre 2026, ore 09:00 italiane** (08:00 UTC) dal job `natale-casetta-live-2026-11-24`: chiama `casetta_activate_scheduled_live()`, che verifica la data e il flag `activation_done` prima di cambiare il database. **Non attivare LIVE manualmente il 23/11**. Il cron già attivo `natale-2026-casetta-automation` rimane invariato e dalle **19:00 del 24 novembre** invia i report gestionali se il database è in LIVE. Dopo le 09:00 controllare `mode='live'` e `activation_done=true`.
+- Il passaggio a `live` è **programmato e automatizzato** con `pg_cron` il **24 novembre 2026, ore 09:00 italiane** (08:00 UTC) dal job `natale-casetta-live-2026-11-24`: chiama `casetta_activate_scheduled_live()`, che verifica la data e il flag `activation_done` prima di cambiare il database. **Non attivare LIVE manualmente il 23/11**. Il cron di gestione `natale-2026-casetta-automation` è stato ristretto all'intervallo utile (`*/2 8-18 * 11,12 *` in UTC) e dalle **19:00 del 24 novembre** invia i report gestionali se il database è in LIVE. Dopo le 09:00 controllare `mode='live'` e `activation_done=true`.
 - Tutte le tabelle dedicate hanno RLS e solo `service_role` può usarle. Non modificare i flussi di donazioni online.
 
 ## Email
