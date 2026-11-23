@@ -175,6 +175,24 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(html).toContain('https://natale.crimonza.org/privacy');
 
  });
+ it('requires a deliberate cash-or-POS choice and uses the corrected chocolate price',()=>{
+  const current=readFileSync('src/routes/cassa.tsx','utf8');
+  const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  const migration=readFileSync('drizzle/migrations/0032_casetta_cioccolatini_7_euro_20261123.sql','utf8');
+  const oldSql=readFileSync('drizzle/migrations/0031_casetta_extra_donazione.sql','utf8');
+  expect(current).toContain("useState<Method|null>(null)");
+  expect(current).toContain("setMethod(null);setRequestId('')");
+  expect(current).toContain("if(method!=='cash'&&method!=='pos')");
+  expect(current).toContain("Seleziona obbligatoriamente il metodo di pagamento");
+  expect(current).toContain("Come ha pagato? *");
+  expect(current).toContain("Seleziona CONTANTI o POS: il metodo di pagamento è obbligatorio.");
+  expect(server).toContain("method:z.enum(['cash','pos'])");
+  expect(oldSql).toContain("_method NOT IN('cash','pos')");
+  expect(migration).toContain("price_cents=700");
+  expect(migration).toContain("id='cioccolatini'");
+  expect(migration).not.toContain("UPDATE public.casetta_sale_items");
+  expect(migration).not.toContain("UPDATE public.casetta_preuse_sales");
+ });
  it('handles extra donation independently of products, email and daily totals',()=>{
   const mail=receiptHtml({...receipt,totalCents:2800,productsCents:2200,extraDonationCents:600});
   expect(mail).toContain('Donazione extra');
