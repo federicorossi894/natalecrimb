@@ -47,7 +47,8 @@ export const casettaRecordSale=createServerFn({method:'POST'})
    sameOrigin();
    const {data:result,error}=await rpc('casetta_record_sale',{
      _request_id:data.requestId,_method:data.method,_items:data.items,
-     _email:data.email||null,_client_tag:await tagFor(data.deviceId),
+     // Feature suspended: retain the API schema but never forward a customer email.
+     _email:null,_client_tag:await tagFor(data.deviceId),
      _first_name:data.firstName,_last_name:data.lastName,
      _extra_donation_cents:data.extraDonationCents,
    });
