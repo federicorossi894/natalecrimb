@@ -3,7 +3,7 @@
 ## Utilizzo
 - URL: **https://natale.crimonza.org/cassa**. Nessun QR, codice, login o area amministrativa.
 - Aperta **08:00–20:00 ora italiana**, controllo server nel database; dopo le 20:00 le vendite vengono rifiutate anche se la pagina è rimasta aperta.
-- Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi seleziona **Contanti** o **POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma.
+- Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi deve **selezionare obbligatoriamente Contanti oppure POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma. Nessuno dei due metodi è preselezionato; senza scelta la registrazione è bloccata. Anche l'API e la funzione SQL rifiutano un metodo assente o non valido.
 - Con **SÌ** inserisce **solo la cifra aggiuntiva** in euro (virgola decimale ammessa), non l'importo totale: panettone 14 €, cliente lascia 20 € → donazione extra 6 €, **totale da incassare 20 €**. Con NO la donazione è zero. La vendita resta un solo pagamento; il database conserva `extra_donation_cents` separatamente dai prodotti.
 - La donazione extra **non è un prodotto**: non altera listino, quantità vendute o magazzino. L'incasso e il POS/contante comprendono invece la cifra totale effettivamente ricevuta. Per mantenere il vincolo della cassa il totale della singola operazione non può superare 1.000 €.
 - Nome e cognome del cliente sono obbligatori e devono coincidere con il blocchetto delle offerte. L'email viene richiesta solo se il cliente spunta esplicitamente la casella per ricevere il ringraziamento.
@@ -16,7 +16,7 @@
 | Panettone cartone | 14 |
 | Panettone in latta | 16 |
 | Pandoro | 16 (provvisorio) |
-| Cioccolatini | 10 |
+| Cioccolatini | 7 |
 | Tisane etiche | 5 |
 | Riso 500 g | 5 |
 | Riso 1 kg | 8 |
@@ -79,7 +79,7 @@ Job attivato il 22 novembre 2026 in modalità prova: invia le sole ricevute DEMO
 - **Modalità DEMO (test) confermata**: 9 prodotti (panettone latta e pandoro separati); zero vendite reali. I test non entrano negli incassi e non scalano le giacenze.
 - **Magazzino iniziale Michela** (prima delle vendite del 21/11): 100 panettoni in scatola, 36 in latta, 10 pandori, 73 cioccolatini, 60 riso 500 g, 12 riso 1 kg. **Rimanenze dopo il venduto del 21/11: 99, 25, 10, 70, 40, 8** rispettivamente. Tisane, tè e bastoncini ancora da censire.
 - **21/11 registrato e riconciliato per i sei prodotti censiti**: 77 articoli, 526 € su 8 righe aggregate; metodo di pagamento sconosciuto. I cinque prodotti con vendite e apertura nota sono marcati `apply_to_opening`, senza riscrivere la giacenza iniziale; il pandoro non ha avuto vendite. Le giacenze di tisane, tè e candy cane rimangono sconosciute. Dettagli in docs/CASETTA_RICONCILIAZIONE_21_NOVEMBRE_2026.md.
-- Tè confermato a 5 € e cioccolatini portati a 10 € nel database. Prezzo del pandoro ancora da confermare con Guido.
+- Tè confermato a 5 €; il 23/11 Guido ha corretto il prezzo corrente dei **cioccolatini a 7 €**. Le vendite del 21/11 rimangono registrate al prezzo storico di 10 € senza riscrivere il venduto. Prezzo del pandoro ancora da confermare con Guido.
 - Email a Manuela (amministrazione) e a Michela (sviluppo): **solo dopo LIVE**, dopo le 19:00; **Federico in CCN solo a Michela**. Michela riceve gli avvisi evidenti per scorte basse/esaurite e giacenze da censire.
 - Ricevuta cliente DEMO: opzionale, marcata simulazione, **senza Federico in CCN**. Lo stesso vale per le ricevute LIVE, per minimizzare la diffusione dei dati cliente.
 - **Consegna Gmail non ancora verificata end-to-end**: non dichiarare gli invii riusciti senza controllare esiti e casella destinatario.
