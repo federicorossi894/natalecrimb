@@ -346,7 +346,11 @@ export async function dispatchCasettaReports(){
  }
  return {date,outcomes};
 }
+// Customer receipts are suspended; keep HTML, delivery and retry logic
+// for a future explicit reactivation. Daily management reports stay enabled.
+const CUSTOMER_RECEIPTS_ENABLED=false;
 export async function dispatchCasettaReceipts(){
+ if(!CUSTOMER_RECEIPTS_ENABLED)return {processed:0,outcomes:{}};
  const {data,error}=await db.rpc('casetta_claim_receipts',{_limit:8});
  if(error)throw new Error('Receipt queue unavailable');
  const pending=z.array(receiptSchema).parse(data);
