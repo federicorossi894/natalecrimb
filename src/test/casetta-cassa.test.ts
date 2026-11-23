@@ -193,6 +193,27 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(migration).not.toContain("UPDATE public.casetta_sale_items");
   expect(migration).not.toContain("UPDATE public.casetta_preuse_sales");
  });
+ it('keeps the customer email feature dormant but permits management reports from 24 November',()=>{
+  const ui=readFileSync('src/routes/cassa.tsx','utf8');
+  const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  const reports=readFileSync('src/lib/casetta-report.server.ts','utf8');
+  const sql=readFileSync('drizzle/migrations/0033_casetta_live_20261124_email_disattivate.sql','utf8');
+  expect(ui).toContain('const CUSTOMER_EMAIL_ENABLED=false');
+  expect(ui).toContain('{CUSTOMER_EMAIL_ENABLED&&<><label');
+  expect(ui).toContain('email:CUSTOMER_EMAIL_ENABLED&&wantsEmail?email.trim()');
+  expect(ui).not.toContain('Email al cliente solo se richiesta. Report delle 19:00 sospesi.');
+  expect(server).toContain('_email:null,_client_tag:await tagFor(data.deviceId)');
+  expect(reports).toContain('const CUSTOMER_RECEIPTS_ENABLED=false');
+  expect(reports).toContain('if(!CUSTOMER_RECEIPTS_ENABLED)return {processed:0,outcomes:{}};');
+  expect(reports).toContain("if(hour<19)");
+  expect(sql).toContain('customer_receipts_enabled boolean NOT NULL DEFAULT false');
+  expect(sql).toContain('casetta_activate_scheduled_live');
+  expect(sql).toContain("2026-11-24T07:00:00+00");
+  expect(sql).toContain("'0 7 24 11 *'");
+  expect(sql).toContain("activation_done=true");
+  expect(sql).toContain("live_from<now()");
+  expect(sql).toContain("REVOKE ALL ON FUNCTION public.casetta_activate_scheduled_live()");
+ });
  it('handles extra donation independently of products, email and daily totals',()=>{
   const mail=receiptHtml({...receipt,totalCents:2800,productsCents:2200,extraDonationCents:600});
   expect(mail).toContain('Donazione extra');
