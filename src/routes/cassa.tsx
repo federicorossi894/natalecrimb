@@ -133,7 +133,7 @@ function CasettaCassa(){
       {catalog&&!catalog.open&&phase!=='success'&&<section className="mt-5 rounded-3xl bg-white p-8 text-center shadow-sm">
         <LockKeyhole className="mx-auto mb-4 text-[#236343]" size={64}/>
         <h2 className="text-3xl font-black">Cassa chiusa</h2>
-        <p className="mt-3 text-xl">Aperta ogni giorno dalle <strong>08:00 alle 20:00</strong>.</p>
+        <p className="mt-3 text-xl">Aperta ogni giorno dalle <strong>09:00 alle 19:00</strong>.</p>
         <p className="mt-2 text-base text-[#52665b]">Ora italiana · La cassa si riapre automaticamente.</p>
       </section>}
       {catalog?.open&&phase==='cart'&&<>
@@ -247,7 +247,7 @@ function CasettaCassa(){
         {CUSTOMER_EMAIL_ENABLED&&wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
         <button onClick={reset} className={`${big} mt-8 flex w-full items-center justify-center gap-3 bg-[#236343] text-white`}><RotateCcw/> NUOVA VENDITA</button>
       </section>}
-      <p className="mt-8 text-center text-sm text-[#596a60]">Vendite in presenza · Non è un registratore fiscale · Orario 08:00–20:00</p>
+      <p className="mt-8 text-center text-sm text-[#596a60]">Vendite in presenza · Non è un registratore fiscale · Orario 09:00–19:00</p>
     </div>
   </main>;
 }
