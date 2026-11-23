@@ -255,7 +255,28 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(ui).not.toContain('password');
   expect(ui).toContain('noindex, nofollow, noarchive');
  });
- it('keeps test sales out of financial reports and closes at 20:00',()=>{
+ it('enforces the real Casetta opening hours 09:00–19:00 on all RPCs',()=>{
+  const migration=readFileSync('drizzle/migrations/0034_casetta_orario_09_19_live_24nov.sql','utf8');
+  const ui=readFileSync('src/routes/cassa.tsx','utf8');
+  const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  const runbook=readFileSync('docs/CASETTA_CASSA_ATTIVAZIONE.md','utf8');
+  expect(migration).toContain("v_clock>=time '09:00' AND v_clock<time '19:00'");
+  expect(migration).toContain("time < time '09:00'");
+  expect(migration).toContain("time >= time '19:00'");
+  expect(migration).toContain("proname='casetta_record_sale'");
+  expect(migration).toContain('Expected exactly three protected checkout RPC signatures');
+  expect(migration).toContain("'2026-11-24T08:00:00+00'");
+  expect(migration).toContain("'0 8 24 11 *'");
+  expect(migration).toContain("'*/2 8-18 * 11,12 *'");
+  expect(migration).toContain("live_from<=now()");
+  expect(ui).toContain('09:00 alle 19:00');
+  expect(ui).toContain('Orario 09:00–19:00');
+  expect(server).toContain('Cassa chiusa: aperta ogni giorno dalle 09:00 alle 19:00.');
+  expect(runbook).toContain('**09:00–19:00 ora italiana**');
+  expect(runbook).toContain('**24 novembre 2026, ore 09:00 italiane**');
+  expect(runbook).not.toContain('L\'orario operativo della cassa continua a consentire inserimenti fino alle 20:00');
+ });
+ it('preserves historical DEMO schema rules as an archival migration',()=>{
   expect(sql).toContain("DEFAULT 'test'");
   expect(sql).toContain("WHERE mode='live'");
   expect(sql).toContain("time '08:00'");
