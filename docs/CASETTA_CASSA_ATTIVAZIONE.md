@@ -2,7 +2,7 @@
 
 ## Utilizzo
 - URL: **https://natale.crimonza.org/cassa**. Nessun QR, codice, login o area amministrativa.
-- Aperta **08:00–20:00 ora italiana**, controllo server nel database; dopo le 20:00 le vendite vengono rifiutate anche se la pagina è rimasta aperta.
+- Aperta **09:00–19:00 ora italiana**, con blocco nel database; **dalle 19:00 fino alle 08:59:59** le nuove vendite vengono rifiutate, anche se la pagina è rimasta aperta sul telefono. Il sito non verifica la presenza fisica in Casetta: durante l'orario autorizzato il link funziona da qualunque luogo.
 - Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi deve **selezionare obbligatoriamente Contanti oppure POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma. Nessuno dei due metodi è preselezionato; senza scelta la registrazione è bloccata. Anche l'API e la funzione SQL rifiutano un metodo assente o non valido.
 - Con **SÌ** inserisce **solo la cifra aggiuntiva** in euro (virgola decimale ammessa), non l'importo totale: panettone 14 €, cliente lascia 20 € → donazione extra 6 €, **totale da incassare 20 €**. Con NO la donazione è zero. La vendita resta un solo pagamento; il database conserva `extra_donation_cents` separatamente dai prodotti.
 - La donazione extra **non è un prodotto**: non altera listino, quantità vendute o magazzino. L'incasso e il POS/contante comprendono invece la cifra totale effettivamente ricevuta. Per mantenere il vincolo della cassa il totale della singola operazione non può superare 1.000 €.
@@ -33,8 +33,8 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - La modalità DEMO continua a NON incidere su incassi reali e giacenze.
 
 ## Test e produzione
-- `casetta_settings.mode` resta `test` **fino al 24/11/2026 alle 08:00 Europe/Rome**. Le prove DEMO rimangono nello storico ma **non contano** nei report e **non riducono il magazzino**. Nessuna ricevuta cliente, neppure DEMO, è inviata dal momento della disattivazione. Nessun report gestionale deve essere inviato il 23/11.
-- Il passaggio a `live` è **programmato e automatizzato** con `pg_cron` il **24 novembre 2026, ore 08:00 italiane** (07:00 UTC) dal job `natale-casetta-live-2026-11-24`: chiama `casetta_activate_scheduled_live()`, che verifica la data e il flag `activation_done` prima di cambiare il database. **Non attivare LIVE manualmente il 23/11**. Il cron già attivo `natale-2026-casetta-automation` rimane invariato e dalle **19:00 del 24 novembre** invia i report gestionali se il database è in LIVE. Dopo le 08:00 controllare `mode='live'` e `activation_done=true`.
+- `casetta_settings.mode` resta `test` **fino al 24/11/2026 alle 09:00 Europe/Rome**. Le prove DEMO rimangono nello storico ma **non contano** nei report e **non riducono il magazzino**. Nessuna ricevuta cliente, neppure DEMO, è inviata dal momento della disattivazione. Nessun report gestionale deve essere inviato il 23/11.
+- Il passaggio a `live` è **programmato e automatizzato** con `pg_cron` il **24 novembre 2026, ore 09:00 italiane** (08:00 UTC) dal job `natale-casetta-live-2026-11-24`: chiama `casetta_activate_scheduled_live()`, che verifica la data e il flag `activation_done` prima di cambiare il database. **Non attivare LIVE manualmente il 23/11**. Il cron già attivo `natale-2026-casetta-automation` rimane invariato e dalle **19:00 del 24 novembre** invia i report gestionali se il database è in LIVE. Dopo le 09:00 controllare `mode='live'` e `activation_done=true`.
 - Tutte le tabelle dedicate hanno RLS e solo `service_role` può usarle. Non modificare i flussi di donazioni online.
 
 ## Email
@@ -43,14 +43,14 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - **monza.sviluppo@lombardia.cri.it**: stessi numeri con donazioni extra separate, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
 - **CCN Federico**: federico.rossi@crimonza.org **solo nel riepilogo di magazzino inviato a Michela (monza.sviluppo@lombardia.cri.it)**. Nessun CCN in quello per Manuela o nelle ricevute ai clienti (DEMO e LIVE).
 - **Email al cliente: SOSPESE**. Il checkbox, il campo email e l'avviso di invio sono nascosti. Il codice completo della ricevuta non fiscale con articoli, donazione extra, home e Calendario dell'Avvento è conservato, ma non viene eseguito. Per riattivarlo in futuro servono **tre interventi coordinati**: flag UI `CUSTOMER_EMAIL_ENABLED`, guard server `CUSTOMER_RECEIPTS_ENABLED` e `casetta_settings.customer_receipts_enabled=true`, oltre al ripristino controllato dell'argomento `_email` nel server. Non riattivare per errore il solo componente UI.
-- Alle **19:00 ora italiana** (primo tick disponibile dello scheduler) parte il report della giornata, solo in LIVE. L'orario operativo della cassa continua a consentire inserimenti fino alle 20:00; le vendite registrate dopo le 19:00 richiederanno riconciliazione aggiuntiva, perché il recap giornaliero è già stato inviato. Il job lavora ogni 2 minuti dalle 08:00 alle 20:59 (CET) e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
+- Alle **19:00 ora italiana** (primo tick disponibile dello scheduler) parte il report della giornata, solo in LIVE. La cassa **chiude esattamente alle 19:00**: il report gestionale delle 19:00 riepiloga quindi tutte le vendite consentite della giornata, senza un'ultima ora fuori report. Il job lavora ogni 2 minuti dalle 09:00 alle 19:59 (ora italiana) per i riepiloghi gestionali; le ricevute clienti rimangono disattivate; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
 
 ## Cron (solo dopo deploy, migrazione e collaudo)
 Il token `natale_2026_cron_token` esiste già in Supabase Vault.
 Il job usa lo stesso autenticatore delle altre automazioni del sito.
 
 ```sql
-SELECT cron.schedule('natale-2026-casetta-automation','*/2 7-19 * 11,12 *',$job$
+SELECT cron.schedule('natale-2026-casetta-automation','*/2 8-18 * 11,12 *',$job$
   SELECT net.http_post(
     url := 'https://natale.crimonza.org/api/internal/casetta-daily-report',
     body := '{}'::jsonb,
@@ -69,7 +69,7 @@ Job già attivo: dal 23/11 la coda delle ricevute è disabilitata sia nell'appli
 ## Controlli obbligatori
 1. Compilazione e test (typecheck, Vitest, build) prima del merge.
 2. Migrazione SQL provata in transazione con rollback e vendita duplicata idempotente.
-3. In test mode: vendite di prova 9 prodotti, POS, contanti, ricevute DEMO su richiesta, nessun report gestionale, chiusura 20:00.
+3. In test mode: vendite di prova 9 prodotti, POS, contanti, ricevute DEMO su richiesta, nessun report gestionale, chiusura 19:00.
 4. In live mode: un acquisto controllato, una email cliente, report e scheduler verificati; controllare stato `casetta_sales.receipt_state` e `casetta_report_dispatch`.
 5. Riconciliazione contanti/POS e audit delle vendite. Non assumere che il solo riepilogo corrisponda al denaro reale.
 
@@ -88,7 +88,7 @@ Job già attivo: dal 23/11 la coda delle ricevute è disabilitata sia nell'appli
 
 ## Attivazione programmata 24 novembre 2026 — note operative
 - **23 novembre, sera:** mode = `test`; nessuna email in uscita (né clienti né amministrazione/sviluppo). L'eventuale storico DEMO rimane separato.
-- **24 novembre, 08:00 Europe/Rome:** cron GMT `0 7 24 11 *` accende `live` in modo idempotente. Le vendite da quel momento concorrono al totale e scaricano giacenze; contanti e POS vanno selezionati obbligatoriamente.
+- **24 novembre, 09:00 Europe/Rome:** cron GMT `0 8 24 11 *` accende `live` in modo idempotente. Le vendite da quel momento concorrono al totale e scaricano giacenze; contanti e POS vanno selezionati obbligatoriamente.
 - **24 novembre, 19:00 Europe/Rome:** report a Manuela `amministrazione@crimonza.org` e Michela `monza.sviluppo@lombardia.cri.it` (Federico in CCN **solo** Michela). Nessuna ricevuta o email cliente.
-- **Controlli:** verificare alle 08:00 `SELECT mode,activation_done,customer_receipts_enabled,live_from FROM public.casetta_settings;`. Se il job ha fallito, correggere con verifica manuale della data e non duplicare transazioni. Verificare alle 19:00 `casetta_report_dispatch` e la consegna effettiva delle due email.
-- **Attenzione al cutoff:** la cassa resta aperta fino alle 20:00 ma il riepilogo delle 19:00 non comprende le operazioni tra le 19:00 e le 20:00; predisporre una verifica/conguaglio dei movimenti successivi.
+- **Controlli:** verificare alle 09:00 `SELECT mode,activation_done,customer_receipts_enabled,live_from FROM public.casetta_settings;`. Se il job ha fallito, correggere con verifica manuale della data e non duplicare transazioni. Verificare alle 19:00 `casetta_report_dispatch` e la consegna effettiva delle due email.
+- **Orario unico:** 09:00–19:00 Europe/Rome. Il controllo viene effettuato in tutte e tre le firme RPC di salvataggio oltre che nella risposta del catalogo, quindi una pagina rimasta aperta non può registrare nuove vendite alle 23:00. L'invio riepilogativo scatta solo dopo la chiusura, alle 19:00. Configurazione riproducibile in `drizzle/migrations/0034_casetta_orario_09_19_live_24nov.sql`.
