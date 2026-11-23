@@ -53,7 +53,7 @@ export const casettaRecordSale=createServerFn({method:'POST'})
      _extra_donation_cents:data.extraDonationCents,
    });
    if(error){
-     if(/chiusa|20 alle 08/i.test(error.message))throw new Error('Cassa chiusa: riapre alle 08:00.');
+     if(/chiusa|09:00 alle 19:00/i.test(error.message))throw new Error('Cassa chiusa: aperta ogni giorno dalle 09:00 alle 19:00.');
      if(/Troppe|occupata/i.test(error.message))throw new Error('Troppe operazioni. Attendi un minuto.');
      throw new Error('Registrazione non confermata. Riprova con lo stesso riepilogo.');
    }
