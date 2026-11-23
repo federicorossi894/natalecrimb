@@ -6,7 +6,7 @@
 - Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi deve **selezionare obbligatoriamente Contanti oppure POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma. Nessuno dei due metodi è preselezionato; senza scelta la registrazione è bloccata. Anche l'API e la funzione SQL rifiutano un metodo assente o non valido.
 - Con **SÌ** inserisce **solo la cifra aggiuntiva** in euro (virgola decimale ammessa), non l'importo totale: panettone 14 €, cliente lascia 20 € → donazione extra 6 €, **totale da incassare 20 €**. Con NO la donazione è zero. La vendita resta un solo pagamento; il database conserva `extra_donation_cents` separatamente dai prodotti.
 - La donazione extra **non è un prodotto**: non altera listino, quantità vendute o magazzino. L'incasso e il POS/contante comprendono invece la cifra totale effettivamente ricevuta. Per mantenere il vincolo della cassa il totale della singola operazione non può superare 1.000 €.
-- Nome e cognome del cliente sono obbligatori e devono coincidere con il blocchetto delle offerte. L'email viene richiesta solo se il cliente spunta esplicitamente la casella per ricevere il ringraziamento.
+- Nome e cognome del cliente restano obbligatori e devono coincidere con il blocchetto delle offerte. **Il campo email, la scelta di ricevere una ricevuta e i ringraziamenti automatici sono nascosti e disattivati** dal 23/11, senza cancellare il codice: potranno essere riabilitati esplicitamente in futuro.
 - Il registro cartaceo storico viene importato come totale aggregato e non genera ricevute individuali. La cassa non è un registratore fiscale; il POS va effettivamente incassato sul terminale e il contante va riconciliato.
 - Chiunque conosca l'URL può registrare vendite: limitazioni anti-abuso e assenza dalla sitemap riducono il rischio, **non garantiscono che sia solo per volontari**.
 
@@ -33,8 +33,8 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - La modalità DEMO continua a NON incidere su incassi reali e giacenze.
 
 ## Test e produzione
-- `casetta_settings.mode` nasce `test`. Le vendite di prova restano salvate ma **non contano** nei report e **non riducono il magazzino**. Se il cliente spunta la richiesta, parte una ricevuta DEMO chiaramente marcata come simulazione; i report gestionali delle 19:00 restano sospesi.
-- Dopo collaudo e verifica email, passare a `live` con `UPDATE public.casetta_settings SET mode='live' WHERE singleton=true;`.
+- `casetta_settings.mode` resta `test` **fino al 24/11/2026 alle 08:00 Europe/Rome**. Le prove DEMO rimangono nello storico ma **non contano** nei report e **non riducono il magazzino**. Nessuna ricevuta cliente, neppure DEMO, è inviata dal momento della disattivazione. Nessun report gestionale deve essere inviato il 23/11.
+- Il passaggio a `live` è **programmato e automatizzato** con `pg_cron` il **24 novembre 2026, ore 08:00 italiane** (07:00 UTC) dal job `natale-casetta-live-2026-11-24`: chiama `casetta_activate_scheduled_live()`, che verifica la data e il flag `activation_done` prima di cambiare il database. **Non attivare LIVE manualmente il 23/11**. Il cron già attivo `natale-2026-casetta-automation` rimane invariato e dalle **19:00 del 24 novembre** invia i report gestionali se il database è in LIVE. Dopo le 08:00 controllare `mode='live'` e `activation_done=true`.
 - Tutte le tabelle dedicate hanno RLS e solo `service_role` può usarle. Non modificare i flussi di donazioni online.
 
 ## Email
@@ -42,7 +42,7 @@ Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 - **amministrazione@crimonza.org**: totale giornata con separazione **prodotti / donazioni extra**, contanti, POS, numero vendite, cumulativo e grafico ultimi 7 giorni.
 - **monza.sviluppo@lombardia.cri.it**: stessi numeri con donazioni extra separate, quantità per prodotto, grafico orario oggi vs media dei giorni precedenti e grafico 7 giorni.
 - **CCN Federico**: federico.rossi@crimonza.org **solo nel riepilogo di magazzino inviato a Michela (monza.sviluppo@lombardia.cri.it)**. Nessun CCN in quello per Manuela o nelle ricevute ai clienti (DEMO e LIVE).
-- **Cliente (facoltativa, solo su richiesta)**: ricevuta non fiscale personalizzata con articoli, donazione extra distinta e totale effettivamente incassato, pulsante principale verso la home `https://natale.crimonza.org/` e secondo riquadro dedicato al Calendario della Gentilezza `https://natale.crimonza.org/calendario`. In tutte le mail usare il marchio territoriale CRI Monza ingrandito.
+- **Email al cliente: SOSPESE**. Il checkbox, il campo email e l'avviso di invio sono nascosti. Il codice completo della ricevuta non fiscale con articoli, donazione extra, home e Calendario dell'Avvento è conservato, ma non viene eseguito. Per riattivarlo in futuro servono **tre interventi coordinati**: flag UI `CUSTOMER_EMAIL_ENABLED`, guard server `CUSTOMER_RECEIPTS_ENABLED` e `casetta_settings.customer_receipts_enabled=true`, oltre al ripristino controllato dell'argomento `_email` nel server. Non riattivare per errore il solo componente UI.
 - Alle **19:00 ora italiana** (primo tick disponibile dello scheduler) parte il report della giornata, solo in LIVE. L'orario operativo della cassa continua a consentire inserimenti fino alle 20:00; le vendite registrate dopo le 19:00 richiederanno riconciliazione aggiuntiva, perché il recap giornaliero è già stato inviato. Il job lavora ogni 2 minuti dalle 08:00 alle 20:59 (CET) e invia ricevute pendenti; il DB impedisce doppi report. Un esito Gmail ambiguo viene segnalato per verifica, non ritentato automaticamente per evitare duplicati.
 
 ## Cron (solo dopo deploy, migrazione e collaudo)
@@ -63,7 +63,7 @@ SELECT cron.schedule('natale-2026-casetta-automation','*/2 7-19 * 11,12 *',$job$
 $job$);
 ```
 
-Job attivato il 22 novembre 2026 in modalità prova: invia le sole ricevute DEMO richieste, non i report gestionali delle 19:00. Stop a fine campagna:
+Job già attivo: dal 23/11 la coda delle ricevute è disabilitata sia nell'applicazione sia nel database e il cron **non invia ricevute DEMO né LIVE**. Prima del 24/11 il cron non invia report gestionali perché la modalità resta TEST; dalle 19:00 del 24/11 parte il riepilogo gestionale in LIVE. Stop a fine campagna:
 `SELECT cron.unschedule('natale-2026-casetta-automation');`.
 
 ## Controlli obbligatori
@@ -84,3 +84,11 @@ Job attivato il 22 novembre 2026 in modalità prova: invia le sole ricevute DEMO
 - Ricevuta cliente DEMO: opzionale, marcata simulazione, **senza Federico in CCN**. Lo stesso vale per le ricevute LIVE, per minimizzare la diffusione dei dati cliente.
 - **Consegna Gmail non ancora verificata end-to-end**: non dichiarare gli invii riusciti senza controllare esiti e casella destinatario.
 - Prima di LIVE: conferma di Guido, conteggi mancanti per tisane/tè/bastoncini, import cartaceo del 22/11 quando disponibile, collaudo reale della mail e riconciliazione POS/contanti. La giacenza nota del 21/11 è già riconciliata.
+
+
+## Attivazione programmata 24 novembre 2026 — note operative
+- **23 novembre, sera:** mode = `test`; nessuna email in uscita (né clienti né amministrazione/sviluppo). L'eventuale storico DEMO rimane separato.
+- **24 novembre, 08:00 Europe/Rome:** cron GMT `0 7 24 11 *` accende `live` in modo idempotente. Le vendite da quel momento concorrono al totale e scaricano giacenze; contanti e POS vanno selezionati obbligatoriamente.
+- **24 novembre, 19:00 Europe/Rome:** report a Manuela `amministrazione@crimonza.org` e Michela `monza.sviluppo@lombardia.cri.it` (Federico in CCN **solo** Michela). Nessuna ricevuta o email cliente.
+- **Controlli:** verificare alle 08:00 `SELECT mode,activation_done,customer_receipts_enabled,live_from FROM public.casetta_settings;`. Se il job ha fallito, correggere con verifica manuale della data e non duplicare transazioni. Verificare alle 19:00 `casetta_report_dispatch` e la consegna effettiva delle due email.
+- **Attenzione al cutoff:** la cassa resta aperta fino alle 20:00 ma il riepilogo delle 19:00 non comprende le operazioni tra le 19:00 e le 20:00; predisporre una verifica/conguaglio dei movimenti successivi.
