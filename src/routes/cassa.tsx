@@ -70,7 +70,11 @@ function CasettaCassa(){
   const total=lines.reduce((n,p)=>n+p.quantity*p.priceCents,0);
   const enteredDonationCents=wantsExtraDonation?donationEuroCents(extraDonationEuro):0;
   const grandTotal=total+(enteredDonationCents??0);
+  // The register is viewable for volunteer training outside opening hours,
+  // but only the database and server may authorize a real sale.
   const open=Boolean(catalog?.open&&online);
+  const preview=Boolean(catalog&&!catalog.open);
+  const canBrowse=Boolean(catalog&&online);
   function adjust(id:string,step:number){
     if(phase!=='cart')return;
     setQty(prev=>({...prev,[id]:Math.max(0,Math.min(99,(prev[id]??0)+step))}));
@@ -130,37 +134,38 @@ function CasettaCassa(){
         <button type="button" onClick={()=>window.location.reload()}
           className={`${big} mt-6 bg-[#236343] text-white`}>RIPROVA A CARICARE</button>
       </div>}
-      {catalog&&!catalog.open&&phase!=='success'&&<section className="mt-5 rounded-3xl bg-white p-8 text-center shadow-sm">
+      {catalog&&!catalog.open&&phase!=='success'&&<section className="mt-5 rounded-3xl border-2 border-amber-400 bg-amber-50 p-5 text-center shadow-sm" role="status" data-testid="casetta-readonly-preview">
         <LockKeyhole className="mx-auto mb-4 text-[#236343]" size={64}/>
-        <h2 className="text-3xl font-black">Cassa chiusa</h2>
-        <p className="mt-3 text-xl">Aperta ogni giorno dalle <strong>09:00 alle 19:00</strong>.</p>
-        <p className="mt-2 text-base text-[#52665b]">Ora italiana · La cassa si riapre automaticamente.</p>
+        <h2 className="text-3xl font-black">Cassa chiusa · Anteprima</h2>
+        <p className="mt-3 text-base">Puoi vedere i prodotti, aggiungerli al carrello e consultare il riepilogo per preparare le istruzioni ai volontari.</p>
+        <p className="mt-2 text-base font-bold text-amber-950">Nessuna vendita può essere confermata o registrata in anteprima.</p>
+        <p className="mt-2 text-base text-[#52665b]">La cassa reale è aperta ogni giorno dalle <strong>09:00 alle 19:00</strong>, ora italiana.</p>
       </section>}
-      {catalog?.open&&phase==='cart'&&<>
+      {catalog&&phase==='cart'&&<>
         <h2 className="my-5 text-center text-2xl font-black">Tocca i prodotti venduti</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {catalog.products.map(p=><div key={p.id} className="flex min-h-52 flex-col justify-between rounded-3xl border-2 border-[#d5dacd] bg-white p-3 shadow-sm">
-            <button type="button" disabled={!open} onClick={()=>adjust(p.id,1)} aria-label={`Aggiungi ${p.label}`}
+            <button type="button" disabled={!canBrowse} onClick={()=>adjust(p.id,1)} aria-label={`Aggiungi ${p.label}`}
               className="flex min-h-36 flex-1 flex-col items-center justify-center gap-3 rounded-xl px-1 text-center focus-visible:outline-4 focus-visible:outline-amber-500">
               <span className="text-xl font-extrabold leading-snug sm:text-2xl">{p.label}</span>
               <span className="text-2xl font-black tabular-nums">{euro(p.priceCents)}</span>
             </button>
             <div className="mt-2 flex items-center justify-between gap-1">
-              <button disabled={!open||!qty[p.id]} onClick={()=>adjust(p.id,-1)} aria-label={`Rimuovi uno ${p.label}`}
+              <button disabled={!canBrowse||!qty[p.id]} onClick={()=>adjust(p.id,-1)} aria-label={`Rimuovi uno ${p.label}`}
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e9e8e1] disabled:opacity-30"><Minus size={28}/></button>
               <span className="text-2xl font-black tabular-nums">{qty[p.id]??0}</span>
-              <button disabled={!open} onClick={()=>adjust(p.id,1)} aria-label={`Aggiungi uno ${p.label}`}
+              <button disabled={!canBrowse} onClick={()=>adjust(p.id,1)} aria-label={`Aggiungi uno ${p.label}`}
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4eadb]"><Plus size={28}/></button>
             </div>
           </div>)}
         </div>
         <div className="sticky bottom-2 z-10 mt-5 rounded-3xl border-2 border-[#b5c6b8] bg-white p-4 shadow-xl">
           <div className="flex items-center justify-between gap-3 text-xl"><strong>{count} prodotti</strong><strong className="text-3xl tabular-nums">{euro(total)}</strong></div>
-          <button disabled={!open||!count} onClick={()=>{setPhase('review');setError('');}}
+          <button disabled={!canBrowse||!count} onClick={()=>{setPhase('review');setError('');}}
             className={`${big} mt-3 w-full bg-[#236343] text-white`}>RIEPILOGO VENDITA →</button>
         </div>
       </>}
-      {catalog?.open&&(phase==='review'||phase==='sending')&&<section className="mt-5 rounded-3xl bg-white p-5 shadow-lg sm:p-8">
+      {catalog&&(phase==='review'||phase==='sending')&&<section className="mt-5 rounded-3xl bg-white p-5 shadow-lg sm:p-8">
         <h2 className="mb-5 text-center text-3xl font-black">Controlla la vendita</h2>
         <div className="space-y-3">{lines.map(p=><div key={p.id} className="flex justify-between gap-3 border-b pb-3 text-lg">
           <span><strong>{p.quantity} ×</strong> {p.label}</span><strong className="whitespace-nowrap">{euro(p.quantity*p.priceCents)}</strong>
@@ -232,8 +237,11 @@ function CasettaCassa(){
           <p className="mt-2 text-sm text-[#516357]">Invieremo la ricevuta NON fiscale con il riepilogo dell’acquisto, un ringraziamento e un invito a visitare il sito di Natale. Nessuna newsletter. In DEMO riceverà una mail di simulazione, non una conferma di acquisto reale.</p>
         </div>}</>}
         {error&&<div role="alert" className="mt-4 rounded-2xl bg-red-100 p-4 text-base font-bold text-red-900">{error}</div>}
+        {preview&&<p className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-center font-extrabold text-amber-950">
+          ANTEPRIMA · La conferma è disattivata fuori orario. Nessun pagamento o movimento di magazzino verrà registrato.
+        </p>}
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>
-          {phase==='sending'?'REGISTRAZIONE IN CORSO…':requestId?'RIPROVA LA CONFERMA':'CONFERMA VENDITA'}
+          {preview?'CONFERMA NON DISPONIBILE IN ANTEPRIMA':phase==='sending'?'REGISTRAZIONE IN CORSO…':requestId?'RIPROVA LA CONFERMA':'CONFERMA VENDITA'}
         </button>
         {!requestId&&<button onClick={()=>setPhase('cart')} className={`${big} mt-3 w-full bg-[#eeeae1]`}>← MODIFICA PRODOTTI</button>}
       </section>}
