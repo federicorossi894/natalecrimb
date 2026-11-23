@@ -16,6 +16,8 @@ export const Route=createFileRoute('/cassa')({
 const euro=(c:number)=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(c/100);
 type Phase='cart'|'review'|'sending'|'success';
 type Method='cash'|'pos';
+// Customer emails are suspended. Keep form and receipt code ready for reactivation.
+const CUSTOMER_EMAIL_ENABLED=false;
 /** Parse Italian money as decimal euros, converting to integer cents.
  * Never use binary floating-point arithmetic for the amount collected. */
 function donationEuroCents(input:string):number|null {
@@ -90,8 +92,8 @@ function CasettaCassa(){
     if(!/^[\p{L} '-]{2,80}$/u.test(firstName.trim())||!/^[\p{L} '-]{2,80}$/u.test(lastName.trim())){
       setError('Inserisci nome e cognome del cliente (entrambi obbligatori).');return;
     }
-    if(wantsEmail&&!email.trim()){setError('Inserisci l’email richiesta dal cliente oppure togli la spunta.');return;}
-    if(wantsEmail&&email.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){
+    if(CUSTOMER_EMAIL_ENABLED&&wantsEmail&&!email.trim()){setError('Inserisci l’email richiesta dal cliente oppure togli la spunta.');return;}
+    if(CUSTOMER_EMAIL_ENABLED&&wantsEmail&&email.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){
       setError('Controlla l’indirizzo email oppure lascialo vuoto.');return;
     }
     const id=requestId||crypto.randomUUID();
@@ -102,7 +104,7 @@ function CasettaCassa(){
         extraDonationCents:wantsExtraDonation?(enteredDonationCents??0):0,
         firstName:firstName.trim(),lastName:lastName.trim(),
         items:lines.map(p=>({id:p.id,quantity:p.quantity})),
-        email:wantsEmail?email.trim():'',
+        email:CUSTOMER_EMAIL_ENABLED&&wantsEmail?email.trim():'',
       }});
       setResult({totalCents:saved.totalCents,productsCents:saved.productsCents,extraDonationCents:saved.extraDonationCents,mode:saved.mode});
       setPhase('success');
@@ -119,7 +121,7 @@ function CasettaCassa(){
         <p className="mt-2 text-base">Una vendita, pochi tocchi. Nessun accesso richiesto.</p>
       </header>
       {catalog?.mode==='test'&&<div role="status" className="mt-4 rounded-2xl border-2 border-amber-500 bg-amber-100 p-4 text-center text-lg font-black text-amber-950">
-        🧪 MODALITÀ DEMO · Ordini di prova, esclusi dagli incassi e dal magazzino. Email al cliente solo se richiesta. Report delle 19:00 sospesi.
+        🧪 MODALITÀ DEMO · Ordini di prova, esclusi dagli incassi e dal magazzino. Report delle 19:00 sospesi. Nessuna email al cliente.
       </div>}
       {!online&&<div role="alert" className="mt-4 flex items-center gap-2 rounded-2xl bg-red-100 p-4 text-lg font-bold text-red-900"><WifiOff/> Senza connessione non si possono registrare vendite.</div>}
       {loading&&<p className="p-10 text-center text-2xl">Caricamento cassa…</p>}
@@ -216,7 +218,7 @@ function CasettaCassa(){
             </label>
           </div>
         </div>
-        <label className="mt-6 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-[#b7c7b8] bg-white p-4 text-lg font-extrabold">
+        {CUSTOMER_EMAIL_ENABLED&&<><label className="mt-6 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-[#b7c7b8] bg-white p-4 text-lg font-extrabold">
           <input type="checkbox" checked={wantsEmail} disabled={phase==='sending'||Boolean(requestId)}
             onChange={e=>{setWantsEmail(e.target.checked);if(!e.target.checked)setEmail('');}}
             className="h-7 w-7 shrink-0 accent-[#236343]"/>
@@ -228,7 +230,7 @@ function CasettaCassa(){
             value={email} onChange={e=>setEmail(e.target.value)} placeholder="nome@email.it"
             className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-lg focus:outline-4 focus:outline-amber-500"/>
           <p className="mt-2 text-sm text-[#516357]">Invieremo la ricevuta NON fiscale con il riepilogo dell’acquisto, un ringraziamento e un invito a visitare il sito di Natale. Nessuna newsletter. In DEMO riceverà una mail di simulazione, non una conferma di acquisto reale.</p>
-        </div>}
+        </div>}</>}
         {error&&<div role="alert" className="mt-4 rounded-2xl bg-red-100 p-4 text-base font-bold text-red-900">{error}</div>}
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>
           {phase==='sending'?'REGISTRAZIONE IN CORSO…':requestId?'RIPROVA LA CONFERMA':'CONFERMA VENDITA'}
@@ -242,7 +244,7 @@ function CasettaCassa(){
         {Boolean(result?.extraDonationCents)&&<p className="mt-2 text-base">Prodotti: {euro(result?.productsCents??0)} · Donazione extra: {euro(result?.extraDonationCents??0)}</p>}
         <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
         <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':method==='pos'?'POS':'Non selezionato'}</p>
-        {wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
+        {CUSTOMER_EMAIL_ENABLED&&wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
         <button onClick={reset} className={`${big} mt-8 flex w-full items-center justify-center gap-3 bg-[#236343] text-white`}><RotateCcw/> NUOVA VENDITA</button>
       </section>}
       <p className="mt-8 text-center text-sm text-[#596a60]">Vendite in presenza · Non è un registratore fiscale · Orario 08:00–20:00</p>
