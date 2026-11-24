@@ -125,7 +125,8 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(reporting).toContain("preUseCents");
   expect(reporting).toContain("time '19:00'");
   expect(mail).toContain('if(hour<19)');
-  expect(mail).toContain('Pre-utilizzo cassa · metodo non rilevato');
+  expect(mail).toContain('Vendite da registri cartacei');
+  expect(mail).toContain('Di cui pagamento non rilevato');
   expect(exportCode).toContain("'Pagamento','Origine'");
   expect(exportCode).toContain("'Non rilevato'");
   const historicalXlsx=casettaXlsx([{
@@ -190,6 +191,30 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(ui).toContain('CONFERMA NON DISPONIBILE IN ANTEPRIMA');
   expect(database).toContain("v_clock>=time '09:00' AND v_clock<time '19:00'");
   expect(database).toContain("time >= time '19:00'");
+ });
+ it('preserves paper morning and afternoon sales of 23/11 as 180 euro and 34 articles',()=>{
+  const sql=readFileSync('drizzle/migrations/0035_casetta_cartaceo_23nov_mattina_pomeriggio.sql','utf8');
+  expect(sql).toContain("('2026-11-23','mattina',2,'riso_500',12,500,'unknown'");
+  expect(sql).toContain("('2026-11-23','pomeriggio',7,'riso_500',8,500,'pos'");
+  expect(sql).toContain("('2026-11-23','pomeriggio',6,'riso_500',1,500,'cash'");
+  expect(sql).toContain("('2026-11-23','pomeriggio',4,'cioccolatini',1,1000,'pos'");
+  expect(sql).toContain("IF c<>11 OR amt<>18000 OR pieces<>34 OR pos_amount<>7000 OR cash_amount<>2000");
+  expect(sql).toContain("OR unknown_amount<>9000");
+  expect(sql).toContain("'apply_to_opening' ELSE 'pending'");
+  expect(sql).toContain('ON CONFLICT(sale_day,shift,line_no) DO NOTHING');
+  expect(sql).toContain('ON CONFLICT(sale_day,product_id) DO NOTHING');
+  expect(sql).toContain("'unallocatedCents',pre_amount-v_paper_cash-v_paper_pos");
+  expect(sql).toContain("NOT EXISTS (");
+  expect(sql).toContain("casetta_paper_sale_lines");
+  const email=reportHtml({...report,
+    finance:{...report.finance,totalCents:18000,productsCents:18000,
+      preUseCents:18000,preUseUnits:34,preUseGroups:4,
+      cashCents:2000,posCents:7000,unallocatedCents:9000}
+  },'finance');
+  expect(email).toContain('Vendite da registri cartacei');
+  expect(email).toContain('Di cui pagamento non rilevato');
+  expect(email).toContain('180,00');
+  expect(email).toContain('90,00');
  });
  it('requires a deliberate cash-or-POS choice and uses the corrected chocolate price',()=>{
   const current=readFileSync('src/routes/cassa.tsx','utf8');
