@@ -82,7 +82,8 @@ function moneyRows(r:CasettaReport){
  ['Contanti',euro(f.cashCents)],
  ['POS',euro(f.posCents)],
  ...(f.preUseCents>0?[
-  ['Pre-utilizzo cassa · metodo non rilevato',euro(f.preUseCents)],
+  ['Vendite da registri cartacei',euro(f.preUseCents)],
+  ['Di cui pagamento non rilevato',euro(f.unallocatedCents)],
   ['Articoli da registro cartaceo',String(f.preUseUnits)]
  ] as Array<[string,string]>:[]),
  ['Operazioni registrate nella cassa',String(f.transactions)],
