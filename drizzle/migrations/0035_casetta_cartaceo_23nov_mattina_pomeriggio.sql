@@ -145,7 +145,9 @@ BEGIN
    'unallocatedCents',pre_amount-v_paper_cash-v_paper_pos,
    'preUseUnits',pre_units,'preUseGroups',pre_groups),
   'cumulativeExtraDonationCents',v_cumulative_extra,
-  'cumulativeCents',(b->>'cumulativeCents')::bigint+
+  'cumulativeCents',
+    (SELECT coalesce(sum(total_cents),0) FROM public.casetta_sales
+     WHERE mode='live' AND (created_at AT TIME ZONE 'Europe/Rome')::date<=_day)+
     (SELECT coalesce(sum(total_cents),0) FROM public.casetta_preuse_sales
      WHERE sale_day<=_day),
   'stock',new_stock,'daily',new_daily);
