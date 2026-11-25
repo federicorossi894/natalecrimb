@@ -147,6 +147,53 @@ export type Database = {
           },
         ]
       }
+      casetta_paper_sale_lines: {
+        Row: {
+          imported_at: string
+          line_no: number
+          payment_method: string
+          product_id: string
+          quantity: number
+          sale_day: string
+          shift: string
+          source_note: string
+          total_cents: number | null
+          unit_price_cents: number
+        }
+        Insert: {
+          imported_at?: string
+          line_no: number
+          payment_method: string
+          product_id: string
+          quantity: number
+          sale_day: string
+          shift: string
+          source_note?: string
+          total_cents?: number | null
+          unit_price_cents: number
+        }
+        Update: {
+          imported_at?: string
+          line_no?: number
+          payment_method?: string
+          product_id?: string
+          quantity?: number
+          sale_day?: string
+          shift?: string
+          source_note?: string
+          total_cents?: number | null
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casetta_paper_sale_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "casetta_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casetta_preuse_sales: {
         Row: {
           imported_at: string
@@ -289,6 +336,7 @@ export type Database = {
           client_tag: string
           created_at: string
           customer_email: string | null
+          extra_donation_cents: number
           first_name: string | null
           id: string
           last_name: string | null
@@ -304,6 +352,7 @@ export type Database = {
           client_tag: string
           created_at?: string
           customer_email?: string | null
+          extra_donation_cents?: number
           first_name?: string | null
           id?: string
           last_name?: string | null
@@ -319,6 +368,7 @@ export type Database = {
           client_tag?: string
           created_at?: string
           customer_email?: string | null
+          extra_donation_cents?: number
           first_name?: string | null
           id?: string
           last_name?: string | null
@@ -334,14 +384,23 @@ export type Database = {
       }
       casetta_settings: {
         Row: {
+          activation_done: boolean
+          customer_receipts_enabled: boolean
+          live_from: string | null
           mode: string
           singleton: boolean
         }
         Insert: {
+          activation_done?: boolean
+          customer_receipts_enabled?: boolean
+          live_from?: string | null
           mode?: string
           singleton?: boolean
         }
         Update: {
+          activation_done?: boolean
+          customer_receipts_enabled?: boolean
+          live_from?: string | null
           mode?: string
           singleton?: boolean
         }
@@ -946,6 +1005,7 @@ export type Database = {
         Args: { _args: Json; _name: string; _token_hash: string }
         Returns: Json
       }
+      casetta_activate_scheduled_live: { Args: never; Returns: boolean }
       casetta_catalog: { Args: never; Returns: Json }
       casetta_claim_receipts: { Args: { _limit?: number }; Returns: Json }
       casetta_claim_report: {
@@ -999,6 +1059,19 @@ export type Database = {
             Args: {
               _client_tag: string
               _email: string
+              _first_name: string
+              _items: Json
+              _last_name: string
+              _method: string
+              _request_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _client_tag: string
+              _email: string
+              _extra_donation_cents: number
               _first_name: string
               _items: Json
               _last_name: string
