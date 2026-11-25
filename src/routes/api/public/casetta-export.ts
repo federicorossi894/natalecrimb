@@ -44,7 +44,12 @@ export const Route=createFileRoute('/api/public/casetta-export')({
    if(!data)return new Response('Link scaduto o revocato.',{status:404,headers});
    const parsed=payload.safeParse(data);
    if(!parsed.success)return new Response('Errore nel file.',{status:503,headers});
-   const workbook=casettaXlsx(parsed.data.rows,parsed.data.products);
+   const rows=parsed.data.rows.map(({productsCents,source,...row})=>({
+    ...row,
+    ...(productsCents===undefined?{}:{productsCents}),
+    ...(source===undefined?{}:{source}),
+   }));
+   const workbook=casettaXlsx(rows,parsed.data.products);
    return new Response(new Uint8Array(workbook),{
     headers:{...headers,
      'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
