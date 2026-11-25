@@ -3,7 +3,7 @@
 ## Utilizzo
 - URL: **https://natale.crimonza.org/cassa**. Nessun QR, codice, login o area amministrativa.
 - La cassa accetta vendite solo **09:00–19:00 ora italiana**, con blocco nel database; **dalle 19:00 fino alle 08:59:59** le nuove vendite vengono rifiutate, anche se la pagina è rimasta aperta sul telefono. **Fuori orario, lo stesso link `/cassa` mostra un'anteprima consultabile:** prodotti selezionabili, riepilogo, donazione extra e scelta pagamento, ma tasto di conferma disabilitato e nessuna modifica al database. È una vista per preparare istruzioni e formare volontari, non una modalità DEMO che salva ordini. Il sito non verifica la presenza fisica in Casetta: durante l'orario autorizzato il link funziona da qualunque luogo.
-- Il volontario tocca le icone, cambia quantità, nel riepilogo sceglie **Donazione extra? NO / SÌ**, poi deve **selezionare obbligatoriamente Contanti oppure POS** (POS fisico, non integrazione), può inserire email facoltativa, controlla e conferma. Nessuno dei due metodi è preselezionato; senza scelta la registrazione è bloccata. Anche l'API e la funzione SQL rifiutano un metodo assente o non valido.
+- Il volontario può scegliere i prodotti normalmente, oppure toccare il pulsante **DONAZIONE** per inserire un importo libero **senza acquistare nulla**; la conferma richiede sempre nome, cognome, e **Contanti oppure POS**. Con prodotti selezionati rimane anche la possibilità **Donazione extra? NO / SÌ** nel riepilogo. Il POS è fisico, senza integrazione online. Nessuno dei due metodi è preselezionato; senza scelta la registrazione è bloccata. Anche l'API e la funzione SQL rifiutano un metodo assente o non valido.
 - Con **SÌ** inserisce **solo la cifra aggiuntiva** in euro (virgola decimale ammessa), non l'importo totale: panettone 14 €, cliente lascia 20 € → donazione extra 6 €, **totale da incassare 20 €**. Con NO la donazione è zero. La vendita resta un solo pagamento; il database conserva `extra_donation_cents` separatamente dai prodotti.
 - La donazione extra **non è un prodotto**: non altera listino, quantità vendute o magazzino. L'incasso e il POS/contante comprendono invece la cifra totale effettivamente ricevuta. Per mantenere il vincolo della cassa il totale della singola operazione non può superare 1.000 €.
 - Nome e cognome del cliente restano obbligatori e devono coincidere con il blocchetto delle offerte. **Il campo email, la scelta di ricevere una ricevuta e i ringraziamenti automatici sono nascosti e disattivati** dal 23/11, senza cancellare il codice: potranno essere riabilitati esplicitamente in futuro.
@@ -25,11 +25,21 @@
 
 Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
 
+## Donazione libera e borraccia termica — 25 novembre 2026
+
+- Nel mosaico prodotti di `/cassa` compare un pulsante **DONAZIONE**. Aprendolo, il volontario può inserire un importo libero **anche senza scegliere prodotti**: ad esempio 10 € con POS. Il totale della vendita è l'importo donato; prodotti venduti = zero, magazzino invariato.
+- Se il cliente acquista prodotti e lascia un contributo aggiuntivo, rimane il flusso già previsto di **Donazione extra** nel riepilogo.
+- Entrambe le modalità scrivono una sola transazione di cassa con `extra_donation_cents`, corretta ripartizione Contanti/POS, importo positivo e limite complessivo 1.000 €. La donazione senza prodotti genera **zero righe prodotto**. L'API e il database respingono donazione zero senza prodotti; il `request_id` evita duplicati.
+- **Borraccia termica**, 10 €, 4 pezzi iniziali registrati nel magazzino con soglia di attenzione 2 pezzi. È un normale prodotto vendibile; una vendita ne scala un pezzo. Nessun altro prezzo o quantità modificati.
+- L'intestazione del report economico riporta **donazioni**, includendo sia quelle libere sia quelle extra; le quantità fisiche vendute non le includono. Il file Excel usa la colonna `Donazioni (€)`.
+- Migrazione database riproducibile: `0036_casetta_donazione_senza_prodotti_borraccia.sql`. Verifica eseguita con vendite simulate dentro una transazione **rollback**, quindi senza alterare incassi o giacenze effettive.
+- Resta operativo il LIVE dalle 09:00 alle 19:00. Le email cliente restano sospese; report gestionali e CCN invariati.
+
 ## Donazione extra nel database e negli export
 - Migrazione **`0031_casetta_extra_donazione.sql`**: colonna `casetta_sales.extra_donation_cents` (default 0 per vecchie operazioni), nuova RPC atomica con argomento `_extra_donation_cents` e piena idempotenza del `request_id`. La precedente firma della RPC resta disponibile per le richieste già in corso durante il deploy.
 - La mail cliente mostra una riga **Donazione extra** soltanto quando positiva; non viene inserita tra le righe prodotto.
 - Il riepilogo economico distingue **di cui prodotti**, **di cui donazioni extra** e **donazioni extra cumulative**, senza modificare il totale incassato contanti/POS.
-- L'Excel privato contiene **Totale incassato (€)**, **Prodotti (€)** e **Donazione extra (€)** in tre colonne distinte; le vecchie vendite e il registro pre-utilizzo sono considerati donazione extra = 0.
+- L'Excel privato contiene **Totale incassato (€)**, **Prodotti (€)** e **Donazioni (€)** in colonne distinte; le vecchie vendite e il registro pre-utilizzo restano con donazione = 0. Anche le donazioni pure, senza articoli, sono riepilogate.
 - La modalità DEMO continua a NON incidere su incassi reali e giacenze.
 
 ## Test e produzione
