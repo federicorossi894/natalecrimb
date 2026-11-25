@@ -77,8 +77,8 @@ function moneyRows(r:CasettaReport){
  const pairs:Array<[string,string]>=[
  ['Incasso della giornata',euro(f.totalCents)],
  ['Di cui prodotti',euro(f.productsCents)],
- ['Di cui donazioni extra',euro(f.extraDonationCents)],
- ['Donazioni extra cumulative',euro(r.cumulativeExtraDonationCents)],
+ ['Di cui donazioni',euro(f.extraDonationCents)],
+ ['Donazioni cumulative',euro(r.cumulativeExtraDonationCents)],
  ['Contanti',euro(f.cashCents)],
  ['POS',euro(f.posCents)],
  ...(f.preUseCents>0?[
@@ -218,7 +218,7 @@ export function receiptHtml(r:z.infer<typeof receiptSchema>){
   euro(p.totalCents)+'</td></tr>').join('');
  const donationRow=r.extraDonationCents>0?
   '<tr><td style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:15px/1.45 Arial,sans-serif;color:#294738">'+
-  '<strong>Donazione extra</strong></td>'+
+  '<strong>'+(r.items.length===0?'Donazione':'Donazione extra')+'</strong></td>'+
   '<td align="right" style="padding:11px 0;border-bottom:1px solid #e8e0d0;font:700 15px/1.45 Arial,sans-serif;color:#294738;white-space:nowrap">'+
   euro(r.extraDonationCents)+'</td></tr>':'';
  const demoNote=r.mode==='test'
