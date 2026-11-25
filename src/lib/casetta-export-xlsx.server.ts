@@ -73,7 +73,7 @@ function zip(files:Array<[string,string]>){
 }
 export function casettaXlsx(rows:CasettaExportRow[],products:CasettaExportProduct[]){
  if(rows.length>100000)throw new Error('Esportazione troppo grande');
- const headers=['Data e ora','Nome','Cognome','Totale incassato (€)','Prodotti (€)','Donazione extra (€)','Pagamento','Origine',...products.map(p=>p.label)];
+ const headers=['Data e ora','Nome','Cognome','Totale incassato (€)','Prodotti (€)','Donazioni (€)','Pagamento','Origine',...products.map(p=>p.label)];
  const last=col(headers.length-1);
  const header='<row r="1" ht="31" customHeight="1">'+headers.map((h,i)=>textCell(col(i)+'1',h,1)).join('')+'</row>';
  const body=rows.map((r,i)=>{
