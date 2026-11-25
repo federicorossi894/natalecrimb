@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Minus, Plus, RotateCcw, WifiOff, LockKeyhole, Mail } from 'lucide-react';
+import { CheckCircle2, Heart, Minus, Plus, RotateCcw, WifiOff, LockKeyhole, Mail } from 'lucide-react';
 import { casettaState, casettaRecordSale, type CasettaCatalog } from '@/lib/casetta-cassa.functions';
 
 export const Route=createFileRoute('/cassa')({
@@ -43,6 +43,7 @@ function CasettaCassa(){
   const [error,setError]=useState('');
   const [qty,setQty]=useState<Record<string,number>>({});
   const [method,setMethod]=useState<Method|null>(null);
+  const [donationOnly,setDonationOnly]=useState(false);
   const [wantsExtraDonation,setWantsExtraDonation]=useState(false);
   const [extraDonationEuro,setExtraDonationEuro]=useState('');
   const [firstName,setFirstName]=useState('');
@@ -82,16 +83,16 @@ function CasettaCassa(){
   }
   function reset(){
     setQty({});setFirstName('');setLastName('');setWantsEmail(false);setEmail('');setMethod(null);setRequestId('');
-    setWantsExtraDonation(false);setExtraDonationEuro('');
+    setDonationOnly(false);setWantsExtraDonation(false);setExtraDonationEuro('');
     setResult(null);setError('');setPhase('cart');
   }
   async function submit(){
-    if(!open||!lines.length||phase!=='review')return;
+    if(!open||(!lines.length&&!donationOnly)||phase!=='review')return;
     if(method!=='cash'&&method!=='pos'){
       setError('Seleziona obbligatoriamente il metodo di pagamento: CONTANTI oppure POS.');return;
     }
-    if(wantsExtraDonation&&(enteredDonationCents===null||grandTotal>100000)){
-      setError('Inserisci una donazione extra valida (es. 5 oppure 5,50). Il totale massimo della vendita è 1.000 €.');return;
+    if((donationOnly||wantsExtraDonation)&&(enteredDonationCents===null||grandTotal>100000)){
+      setError(donationOnly?'Inserisci l’importo della donazione (es. 5 oppure 5,50). Massimo 1.000 €.':'Inserisci una donazione extra valida (es. 5 oppure 5,50). Il totale massimo della vendita è 1.000 €.');return;
     }
     if(!/^[\p{L} '-]{2,80}$/u.test(firstName.trim())||!/^[\p{L} '-]{2,80}$/u.test(lastName.trim())){
       setError('Inserisci nome e cognome del cliente (entrambi obbligatori).');return;
@@ -105,7 +106,7 @@ function CasettaCassa(){
     try{
       const saved=await save({data:{
         requestId:id,deviceId:deviceId(),method,
-        extraDonationCents:wantsExtraDonation?(enteredDonationCents??0):0,
+        extraDonationCents:(donationOnly||wantsExtraDonation)?(enteredDonationCents??0):0,
         firstName:firstName.trim(),lastName:lastName.trim(),
         items:lines.map(p=>({id:p.id,quantity:p.quantity})),
         email:CUSTOMER_EMAIL_ENABLED&&wantsEmail?email.trim():'',
@@ -158,6 +159,16 @@ function CasettaCassa(){
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4eadb]"><Plus size={28}/></button>
             </div>
           </div>)}
+          <button type="button" data-testid="casetta-donation-only" disabled={!canBrowse}
+            onClick={()=>{
+              setQty({});setDonationOnly(true);setWantsExtraDonation(true);
+              setExtraDonationEuro('');setMethod(null);setError('');setPhase('review');
+            }}
+            className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-3xl border-2 border-[#b5c6b8] bg-[#f0f7ee] p-5 text-center shadow-sm transition active:scale-[.98] focus-visible:outline-4 focus-visible:outline-amber-500 disabled:opacity-40">
+            <Heart size={46} className="text-[#b92238]" aria-hidden />
+            <span className="text-2xl font-black">DONAZIONE</span>
+            <span className="text-base font-semibold text-[#52665b]">Senza acquisto · importo libero</span>
+          </button>
         </div>
         <div className="sticky bottom-2 z-10 mt-5 rounded-3xl border-2 border-[#b5c6b8] bg-white p-4 shadow-xl">
           <div className="flex items-center justify-between gap-3 text-xl"><strong>{count} prodotti</strong><strong className="text-3xl tabular-nums">{euro(total)}</strong></div>
@@ -166,35 +177,37 @@ function CasettaCassa(){
         </div>
       </>}
       {catalog&&(phase==='review'||phase==='sending')&&<section className="mt-5 rounded-3xl bg-white p-5 shadow-lg sm:p-8">
-        <h2 className="mb-5 text-center text-3xl font-black">Controlla la vendita</h2>
-        <div className="space-y-3">{lines.map(p=><div key={p.id} className="flex justify-between gap-3 border-b pb-3 text-lg">
-          <span><strong>{p.quantity} ×</strong> {p.label}</span><strong className="whitespace-nowrap">{euro(p.quantity*p.priceCents)}</strong>
-        </div>)}</div>
+        <h2 className="mb-5 text-center text-3xl font-black">{donationOnly?"Controlla la donazione":"Controlla la vendita"}</h2>
+        {donationOnly
+          ?<p className="rounded-2xl bg-[#f0f7ee] p-4 text-center text-lg font-bold">Donazione libera · Nessun prodotto acquistato</p>
+          :<div className="space-y-3">{lines.map(p=><div key={p.id} className="flex justify-between gap-3 border-b pb-3 text-lg">
+            <span><strong>{p.quantity} ×</strong> {p.label}</span><strong className="whitespace-nowrap">{euro(p.quantity*p.priceCents)}</strong>
+          </div>)}</div>}
         <div className="mt-5 rounded-2xl border-2 border-[#b7c7b8] bg-[#faf9f4] p-4">
-          <h3 className="text-xl font-black">Donazione extra?</h3>
-          <p className="mt-1 text-sm text-[#516357]">Il cliente vuole lasciare qualcosa in più rispetto al prezzo dei prodotti?</p>
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <h3 className="text-xl font-black">{donationOnly?'Importo della donazione':'Donazione extra?'}</h3>
+          <p className="mt-1 text-sm text-[#516357]">{donationOnly?'Inserisci l’importo libero che il cliente desidera donare, senza acquistare prodotti.':'Il cliente vuole lasciare qualcosa in più rispetto al prezzo dei prodotti?'}</p>
+          {!donationOnly&&<div className="mt-3 grid grid-cols-2 gap-3">
             <button type="button" disabled={phase==='sending'||Boolean(requestId)} aria-pressed={!wantsExtraDonation}
               onClick={()=>{setWantsExtraDonation(false);setExtraDonationEuro('');setError('');}}
               className={`${big} border-2 ${!wantsExtraDonation?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>NO</button>
             <button type="button" disabled={phase==='sending'||Boolean(requestId)} aria-pressed={wantsExtraDonation}
               onClick={()=>{setWantsExtraDonation(true);setError('');}}
               className={`${big} border-2 ${wantsExtraDonation?'border-[#236343] bg-[#d5eadc]':'border-transparent bg-[#eeeae1]'}`}>SÌ</button>
-          </div>
+          </div>}
           {wantsExtraDonation&&<label htmlFor="casetta-extra-donation" className="mt-4 block text-lg font-extrabold">
-            Importo della donazione extra (€) *
+            {donationOnly?'Donazione (€) *':'Importo della donazione extra (€) *'}
             <input id="casetta-extra-donation" type="text" inputMode="decimal" autoComplete="off"
               placeholder="Es. 6,00" maxLength={7} required
               disabled={phase==='sending'||Boolean(requestId)} value={extraDonationEuro}
               onChange={e=>{setExtraDonationEuro(e.target.value);setError('');}}
               className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#b7c7b8] bg-white px-4 text-xl font-normal focus:outline-4 focus:outline-amber-500"
               aria-invalid={extraDonationEuro.trim().length>0&&enteredDonationCents===null}/>
-            <span className="mt-2 block text-sm font-normal text-[#516357]">Inserisci solo l’importo aggiuntivo, non il totale pagato. Esempio: prodotti 14 €, il cliente lascia 20 € → donazione extra 6 €.</span>
+            <span className="mt-2 block text-sm font-normal text-[#516357]">{donationOnly?'Il valore inserito è l’intero importo della donazione da incassare, anche tramite POS.':'Inserisci solo l’importo aggiuntivo, non il totale pagato. Esempio: prodotti 14 €, il cliente lascia 20 € → donazione extra 6 €.'}</span>
           </label>}
         </div>
         <div className="my-5 space-y-2 border-t-2 pt-4">
-          <div className="flex justify-between text-lg"><span>Totale prodotti</span><strong>{euro(total)}</strong></div>
-          {wantsExtraDonation&&<div className="flex justify-between text-lg"><span>Donazione extra</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}
+          {!donationOnly&&<div className="flex justify-between text-lg"><span>Totale prodotti</span><strong>{euro(total)}</strong></div>}
+          {(donationOnly||wantsExtraDonation)&&<div className="flex justify-between text-lg"><span>{donationOnly?'Donazione':'Donazione extra'}</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}}
           <div className="flex justify-between gap-2 border-t pt-3 text-3xl font-black"><span>TOTALE DA INCASSARE</span><span className="whitespace-nowrap">{euro(grandTotal)}</span></div>
         </div>
         <h3 className="mb-3 text-center text-xl font-black">Come ha pagato? *</h3>
@@ -243,13 +256,16 @@ function CasettaCassa(){
         <button disabled={!open||phase==='sending'} onClick={()=>void submit()} className={`${big} mt-5 w-full bg-[#236343] text-white`}>
           {preview?'CONFERMA NON DISPONIBILE IN ANTEPRIMA':phase==='sending'?'REGISTRAZIONE IN CORSO…':requestId?'RIPROVA LA CONFERMA':'CONFERMA VENDITA'}
         </button>
-        {!requestId&&<button onClick={()=>setPhase('cart')} className={`${big} mt-3 w-full bg-[#eeeae1]`}>← MODIFICA PRODOTTI</button>}
+        {!requestId&&<button onClick={()=>{
+          setDonationOnly(false);setWantsExtraDonation(false);setExtraDonationEuro('');
+          setPhase('cart');setError('');
+        }} className={`${big} mt-3 w-full bg-[#eeeae1]`}>← TORNA AI PRODOTTI</button>}
       </section>}
       {phase==='success'&&<section role="status" className="mt-5 rounded-3xl bg-white p-8 text-center shadow-lg">
         <CheckCircle2 className="mx-auto text-[#236343]" size={80}/>
-        <h2 className="mt-4 text-3xl font-black">{result?.mode==='test'?'Vendita di prova registrata!':'Vendita registrata!'}</h2>
+        <h2 className="mt-4 text-3xl font-black">{donationOnly?(result?.mode==='test'?'Donazione di prova registrata!':'Donazione registrata!'):(result?.mode==='test'?'Vendita di prova registrata!':'Vendita registrata!')}</h2>
         <p className="mt-4 text-4xl font-black">{euro(result?.totalCents??0)}</p>
-        {Boolean(result?.extraDonationCents)&&<p className="mt-2 text-base">Prodotti: {euro(result?.productsCents??0)} · Donazione extra: {euro(result?.extraDonationCents??0)}</p>}
+        {Boolean(result?.extraDonationCents)&&<p className="mt-2 text-base">{donationOnly?`Donazione: ${euro(result?.extraDonationCents??0)}`:`Prodotti: ${euro(result?.productsCents??0)} · Donazione extra: ${euro(result?.extraDonationCents??0)}`}</p>}
         <p className="mt-2 text-lg font-bold">{firstName} {lastName}</p>
         <p className="mt-3 text-lg">Pagamento: {method==='cash'?'Contanti':method==='pos'?'POS':'Non selezionato'}</p>
         {CUSTOMER_EMAIL_ENABLED&&wantsEmail&&email&&<p className="mt-2 text-base">Email di ringraziamento in preparazione (in DEMO sarà indicata chiaramente come simulazione).</p>}
