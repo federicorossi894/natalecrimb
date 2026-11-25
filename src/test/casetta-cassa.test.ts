@@ -187,7 +187,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(ui).toContain("{catalog&&(phase==='review'||phase==='sending')&&");
   expect(ui).toContain('disabled={!canBrowse||!count}');
   expect(ui).toContain('disabled={!open||phase===\'sending\'} onClick={()=>void submit()}');
-  expect(ui).toContain("if(!open||!lines.length||phase!=='review')return");
+  expect(ui).toContain("if(!open||(!lines.length&&!donationOnly)||phase!=='review')return");
   expect(ui).toContain('CONFERMA NON DISPONIBILE IN ANTEPRIMA');
   expect(database).toContain("v_clock>=time '09:00' AND v_clock<time '19:00'");
   expect(database).toContain("time >= time '19:00'");
@@ -254,6 +254,43 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(sql).toContain("activation_done=true");
   expect(sql).toContain("live_from<now()");
   expect(sql).toContain("REVOKE ALL ON FUNCTION public.casetta_activate_scheduled_live()");
+ });
+ it('supports a donation-only operation and a 4-piece 10-euro thermal bottle',()=>{
+  const ui=readFileSync('src/routes/cassa.tsx','utf8');
+  const server=readFileSync('src/lib/casetta-cassa.functions.ts','utf8');
+  const migration=readFileSync('drizzle/migrations/0036_casetta_donazione_senza_prodotti_borraccia.sql','utf8');
+  expect(ui).toContain('data-testid="casetta-donation-only"');
+  expect(ui).toContain('Senza acquisto · importo libero');
+  expect(ui).toContain("setQty({});setDonationOnly(true);setWantsExtraDonation(true)");
+  expect(ui).toContain("(!lines.length&&!donationOnly)");
+  expect(ui).toContain('Donazione libera · Nessun prodotto acquistato');
+  expect(ui).toContain("donationOnly?'Importo della donazione':'Donazione extra?'");
+  expect(ui).toContain('Come ha pagato? *');
+  expect(ui).toContain('CONFERMA NON DISPONIBILE IN ANTEPRIMA');
+  expect(server).toContain('}).strict()).min(0).max(20)');
+  expect(server).toContain('data.items.length>0||data.extraDonationCents>0');
+  expect(server).toContain("method:z.enum(['cash','pos'])");
+  expect(migration).toContain("('borraccia_termica','Borraccia termica',1000,90,true)");
+  expect(migration).toContain("VALUES('borraccia_termica',4,2,now(),now())");
+  expect(migration).toContain("v_products=0 AND _extra_donation_cents=0");
+  expect(migration).toContain("casetta_sales_extra_donation_range");
+  expect(migration).toContain("total_cents>=extra_donation_cents");
+  expect(migration).toContain("time < time '09:00'");
+  expect(migration).toContain("customer_receipts_enabled");
+  const donationBook=new TextDecoder().decode(casettaXlsx([{
+    date:'25/11/2026 12:00',firstName:'Mario',lastName:'Rossi',
+    amountCents:1500,productsCents:0,extraDonationCents:1500,
+    method:'pos',source:'Cassa',quantities:{},
+  }],[{id:'borraccia_termica',label:'Borraccia termica'}]));
+  expect(donationBook).toContain('Donazione extra (€)');
+  expect(donationBook).toContain('<v>15</v>');
+  expect(donationBook).toContain('<v>0</v>');
+  const reportDonation=reportHtml({...report,finance:{
+    ...report.finance,totalCents:1500,productsCents:0,extraDonationCents:1500,
+    cashCents:0,posCents:1500,transactions:1,
+  },stock:[]},'finance');
+  expect(reportDonation).toContain('15,00');
+  expect(reportDonation).toContain('Di cui donazioni extra');
  });
  it('handles extra donation independently of products, email and daily totals',()=>{
   const mail=receiptHtml({...receipt,totalCents:2800,productsCents:2200,extraDonationCents:600});
