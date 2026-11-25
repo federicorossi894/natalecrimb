@@ -9,11 +9,13 @@ const saleInput=z.object({
   deviceId:z.string().uuid(),
   method:z.enum(['cash','pos']),
   extraDonationCents:z.number().int().min(0).max(100000),
-  items:z.array(z.object({id:z.string().regex(/^[a-z0-9_-]{2,40}$/),quantity:z.number().int().min(1).max(99)}).strict()).min(1).max(20),
+  items:z.array(z.object({id:z.string().regex(/^[a-z0-9_-]{2,40}$/),quantity:z.number().int().min(1).max(99)}).strict()).min(0).max(20),
   firstName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
   lastName:z.string().trim().min(2).max(80).regex(/^[\p{L} '-]+$/u),
   email:z.union([z.string().email().max(254),z.literal('')]).optional(),
-}).strict();
+}).strict().refine(data=>data.items.length>0||data.extraDonationCents>0,{
+  message:'Una donazione senza prodotti deve avere un importo positivo.',
+});
 export type CasettaProduct=z.infer<typeof productSchema>;
 export type CasettaCatalog=z.infer<typeof catalogSchema>;
 export type CasettaSaleInput=z.infer<typeof saleInput>;
