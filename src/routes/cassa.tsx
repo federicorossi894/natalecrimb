@@ -207,7 +207,7 @@ function CasettaCassa(){
         </div>
         <div className="my-5 space-y-2 border-t-2 pt-4">
           {!donationOnly&&<div className="flex justify-between text-lg"><span>Totale prodotti</span><strong>{euro(total)}</strong></div>}
-          {(donationOnly||wantsExtraDonation)&&<div className="flex justify-between text-lg"><span>{donationOnly?'Donazione':'Donazione extra'}</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}}
+          {(donationOnly||wantsExtraDonation)&&<div className="flex justify-between text-lg"><span>{donationOnly?'Donazione':'Donazione extra'}</span><strong>{enteredDonationCents===null?'Importo non valido':euro(enteredDonationCents)}</strong></div>}
           <div className="flex justify-between gap-2 border-t pt-3 text-3xl font-black"><span>TOTALE DA INCASSARE</span><span className="whitespace-nowrap">{euro(grandTotal)}</span></div>
         </div>
         <h3 className="mb-3 text-center text-xl font-black">Come ha pagato? *</h3>
