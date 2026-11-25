@@ -79,7 +79,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   expect(raw.includes('>Contanti<')).toBe(false);
   expect(raw).toContain('POS');
   expect(raw).toContain('Origine');
-  expect(raw).toContain('Donazione extra (€)');
+  expect(raw).toContain('Donazioni (€)');
   expect(raw).toContain('Prodotti (€)');
   expect(raw).toContain('Panettone cartone');
   expect(raw).toContain('Riso 500 g');
@@ -282,7 +282,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
     amountCents:1500,productsCents:0,extraDonationCents:1500,
     method:'pos',source:'Cassa',quantities:{},
   }],[{id:'borraccia_termica',label:'Borraccia termica'}]));
-  expect(donationBook).toContain('Donazione extra (€)');
+  expect(donationBook).toContain('Donazioni (€)');
   expect(donationBook).toContain('<v>15</v>');
   expect(donationBook).toContain('<v>0</v>');
   const reportDonation=reportHtml({...report,finance:{
@@ -290,7 +290,11 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
     cashCents:0,posCents:1500,transactions:1,
   },stock:[]},'finance');
   expect(reportDonation).toContain('15,00');
-  expect(reportDonation).toContain('Di cui donazioni extra');
+  expect(reportDonation).toContain('Di cui donazioni');
+  const receiptDirect=receiptHtml({...receipt,
+    totalCents:1500,productsCents:0,extraDonationCents:1500,items:[]});
+  expect(receiptDirect).toContain('<strong>Donazione</strong>');
+  expect(receiptDirect).not.toContain('<strong>Donazione extra</strong>');
  });
  it('handles extra donation independently of products, email and daily totals',()=>{
   const mail=receiptHtml({...receipt,totalCents:2800,productsCents:2200,extraDonationCents:600});
@@ -301,7 +305,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
     ...report,cumulativeExtraDonationCents:600,
     finance:{...report.finance,totalCents:3800,productsCents:3200,extraDonationCents:600},
   },'finance');
-  expect(finance).toContain('Di cui donazioni extra');
+  expect(finance).toContain('Di cui donazioni');
   expect(finance).toContain('6,00');
   expect(finance).toContain('Di cui prodotti');
   const book=new TextDecoder().decode(casettaXlsx([{
@@ -309,7 +313,7 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
     amountCents:2000,productsCents:1400,extraDonationCents:600,
     method:'pos',source:'Cassa',quantities:{panettone_cartone:1},
   }],[{id:'panettone_cartone',label:'Panettone cartone'}]));
-  expect(book).toContain('Donazione extra (€)');
+  expect(book).toContain('Donazioni (€)');
   expect(book).toContain('Totale incassato (€)');
   expect(book).toContain('<v>20</v>');
   expect(book).toContain('<v>14</v>');
