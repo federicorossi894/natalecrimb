@@ -17,13 +17,35 @@
 | Panettone in latta | 16 |
 | Pandoro | 16 (provvisorio) |
 | Cioccolatini | 7 |
-| Tisane etiche | 5 |
+| Tisana etica (cartone) | 5 |
 | Riso 500 g | 5 |
-| Riso 1 kg | 8 |
+| Riso sacchetto (1 kg) | 8 |
 | Tè verde / rosso | 5 |
 | Bastoncino di zucchero | 3 |
+| Borraccia termica | 10 |
+| Tisana metallo | 8 |
+| Tazza CRI | 10 |
+| Biscotti | 5 |
 
 Modifiche al listino solo via SQL/codice, nessuna pagina amministrativa.
+
+## Catalogo e scorte ricevute il 26 novembre 2026
+
+Dalle due comunicazioni di Michela sono stati inseriti direttamente nel catalogo e nel database:
+
+| Voce attuale | Prezzo | Giacenza registrata | Tipo di dato |
+|---|---:|---:|---|
+| Tisana metallo | 8 € | 96 | Stima provvisoria comunicata |
+| Tisana etica (cartone) | 5 € | **5** | **Conteggio attuale**, comunicati circa 4–5 |
+| Riso sacchetto (1 kg) | 8 € | Invariata (storico SKU `riso_1000`) | Solo cambio confezione/nome |
+| Tazza CRI | 10 € | 20 | Disponibilità iniziale provvisoria |
+| Biscotti | 5 € | 100 | Stima provvisoria, circa cento confezioni |
+
+**Inventario:** per le tisane etiche la disponibilità 5 **non** è stata scritta come giacenza iniziale del 21/11, perché ci sono 30 pezzi di storico cartaceo e vendite LIVE successive. Il conteggio è conservato con data e ora in `casetta_inventory_physical_counts`: d'ora in poi si scalano soltanto le vendite LIVE e i movimenti successivi al conteggio. I due aggregati storici esistenti delle tisane etiche sono marcati `already_in_count` perché già riflessi nel conteggio fisico; gli incassi storici restano invariati. Le giacenze precedenti al conteggio continuano a risultare sconosciute, evitando aperture inventate.
+
+La tabella dei conteggi fisici consente ulteriori conteggi aggiornati con riferimento univoco. Le giacenze provvisorie di 96/20/100 pezzi vanno confrontate con il magazzino reale alla prima verifica utile; non modificare le vendite storiche per correggerle.
+
+Migrazione riproducibile: `drizzle/migrations/0037_casetta_nuovi_prodotti_stock_26nov.sql`. Collaudo di una vendita di tisana etica **5 → 4** eseguito con transazione e rollback; nessuna vendita di prova permanente, nessuna attivazione email cliente.
 
 ## Donazione libera e borraccia termica — 25 novembre 2026
 
