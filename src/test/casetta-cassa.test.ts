@@ -331,6 +331,28 @@ describe('Casetta register: isolated no-login 08–20 service',()=>{
   const apiCode=readFileSync('src/routes/api/public/casetta-export.ts','utf8');
   expect(apiCode).toContain("z.enum(['cash','pos','unknown'])");
  });
+ it('loads the 26 November catalog and uses a dated current stock count for ethical tea',()=>{
+  const migration=readFileSync('drizzle/migrations/0037_casetta_nuovi_prodotti_stock_26nov.sql','utf8');
+  const report=readFileSync('src/lib/casetta-report.server.ts','utf8');
+  expect(migration).toContain("('tisana_metallo','Tisana metallo',800,45,true)");
+  expect(migration).toContain("('tazza_cri','Tazza CRI',1000,95,true)");
+  expect(migration).toContain("('biscotti','Biscotti',500,100,true)");
+  expect(migration).toContain("('tisana_metallo',96,10,now(),now())");
+  expect(migration).toContain("('tazza_cri',20,5,now(),now())");
+  expect(migration).toContain("('biscotti',100,15,now(),now())");
+  expect(migration).toContain("label='Riso sacchetto (1 kg)'");
+  expect(migration).toContain("label='Tisana etica (cartone)'");
+  expect(migration).toContain("'tisane_etiche',5,");
+  expect(migration).toContain('casetta_inventory_physical_counts');
+  expect(migration).toContain("stock_reconciliation='already_in_count'");
+  expect(migration).toContain("sa.created_at>phys.counted_at");
+  expect(migration).toContain("mv.created_at>phys.counted_at");
+  expect(migration).toContain('casetta_inventory_snapshot_before_counts');
+  expect(report).toContain('conteggio fisico più recente');
+  const help=readFileSync('docs/CASETTA_CASSA_ATTIVAZIONE.md','utf8');
+  expect(help).toContain('## Catalogo e scorte ricevute il 26 novembre 2026');
+  expect(help).toContain('**5**');
+ });
  it('does not require a QR, password or admin interface',()=>{
   expect(ui).toContain("createFileRoute('/cassa')");
   expect(ui).not.toContain('casettaActivateQr');
