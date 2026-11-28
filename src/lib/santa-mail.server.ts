@@ -29,8 +29,11 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
   return finish('suppressed');
  if(b.mode!==claim.mode)return finish('failed');
  if(b.mode==='demo'){
-  const {data:allowed}=await db.from('santa_admin_allowlist')
+  // Test recipients are independent of Santa organizer login permissions.
+  // Unknown addresses never receive messages from demo requests.
+  const {data:allowed,error:allowError}=await db.from('santa_demo_mail_recipients')
    .select('enabled').eq('email',String(b.email).trim().toLowerCase()).maybeSingle();
+  if(allowError)return finish('failed');
   if(!allowed?.enabled)return finish('suppressed');
  }
  const mail=kind==='request'
@@ -43,7 +46,11 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
  // The connected Gmail identity must really be the CRI account, not just a
  // display name in the MIME header.
  const {gmailQaIdentity}=await import('./demo-email-qa.server');
- if(!(await gmailQaIdentity()))return finish('failed');
+ try {
+  if(!(await gmailQaIdentity()))return finish('failed');
+ } catch {
+  return finish('failed');
+ }
  const id=String(claim.id);
  const raw=b64url([
   'From: Croce Rossa Monza Natale <'+SANTA_SENDER+'>',
