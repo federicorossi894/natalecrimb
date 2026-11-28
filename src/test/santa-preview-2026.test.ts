@@ -103,6 +103,10 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(req.html).not.toContain('Fascia preferita');
   expect(()=>santaConfirmedEmail(b)).toThrow();
   const confirmed=santaConfirmedEmail({...b,confirmedTime:'21:15'});
+  const payLink='https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app/babbo-natale/pagamento?token=00000000-0000-4000-8000-000000000001';
+  const payMail=santaConfirmedEmail({...b,confirmedTime:'21:15'},payLink);
+  expect(payMail.html).toContain('Completa il contributo sul sito');
+  expect(payMail.html).toContain(payLink.replace(/&/g,'&amp;'));
   expect(confirmed.html).toContain('21:15');
   expect(confirmed.html).toContain('circa 15 minuti');
   expect(confirmed.html).toContain('versare');
