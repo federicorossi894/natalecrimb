@@ -59,17 +59,18 @@ describe('Campaign modes and fail-closed actions', () => {
     const c = campaignCapabilities(mode);
     for (const feature of ['onlineDonations', 'persistentOrnaments', 'dedications', 'whatsappPostcards', 'giftEmails', 'calendar', 'academy', 'diploma', 'casetta', 'tv'] as const) expect(c[feature]).toBe(true);
   });
-  it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s hides unapproved home visits without removing academy', mode => {
+  it.each(['BASIC', 'ADVANCED_1', 'ADVANCED_2'] as const)('%s shows Santa page but never opens booking without approval', mode => {
     const c = campaignCapabilities(mode);
-    expect(c.santaHomeVisitsVisible).toBe(false);
-    expect(campaignRouteAllowed('/babbo-natale', c, 'FULL')).toBe(false);
-    expect(campaignRouteAllowed('/babbo-natale/prenota', c, 'FULL')).toBe(false);
+    expect(c.santaHomeVisitsVisible).toBe(true);
+    expect(campaignRouteAllowed('/babbo-natale', c, 'FULL')).toBe(true);
+    expect(campaignRouteAllowed('/babbo-natale/organizzatori', c, 'FULL')).toBe(true);
+    expect(c.santaHomeVisitsOperational).toBe(false);
     expect(campaignRouteAllowed('/piccoli-volontari', c, 'FULL')).toBe(true);
     expect(() => assertCampaignAction('santaBooking', c)).toThrow();
     expect(c.courtesyBiscuit).toBe(false);
   });
   it('keeps optional services off until approval while DEMO remains visible', () => {
-    expect(CAMPAIGN_OPTIONS).toEqual({ santaHomeVisitsEnabled: false, courtesyBiscuitAvailable: false });
+    expect(CAMPAIGN_OPTIONS).toEqual({ santaHomeVisitsEnabled: true, courtesyBiscuitAvailable: false });
     expect(campaignCapabilities('DEMO').courtesyBiscuit).toBe(true);
     expect(campaignRouteAllowed('/babbo-natale', campaignCapabilities('DEMO'), 'FULL')).toBe(true);
   });
