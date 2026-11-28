@@ -96,8 +96,8 @@ function Babbo(){
   }
   if(kids.length<1||kids.length>8||kids.some(k=>
    !k.nome.trim()||!k.cognome.trim()||k.eta.trim()===''||
-   !Number.isInteger(Number(k.eta))||Number(k.eta)<0||Number(k.eta)>17)){
-   setError('Per ogni bambino indica nome, cognome ed età (da 0 a 17 anni). Il soprannome è facoltativo.');return false;
+   !Number.isInteger(Number(k.eta))||Number(k.eta)<0||Number(k.eta)>120)){
+   setError('Per ogni bambino indica nome, cognome ed età in anni. Il soprannome è facoltativo.');return false;
   }
   if(!Number.isFinite(amount)||!Number.isInteger(amount)||amount<minimum||amount>1000){
    setError('Inserisci un’offerta in euro di almeno '+minimum+' €.');return false;
@@ -218,7 +218,7 @@ function Babbo(){
          onChange={e=>updateChild(i,'cognome',e.target.value)} placeholder="Rossi" required/></label>
         <label className="text-sm font-semibold">Soprannome (facoltativo)<input className={input} value={child.soprannome} maxLength={40}
          onChange={e=>updateChild(i,'soprannome',e.target.value)} placeholder="Come lo chiamano in famiglia?"/></label>
-        <label className="text-sm font-semibold">Età *<input className={input} type="number" inputMode="numeric" min={0} max={17} step={1}
+        <label className="text-sm font-semibold">Età *<input className={input} type="number" inputMode="numeric" min={0} max={120} step={1}
          value={child.eta} onChange={e=>updateChild(i,'eta',e.target.value)} placeholder="6" required/></label>
        </div>
       </div>)}</div>
