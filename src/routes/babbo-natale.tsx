@@ -58,6 +58,7 @@ function Babbo(){
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
  const [doneId,setDoneId]=useState('');
+ const [mailState,setMailState]=useState<string|null>(null);
  const [otherAmount,setOtherAmount]=useState(false);
  useEffect(()=>{let alive=true;
   settings().then(s=>{if(!alive)return;
@@ -117,12 +118,14 @@ function Babbo(){
     bambiniDettagli:details(),note:form.note,offertaCents:Math.round(amount*100),
     privacyAcknowledged:true as const,website:'',
    }});
-   setDoneId(result.id);setStage('done');goTop();
+   setDoneId(result.id);
+   setMailState('mailState' in result?result.mailState??null:null);
+   setStage('done');goTop();
   }catch(err){
    setError(err instanceof Error?err.message:'Richiesta non registrata: riprova.');
   }finally{setBusy(false);}
  };
- const again=()=>{setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
+ const again=()=>{setMailState(null);setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
  const row=(key:keyof FormFields,label:string,opts:React.InputHTMLAttributes<HTMLInputElement>={})=>
   <label className="block text-sm font-semibold">{label}
    <input className={input} value={String(form[key])} onChange={e=>change(key,e.target.value)}
@@ -304,6 +307,13 @@ function Babbo(){
     <CheckCircle2 className="mx-auto h-10 w-10 text-gold"/>
     <h3 className="mt-3 font-display text-3xl">Ho ho ho! Il messaggio è arrivato!</h3>
     <p className="mt-3 text-muted-foreground">Gli aiutanti hanno preso nota della vostra sorpresa! Organizzeremo il giro della Vigilia e, appena possibile, ti scriveremo per confermare la visita e comunicarti l’orario esatto.</p>
+    {mailState==='accepted'
+     ?<p role="status" className="mt-4 rounded-xl border border-gold/35 bg-gold/10 p-3 text-sm">La mail di ricezione è stata inviata al servizio di posta. Controlla la tua casella, anche nella cartella spam.</p>
+     :mailState==='suppressed'
+      ?<p role="status" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata. Durante la DEMO, le email partono soltanto verso gli indirizzi autorizzati al collaudo.</p>
+      :mailState==='failed'||mailState==='uncertain'
+       ?<p role="alert" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata, ma l’invio della mail non è stato confermato. Non ripetere la prenotazione: per assistenza puoi scrivere a natale@crimonza.org.</p>
+       :null}
     <p className="mt-4 text-xs text-muted-foreground">Riferimento: {doneId.slice(0,8).toUpperCase()}</p>
     <button type="button" onClick={again} className="mt-6 rounded-full border hairline-gold px-6 py-3">Invia un’altra richiesta</button>
    </div>}
