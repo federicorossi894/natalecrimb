@@ -1,76 +1,100 @@
 import {useEffect,useRef,useState} from 'react';
-import type {SantaTeam} from '@/lib/santa-planner';
-import {hasCoords} from '@/lib/santa-planner';
+import {SANTA_TEAM_COLORS,SANTA_TEAM_IDS,hasCoords,santaBoard,type SantaBooking} from '@/lib/santa-planner';
 
-/** Read-only geographical planning map. The OSM tiles show the city;
- * family names/addresses are NEVER sent to the tile server. The suggested
- * connecting lines are straight-line indicators, not driving routes.
- */
 type MapInstance={setView:(p:number[],z:number)=>MapInstance;fitBounds:(b:unknown,o?:unknown)=>void;remove:()=>void};
-type LeafletApi={
- map:(el:HTMLElement,o:Record<string,unknown>)=>MapInstance;
- tileLayer:(url:string,o:Record<string,unknown>)=>{addTo:(m:MapInstance)=>unknown};
- circleMarker:(p:number[],o:Record<string,unknown>)=>{addTo:(m:MapInstance)=>{bindPopup:(content:HTMLElement)=>unknown}};
- polyline:(p:number[][],o:Record<string,unknown>)=>{addTo:(m:MapInstance)=>unknown};
- latLngBounds:(p:number[][])=>unknown;
+type Marker={addTo:(map:MapInstance)=>Marker;bindPopup:(node:HTMLElement)=>Marker};
+type Leaflet={
+ map:(node:HTMLElement,o:Record<string,unknown>)=>MapInstance;
+ tileLayer:(url:string,o:Record<string,unknown>)=>{addTo:(map:MapInstance)=>unknown};
+ divIcon:(opts:Record<string,unknown>)=>unknown;
+ marker:(at:number[],opts:Record<string,unknown>)=>Marker;
+ polyline:(coords:number[][],opts:Record<string,unknown>)=>{addTo:(map:MapInstance)=>unknown};
+ latLngBounds:(coords:number[][])=>unknown;
 };
-declare global {interface Window{L?:LeafletApi}}
-let once:Promise<LeafletApi>|undefined;
-function loadLeaflet(){
- if(once)return once;
- once=new Promise((resolve,reject)=>{
-  if(window.L){resolve(window.L);return;}
-  if(!document.querySelector('link[data-santa-leaflet]')){
-   const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-   css.setAttribute('data-santa-leaflet','1');document.head.appendChild(css);
+declare global{interface Window{L?:Leaflet}}
+let loader:Promise<Leaflet>|undefined;
+function loadLeaflet():Promise<Leaflet>{
+ if(loader)return loader;
+ loader=new Promise((resolve,reject)=>{
+  if(window.L)return resolve(window.L);
+  if(!document.querySelector('link[data-santa-map]')){
+   const css=document.createElement('link');css.rel='stylesheet';
+   css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+   css.setAttribute('data-santa-map','');document.head.append(css);
   }
-  const script=document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  script.async=true;script.onload=()=>window.L?resolve(window.L):reject(new Error('Map library missing'));
-  script.onerror=()=>reject(new Error('Cannot load map'));
-  document.head.appendChild(script);
+  const script=document.createElement('script');
+  script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';script.async=true;
+  script.onload=()=>window.L?resolve(window.L):reject(new Error('Map unavailable'));
+  script.onerror=()=>reject(new Error('Map unavailable'));
+  document.head.append(script);
  });
- return once;
+ return loader;
 }
-const colors=['#a23a36','#335e43','#a87d25','#366791','#865c8b','#c06439'];
-export function SantaRouteMap({teams}:{teams:SantaTeam[]}){
- const container=useRef<HTMLDivElement>(null),instance=useRef<MapInstance|null>(null);
+function houseIcon(L:Leaflet,color:string,position:number|null){
+ const bg=color==='white'?'#ffffff':color;
+ const label=position===null?'':`<small style="position:absolute;top:-6px;right:-6px;border-radius:50%;background:#173d30;color:white;min-width:17px;height:17px;text-align:center;font:700 11px Arial;line-height:17px;">${position}</small>`;
+ const html=`<span aria-hidden="true" style="position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:${bg};border:2px solid #fff;border-radius:11px;box-shadow:0 1px 9px #0004;font-size:20px;">🏠${label}</span>`;
+ return L.divIcon({html,className:'santa-house-pin',iconSize:[36,36],iconAnchor:[18,18]});
+}
+export function SantaRouteMap({bookings}:{bookings:SantaBooking[]}){
+ const node=useRef<HTMLDivElement>(null),map=useRef<MapInstance|null>(null);
  const [error,setError]=useState('');
+ const unmapped=bookings.filter(b=>b.status!=='annullata'&&!hasCoords(b)).length;
  useEffect(()=>{
-  if(!container.current)return;
-  let active=true;
+  if(!node.current)return;
+  let current=true;
   void loadLeaflet().then(L=>{
-   if(!active||!container.current)return;
-   instance.current?.remove();
-   const map=L.map(container.current,{scrollWheelZoom:false,zoomControl:true}).setView([45.5797,9.2744],12);
-   instance.current=map;
+   if(!current||!node.current)return;
+   map.current?.remove();
+   const instance=L.map(node.current,{scrollWheelZoom:false,zoomControl:true})
+    .setView([45.5797,9.2744],12);
+   map.current=instance;
    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:18,attribution:'&copy; OpenStreetMap contributors',
-   }).addTo(map);
-   const coords:number[][]=[];
-   teams.forEach((team,index)=>{
-    const valid=team.bookings.filter(hasCoords);
-    const positions=valid.map(b=>[b.lat!,b.lon!]);
-    coords.push(...positions);
-    if(positions.length>1)L.polyline(positions,{color:colors[index%colors.length],weight:4,opacity:0.8,dashArray:'7 5'}).addTo(map);
-    valid.forEach((b)=>{
-     const popup=document.createElement('div');
-     const name=document.createElement('strong');name.textContent=team.id+' · '+b.slot;
-     const detail=document.createElement('p');detail.textContent=b.nome+' '+b.cognome+' · '+b.indirizzo;
-     detail.style.margin='5px 0 0';
-     popup.append(name,detail);
-     L.circleMarker([b.lat!,b.lon!],{
-      radius:10,weight:3,color:'#ffffff',fillColor:colors[index%colors.length],fillOpacity:1,
-     }).addTo(map).bindPopup(popup);
-    });
-   });
-   if(coords.length)map.fitBounds(L.latLngBounds(coords),{padding:[35,35],maxZoom:14});
+    maxZoom:18,attribution:'© OpenStreetMap contributors',
+   }).addTo(instance);
+   const pts:number[][]=[];
+   const board=santaBoard(bookings);
+   const all=[...board.unassigned,...board.teams.flatMap(t=>t.bookings)];
+   for(const b of all){
+    if(!hasCoords(b))continue;
+    const pos=[b.lat,b.lon];
+    pts.push(pos);
+    const color=b.squadra?SANTA_TEAM_COLORS[b.squadra]:'white';
+    const pin=L.marker(pos,{icon:houseIcon(L,color,b.teamPosition)}).addTo(instance);
+    const popup=document.createElement('div');
+    const top=document.createElement('strong');top.textContent=b.nome+' '+b.cognome;
+    const address=document.createElement('p');
+    address.textContent=b.indirizzo+', '+b.localita;
+    address.style.margin='5px 0';
+    const assignment=document.createElement('small');
+    assignment.textContent=b.squadra
+     ?b.squadra+' · tappa '+(b.teamPosition??'?')
+     :'Da assegnare';
+    popup.append(top,address,assignment);
+    pin.bindPopup(popup);
+   }
+   for(const team of SANTA_TEAM_IDS){
+    const ordered=board.teams.find(x=>x.id===team)!.bookings.filter(hasCoords);
+    if(ordered.length>1){
+     L.polyline(ordered.map(b=>[b.lat!,b.lon!]),{
+      color:SANTA_TEAM_COLORS[team],weight:4,opacity:0.85,dashArray:'8 5',
+     }).addTo(instance);
+    }
+   }
+   if(pts.length)instance.fitBounds(L.latLngBounds(pts),{padding:[40,40],maxZoom:15});
    setError('');
-  }).catch(()=>{if(active)setError('La mappa stradale non è disponibile in questo browser; restano utilizzabili elenco e itinerari delle squadre.');});
-  return ()=>{active=false;instance.current?.remove();instance.current=null;};
- },[teams]);
- return <section aria-label="Mappa delle squadre di Babbo Natale">
-  <div ref={container} className="h-[390px] w-full overflow-hidden rounded-2xl bg-[#e2e8dc] sm:h-[510px]" data-testid="santa-route-map"/>
-  {error&&<p className="mt-2 text-sm text-amber-600">{error}</p>}
-  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Mappa riservata agli organizzatori · dati dimostrativi nella preview · i tratti collegano i punti in linea d’aria, non rappresentano percorsi stradali verificati. Per valutare i tempi di guida occorre un servizio di routing.</p>
- </section>;
+  }).catch(()=>{if(current)setError('Impossibile caricare la mappa. La lavagna e le prenotazioni restano disponibili.');});
+  return ()=>{current=false;map.current?.remove();map.current=null;};
+ },[bookings]);
+ return <div>
+  <div ref={node} className="h-[390px] w-full overflow-hidden rounded-2xl bg-[#e2e8dc] sm:h-[510px]" data-testid="santa-house-map"/>
+  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+   <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-muted-foreground bg-white"/>Da assegnare</span>
+   {SANTA_TEAM_IDS.map(team=><span key={team} className="flex items-center gap-1.5">
+    <span className="h-3 w-3 rounded" style={{background:SANTA_TEAM_COLORS[team]}}/>{team}</span>)}
+  </div>
+  {unmapped>0&&<p className="mt-2 text-xs text-amber-600">{unmapped} {unmapped===1?'indirizzo senza posizione sulla mappa':'indirizzi senza posizione sulla mappa'}: puoi correggere l’indirizzo e usare «Localizza» nella prenotazione.</p>}
+  {error&&<p role="status" className="mt-3 text-sm text-amber-600">{error}</p>}
+  <p className="mt-2 text-xs text-muted-foreground">Le linee colorate seguono l’ordine delle tappe scelto dagli organizzatori; non rappresentano tempi di viaggio calcolati.</p>
+ </div>;
 }
