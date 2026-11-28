@@ -1,7 +1,7 @@
 import {createFileRoute,Link,Outlet,useRouterState} from '@tanstack/react-router';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useState,type FormEvent} from 'react';
-import {Gift,HeartHandshake,MapPin,Clock3,ShieldCheck,Snowflake,ArrowRight,CheckCircle2,Heart,Minus,Plus,Pencil} from 'lucide-react';
+import {Gift,HeartHandshake,MapPin,Clock3,ShieldCheck,Snowflake,ArrowRight,CheckCircle2,Heart,Minus,Plus} from 'lucide-react';
 import {Shell} from '@/components/xmas/Shell';
 import {AutoSantaScene} from '@/components/xmas/SantaChimney';
 import {santaPublicSettings,santaCreateRequest} from '@/lib/santa-public.functions';
@@ -88,7 +88,6 @@ function Babbo(){
  const amount=Number(form.offerta.replace(',','.'));
  const suggestedAmounts=[minimum,minimum+10,minimum+20,minimum+45,minimum+70].filter(n=>n<=1000);
  const selectAmount=(n:number)=>{change('offerta',String(n));setOtherAmount(false);};
- const nudgeAmount=(delta:number)=>{const base=Number.isFinite(amount)?amount:minimum;change('offerta',String(Math.min(1000,Math.max(minimum,base+delta))));};
  const goTop=()=>document.getElementById('richiesta')?.scrollIntoView({behavior:'smooth',block:'start'});
  const validate=()=>{
   if(!form.nome.trim()||!form.cognome.trim()||!form.email.includes('@')||
@@ -231,7 +230,7 @@ function Babbo(){
       <strong aria-live="polite" aria-atomic="true" className="font-display text-4xl tabular-nums text-gold">{Number.isFinite(amount)?euro(amount):'—'}</strong>
      </div>
      <p className="mt-3 text-sm leading-relaxed text-foreground/80">Si parte da {euro(minimum)}. Se desideri, puoi aggiungere un po' di solidarietà con un semplice tocco.</p>
-     <div role="group" aria-label="Scegli l'importo dell'offerta" className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+     <div role="group" aria-label="Scegli l'importo dell'offerta" className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {suggestedAmounts.map(n=><button key={n} type="button" onClick={()=>selectAmount(n)}
        aria-pressed={amount===n&&!otherAmount}
        className={amount===n&&!otherAmount?
@@ -239,17 +238,13 @@ function Babbo(){
         "rounded-2xl border border-gold/40 bg-background/75 px-2 py-3 text-base font-bold tabular-nums text-foreground transition hover:border-gold hover:bg-gold/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"}>
        {euro(n)}
       </button>)}
-     </div>
-     <div className="mt-4 flex flex-wrap items-center gap-2">
-      <button type="button" onClick={()=>nudgeAmount(-10)} disabled={amount<=minimum}
-       aria-label="Diminuisci l'offerta di dieci euro"
-       className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Minus className="h-4 w-4"/> 10 €</button>
-      <button type="button" onClick={()=>nudgeAmount(10)} disabled={amount>=1000}
-       aria-label="Aumenta l'offerta di dieci euro"
-       className="inline-flex items-center gap-1 rounded-full border border-gold bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Plus className="h-4 w-4"/> 10 €</button>
-      <button type="button" onClick={()=>setOtherAmount(v=>!v)}
-       aria-expanded={otherAmount}
-       className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold"><Pencil className="h-4 w-4"/> Altro importo</button>
+      <button type="button" onClick={()=>setOtherAmount(true)}
+       aria-pressed={otherAmount} aria-expanded={otherAmount}
+       className={otherAmount?
+        "rounded-2xl border border-gold bg-gold px-2 py-3 text-base font-bold text-accent-foreground shadow-md":
+        "rounded-2xl border border-gold/40 bg-background/75 px-2 py-3 text-base font-bold text-foreground hover:border-gold hover:bg-gold/15"}>
+       Altro importo
+      </button>
      </div>
      {otherAmount&&<label className="mt-4 block text-sm font-semibold" htmlFor="santa-offerta-libera">
       Inserisci l'importo che preferisci (€)
