@@ -13,6 +13,12 @@ const loginSchema=z.object({email:emailSchema,password:z.string().min(1).max(200
 const statuses=['richiesta','confermata','completata','annullata'] as const;
 const teams=['Squadra A','Squadra B','Squadra C','Squadra D'] as const;
 const time=z.string().regex(/^(19|20|21|22|23):[0-5][0-9]$/);
+const childSchema=z.object({
+ nome:z.string().trim().min(2).max(60),
+ cognome:z.string().trim().min(2).max(60),
+ soprannome:z.string().trim().max(40),
+ eta:z.number().int().min(0).max(17),
+}).strict();
 function csrf(){
  if(!santaOriginAllowed(getRequestHeader('origin')??null))
   throw new Error('Origine non autorizzata. Apri la preview direttamente nel browser e riprova.');
@@ -77,18 +83,23 @@ export const santaAdminLogout=createServerFn({method:'POST'}).handler(async()=>{
 const rowSchema=z.object({
  id:z.string().uuid(),mode:z.enum(['demo','live']),
  nome:z.string(),cognome:z.string(),email:z.string(),telefono:z.string(),
- indirizzo:z.string(),localita:z.string(),bambini:z.array(z.string()),note:z.string(),
+ indirizzo:z.string(),localita:z.string(),
+ piano:z.string().nullable(),dettagli_accesso:z.string().nullable(),
+ bambini:z.array(z.string()),bambini_dettagli:z.array(childSchema).nullable(),
+ note:z.string(),
  quota_offerta_cents:z.number(),quota_incassata_cents:z.number(),
  squadra:z.enum(teams).nullable(),team_position:z.number().nullable(),
  confirmed_time:z.string().nullable(),status:z.enum(statuses),
  latitude:z.number().nullable(),longitude:z.number().nullable(),
  geocode_status:z.enum(['pending','located','approximate','unavailable']),
 }).passthrough();
-const fields='id,mode,nome,cognome,email,telefono,indirizzo,localita,bambini,note,quota_offerta_cents,quota_incassata_cents,squadra,team_position,confirmed_time,status,latitude,longitude,geocode_status';
+const fields='id,mode,nome,cognome,email,telefono,indirizzo,localita,piano,dettagli_accesso,bambini,bambini_dettagli,note,quota_offerta_cents,quota_incassata_cents,squadra,team_position,confirmed_time,status,latitude,longitude,geocode_status';
 function toBooking(r:z.infer<typeof rowSchema>):SantaBooking{
  return {
   id:r.id,mode:r.mode as SantaMode,nome:r.nome,cognome:r.cognome,email:r.email,
-  telefono:r.telefono,indirizzo:r.indirizzo,localita:r.localita,bambini:r.bambini,
+  telefono:r.telefono,indirizzo:r.indirizzo,localita:r.localita,
+  piano:r.piano,dettagliAccesso:r.dettagli_accesso,
+  bambini:r.bambini,bambiniDettagli:r.bambini_dettagli,
   note:r.note,quotaOffertaCents:r.quota_offerta_cents,
   quotaIncassataCents:r.quota_incassata_cents,squadra:r.squadra as SantaTeamId|null,
   teamPosition:r.team_position,confirmedTime:r.confirmed_time,
@@ -140,7 +151,10 @@ const detailsSchema=z.object({
   telefono:z.string().trim().min(6).max(30).optional(),
   indirizzo:z.string().trim().min(6).max(180).optional(),
   localita:z.string().trim().min(2).max(80).optional(),
-  bambini:z.array(z.string().trim().min(1).max(40)).min(1).max(8).optional(),
+  piano:z.string().trim().min(1).max(60).optional(),
+  dettagliAccesso:z.string().trim().max(240).optional(),
+  bambini:z.array(z.string().trim().min(1).max(120)).min(1).max(8).optional(),
+  bambiniDettagli:z.array(childSchema).min(1).max(8).nullable().optional(),
   note:z.string().max(500).optional(),
   quotaOffertaCents:z.number().int().min(3000).max(100000).optional(),
   quotaIncassataCents:z.number().int().min(0).max(100000).optional(),
@@ -152,7 +166,8 @@ const detailsSchema=z.object({
 }).strict();
 const columns:Record<string,string>={
  nome:'nome',cognome:'cognome',email:'email',telefono:'telefono',
- indirizzo:'indirizzo',localita:'localita',bambini:'bambini',note:'note',
+ indirizzo:'indirizzo',localita:'localita',piano:'piano',dettagliAccesso:'dettagli_accesso',
+ bambini:'bambini',bambiniDettagli:'bambini_dettagli',note:'note',
  quotaOffertaCents:'quota_offerta_cents',quotaIncassataCents:'quota_incassata_cents',
  confirmedTime:'confirmed_time',status:'status',lat:'latitude',lon:'longitude',
 };
@@ -164,6 +179,10 @@ export const santaAdminUpdate=createServerFn({method:'POST'})
   const patch:Record<string,unknown>={};
   for(const [key,value] of Object.entries(data.patch))if(value!==undefined)patch[columns[key]!]=value;
   if(!Object.keys(patch).length)throw new Error('Nessuna modifica.');
+  if(Array.isArray(patch['bambini_dettagli'])){
+   const children=patch['bambini_dettagli'] as Array<{nome:string;cognome:string}>;
+   patch['bambini']=children.map(c=>c.nome+' '+c.cognome);
+  }
   const before=await db.from('santa_bookings').select('status,squadra,team_position,confirmed_time,indirizzo,localita')
    .eq('id',data.id).eq('mode',config.data.mode).maybeSingle();
   if(!before.data)throw new Error('Richiesta non trovata.');
