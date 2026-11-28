@@ -124,7 +124,7 @@ BEGIN
  WHERE mode=active_mode AND status='richiesta';
  INSERT INTO public.santa_payment_links(booking_id)
  SELECT id FROM public.santa_bookings WHERE mode=active_mode AND status='confermata'
- ON CONFLICT(booking_id) DO NOTHING;
+ ON CONFLICT ON CONSTRAINT santa_payment_links_pkey DO NOTHING;
  UPDATE public.santa_admin_settings SET planning_confirmed_at=now(),
   requests_open=false,board_version=board_version+1,updated_at=now() WHERE singleton;
  INSERT INTO public.santa_admin_audit(actor_email,action,changed)
