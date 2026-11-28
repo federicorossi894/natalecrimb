@@ -43,6 +43,28 @@ CREATE TABLE IF NOT EXISTS public.santa_mail_outbox(
 );
 CREATE INDEX IF NOT EXISTS santa_mail_pending ON public.santa_mail_outbox(state,created_at);
 
+-- Email outbox is created transactionally with the new request or confirmation.
+-- This guarantees an intent even if the application crashes after DB commit.
+CREATE OR REPLACE FUNCTION public.santa_enqueue_mail()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $trigger$
+BEGIN
+ IF TG_OP='INSERT' THEN
+  INSERT INTO public.santa_mail_outbox(booking_id,kind,mode)
+  VALUES(NEW.id,'request',NEW.mode)
+  ON CONFLICT(booking_id,kind) DO NOTHING;
+ ELSIF NEW.status='confermata' AND OLD.status IS DISTINCT FROM NEW.status THEN
+  INSERT INTO public.santa_mail_outbox(booking_id,kind,mode)
+  VALUES(NEW.id,'confirmed',NEW.mode)
+  ON CONFLICT(booking_id,kind) DO NOTHING;
+ END IF;
+ RETURN NEW;
+END $trigger$;
+DROP TRIGGER IF EXISTS santa_mail_intent ON public.santa_bookings;
+CREATE TRIGGER santa_mail_intent AFTER INSERT OR UPDATE OF status ON public.santa_bookings
+ FOR EACH ROW EXECUTE FUNCTION public.santa_enqueue_mail();
+REVOKE ALL ON FUNCTION public.santa_enqueue_mail() FROM PUBLIC,anon,authenticated;
+
+
 CREATE TABLE IF NOT EXISTS public.santa_geocode_cache(
  address_key text PRIMARY KEY CHECK(length(address_key)=64),
  latitude double precision CHECK(latitude BETWEEN -90 AND 90),
