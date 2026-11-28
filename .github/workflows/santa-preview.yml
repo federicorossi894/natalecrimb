@@ -1,0 +1,29 @@
+name: Babbo Natale preview — typecheck and focused tests
+
+on:
+  push:
+    branches: [feature/babbo-natale-organizzatori-preview-2026]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Typecheck all source
+        run: bunx tsc --noEmit
+      - name: Test Babbo Natale and campaign gates
+        run: bunx vitest run src/test/santa-preview-2026.test.ts src/test/campaign.test.ts src/test/site-experience.test.ts src/test/basic-release.test.ts
+      - name: Production build validation (does not publish)
+        run: bun run build
