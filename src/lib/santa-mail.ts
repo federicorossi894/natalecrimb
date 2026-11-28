@@ -50,7 +50,7 @@ export function santaRequestEmail(b:Pick<SantaBooking,'nome'|'quotaOffertaCents'
  );
  return {from:SANTA_SENDER,subject,html};
 }
-export function santaConfirmedEmail(b:Pick<SantaBooking,'nome'|'confirmedTime'|'indirizzo'|'localita'>){
+export function santaConfirmedEmail(b:Pick<SantaBooking,'nome'|'confirmedTime'|'indirizzo'|'localita'|'piano'|'dettagliAccesso'>){
  if(!b.confirmedTime)throw new Error('Non inviare conferma senza orario definitivo.');
  return {from:SANTA_SENDER,
   subject:'🎅 Babbo Natale arriva da voi! Visita confermata',
@@ -60,8 +60,16 @@ export function santaConfirmedEmail(b:Pick<SantaBooking,'nome'|'confirmedTime'|'
    '<p>Ciao <strong>'+esc(b.nome)+'</strong>, la vostra visita per il 24 dicembre è <strong>confermata!</strong></p>'+
    '<div style="padding:18px;background:#f2f7ec;border-radius:14px;font-size:18px">'+
    '<strong>Orario definitivo: '+esc(b.confirmedTime)+'</strong><br>'+
-   '<span style="font-size:14px">Indirizzo: '+esc(b.indirizzo+', '+b.localita)+'</span></div>'+
-   '<p>Lasciate i regali già incartati appena fuori dalla porta poco prima dell’arrivo: i nostri volontari, nei panni di Babbo Natale e degli aiutanti, li recupereranno prima di bussare.</p>'+
+   '<span style="font-size:14px">Indirizzo: '+esc([
+    b.indirizzo,b.localita,b.piano?'Piano '+b.piano:'',b.dettagliAccesso??''
+   ].filter(Boolean).join(' · '))+'</span></div>'+
+   '<p>Per rendere la sorpresa ancora più speciale, <strong>rispondi a questa email</strong> con due piccoli aiuti per i nostri volontari:</p>'+
+   '<ol style="padding-left:20px;line-height:1.8">'+
+   '<li><strong>La letterina a Babbo Natale:</strong> puoi inviare una fotografia della letterina, oppure scriverci il suo contenuto o i desideri principali.</li>'+
+   '<li><strong>I regali che hai scelto per i bambini:</strong> mandaci un breve elenco dei doni che acquisterai o hai già preparato, così Babbo Natale saprà cosa consegnare.</li>'+
+   '</ol>'+
+   '<p>Queste informazioni ci aiuteranno a preparare la visita: non occorre caricarle sul sito.</p>'+
+   '<p>Poco prima dell’arrivo lascia i regali già incartati appena fuori dalla porta: i nostri volontari, nei panni di Babbo Natale e degli aiutanti, li recupereranno prima di bussare.</p>'+
    '<p>Vi auguriamo una Vigilia piena di magia! Per qualsiasi comunicazione: <a href="mailto:natale@crimonza.org">natale@crimonza.org</a>.</p>'
   )};
 }
