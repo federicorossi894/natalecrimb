@@ -2,7 +2,7 @@
 export type SiteExperience = 'ONLINE_GIFT' | 'FULL';
 export const SITE_EXPERIENCE: SiteExperience = 'ONLINE_GIFT';
 export const ONLINE_GIFT = SITE_EXPERIENCE === 'ONLINE_GIFT';
-export const ONLINE_OPTIONS = { santa: false, children: true, calendar: true } as const;
+export const ONLINE_OPTIONS = { santa: true, children: true, calendar: true } as const;
 export function experienceRouteAllowed(path: string, experience: SiteExperience = SITE_EXPERIENCE) {
   if (experience === 'FULL') return true;
   const p = path.replace(/\/$/, '') || '/';
