@@ -310,7 +310,7 @@ function Babbo(){
     {mailState==='accepted'
      ?<p role="status" className="mt-4 rounded-xl border border-gold/35 bg-gold/10 p-3 text-sm">La mail di ricezione è stata inviata al servizio di posta. Controlla la tua casella, anche nella cartella spam.</p>
      :mailState==='suppressed'
-      ?<p role="status" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata. Durante la DEMO, le email partono soltanto verso gli indirizzi autorizzati al collaudo.</p>
+      ?<p role="status" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata. Durante il collaudo, le email partono soltanto verso gli indirizzi di prova autorizzati.</p>
       :mailState==='failed'||mailState==='uncertain'
        ?<p role="alert" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata, ma l’invio della mail non è stato confermato. Non ripetere la prenotazione: per assistenza puoi scrivere a natale@crimonza.org.</p>
        :null}
