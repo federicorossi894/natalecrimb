@@ -1,95 +1,117 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {SANTA_DEMO_BOOKINGS,SANTA_VISIT_SLOTS,suggestSantaTeams,hasCoords,mapsRouteUrl} from '@/lib/santa-planner';
+import {santaBoard,moveSantaBooking,santaBoardPayload,mapsRouteUrl,
+ SANTA_TEAM_IDS,SANTA_TEAM_COLORS,hasCoords,type SantaBooking} from '@/lib/santa-planner';
 import {santaXlsx} from '@/lib/santa-xlsx';
 import {santaRequestEmail,santaConfirmedEmail,SANTA_SENDER} from '@/lib/santa-mail';
+import {santaOriginAllowed} from '@/lib/santa-security';
 
-describe('Babbo Natale 2026 — preview safely gated',()=>{
- it('recovers original graphics and exposes only a simulated request flow',()=>{
+function make(i:number):SantaBooking{
+ return {id:'00000000-0000-4000-8000-'+String(i).padStart(12,'0'),
+  nome:'Famiglia',cognome:'Esempio '+i,email:'federico.rossi@crimonza.org',
+  telefono:'3330000000',indirizzo:'Via esempio '+i+', Monza',
+  localita:'Monza',bambini:['Anna','Leo'],note:'Un desiderio',
+  quotaOffertaCents:3000+i*100,quotaIncassataCents:0,
+  squadra:null,teamPosition:null,confirmedTime:null,status:'richiesta',
+  mode:'demo',lat:45.58+i/10000,lon:9.27+i/10000,
+  geocodeStatus:'approximate'};
+}
+describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
+ it('shows just one demo label and no choice of times on the family page',()=>{
   const page=readFileSync('src/routes/babbo-natale.tsx','utf8');
   const home=readFileSync('src/routes/index.tsx','utf8');
-  const chimney=readFileSync('src/components/xmas/SantaChimney.tsx','utf8');
-  const campaign=readFileSync('src/lib/campaign.ts','utf8');
   expect(page).toContain('AutoSantaScene mode="full"');
   expect(home).toContain('CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection');
-  expect(chimney).toContain('fuori dalla porta');
-  expect(page).toContain('SANTA_PUBLIC_REQUESTS_OPEN=false');
-  expect(page).toContain('Offerta libera');
-  expect(page).toContain('non invia e non salva richieste');
-  expect(page).toContain('natale@crimonza.org');
-  expect(page).toContain('Area organizzatori');
-  expect(campaign).toContain('santaHomeVisitsEnabled: true');
-  expect(campaign).toContain('santaBookings: false');
-  expect(page).not.toContain('Consegna in sede prima');
+  expect(page).toContain('DEMO</div>');
+  expect(page.match(/DEMO/g)).toHaveLength(1);
+  expect(page).not.toContain('SANTA_VISIT_SLOTS');
+  expect(page).not.toContain('Fascia oraria preferita');
+  expect(page).toContain('dalle 19 a mezzanotte');
+  expect(page).toContain('santaCreateRequest');
+  expect(page).toContain('privacy');
+  expect(page).not.toContain('nessuna richiesta viene registrata');
  });
- it('allocates max 4 visits per team and fixed one-hour slots',()=>{
-  expect(SANTA_VISIT_SLOTS).toEqual(['19:30','20:30','21:30','22:30']);
-  const plan=suggestSantaTeams(SANTA_DEMO_BOOKINGS);
-  expect(SANTA_DEMO_BOOKINGS).toHaveLength(6);
-  expect(plan.teams.length).toBeGreaterThanOrEqual(2);
-  expect(plan.teams.flatMap(t=>t.bookings)).toHaveLength(6);
-  expect(plan.teams.every(t=>t.bookings.length<=4)).toBe(true);
-  for(const team of plan.teams){
-   expect(team.bookings.map(b=>b.slot)).toEqual(SANTA_VISIT_SLOTS.slice(0,team.bookings.length));
-   expect(team.lengthKm).toBeGreaterThanOrEqual(0);
-   expect(mapsRouteUrl(team)).toContain('https://www.google.com/maps/dir/');
-  }
+ it('assigns ONLY when an organizer drags; supports A-D and reorder',()=>{
+  const bookings=[1,2,3,4,5,6].map(make);
+  expect(SANTA_TEAM_IDS).toEqual(['Squadra A','Squadra B','Squadra C','Squadra D']);
+  expect(new Set(Object.values(SANTA_TEAM_COLORS)).size).toBe(4);
+  expect(santaBoard(bookings).unassigned).toHaveLength(6);
+  let arranged=moveSantaBooking(bookings,bookings[0]!.id,'Squadra A');
+  arranged=moveSantaBooking(arranged,bookings[1]!.id,'Squadra A');
+  arranged=moveSantaBooking(arranged,bookings[2]!.id,'Squadra B');
+  arranged=moveSantaBooking(arranged,bookings[1]!.id,'Squadra A',0);
+  const board=santaBoard(arranged);
+  expect(board.teams[0]!.bookings.map(b=>b.id)).toEqual([bookings[1]!.id,bookings[0]!.id]);
+  expect(board.teams[0]!.bookings.map(b=>b.teamPosition)).toEqual([1,2]);
+  expect(board.teams[1]!.bookings).toHaveLength(1);
+  expect(board.unassigned).toHaveLength(3);
+  expect(santaBoardPayload(arranged)).toHaveLength(6);
+  expect(santaBoardPayload(arranged).filter(x=>x.team==='Squadra A')).toHaveLength(2);
+  expect(mapsRouteUrl(board.teams[0]!)).toContain('google.com/maps/dir/');
+  expect(hasCoords({...bookings[0]!,lat:null})).toBe(false);
  });
- it('cannot invent coordinates when the family address has not been geocoded',()=>{
-  const notLocated={...SANTA_DEMO_BOOKINGS[0]!,id:'no-coordinate',lat:null,lon:null};
-  expect(hasCoords(notLocated)).toBe(false);
-  const plan=suggestSantaTeams([notLocated]);
-  expect(plan.teams).toHaveLength(0);
-  expect(plan.unmapped).toHaveLength(1);
-  expect(plan.warnings.join(' ')).toContain('senza coordinate');
+ it('exports 5 sheets with family details, order and real confirmed time',()=>{
+  const bookings=[1,2].map(make);
+  bookings[0]!.squadra='Squadra A';bookings[0]!.teamPosition=1;bookings[0]!.confirmedTime='20:45';
+  const bytes=santaXlsx(bookings,santaBoard(bookings).teams);
+  expect(Array.from(bytes.slice(0,2))).toEqual([80,75]);
+  const text=new TextDecoder().decode(bytes);
+  expect(text).toContain('Tutte le richieste');
+  for(const team of SANTA_TEAM_IDS)expect(text).toContain(team);
+  expect(text).toContain('sheet5.xml');
+  expect(text).toContain('Telefono');
+  expect(text).toContain('Bambini');
+  expect(text).toContain('Note per Babbo Natale');
+  expect(text).toContain('20:45');
  });
- it('exports complete family register and one real worksheet per team',()=>{
-  const plan=suggestSantaTeams(SANTA_DEMO_BOOKINGS);
-  const bytes=santaXlsx(SANTA_DEMO_BOOKINGS,plan.teams);
-  expect(bytes[0]).toBe(0x50);expect(bytes[1]).toBe(0x4b);
-  const raw=new TextDecoder().decode(bytes);
-  expect(raw).toContain('Tutte le richieste');
-  expect(raw).toContain('xl/worksheets/sheet2.xml');
-  expect(raw).toContain('Telefono');
-  expect(raw).toContain('Bambini');
-  expect(raw).toContain('Note per Babbo Natale');
-  expect(raw).toContain('Incassato');
-  expect(raw).toContain('Squadra A');
-  expect(raw).toContain('Famiglia');
-  expect(raw).toContain('https://www.google.com/maps/search/');
+ it('auto-email templates distinguish received from confirmed, and promote Christmas links',()=>{
+  const b=make(1);
+  const req=santaRequestEmail(b);
+  expect(req.from).toBe(SANTA_SENDER);
+  expect(req.html).toContain('La visita non è ancora confermata');
+  expect(req.html).toContain('l’orario definitivo');
+  expect(req.html).toContain('Calendario dell’Avvento');
+  expect(req.html).toContain('/calendario');
+  expect(req.html).toContain('/casetta');
+  expect(req.html).toContain('/regali');
+  expect(req.html).toContain('/albero');
+  expect(req.html).toContain('fuori dalla porta');
+  expect(req.html).not.toContain('Fascia preferita');
+  expect(()=>santaConfirmedEmail(b)).toThrow();
+  expect(santaConfirmedEmail({...b,confirmedTime:'21:15'}).html).toContain('21:15');
  });
- it('prepares reception email, explicitly not a confirmed booking or payment',()=>{
-  const family=SANTA_DEMO_BOOKINGS[0]!;
-  const mail=santaRequestEmail(family);
-  expect(mail.from).toBe(SANTA_SENDER);
-  expect(mail.subject).toContain('ricevuto');
-  expect(mail.html).toContain('non è ancora prenotata né confermata');
-  expect(mail.html).toContain('non ti abbiamo addebitato nulla');
-  expect(mail.html).toContain('già incartati fuori dalla porta');
-  expect(mail.html).toContain('natale@crimonza.org');
-  expect(()=>santaConfirmedEmail(family)).toThrow();
-  expect(santaConfirmedEmail({...family,slotAssegnato:'21:30'}).subject).toContain('confermata');
+ it('stores demo requests, resets them on activation, and protects mailing',()=>{
+  const sql=readFileSync('drizzle/migrations/0039_santa_demo_manual_board.sql','utf8');
+  const publicFn=readFileSync('src/lib/santa-public.functions.ts','utf8');
+  const adminFn=readFileSync('src/lib/santa-admin.functions.ts','utf8');
+  const sender=readFileSync('src/lib/santa-mail.server.ts','utf8');
+  const ui=readFileSync('src/routes/babbo-natale.organizzatori.tsx','utf8');
+  expect(sql).toContain("mode text NOT NULL DEFAULT 'demo'");
+  expect(sql).toContain("UPDATE public.santa_admin_settings SET mode='demo',requests_open=true");
+  expect(sql).toContain('DELETE FROM public.santa_bookings WHERE mode=\\'demo\\'');
+  expect(sql).toContain('santa_board_save');
+  expect(sql).toContain('santa_mail_outbox');
+  expect(sql).toContain("AFTER INSERT OR UPDATE OF status");
+  expect(publicFn).toContain("santaCreateRequest");
+  expect(publicFn).toContain("requestId");
+  expect(publicFn).toContain('privacy_accepted_at');
+  expect(sender).toContain("if(b.mode==='demo')");
+  expect(sender).toContain("santa_admin_allowlist");
+  expect(adminFn).toContain('santaAdminBoardSave');
+  expect(adminFn).toContain('santaAdminLocate');
+  expect(adminFn).toContain('verifyPassword(data.password,verifier)');
+  expect(ui).toContain('onDragStart');
+  expect(ui).toContain('onDrop');
+  expect(ui).toContain('Da assegnare');
+  expect(ui).toContain('SantaRouteMap bookings={records}');
+  expect(ui).toContain('Scarica Excel');
  });
- it('keeps all booking data and admin credentials off the anonymous database role',()=>{
-  const sql=readFileSync('drizzle/migrations/0038_santa_private_admin_bookings.sql','utf8');
-  const auth=readFileSync('src/lib/santa-admin.functions.ts','utf8');
-  const route=readFileSync('src/routes/babbo-natale.organizzatori.tsx','utf8');
-  expect(sql).toContain('ENABLE ROW LEVEL SECURITY');
-  expect(sql).toContain('REVOKE ALL ON public.');
-  expect(sql).toContain("('federico.rossi@crimonza.org',true)");
-  expect(sql).not.toContain('babbo1864');
-  expect(sql).not.toContain('pbkdf2_sha256$100000$4Xf');
-  expect(sql).toContain('requests_open boolean NOT NULL DEFAULT false');
-  expect(sql).toContain('quota_incassata_cents integer NOT NULL DEFAULT 0');
-  expect(auth).toContain('verifyPassword(data.password,verifier)');
-  expect(auth).toContain("const COOKIE='cri_santa_admin'");
-  expect(auth).toContain('httpOnly:true');
-  expect(auth).toContain('currentAdmin()');
-  expect(auth).toContain('santa_admin_audit');
-  expect(route).toContain('santaAdminLogin');
-  expect(route).toContain('santaAdminUpdate');
-  expect(route).toContain('SantaRouteMap');
-  expect(route).toContain('Scarica Excel');
-  expect(route).toContain("Richieste reali");
+ it('rejects other origins but allows direct Lovable preview and official site',()=>{
+  expect(santaOriginAllowed('https://natale.crimonza.org')).toBe(true);
+  expect(santaOriginAllowed('https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app')).toBe(true);
+  expect(santaOriginAllowed('https://id-preview-1--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app')).toBe(true);
+  expect(santaOriginAllowed('https://malicious.lovable.app')).toBe(false);
+  expect(santaOriginAllowed('https://natale.crimonza.org.evil.com')).toBe(false);
+  expect(santaOriginAllowed(null)).toBe(false);
  });
 });
