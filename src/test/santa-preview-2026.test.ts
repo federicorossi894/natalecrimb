@@ -88,7 +88,7 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   const ui=readFileSync('src/routes/babbo-natale.organizzatori.tsx','utf8');
   expect(sql).toContain("mode text NOT NULL DEFAULT 'demo'");
   expect(sql).toContain("UPDATE public.santa_admin_settings SET mode='demo',requests_open=true");
-  expect(sql).toContain('DELETE FROM public.santa_bookings WHERE mode=\\'demo\\'');
+  expect(sql).toContain("DELETE FROM public.santa_bookings WHERE mode='demo'");
   expect(sql).toContain('santa_board_save');
   expect(sql).toContain('santa_mail_outbox');
   expect(sql).toContain("AFTER INSERT OR UPDATE OF status");
