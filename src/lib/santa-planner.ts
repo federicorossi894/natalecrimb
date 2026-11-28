@@ -56,10 +56,12 @@ export function moveSantaBooking(
  });
 }
 export function santaBoardPayload(bookings:SantaBooking[]){
- return santaBoard(bookings).unassigned.map(b=>({id:b.id,team:null,position:null})).concat(
- SANTA_TEAM_IDS.flatMap(id=>santaBoard(bookings).teams.find(t=>t.id===id)!.bookings.map(
-  (b,i)=>({id:b.id,team:id as string|null,position:(i+1) as number|null})
- )));
+ const board=santaBoard(bookings);
+ const payload:Array<{id:string;team:SantaTeamId|null;position:number|null}> =
+  board.unassigned.map(b=>({id:b.id,team:null,position:null}));
+ for(const lane of board.teams)
+  lane.bookings.forEach((b,index)=>payload.push({id:b.id,team:lane.id,position:index+1}));
+ return payload;
 }
 export function mapsRouteUrl(team:SantaTeam){
  const coords=team.bookings.filter(hasCoords);
