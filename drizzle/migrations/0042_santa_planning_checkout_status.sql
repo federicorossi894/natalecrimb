@@ -49,14 +49,14 @@ END $security$;
 CREATE UNIQUE INDEX IF NOT EXISTS santa_payment_one_provider
  ON public.santa_payment_attempts(booking_id,provider);
 CREATE OR REPLACE FUNCTION public.santa_claim_capture(_attempt uuid)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $claim$
 DECLARE claimed boolean;
 BEGIN
  UPDATE public.santa_payment_attempts SET capture_claimed_at=now()
  WHERE id=_attempt AND provider='paypal' AND status='pending'
   AND capture_claimed_at IS NULL RETURNING true INTO claimed;
  RETURN coalesce(claimed,false);
-END $;
+END $claim$;
 REVOKE ALL ON FUNCTION public.santa_claim_capture(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.santa_claim_capture(uuid) TO service_role;
 
@@ -64,7 +64,7 @@ GRANT EXECUTE ON FUNCTION public.santa_claim_capture(uuid) TO service_role;
 -- service-role and refuses amount, currency or checkout-identity mismatches.
 CREATE OR REPLACE FUNCTION public.santa_settle_online_payment(
  _attempt uuid,_provider_id text,_payment_id text,_amount_cents integer,_currency text
-) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $settle$
 DECLARE a record; b record; existing boolean;
 BEGIN
  IF _currency<>'EUR' THEN RAISE EXCEPTION 'Currency mismatch'; END IF;
@@ -83,7 +83,7 @@ BEGIN
  UPDATE public.santa_bookings SET payment_state='pagato_online',payment_method=a.provider,
   quota_incassata_cents=_amount_cents,paid_at=now(),payment_reference=_payment_id WHERE id=b.id;
  RETURN true;
-END $;
+END $settle$;
 REVOKE ALL ON FUNCTION public.santa_settle_online_payment(uuid,text,text,integer,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.santa_settle_online_payment(uuid,text,text,integer,text) TO service_role;
 
