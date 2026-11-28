@@ -177,5 +177,5 @@ BEGIN
  INSERT INTO public.santa_admin_audit(actor_email,booking_id,action,changed)
  VALUES(_actor,_id,'bank_transfer_recorded',jsonb_build_object('reference',_reference));
 END $$;
-REVOKE ALL ON FUNCTION public.santa_record_bank_transfer(text,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.santa_record_bank_transfer(text,uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.santa_record_bank_transfer(text,uuid,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.santa_record_bank_transfer(text,uuid,text) TO service_role;
