@@ -2,12 +2,12 @@ import { z } from "zod";
 
 /** "Prenota il tuo Babbo Natale" — DEMO only. Values here are proposals to be confirmed by the Comitato. */
 export const SANTA_CONTRIBUTION_EUR = 30;
-export const SANTA_CONTRIBUTION_NOTE = "importo indicativo da confermare";
+export const SANTA_CONTRIBUTION_NOTE = "Offerta libera a partire da 30 € · importo di riferimento da confermare";
 export const SANTA_REFERENCES = [
   { who: "CRI Brugherio", eur: 25 },
   { who: "UILDM Milano", eur: 60 },
 ] as const;
-export const SANTA_SLOTS = ["Prima serata · indicativa", "Seconda serata · indicativa", "Indifferente"] as const;
+export const SANTA_SLOTS = ["19:30", "20:30", "21:30", "22:30", "Indifferente"] as const;
 
 const personName = z
   .string()
