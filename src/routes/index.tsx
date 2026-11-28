@@ -141,7 +141,7 @@ function Home() {
       </section>
 
       }
-      {!ONLINE_GIFT && CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection />}
+      {CAMPAIGN.santaHomeVisitsVisible && <SantaChimneySection />}
     </Shell>
   );
 }
