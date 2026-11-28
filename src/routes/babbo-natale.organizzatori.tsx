@@ -118,6 +118,43 @@ function Organizzatori(){
  };
  const change=<K extends keyof SantaBooking>(key:K,value:SantaBooking[K])=>
   setEdit(old=>old?{...old,[key]:value}:old);
+ const sendAllConfirmations=async()=>{
+  if(!eligibleForConfirmation||busy||saving)return;
+  setBusy(true);setError('');setMessage('');
+  try{
+   const result=await confirmPlan({data:{version:boardVersion}});
+   setConfirmOpen(false);await refresh();
+   setMessage('Planning confermato: '+result.confirmed+' visite. Email accettate: '+
+    result.delivery.accepted+'; non inviate nel collaudo: '+result.delivery.suppressed+
+    '; da controllare: '+(result.delivery.failed+result.delivery.uncertain)+'.');
+  }catch(e){setError(e instanceof Error?e.message:'Impossibile confermare il planning.');}
+  finally{setBusy(false);}
+ };
+ const removeBooking=async(b:SantaBooking)=>{
+  if(planningConfirmed||busy||saving)return;
+  if(!window.confirm('Eliminare la richiesta di '+b.nome+' '+b.cognome+'? Verrà conservata nello storico, ma sparirà dal planning.'))return;
+  setBusy(true);setMessage('');
+  try{await cancelBooking({data:{id:b.id}});await refresh();setMessage('Richiesta eliminata dal planning.');}
+  catch(e){setMessage(e instanceof Error?e.message:'Impossibile eliminare la richiesta.');}
+  finally{setBusy(false);}
+ };
+ const confirmBankTransfer=async(b:SantaBooking)=>{
+  if(mode!=='live'||b.status!=='confermata'||busy)return;
+  if(!window.confirm('Hai verificato che il bonifico della famiglia '+b.cognome+' sia effettivamente accreditato sul conto CRI?'))return;
+  const reference=window.prompt('Riferimento del bonifico effettivamente verificato (TRN o causale):');
+  if(!reference)return;
+  setBusy(true);
+  try{await recordTransfer({data:{id:b.id,reference}});await refresh();setMessage('Bonifico verificato e registrato.');}
+  catch(e){setMessage(e instanceof Error?e.message:'Bonifico non registrato.');}
+  finally{setBusy(false);}
+ };
+ const verifyPayments=async()=>{
+  setBusy(true);
+  try{const result=await syncPayments();await refresh();
+   setMessage('Controllati '+result.checked+' pagamenti in attesa; verificati '+result.paid+' nuovi incassi.');
+  }catch(e){setMessage(e instanceof Error?e.message:'Controllo pagamenti non disponibile.');}
+  finally{setBusy(false);}
+ };
  const saveDetails=async()=>{
   if(!edit)return;
   setBusy(true);setMessage('');
@@ -128,8 +165,7 @@ function Organizzatori(){
     piano:edit.piano??undefined,dettagliAccesso:edit.dettagliAccesso??undefined,
     bambini:edit.bambini,bambiniDettagli:edit.bambiniDettagli??undefined,
     note:edit.note,quotaOffertaCents:edit.quotaOffertaCents,
-    quotaIncassataCents:edit.quotaIncassataCents,
-    confirmedTime:edit.confirmedTime,status:edit.status,lat:edit.lat,lon:edit.lon,
+    lat:edit.lat,lon:edit.lon,
    }}});
    setRecords(prev=>prev.map(b=>b.id===updated.id?updated:b));
    setEdit(null);setMessage('Prenotazione aggiornata.');
