@@ -25,7 +25,7 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
   .select('id,mode,status,nome,cognome,email,indirizzo,localita,quota_offerta_cents,confirmed_time')
   .eq('id',bookingId).maybeSingle();
  if(readError||!b)return finish('failed');
- if(kind==='confirmed'&&(b.status!=='confermata'&&!b.status!=='completata'||!b.confirmed_time))
+ if(kind==='confirmed'&&(b.status!=='confermata'&&b.status!=='completata'||!b.confirmed_time))
   return finish('suppressed');
  if(b.mode!==claim.mode)return finish('failed');
  if(b.mode==='demo'){
