@@ -304,10 +304,39 @@ function Organizzatori(){
       {([['nome','Nome'],['cognome','Cognome'],['email','Email'],['telefono','Telefono'],['indirizzo','Indirizzo'],['localita','Comune']] as const).map(([key,label])=>
        <label key={key} className="text-sm font-semibold">{label}
         <input className={input} value={edit[key]} onChange={e=>change(key,e.target.value)}/></label>)}
-      <label className="sm:col-span-2 text-sm font-semibold">Nomi dei bambini separati da virgola
-       <input className={input} value={edit.bambini.join(', ')}
-        onChange={e=>change('bambini',e.target.value.split(',').map(x=>x.trim()).filter(Boolean))}/></label>
-      <label className="sm:col-span-2 text-sm font-semibold">Note per Babbo Natale
+      <label className="text-sm font-semibold">Piano
+       <input className={input} maxLength={60} value={edit.piano??''}
+        onChange={e=>change('piano',e.target.value)}/></label>
+      <label className="text-sm font-semibold">Citofono, scala, interno, altri dettagli
+       <input className={input} maxLength={240} value={edit.dettagliAccesso??''}
+        onChange={e=>change('dettagliAccesso',e.target.value)}/></label>
+      <div className="sm:col-span-2 space-y-3">
+       <p className="text-sm font-semibold">Bambini ({edit.bambiniDettagli?.length??edit.bambini.length})</p>
+       {edit.bambiniDettagli?.length
+        ?edit.bambiniDettagli.map((child,i)=><div key={i} className="rounded-xl border border-gold/30 p-3">
+         <div className="mb-2 flex items-center justify-between"><strong className="text-sm">Bambino {i+1}</strong>
+          <button type="button" disabled={(edit.bambiniDettagli?.length??0)<=1}
+           onClick={()=>removeEditChild(i)} className="text-xs text-rose-600 disabled:opacity-40">Rimuovi</button></div>
+         <div className="grid gap-3 sm:grid-cols-4">
+          <label className="text-xs font-semibold">Nome<input className={input} value={child.nome} maxLength={60}
+           onChange={e=>updateEditChild(i,'nome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Cognome<input className={input} value={child.cognome} maxLength={60}
+           onChange={e=>updateEditChild(i,'cognome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Soprannome<input className={input} value={child.soprannome} maxLength={40}
+           onChange={e=>updateEditChild(i,'soprannome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Età<input className={input} type="number" min={0} max={17}
+           value={child.eta??''} onChange={e=>updateEditChild(i,'eta',e.target.value===''?null:Number(e.target.value))}/></label>
+         </div>
+        </div>)
+        :<label className="block text-sm font-semibold">Nomi (richiesta precedente)
+         <input className={input} value={edit.bambini.join(', ')}
+          onChange={e=>change('bambini',e.target.value.split(',').map(x=>x.trim()).filter(Boolean))}/>
+         <span className="mt-1 block text-xs font-normal text-muted-foreground">Questa richiesta precede l’aggiunta dei nuovi dati: cognome, soprannome ed età non erano stati richiesti.</span>
+        </label>}
+       {edit.bambiniDettagli&&<button type="button" disabled={edit.bambiniDettagli.length>=8}
+        onClick={addEditChild} className="rounded-full border px-4 py-2 text-sm disabled:opacity-40">+ Aggiungi bambino</button>}
+      </div>
+      <label className="sm:col-span-2 text-sm font-semibold">Tradizioni e informazioni per Babbo Natale
        <textarea rows={3} className={input} value={edit.note} onChange={e=>change('note',e.target.value)}/></label>
       <label className="text-sm font-semibold">Offerta proposta (€)
        <input type="number" min="30" className={input} value={edit.quotaOffertaCents/100}
