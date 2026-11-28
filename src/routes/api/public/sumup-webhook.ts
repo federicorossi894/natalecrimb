@@ -18,7 +18,11 @@ export const Route = createFileRoute("/api/public/sumup-webhook")({
 
         try {
           const { handleSumupWebhook } = await import("@/lib/payments.server");
-          await handleSumupWebhook(request, CAMPAIGN.demo);
+          // The provider ID is reconciled independently against both registries.
+          // An unrelated public-gift payment never becomes a Santa visit payment.
+          await handleSumupWebhook(request.clone(), CAMPAIGN.demo);
+          const {handleSantaSumupWebhook}=await import("@/lib/santa-payment.functions");
+          await handleSantaSumupWebhook(request);
           return new Response(null, { status: 204 });
         } catch {
           return new Response("Notification not processed; retry required", { status: 503 });
