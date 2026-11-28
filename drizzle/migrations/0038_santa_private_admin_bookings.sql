@@ -4,14 +4,14 @@
 -- Password comune: SOLO verifier PBKDF2+salt, mai password in chiaro.
 CREATE TABLE IF NOT EXISTS public.santa_admin_settings(
  singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),
- password_verifier text NOT NULL,
+ password_verifier text, -- supplied separately in private server DB, never committed to GitHub
  requests_open boolean NOT NULL DEFAULT false,
  min_offerta_cents integer NOT NULL DEFAULT 3000 CHECK(min_offerta_cents BETWEEN 0 AND 100000),
  event_day date NOT NULL DEFAULT '2026-12-24',
  updated_at timestamptz NOT NULL DEFAULT now()
 );
-INSERT INTO public.santa_admin_settings(singleton,password_verifier,requests_open,min_offerta_cents)
-VALUES(true,'pbkdf2_sha256$100000$4Xfvu4mfVtPDy1DbqYYRtYP1$lMGpi2pmehvyFZ_riVKHEJgLqNVhgm8VfOcOzlpjATo',false,3000)
+INSERT INTO public.santa_admin_settings(singleton,requests_open,min_offerta_cents)
+VALUES(true,false,3000)
 ON CONFLICT(singleton) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.santa_admin_allowlist(
