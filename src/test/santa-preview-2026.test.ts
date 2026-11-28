@@ -82,7 +82,7 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(text).toContain('soprannome');
   expect(text).toContain('Annie');
   expect(text).toContain('Scala A, citofono Esempio');
-  expect(text).toContain('Note per Babbo Natale');
+  expect(text).toContain('Tradizioni e informazioni');
   expect(text).toContain('20:45');
  });
  it('auto-email templates distinguish received from confirmed, and promote Christmas links',()=>{
