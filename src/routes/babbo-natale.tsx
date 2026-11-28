@@ -5,6 +5,7 @@ import {Gift,HeartHandshake,MapPin,Clock3,ShieldCheck,Snowflake,ArrowRight,Check
 import {Shell} from '@/components/xmas/Shell';
 import {AutoSantaScene} from '@/components/xmas/SantaChimney';
 import {santaPublicSettings,santaCreateRequest} from '@/lib/santa-public.functions';
+import type {SantaChild} from '@/lib/santa-planner';
 
 export const Route=createFileRoute('/babbo-natale')({
  staticData:{sitemap:false},
@@ -24,12 +25,14 @@ function BabboRouteView(){
 }
 type FormFields={
  nome:string;cognome:string;email:string;telefono:string;
- indirizzo:string;localita:string;numeroBambini:string;
- nomiBambini:string;note:string;offerta:string;privacy:boolean;
+ indirizzo:string;localita:string;piano:string;dettagliAccesso:string;
+ note:string;offerta:string;privacy:boolean;
 };
+type ChildDraft={nome:string;cognome:string;soprannome:string;eta:string};
+const blankChild=():ChildDraft=>({nome:'',cognome:'',soprannome:'',eta:''});
 const empty:FormFields={
  nome:'',cognome:'',email:'',telefono:'',indirizzo:'',localita:'Monza',
- numeroBambini:'1',nomiBambini:'',note:'',offerta:'30',privacy:false,
+ piano:'',dettagliAccesso:'',note:'',offerta:'30',privacy:false,
 };
 const steps=[
  {icon:Gift,title:'Il segreto comincia da te',body:'Scegli i regali, incartali con cura e, poco prima della visita, lasciali appena fuori dalla porta. Babbo Natale li recupererà senza farsi notare.'},
@@ -49,6 +52,7 @@ function Babbo(){
  const submitRequest=useServerFn(santaCreateRequest);
  const [config,setConfig]=useState<{mode:'demo'|'live';requestsOpen:boolean;minContributionEuros:number}|null>(null);
  const [form,setForm]=useState<FormFields>(empty);
+ const [kids,setKids]=useState<ChildDraft[]>([blankChild()]);
  const [requestId,setRequestId]=useState(()=>crypto.randomUUID());
  const [stage,setStage]=useState<'form'|'review'|'done'>('form');
  const [error,setError]=useState('');
@@ -64,7 +68,22 @@ function Babbo(){
  const change=<K extends keyof FormFields>(key:K,val:FormFields[K])=>{
   setForm(p=>({...p,[key]:val}));setError('');
  };
- const children=form.nomiBambini.split(',').map(v=>v.trim()).filter(Boolean);
+ const children=kids.map(k=>{
+  const suffix=k.soprannome.trim()?' (“'+k.soprannome.trim()+'”)':'';
+  return [k.nome.trim(),k.cognome.trim()].filter(Boolean).join(' ')+suffix+
+    (k.eta.trim()?' · '+k.eta.trim()+(k.eta.trim()==='1'?' anno':' anni'):'');
+ });
+ const updateChild=(i:number,key:keyof ChildDraft,value:string)=>{
+  setKids(current=>current.map((k,j)=>j===i?{...k,[key]:value}:k));setError('');
+ };
+ const setChildrenCount=(n:number)=>{
+  setKids(current=>n>current.length&&n<=8?[...current,blankChild()]:
+   n<current.length&&n>=1?current.slice(0,-1):current);
+  setError('');
+ };
+ const details=():SantaChild[]=>
+  kids.map(k=>({nome:k.nome.trim(),cognome:k.cognome.trim(),
+   soprannome:k.soprannome.trim(),eta:Number(k.eta)}));
  const minimum=config?.minContributionEuros??30;
  const amount=Number(form.offerta.replace(',','.'));
  const suggestedAmounts=[minimum,minimum+10,minimum+20,minimum+45,minimum+70].filter(n=>n<=1000);
@@ -73,12 +92,13 @@ function Babbo(){
  const goTop=()=>document.getElementById('richiesta')?.scrollIntoView({behavior:'smooth',block:'start'});
  const validate=()=>{
   if(!form.nome.trim()||!form.cognome.trim()||!form.email.includes('@')||
-   !form.telefono.trim()||form.indirizzo.trim().length<6||!form.localita.trim()){
-   setError('Completa nome, cognome, email, telefono e indirizzo.');return false;
+   !form.telefono.trim()||form.indirizzo.trim().length<6||!form.localita.trim()||!form.piano.trim()){
+   setError('Completa i dati del genitore e l’indirizzo, compreso il piano.');return false;
   }
-  if(!Number.isInteger(Number(form.numeroBambini))||Number(form.numeroBambini)<1||
-     Number(form.numeroBambini)>8||children.length!==Number(form.numeroBambini)){
-   setError('Indica il nome di ciascun bambino, separando i nomi con una virgola.');return false;
+  if(kids.length<1||kids.length>8||kids.some(k=>
+   !k.nome.trim()||!k.cognome.trim()||k.eta.trim()===''||
+   !Number.isInteger(Number(k.eta))||Number(k.eta)<0||Number(k.eta)>17)){
+   setError('Per ogni bambino indica nome, cognome ed età (da 0 a 17 anni). Il soprannome è facoltativo.');return false;
   }
   if(!Number.isFinite(amount)||!Number.isInteger(amount)||amount<minimum||amount>1000){
    setError('Inserisci un’offerta in euro di almeno '+minimum+' €.');return false;
@@ -94,7 +114,8 @@ function Babbo(){
    const result=await submitRequest({data:{
     requestId,nome:form.nome,cognome:form.cognome,email:form.email,
     telefono:form.telefono,indirizzo:form.indirizzo,localita:form.localita,
-    bambini:children,note:form.note,offertaCents:Math.round(amount*100),
+    piano:form.piano,dettagliAccesso:form.dettagliAccesso,
+    bambiniDettagli:details(),note:form.note,offertaCents:Math.round(amount*100),
     privacyAcknowledged:true as const,website:'',
    }});
    setDoneId(result.id);setStage('done');goTop();
@@ -102,7 +123,7 @@ function Babbo(){
    setError(err instanceof Error?err.message:'Richiesta non registrata: riprova.');
   }finally{setBusy(false);}
  };
- const again=()=>{setForm({...empty,offerta:String(minimum)});setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
+ const again=()=>{setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
  const row=(key:keyof FormFields,label:string,opts:React.InputHTMLAttributes<HTMLInputElement>={})=>
   <label className="block text-sm font-semibold">{label}
    <input className={input} value={String(form[key])} onChange={e=>change(key,e.target.value)}
