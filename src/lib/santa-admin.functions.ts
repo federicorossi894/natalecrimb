@@ -253,3 +253,9 @@ export const santaAdminRecordTransfer=createServerFn({method:'POST'})
   if(result.error)throw new Error('Bonifico non registrato: controlla che sia stato effettivamente accreditato.');
   return {ok:true as const};
  });
+
+export const santaAdminSyncPayments=createServerFn({method:'POST'}).handler(async()=>{
+ csrf();await currentAdmin();
+ const {syncSantaPendingPayments}=await import('./santa-payment.functions');
+ return syncSantaPendingPayments();
+});
