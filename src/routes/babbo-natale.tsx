@@ -164,10 +164,25 @@ function Babbo(){
      <p className="mt-3 text-base font-semibold text-gold">Offerta libera a partire da {minimum} €.</p>
      <p className="mt-2 text-sm leading-relaxed text-foreground/85">Con la tua offerta sostieni le attività della Croce Rossa di Monza. Scegli tu quanto donare: ogni gesto in più conta.</p>
     </div>
-    <div className="space-y-4 text-sm leading-relaxed text-foreground/85">
-     <p className="flex gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>La sera del 24 dicembre, indicativamente dalle <strong>19:00</strong> a mezzanotte. L’orario esatto arriverà nella mail di conferma.</p>
-     <p className="flex gap-3"><MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>I nostri volontari organizzano le visite nelle diverse zone per portare la magia proprio a casa tua.</p>
-     <p className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>Ora basta la tua richiesta: gli aiutanti ti scriveranno per confermarti la visita, senza alcun pagamento anticipato.</p>
+    <div className="space-y-5 text-sm leading-relaxed text-foreground/90">
+     <div className="rounded-2xl border border-gold/35 bg-black/10 px-4 py-5 sm:px-5">
+      <div className="flex items-start gap-3">
+       <Clock3 aria-hidden="true" className="mt-0.5 h-6 w-6 shrink-0 text-gold"/>
+       <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-gold">La Vigilia · 24 dicembre</p>
+        <p className="mt-2 font-display text-xl leading-snug text-foreground sm:text-2xl">Dalle 19:00 a mezzanotte</p>
+        <p className="mt-2 text-sm leading-relaxed text-foreground/80">Le visite si svolgeranno indicativamente in questa fascia. Riceverai l’orario preciso nella mail di conferma.</p>
+       </div>
+      </div>
+     </div>
+     <div className="flex items-start gap-3">
+      <MapPin aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>
+      <p className="min-w-0 flex-1">I nostri volontari organizzeranno le visite per portare la magia direttamente a casa tua.</p>
+     </div>
+     <div className="flex items-start gap-3">
+      <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>
+      <p className="min-w-0 flex-1">Per ora basta inviare la richiesta: nessun pagamento anticipato. Ti scriveremo per confermare la visita.</p>
+     </div>
     </div>
    </div>
   </section>
