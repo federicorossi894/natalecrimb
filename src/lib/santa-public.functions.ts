@@ -94,9 +94,11 @@ export const santaCreateRequest=createServerFn({method:'POST'})
   }
   const {deliverSantaEmail}=await import('./santa-mail.server');
   const {locateSantaBooking}=await import('./santa-geocode.server');
-  await Promise.allSettled([
+  const [delivery] = await Promise.allSettled([
    deliverSantaEmail(booking.id,'request'),
    locateSantaBooking(booking.id),
   ]);
-  return {id:booking.id as string,mode:booking.mode as SantaMode};
+  // "accepted" means Gmail accepted the message, not final mailbox delivery.
+  const mailState=delivery.status==='fulfilled'?delivery.value:'uncertain';
+  return {id:booking.id as string,mode:booking.mode as SantaMode,mailState};
  });
