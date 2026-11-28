@@ -40,6 +40,10 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
  const key=process.env['GOOGLE_MAIL_API_KEY_1'];
  const auth=process.env['LOVABLE_API_KEY'];
  if(!key||!auth)return finish('failed');
+ // The connected Gmail identity must really be the CRI account, not just a
+ // display name in the MIME header.
+ const {gmailQaIdentity}=await import('./demo-email-qa.server');
+ if(!(await gmailQaIdentity()))return finish('failed');
  const id=String(claim.id);
  const raw=b64url([
   'From: Croce Rossa Monza Natale <'+SANTA_SENDER+'>',
