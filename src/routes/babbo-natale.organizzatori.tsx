@@ -8,6 +8,8 @@ import {SantaRouteMap} from '@/components/xmas/SantaRouteMap';
 import {SANTA_TEAM_IDS,SANTA_TEAM_COLORS,santaBoard,moveSantaBooking,
  santaBoardPayload,mapsRouteUrl,type SantaBooking,type SantaStatus,type SantaTeamId} from '@/lib/santa-planner';
 import {santaXlsx} from '@/lib/santa-xlsx';
+import {santaAddress,santaChildrenLines} from '@/lib/santa-family';
+import type {SantaChild} from '@/lib/santa-planner';
 import {santaAdminLogin,santaAdminMe,santaAdminLogout,santaAdminList,
  santaAdminBoardSave,santaAdminUpdate,santaAdminLocate} from '@/lib/santa-admin.functions';
 
@@ -112,7 +114,9 @@ function Organizzatori(){
   try{
    const updated=await update({data:{id:edit.id,patch:{
     nome:edit.nome,cognome:edit.cognome,email:edit.email,telefono:edit.telefono,
-    indirizzo:edit.indirizzo,localita:edit.localita,bambini:edit.bambini,
+    indirizzo:edit.indirizzo,localita:edit.localita,
+    piano:edit.piano??undefined,dettagliAccesso:edit.dettagliAccesso??undefined,
+    bambini:edit.bambini,bambiniDettagli:edit.bambiniDettagli??undefined,
     note:edit.note,quotaOffertaCents:edit.quotaOffertaCents,
     quotaIncassataCents:edit.quotaIncassataCents,
     confirmedTime:edit.confirmedTime,status:edit.status,lat:edit.lat,lon:edit.lon,
@@ -121,6 +125,22 @@ function Organizzatori(){
    setEdit(null);setMessage('Prenotazione aggiornata.');
   }catch(e){setMessage(e instanceof Error?e.message:'Impossibile salvare.');}
   finally{setBusy(false);}
+ };
+ const updateEditChild=(index:number,key:keyof SantaChild,value:string|number|null)=>{
+  setEdit(prev=>{
+   if(!prev?.bambiniDettagli)return prev;
+   return {...prev,bambiniDettagli:prev.bambiniDettagli.map((c,i)=>
+    i===index?{...c,[key]:value}:c)};
+  });
+ };
+ const addEditChild=()=>{
+  if(!edit?.bambiniDettagli||edit.bambiniDettagli.length>=8)return;
+  change('bambiniDettagli',[...edit.bambiniDettagli,
+   {nome:'',cognome:'',soprannome:'',eta:null}]);
+ };
+ const removeEditChild=(index:number)=>{
+  if(!edit?.bambiniDettagli||edit.bambiniDettagli.length<=1)return;
+  change('bambiniDettagli',edit.bambiniDettagli.filter((_,i)=>i!==index));
  };
  const locateBooking=async(b:SantaBooking)=>{
   setMessage('Cerco la posizione dell’indirizzo…');setBusy(true);
@@ -140,8 +160,8 @@ function Organizzatori(){
    data-testid="santa-booking-card">
    <div className="flex items-start justify-between gap-2">
     <div><p className="font-semibold">{b.nome} {b.cognome}</p>
-     <p className="mt-1 text-xs text-muted-foreground">{b.indirizzo}, {b.localita}</p>
-     <p className="mt-1 text-xs text-muted-foreground">Bambini: {b.bambini.join(', ')}</p></div>
+     <p className="mt-1 text-xs text-muted-foreground">{santaAddress(b)}</p>
+     <p className="mt-1 text-xs text-muted-foreground">{santaChildrenLines(b).length} {santaChildrenLines(b).length===1?'bambino':'bambini'}: {santaChildrenLines(b).join(', ')}</p></div>
     <button type="button" onClick={()=>setEdit({...b,bambini:[...b.bambini]})}
      className="shrink-0 rounded-full border p-2" title="Modifica prenotazione" aria-label={'Modifica '+b.cognome}>
      <Pencil className="h-4 w-4"/></button>
@@ -258,10 +278,10 @@ function Organizzatori(){
       <div className="flex flex-wrap items-start justify-between gap-3">
        <div>
         <p className="font-display text-xl">{b.nome} {b.cognome} <span className="text-sm text-muted-foreground">· {b.status}</span></p>
-        <p className="mt-1 text-sm">{b.indirizzo}, {b.localita} · {b.telefono}</p>
-        <p className="mt-1 text-sm">Email: {b.email} · Bambini: {b.bambini.join(', ')}</p>
+        <p className="mt-1 text-sm">{santaAddress(b)} · {b.telefono}</p>
+        <p className="mt-1 text-sm">Email: {b.email} · {santaChildrenLines(b).length} {santaChildrenLines(b).length===1?'bambino':'bambini'}: {santaChildrenLines(b).join('; ')}</p>
         <p className="mt-1 text-sm">Offerta indicata {money(b.quotaOffertaCents)} · Incassato {money(b.quotaIncassataCents)}</p>
-        {b.note&&<p className="mt-1 text-sm text-muted-foreground">Per Babbo Natale: {b.note}</p>}
+        {b.note&&<p className="mt-1 text-sm text-muted-foreground">Tradizioni e informazioni per Babbo Natale: {b.note}</p>}
         <p className="mt-1 text-sm text-muted-foreground">{b.squadra??'Da assegnare'}{b.teamPosition?' · tappa '+b.teamPosition:''}{b.confirmedTime?' · '+b.confirmedTime:''}</p>
        </div>
        <div className="flex flex-wrap gap-2">
@@ -284,10 +304,39 @@ function Organizzatori(){
       {([['nome','Nome'],['cognome','Cognome'],['email','Email'],['telefono','Telefono'],['indirizzo','Indirizzo'],['localita','Comune']] as const).map(([key,label])=>
        <label key={key} className="text-sm font-semibold">{label}
         <input className={input} value={edit[key]} onChange={e=>change(key,e.target.value)}/></label>)}
-      <label className="sm:col-span-2 text-sm font-semibold">Nomi dei bambini separati da virgola
-       <input className={input} value={edit.bambini.join(', ')}
-        onChange={e=>change('bambini',e.target.value.split(',').map(x=>x.trim()).filter(Boolean))}/></label>
-      <label className="sm:col-span-2 text-sm font-semibold">Note per Babbo Natale
+      <label className="text-sm font-semibold">Piano
+       <input className={input} maxLength={60} value={edit.piano??''}
+        onChange={e=>change('piano',e.target.value)}/></label>
+      <label className="text-sm font-semibold">Citofono, scala, interno, altri dettagli
+       <input className={input} maxLength={240} value={edit.dettagliAccesso??''}
+        onChange={e=>change('dettagliAccesso',e.target.value)}/></label>
+      <div className="sm:col-span-2 space-y-3">
+       <p className="text-sm font-semibold">Bambini ({edit.bambiniDettagli?.length??edit.bambini.length})</p>
+       {edit.bambiniDettagli?.length
+        ?edit.bambiniDettagli.map((child,i)=><div key={i} className="rounded-xl border border-gold/30 p-3">
+         <div className="mb-2 flex items-center justify-between"><strong className="text-sm">Bambino {i+1}</strong>
+          <button type="button" disabled={(edit.bambiniDettagli?.length??0)<=1}
+           onClick={()=>removeEditChild(i)} className="text-xs text-rose-600 disabled:opacity-40">Rimuovi</button></div>
+         <div className="grid gap-3 sm:grid-cols-4">
+          <label className="text-xs font-semibold">Nome<input className={input} value={child.nome} maxLength={60}
+           onChange={e=>updateEditChild(i,'nome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Cognome<input className={input} value={child.cognome} maxLength={60}
+           onChange={e=>updateEditChild(i,'cognome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Soprannome<input className={input} value={child.soprannome} maxLength={40}
+           onChange={e=>updateEditChild(i,'soprannome',e.target.value)}/></label>
+          <label className="text-xs font-semibold">Età<input className={input} type="number" min={0} max={120}
+           value={child.eta??''} onChange={e=>updateEditChild(i,'eta',e.target.value===''?null:Number(e.target.value))}/></label>
+         </div>
+        </div>)
+        :<label className="block text-sm font-semibold">Nomi (richiesta precedente)
+         <input className={input} value={edit.bambini.join(', ')}
+          onChange={e=>change('bambini',e.target.value.split(',').map(x=>x.trim()).filter(Boolean))}/>
+         <span className="mt-1 block text-xs font-normal text-muted-foreground">Questa richiesta precede l’aggiunta dei nuovi dati: cognome, soprannome ed età non erano stati richiesti.</span>
+        </label>}
+       {edit.bambiniDettagli&&<button type="button" disabled={edit.bambiniDettagli.length>=8}
+        onClick={addEditChild} className="rounded-full border px-4 py-2 text-sm disabled:opacity-40">+ Aggiungi bambino</button>}
+      </div>
+      <label className="sm:col-span-2 text-sm font-semibold">Tradizioni e informazioni per Babbo Natale
        <textarea rows={3} className={input} value={edit.note} onChange={e=>change('note',e.target.value)}/></label>
       <label className="text-sm font-semibold">Offerta proposta (€)
        <input type="number" min="30" className={input} value={edit.quotaOffertaCents/100}

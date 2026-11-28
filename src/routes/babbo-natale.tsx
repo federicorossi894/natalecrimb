@@ -1,10 +1,11 @@
 import {createFileRoute,Link,Outlet,useRouterState} from '@tanstack/react-router';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useState,type FormEvent} from 'react';
-import {Gift,HeartHandshake,MapPin,Clock3,ShieldCheck,Snowflake,ArrowRight,CheckCircle2,Heart,Minus,Plus,Pencil} from 'lucide-react';
+import {Gift,HeartHandshake,MapPin,Clock3,ShieldCheck,Snowflake,ArrowRight,CheckCircle2,Heart,Minus,Plus} from 'lucide-react';
 import {Shell} from '@/components/xmas/Shell';
 import {AutoSantaScene} from '@/components/xmas/SantaChimney';
 import {santaPublicSettings,santaCreateRequest} from '@/lib/santa-public.functions';
+import type {SantaChild} from '@/lib/santa-planner';
 
 export const Route=createFileRoute('/babbo-natale')({
  staticData:{sitemap:false},
@@ -24,12 +25,14 @@ function BabboRouteView(){
 }
 type FormFields={
  nome:string;cognome:string;email:string;telefono:string;
- indirizzo:string;localita:string;numeroBambini:string;
- nomiBambini:string;note:string;offerta:string;privacy:boolean;
+ indirizzo:string;localita:string;piano:string;dettagliAccesso:string;
+ note:string;offerta:string;privacy:boolean;
 };
+type ChildDraft={nome:string;cognome:string;soprannome:string;eta:string};
+const blankChild=():ChildDraft=>({nome:'',cognome:'',soprannome:'',eta:''});
 const empty:FormFields={
  nome:'',cognome:'',email:'',telefono:'',indirizzo:'',localita:'Monza',
- numeroBambini:'1',nomiBambini:'',note:'',offerta:'30',privacy:false,
+ piano:'',dettagliAccesso:'',note:'',offerta:'30',privacy:false,
 };
 const steps=[
  {icon:Gift,title:'Il segreto comincia da te',body:'Scegli i regali, incartali con cura e, poco prima della visita, lasciali appena fuori dalla porta. Babbo Natale li recupererà senza farsi notare.'},
@@ -49,6 +52,7 @@ function Babbo(){
  const submitRequest=useServerFn(santaCreateRequest);
  const [config,setConfig]=useState<{mode:'demo'|'live';requestsOpen:boolean;minContributionEuros:number}|null>(null);
  const [form,setForm]=useState<FormFields>(empty);
+ const [kids,setKids]=useState<ChildDraft[]>([blankChild()]);
  const [requestId,setRequestId]=useState(()=>crypto.randomUUID());
  const [stage,setStage]=useState<'form'|'review'|'done'>('form');
  const [error,setError]=useState('');
@@ -64,21 +68,36 @@ function Babbo(){
  const change=<K extends keyof FormFields>(key:K,val:FormFields[K])=>{
   setForm(p=>({...p,[key]:val}));setError('');
  };
- const children=form.nomiBambini.split(',').map(v=>v.trim()).filter(Boolean);
+ const children=kids.map(k=>{
+  const suffix=k.soprannome.trim()?' (“'+k.soprannome.trim()+'”)':'';
+  return [k.nome.trim(),k.cognome.trim()].filter(Boolean).join(' ')+suffix+
+    (k.eta.trim()?' · '+k.eta.trim()+(k.eta.trim()==='1'?' anno':' anni'):'');
+ });
+ const updateChild=(i:number,key:keyof ChildDraft,value:string)=>{
+  setKids(current=>current.map((k,j)=>j===i?{...k,[key]:value}:k));setError('');
+ };
+ const setChildrenCount=(n:number)=>{
+  setKids(current=>n>current.length&&n<=8?[...current,blankChild()]:
+   n<current.length&&n>=1?current.slice(0,-1):current);
+  setError('');
+ };
+ const details=():SantaChild[]=>
+  kids.map(k=>({nome:k.nome.trim(),cognome:k.cognome.trim(),
+   soprannome:k.soprannome.trim(),eta:Number(k.eta)}));
  const minimum=config?.minContributionEuros??30;
  const amount=Number(form.offerta.replace(',','.'));
  const suggestedAmounts=[minimum,minimum+10,minimum+20,minimum+45,minimum+70].filter(n=>n<=1000);
  const selectAmount=(n:number)=>{change('offerta',String(n));setOtherAmount(false);};
- const nudgeAmount=(delta:number)=>{const base=Number.isFinite(amount)?amount:minimum;change('offerta',String(Math.min(1000,Math.max(minimum,base+delta))));};
  const goTop=()=>document.getElementById('richiesta')?.scrollIntoView({behavior:'smooth',block:'start'});
  const validate=()=>{
   if(!form.nome.trim()||!form.cognome.trim()||!form.email.includes('@')||
-   !form.telefono.trim()||form.indirizzo.trim().length<6||!form.localita.trim()){
-   setError('Completa nome, cognome, email, telefono e indirizzo.');return false;
+   !form.telefono.trim()||form.indirizzo.trim().length<6||!form.localita.trim()||!form.piano.trim()){
+   setError('Completa i dati del genitore e l’indirizzo, compreso il piano.');return false;
   }
-  if(!Number.isInteger(Number(form.numeroBambini))||Number(form.numeroBambini)<1||
-     Number(form.numeroBambini)>8||children.length!==Number(form.numeroBambini)){
-   setError('Indica il nome di ciascun bambino, separando i nomi con una virgola.');return false;
+  if(kids.length<1||kids.length>8||kids.some(k=>
+   !k.nome.trim()||!k.cognome.trim()||k.eta.trim()===''||
+   !Number.isInteger(Number(k.eta))||Number(k.eta)<0||Number(k.eta)>120)){
+   setError('Per ogni bambino indica nome, cognome ed età in anni. Il soprannome è facoltativo.');return false;
   }
   if(!Number.isFinite(amount)||!Number.isInteger(amount)||amount<minimum||amount>1000){
    setError('Inserisci un’offerta in euro di almeno '+minimum+' €.');return false;
@@ -94,7 +113,8 @@ function Babbo(){
    const result=await submitRequest({data:{
     requestId,nome:form.nome,cognome:form.cognome,email:form.email,
     telefono:form.telefono,indirizzo:form.indirizzo,localita:form.localita,
-    bambini:children,note:form.note,offertaCents:Math.round(amount*100),
+    piano:form.piano,dettagliAccesso:form.dettagliAccesso,
+    bambiniDettagli:details(),note:form.note,offertaCents:Math.round(amount*100),
     privacyAcknowledged:true as const,website:'',
    }});
    setDoneId(result.id);setStage('done');goTop();
@@ -102,7 +122,7 @@ function Babbo(){
    setError(err instanceof Error?err.message:'Richiesta non registrata: riprova.');
   }finally{setBusy(false);}
  };
- const again=()=>{setForm({...empty,offerta:String(minimum)});setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
+ const again=()=>{setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
  const row=(key:keyof FormFields,label:string,opts:React.InputHTMLAttributes<HTMLInputElement>={})=>
   <label className="block text-sm font-semibold">{label}
    <input className={input} value={String(form[key])} onChange={e=>change(key,e.target.value)}
@@ -158,19 +178,51 @@ function Babbo(){
    </div>
    {stage==='form'&&<form noValidate onSubmit={review} className="glass-strong mt-7 space-y-5 rounded-[2rem] p-5 shadow-deep sm:p-8">
     <div className="grid gap-4 sm:grid-cols-2">
-     {row('nome','Nome *',{placeholder:'Giulia'})}
-     {row('cognome','Cognome *',{placeholder:'Rossi'})}
+     {row('nome','Nome del genitore *',{placeholder:'Giulia'})}
+     {row('cognome','Cognome del genitore *',{placeholder:'Rossi'})}
      {row('email','Email *',{type:'email',inputMode:'email',placeholder:'nome@esempio.it'})}
      {row('telefono','Telefono *',{type:'tel',inputMode:'tel',placeholder:'333 1234567'})}
     </div>
-    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-     {row('indirizzo','Via e numero civico *',{placeholder:'Via… n. …'})}
-     {row('localita','Comune *',{placeholder:'Monza'})}
-    </div>
-    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-     {row('numeroBambini','Quanti bambini? *',{type:'number',min:1,max:8})}
-     {row('nomiBambini','Nomi dei bambini *',{placeholder:'Anna, Luca'})}
-    </div>
+    <fieldset className="space-y-4 rounded-3xl border border-border/70 bg-background/35 p-4 sm:p-5">
+     <legend className="px-2 font-display text-2xl">Dove arriverà Babbo Natale</legend>
+     <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      {row('indirizzo','Via e numero civico *',{placeholder:'Via… n. …'})}
+      {row('localita','Comune *',{placeholder:'Monza'})}
+     </div>
+     <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+      {row('piano','Piano *',{placeholder:'Terra, 1°, 2°…',maxLength:60})}
+      {row('dettagliAccesso','Citofono, scala, interno, indicazioni utili',{placeholder:'Citofono Rossi, scala B, interno 4…',maxLength:240,required:false})}
+     </div>
+     <p className="text-xs leading-relaxed text-muted-foreground">Aiutaci a trovare facilmente la porta giusta, così la sorpresa arriverà al momento perfetto.</p>
+    </fieldset>
+    <fieldset className="space-y-4 rounded-3xl border border-gold/40 bg-gold/5 p-4 sm:p-5">
+     <legend className="px-2 font-display text-2xl">Chi aspetta Babbo Natale?</legend>
+     <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><p className="text-sm font-semibold">Quanti bambini parteciperanno?</p>
+       <p className="mt-1 text-xs text-muted-foreground">Prepareremo una sorpresa per ognuno di loro.</p></div>
+      <div className="flex items-center gap-3 rounded-full border border-gold/40 bg-background px-3 py-2">
+       <button type="button" onClick={()=>setChildrenCount(kids.length-1)} disabled={kids.length<=1}
+        aria-label="Un bambino in meno" className="rounded-full p-1.5 disabled:opacity-30"><Minus className="h-5 w-5"/></button>
+       <strong aria-live="polite" className="min-w-5 text-center text-lg tabular-nums">{kids.length}</strong>
+       <button type="button" onClick={()=>setChildrenCount(kids.length+1)} disabled={kids.length>=8}
+        aria-label="Un bambino in più" className="rounded-full p-1.5 disabled:opacity-30"><Plus className="h-5 w-5"/></button>
+      </div>
+     </div>
+     <div className="space-y-4">{kids.map((child,i)=>
+      <div key={i} className="rounded-2xl border border-gold/25 bg-background/80 p-4">
+       <p className="mb-3 text-sm font-semibold text-gold">{i===0?'Primo bambino':`Bambino ${i+1}`}</p>
+       <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm font-semibold">Nome *<input className={input} value={child.nome} maxLength={60}
+         onChange={e=>updateChild(i,'nome',e.target.value)} placeholder="Anna" required/></label>
+        <label className="text-sm font-semibold">Cognome *<input className={input} value={child.cognome} maxLength={60}
+         onChange={e=>updateChild(i,'cognome',e.target.value)} placeholder="Rossi" required/></label>
+        <label className="text-sm font-semibold">Soprannome (facoltativo)<input className={input} value={child.soprannome} maxLength={40}
+         onChange={e=>updateChild(i,'soprannome',e.target.value)} placeholder="Come lo chiamano in famiglia?"/></label>
+        <label className="text-sm font-semibold">Età *<input className={input} type="number" inputMode="numeric" min={0} max={120} step={1}
+         value={child.eta} onChange={e=>updateChild(i,'eta',e.target.value)} placeholder="6" required/></label>
+       </div>
+      </div>)}</div>
+    </fieldset>
     <fieldset className="rounded-[1.75rem] border border-gold/50 bg-gradient-to-br from-gold/15 via-secondary/60 to-background p-5 sm:p-6">
      <legend className="px-2 text-sm font-semibold text-gold">Il tuo gesto solidale</legend>
      <div className="flex flex-wrap items-center justify-between gap-3">
@@ -178,7 +230,7 @@ function Babbo(){
       <strong aria-live="polite" aria-atomic="true" className="font-display text-4xl tabular-nums text-gold">{Number.isFinite(amount)?euro(amount):'—'}</strong>
      </div>
      <p className="mt-3 text-sm leading-relaxed text-foreground/80">Si parte da {euro(minimum)}. Se desideri, puoi aggiungere un po' di solidarietà con un semplice tocco.</p>
-     <div role="group" aria-label="Scegli l'importo dell'offerta" className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+     <div role="group" aria-label="Scegli l'importo dell'offerta" className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {suggestedAmounts.map(n=><button key={n} type="button" onClick={()=>selectAmount(n)}
        aria-pressed={amount===n&&!otherAmount}
        className={amount===n&&!otherAmount?
@@ -186,17 +238,13 @@ function Babbo(){
         "rounded-2xl border border-gold/40 bg-background/75 px-2 py-3 text-base font-bold tabular-nums text-foreground transition hover:border-gold hover:bg-gold/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"}>
        {euro(n)}
       </button>)}
-     </div>
-     <div className="mt-4 flex flex-wrap items-center gap-2">
-      <button type="button" onClick={()=>nudgeAmount(-10)} disabled={amount<=minimum}
-       aria-label="Diminuisci l'offerta di dieci euro"
-       className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Minus className="h-4 w-4"/> 10 €</button>
-      <button type="button" onClick={()=>nudgeAmount(10)} disabled={amount>=1000}
-       aria-label="Aumenta l'offerta di dieci euro"
-       className="inline-flex items-center gap-1 rounded-full border border-gold bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Plus className="h-4 w-4"/> 10 €</button>
-      <button type="button" onClick={()=>setOtherAmount(v=>!v)}
-       aria-expanded={otherAmount}
-       className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold"><Pencil className="h-4 w-4"/> Altro importo</button>
+      <button type="button" onClick={()=>setOtherAmount(true)}
+       aria-pressed={otherAmount} aria-expanded={otherAmount}
+       className={otherAmount?
+        "rounded-2xl border border-gold bg-gold px-2 py-3 text-base font-bold text-accent-foreground shadow-md":
+        "rounded-2xl border border-gold/40 bg-background/75 px-2 py-3 text-base font-bold text-foreground hover:border-gold hover:bg-gold/15"}>
+       Altro importo
+      </button>
      </div>
      {otherAmount&&<label className="mt-4 block text-sm font-semibold" htmlFor="santa-offerta-libera">
       Inserisci l'importo che preferisci (€)
@@ -207,10 +255,10 @@ function Babbo(){
      </label>}
      <p id="santa-offerta-minima" className="mt-4 text-xs leading-relaxed text-muted-foreground">L'offerta è libera, da {euro(minimum)}. Non viene addebitato nulla quando invii la richiesta.</p>
     </fieldset>
-    <label className="block text-sm font-semibold">Un piccolo segreto per Babbo Natale (facoltativo)
+    <label className="block text-sm font-semibold">Tradizioni di famiglia e informazioni per Babbo Natale (facoltativo)
      <textarea className={input} rows={3} maxLength={500} value={form.note}
       onChange={e=>change('note',e.target.value)}
-      placeholder="Una passione, un ricordo divertente, il suo personaggio preferito… qualcosa che lo farà sorridere!"/>
+      placeholder="Una tradizione di Natale, una passione, un episodio divertente o qualcosa di speciale che Babbo Natale dovrebbe sapere…"/>
     </label>
     <label className="flex items-start gap-3 text-sm">
      <input type="checkbox" checked={form.privacy} onChange={e=>change('privacy',e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]"/>
@@ -226,8 +274,8 @@ function Babbo(){
     <h3 className="mt-3 font-display text-3xl">Famiglia {form.cognome}</h3>
     <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
      {([['Referente',form.nome+' '+form.cognome],['Email',form.email],['Telefono',form.telefono],
-      ['Domicilio',form.indirizzo+', '+form.localita],['Bambini',children.join(', ')],
-      ['Quando','Vigilia, dalle 19:00 a mezzanotte'],['Offerta proposta',euro(amount)],['Note',form.note||'—']] as const).map(([label,val])=>
+      ['Domicilio',[form.indirizzo,form.localita,'Piano '+form.piano,form.dettagliAccesso].filter(Boolean).join(' · ')],['Bambini ('+kids.length+')',children.join(' | ')],
+      ['Quando','Vigilia, dalle 19:00 a mezzanotte'],['Offerta proposta',euro(amount)],['Tradizioni e informazioni',form.note||'—']] as const).map(([label,val])=>
       <div key={label}><dt className="text-xs uppercase tracking-wider text-muted-foreground">{label}</dt><dd className="mt-1 font-semibold">{val}</dd></div>)}
     </dl>
     {error&&<p role="alert" className="mt-4 text-sm text-red-500">{error}</p>}

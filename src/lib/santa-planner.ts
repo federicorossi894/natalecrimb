@@ -9,9 +9,11 @@ export const SANTA_TEAM_COLORS:Record<SantaTeamId,string>={
  'Squadra A':'#c63b39', 'Squadra B':'#288652',
  'Squadra C':'#e2b530', 'Squadra D':'#397bd6',
 };
+export type SantaChild={nome:string;cognome:string;soprannome:string;eta:number|null};
 export type SantaBooking={
  id:string;nome:string;cognome:string;email:string;telefono:string;
- indirizzo:string;localita:string;bambini:string[];note:string;
+ indirizzo:string;localita:string;piano?:string|null;dettagliAccesso?:string|null;
+ bambini:string[];bambiniDettagli?:SantaChild[]|null;note:string;
  quotaOffertaCents:number;quotaIncassataCents:number;
  squadra:SantaTeamId|null;teamPosition:number|null;confirmedTime:string|null;
  status:SantaStatus;mode:SantaMode;lat:number|null;lon:number|null;

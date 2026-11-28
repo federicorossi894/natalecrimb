@@ -3,6 +3,7 @@
  * No spreadsheet content is uploaded to third-party services.
  */
 import type {SantaBooking,SantaTeam} from './santa-planner';
+import {santaChildrenLines} from './santa-family';
 const utf8=new TextEncoder();
 const escapeXml=(s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
  .replace(/"/g,'&quot;').replace(/'/g,'&apos;').replace(/[\u0000-\u001F]/g,' ');
@@ -47,26 +48,31 @@ function zip(files:Array<[string,string]>){
  return data;
 }
 const headers=[
- 'ID richiesta','Stato','Nome','Cognome','Email','Telefono','Indirizzo','Località',
- 'Bambini','Note per Babbo Natale','Offerta proposta (€)','Incassato (€)',
- 'Squadra','Ordine visita','Orario definitivo','Coordinate','Origine'
+ 'ID richiesta','Stato','Nome genitore','Cognome genitore','Email','Telefono',
+ 'Indirizzo','Comune','Piano','Citofono, scala, interno',
+ 'Numero figli','Figli (nome, cognome, soprannome, età)','Tradizioni e informazioni',
+ 'Offerta proposta (€)','Incassato (€)','Squadra','Ordine visita','Orario definitivo','Coordinate','Origine'
 ];
 const euro=(x:number)=>(x/100).toFixed(2);
 const row=(b:SantaBooking):Array<string|number>=>
  [b.id,b.status,b.nome,b.cognome,b.email,b.telefono,b.indirizzo,b.localita,
- b.bambini.join(', '),b.note,euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),
+ b.piano??'',b.dettagliAccesso??'',
+ santaChildrenLines(b).length,santaChildrenLines(b).join(' | '),b.note,
+ euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),
  b.squadra??'',b.teamPosition??'',b.confirmedTime??'',
  b.lat!==null&&b.lon!==null?b.lat+','+b.lon:'',b.mode];
 export function santaXlsx(bookings:SantaBooking[],teams:SantaTeam[]){
  if(bookings.length>400)throw new Error('Esportazione troppo grande.');
  const sheets=[{name:'Tutte le richieste',data:sheet(headers,bookings.map(row))}];
  for(const team of teams){
-  const th=['Tappa','Orario definitivo','Famiglia','Telefono','Indirizzo',
-   'Località','Email','Bambini','Note per Babbo Natale','Offerta proposta (€)',
-   'Incassato (€)','Stato','ID richiesta','Link Maps'];
+  const th=['Tappa','Orario definitivo','Genitore','Telefono','Indirizzo',
+   'Comune','Piano','Citofono / scala / interno','Email','Numero figli',
+   'Figli (nome, cognome, soprannome, età)','Tradizioni e informazioni',
+   'Offerta proposta (€)','Incassato (€)','Stato','ID richiesta','Link Maps'];
   const rows=team.bookings.map((b,i)=>[
    b.teamPosition??i+1,b.confirmedTime??'',b.nome+' '+b.cognome,b.telefono,
-   b.indirizzo,b.localita,b.email,b.bambini.join(', '),b.note,
+   b.indirizzo,b.localita,b.piano??'',b.dettagliAccesso??'',b.email,
+   santaChildrenLines(b).length,santaChildrenLines(b).join(' | '),b.note,
    euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),b.status,b.id,
    b.lat!==null&&b.lon!==null
     ?'https://www.google.com/maps/search/?api=1&query='+b.lat+','+b.lon:''

@@ -5,12 +5,16 @@ import {santaBoard,moveSantaBooking,santaBoardPayload,mapsRouteUrl,
 import {santaXlsx} from '@/lib/santa-xlsx';
 import {santaRequestEmail,santaConfirmedEmail,SANTA_SENDER} from '@/lib/santa-mail';
 import {santaOriginAllowed} from '@/lib/santa-security';
+import {santaChildrenLines,santaAddress} from '@/lib/santa-family';
 
 function make(i:number):SantaBooking{
  return {id:'00000000-0000-4000-8000-'+String(i).padStart(12,'0'),
   nome:'Famiglia',cognome:'Esempio '+i,email:'federico.rossi@crimonza.org',
   telefono:'3330000000',indirizzo:'Via esempio '+i+', Monza',
-  localita:'Monza',bambini:['Anna','Leo'],note:'Un desiderio',
+  localita:'Monza',piano:'2',dettagliAccesso:'Scala A, citofono Esempio',
+  bambini:['Anna Rossi','Leo Rossi'],bambiniDettagli:[
+   {nome:'Anna',cognome:'Rossi',soprannome:'Annie',eta:6},
+   {nome:'Leo',cognome:'Rossi',soprannome:'',eta:4}],note:'Una tradizione di famiglia',
   quotaOffertaCents:3000+i*100,quotaIncassataCents:0,
   squadra:null,teamPosition:null,confirmedTime:null,status:'richiesta',
   mode:'demo',lat:45.58+i/10000,lon:9.27+i/10000,
@@ -33,7 +37,9 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(page).toContain('suggestedAmounts.map');
   expect(page).toContain('onClick={()=>selectAmount(n)}');
   expect(page).toContain('aria-pressed={amount===n&&!otherAmount}');
-  expect(page).toContain('Aumenta l\'offerta di dieci euro');
+  expect(page).not.toContain('Aumenta l\'offerta di dieci euro');
+  expect(page).toContain('Altro importo');
+  expect(page).toContain('lg:grid-cols-6');
   expect(page).toContain('Altro importo');
   expect(page).toContain('inputMode="numeric"');
   expect(page).not.toContain("row('offerta'");
@@ -71,8 +77,12 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   for(const team of SANTA_TEAM_IDS)expect(text).toContain(team);
   expect(text).toContain('sheet5.xml');
   expect(text).toContain('Telefono');
-  expect(text).toContain('Bambini');
-  expect(text).toContain('Note per Babbo Natale');
+  expect(text).toContain('Numero figli');
+  expect(text).toContain('Piano');
+  expect(text).toContain('soprannome');
+  expect(text).toContain('Annie');
+  expect(text).toContain('Scala A, citofono Esempio');
+  expect(text).toContain('Tradizioni e informazioni');
   expect(text).toContain('20:45');
  });
  it('auto-email templates distinguish received from confirmed, and promote Christmas links',()=>{
@@ -89,7 +99,15 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(req.html).toContain('fuori dalla porta');
   expect(req.html).not.toContain('Fascia preferita');
   expect(()=>santaConfirmedEmail(b)).toThrow();
-  expect(santaConfirmedEmail({...b,confirmedTime:'21:15'}).html).toContain('21:15');
+  const confirmed=santaConfirmedEmail({...b,confirmedTime:'21:15'});
+  expect(confirmed.html).toContain('21:15');
+  expect(confirmed.html).toContain('Piano 2');
+  expect(confirmed.html).toContain('Scala A');
+  expect(confirmed.html).toContain('letterina');
+  expect(confirmed.html).toContain('fotografia');
+  expect(confirmed.html).toContain('regali che hai scelto');
+  expect(confirmed.html).toContain('rispondi a questa email');
+  expect(req.html).not.toContain('regali che hai scelto');
  });
  it('stores demo requests, resets them on activation, and protects mailing',()=>{
   const sql=readFileSync('drizzle/migrations/0039_santa_demo_manual_board.sql','utf8');
@@ -116,6 +134,38 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(ui).toContain('Da assegnare');
   expect(ui).toContain('SantaRouteMap bookings={records}');
   expect(ui).toContain('Scarica Excel');
+ });
+ it('collects each child’s name, surname, nickname and age without asking for Santa letter in the first form',()=>{
+  const page=readFileSync('src/routes/babbo-natale.tsx','utf8');
+  const api=readFileSync('src/lib/santa-public.functions.ts','utf8');
+  const admin=readFileSync('src/lib/santa-admin.functions.ts','utf8');
+  const adminPage=readFileSync('src/routes/babbo-natale.organizzatori.tsx','utf8');
+  const sql=readFileSync('drizzle/migrations/0040_santa_child_details_address_floor.sql','utf8');
+  const privacy=readFileSync('src/routes/privacy.tsx','utf8');
+  expect(page).toContain('Nome del genitore');
+  expect(page).toContain('Cognome del genitore');
+  expect(page).toContain('Piano *');
+  expect(page).toContain('Citofono, scala, interno');
+  expect(page).toContain('Quanti bambini parteciperanno?');
+  expect(page).toContain('Soprannome (facoltativo)');
+  expect(page).toContain('Età *');
+  expect(page).toContain('Tradizioni di famiglia e informazioni per Babbo Natale');
+  expect(page).toContain('bambiniDettagli:details()');
+  expect(page).not.toContain('Carica la letterina');
+  expect(api).toContain('bambiniDettagli:z.array(childSchema).min(1).max(8)');
+  expect(api).toContain('bambini_dettagli:data.bambiniDettagli');
+  expect(api).toContain('dettagli_accesso:data.dettagliAccesso');
+  expect(admin).toContain('bambini_dettagli');
+  expect(admin).toContain('piano');
+  expect(adminPage).toContain('updateEditChild');
+  expect(adminPage).toContain('santaChildrenLines(b)');
+  expect(sql).toContain('ADD COLUMN IF NOT EXISTS bambini_dettagli jsonb');
+  expect(privacy).toContain('nome e cognome, età e soprannome facoltativo');
+  const legacy={...make(1),bambiniDettagli:null,piano:null,dettagliAccesso:null};
+  expect(santaChildrenLines(legacy)).toEqual(legacy.bambini);
+  expect(santaChildrenLines(make(1))[0]).toContain('Anna Rossi');
+  expect(santaChildrenLines(make(1))[0]).toContain('Annie');
+  expect(santaAddress(make(1))).toContain('Piano 2');
  });
  it('rejects other origins but allows direct Lovable preview and official site',()=>{
   expect(santaOriginAllowed('https://natale.crimonza.org')).toBe(true);

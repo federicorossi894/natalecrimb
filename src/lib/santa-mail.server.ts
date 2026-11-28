@@ -22,7 +22,7 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
   return state;
  };
  const {data:b,error:readError}=await db.from('santa_bookings')
-  .select('id,mode,status,nome,cognome,email,indirizzo,localita,quota_offerta_cents,confirmed_time')
+  .select('id,mode,status,nome,cognome,email,indirizzo,localita,piano,dettagli_accesso,quota_offerta_cents,confirmed_time')
   .eq('id',bookingId).maybeSingle();
  if(readError||!b)return finish('failed');
  if(kind==='confirmed'&&(b.status!=='confermata'&&b.status!=='completata'||!b.confirmed_time))
@@ -36,7 +36,7 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
  const mail=kind==='request'
   ?santaRequestEmail({nome:b.nome,quotaOffertaCents:b.quota_offerta_cents})
   :santaConfirmedEmail({nome:b.nome,confirmedTime:b.confirmed_time,
-    indirizzo:b.indirizzo,localita:b.localita});
+    indirizzo:b.indirizzo,localita:b.localita,piano:b.piano,dettagliAccesso:b.dettagli_accesso});
  const key=process.env['GOOGLE_MAIL_API_KEY_1'];
  const auth=process.env['LOVABLE_API_KEY'];
  if(!key||!auth)return finish('failed');
@@ -48,6 +48,7 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
  const raw=b64url([
   'From: Croce Rossa Monza Natale <'+SANTA_SENDER+'>',
   'To: <'+b.email+'>',
+  'Reply-To: '+SANTA_SENDER,
   'Subject: =?UTF-8?B?'+b64(mail.subject)+'?=',
   'Message-ID: <santa-'+id+'@crimonza.org>',
   'MIME-Version: 1.0','Content-Type: text/html; charset="UTF-8"',

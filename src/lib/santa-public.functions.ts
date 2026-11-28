@@ -6,13 +6,21 @@ import {sha256Hex} from './volunteer-auth';
 import type {SantaMode} from './santa-planner';
 
 const adult=z.string().trim().min(2).max(80).regex(/^[\p{L}\p{M} .'\-’]+$/u,'Usa soltanto lettere.');
+const childName=z.string().trim().min(2).max(60).regex(/^[\p{L}\p{M} .'\-’]+$/u,'Inserisci nome e cognome.');
+const childSchema=z.object({
+ nome:childName,cognome:childName,
+ soprannome:z.string().trim().max(40),
+ eta:z.number().int().min(0).max(120),
+}).strict();
 const bookingInput=z.object({
  requestId:z.string().uuid(),
  nome:adult,cognome:adult,email:z.string().trim().email().max(254),
  telefono:z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/,'Numero di telefono non valido.'),
  indirizzo:z.string().trim().min(6).max(180),
  localita:z.string().trim().min(2).max(80),
- bambini:z.array(z.string().trim().min(1).max(40)).min(1).max(8),
+ piano:z.string().trim().min(1).max(60),
+ dettagliAccesso:z.string().trim().max(240),
+ bambiniDettagli:z.array(childSchema).min(1).max(8),
  note:z.string().trim().max(500),
  offertaCents:z.number().int().min(3000).max(100000),
  privacyAcknowledged:z.literal(true),
@@ -66,7 +74,10 @@ export const santaCreateRequest=createServerFn({method:'POST'})
    event_day:settings.event_day,mode:settings.mode,request_id:data.requestId,
    client_key:key,nome:data.nome,cognome:data.cognome,
    email:data.email.toLowerCase(),telefono:data.telefono,
-   indirizzo:data.indirizzo,localita:data.localita,bambini:data.bambini,
+   indirizzo:data.indirizzo,localita:data.localita,
+   piano:data.piano,dettagli_accesso:data.dettagliAccesso,
+   bambini:data.bambiniDettagli.map(b=>[b.nome,b.cognome].join(' ')),
+   bambini_dettagli:data.bambiniDettagli,
    note:data.note,quota_offerta_cents:data.offertaCents,
    quota_incassata_cents:0,status:'richiesta',
    squadra:null,team_position:null,confirmed_time:null,
