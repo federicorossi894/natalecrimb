@@ -21,7 +21,7 @@ ALTER TABLE public.santa_bookings
 ALTER TABLE public.santa_bookings DROP CONSTRAINT IF EXISTS santa_bookings_check;
 ALTER TABLE public.santa_bookings ADD CONSTRAINT santa_bookings_confirmed_check
  CHECK(status NOT IN ('confermata','completata') OR
-       (squadra IS NOT NULL AND team_position IS NOT NULL AND confirmed_time IS NOT NULL));
+       (squadra IS NOT NULL AND confirmed_time IS NOT NULL));
 
 CREATE INDEX IF NOT EXISTS santa_bookings_mode_team_idx ON public.santa_bookings(mode,squadra,team_position);
 CREATE INDEX IF NOT EXISTS santa_bookings_demo_rate_idx ON public.santa_bookings(client_key,created_at DESC);
@@ -97,6 +97,9 @@ BEGIN
      OR x.team IS NULL AND x.position IS NOT NULL
      OR x.team IS NOT NULL AND (x.position IS NULL OR x.position<1 OR x.position>12)
  ) THEN RAISE EXCEPTION 'Invalid assignment' USING ERRCODE='22023'; END IF;
+ IF EXISTS(SELECT 1 FROM public.santa_bookings b JOIN jsonb_to_recordset(_assignments) x(id uuid,team text,position int)
+   ON b.id=x.id WHERE b.status IN ('confermata','completata') AND x.team IS NULL)
+ THEN RAISE EXCEPTION 'Cancel confirmation before removing a team' USING ERRCODE='22023'; END IF;
  IF EXISTS(SELECT 1 FROM jsonb_to_recordset(_assignments) x(id uuid,team text,position int)
   WHERE x.team IS NOT NULL GROUP BY x.team,x.position HAVING count(*)>1)
  THEN RAISE EXCEPTION 'Duplicated team position' USING ERRCODE='22023'; END IF;
@@ -105,7 +108,7 @@ BEGIN
  WHERE b.mode=active_mode AND b.status<>'annullata';
  IF valid_ids<>matching THEN RAISE EXCEPTION 'Unknown or stale booking' USING ERRCODE='40001'; END IF;
  -- Unique team/position index requires two-step update within this transaction.
- UPDATE public.santa_bookings SET squadra=NULL,team_position=NULL
+ UPDATE public.santa_bookings SET team_position=NULL
  WHERE mode=active_mode AND status<>'annullata';
  UPDATE public.santa_bookings b SET squadra=x.team,team_position=x.position
  FROM jsonb_to_recordset(_assignments) x(id uuid,team text,position int)
@@ -124,8 +127,6 @@ GRANT EXECUTE ON FUNCTION public.santa_board_save(text,bigint,jsonb) TO service_
 CREATE OR REPLACE FUNCTION public.santa_activate_live()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
- IF current_user<>'service_role' AND session_user<>'service_role'
- THEN RAISE EXCEPTION 'Service role only' USING ERRCODE='42501'; END IF;
  PERFORM 1 FROM public.santa_admin_settings WHERE singleton FOR UPDATE;
  DELETE FROM public.santa_bookings WHERE mode='demo';
  UPDATE public.santa_admin_settings SET mode='live',requests_open=false,
