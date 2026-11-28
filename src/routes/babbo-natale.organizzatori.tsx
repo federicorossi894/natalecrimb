@@ -384,6 +384,33 @@ function Organizzatori(){
      {!records.length&&<p className="rounded-2xl border p-8 text-center text-muted-foreground">Ancora nessuna richiesta. Appena una famiglia invia il modulo, la prenotazione comparirà qui.</p>}
     </div>
    </section>
+   {confirmOpen&&<div role="dialog" aria-modal="true" aria-label="Conferma e invia il planning"
+    className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 p-4 sm:p-8">
+    <div className="mx-auto my-10 max-w-xl rounded-[2rem] bg-background p-6 shadow-deep sm:p-9">
+     <p className="text-xs font-bold uppercase tracking-widest text-gold">Ultimo controllo</p>
+     <h2 className="mt-2 font-display text-3xl">Confermiamo il giro di Babbo Natale?</h2>
+     <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+      Stai per confermare <strong>{active.length} visite</strong>. Ogni famiglia riceverà una email
+      con l’orario, la possibile variazione di circa 15 minuti e le istruzioni per
+      versare l’offerta anticipata.
+     </p>
+     <div className="mt-5 grid grid-cols-2 gap-2">
+      {board.teams.map(t=><div key={t.id} className="rounded-xl border p-3 text-sm">
+       <strong>{t.id}</strong><span className="block text-muted-foreground">{t.bookings.length} visite</span>
+       <p className="mt-2 text-xs text-muted-foreground">{t.bookings.map((b,i)=>SANTA_VISIT_TIMES[i]+' · '+b.cognome).join(' | ')||'Nessuna'}</p>
+      </div>)}
+     </div>
+     <p className="mt-4 text-sm font-semibold">Dopo la conferma il planning sarà bloccato per evitare modifiche involontarie agli orari comunicati.</p>
+     {error&&<p role="alert" className="mt-4 text-sm text-red-500">{error}</p>}
+     <div className="mt-7 flex flex-wrap gap-3">
+      <button type="button" disabled={busy} onClick={()=>void sendAllConfirmations()}
+       className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground disabled:opacity-50">
+       {busy?'Invio in corso…':'Conferma planning e invia le email'}</button>
+      <button type="button" disabled={busy} onClick={()=>{setConfirmOpen(false);setError('');}}
+       className="rounded-full border px-6 py-3 font-semibold">Annulla</button>
+     </div>
+    </div>
+   </div>}
    {edit&&<div role="dialog" aria-modal="true" aria-label="Modifica prenotazione"
     className="fixed inset-0 z-[90] overflow-auto bg-black/75 p-3 sm:p-8">
     <div className="mx-auto my-5 max-w-3xl rounded-[2rem] bg-background p-5 shadow-deep sm:p-8">
@@ -430,15 +457,11 @@ function Organizzatori(){
       <label className="text-sm font-semibold">Offerta proposta (€)
        <input type="number" min="30" className={input} value={edit.quotaOffertaCents/100}
         onChange={e=>change('quotaOffertaCents',Math.round(Number(e.target.value)*100))}/></label>
-      <label className="text-sm font-semibold">Donazione ricevuta (€)
-       <input type="number" min="0" className={input} value={edit.quotaIncassataCents/100}
-        onChange={e=>change('quotaIncassataCents',Math.round(Number(e.target.value)*100))}/></label>
-      <label className="text-sm font-semibold">Stato
-       <select className={input} value={edit.status} onChange={e=>change('status',e.target.value as SantaStatus)}>
-        {(['richiesta','confermata','completata','annullata'] as const).map(s=><option key={s} value={s}>{s}</option>)}</select></label>
-      <label className="text-sm font-semibold">Orario definitivo della visita (19–24)
-       <input type="time" min="19:00" max="23:59" className={input} value={edit.confirmedTime??''}
-        onChange={e=>change('confirmedTime',e.target.value||null)}/></label>
+      <p className="sm:col-span-2 rounded-xl bg-secondary p-3 text-sm text-muted-foreground">
+       Gli incassi non si modificano qui: il pagamento online viene verificato dal provider,
+       mentre un bonifico può essere registrato soltanto dopo averne verificato l’accredito.
+       La conferma della visita avviene esclusivamente dal planning.
+      </p>
      </div>
      <p className="mt-3 text-sm text-muted-foreground">Squadra: <strong>{edit.squadra??'non assegnata'}</strong>. La squadra e la posizione si cambiano trascinando la prenotazione nella lavagna.</p>
      {message&&<p className="mt-3 text-sm text-red-500">{message}</p>}
