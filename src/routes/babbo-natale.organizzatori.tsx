@@ -8,6 +8,8 @@ import {SantaRouteMap} from '@/components/xmas/SantaRouteMap';
 import {SANTA_TEAM_IDS,SANTA_TEAM_COLORS,santaBoard,moveSantaBooking,
  santaBoardPayload,mapsRouteUrl,type SantaBooking,type SantaStatus,type SantaTeamId} from '@/lib/santa-planner';
 import {santaXlsx} from '@/lib/santa-xlsx';
+import {santaAddress,santaChildrenLines} from '@/lib/santa-family';
+import type {SantaChild} from '@/lib/santa-planner';
 import {santaAdminLogin,santaAdminMe,santaAdminLogout,santaAdminList,
  santaAdminBoardSave,santaAdminUpdate,santaAdminLocate} from '@/lib/santa-admin.functions';
 
@@ -112,7 +114,9 @@ function Organizzatori(){
   try{
    const updated=await update({data:{id:edit.id,patch:{
     nome:edit.nome,cognome:edit.cognome,email:edit.email,telefono:edit.telefono,
-    indirizzo:edit.indirizzo,localita:edit.localita,bambini:edit.bambini,
+    indirizzo:edit.indirizzo,localita:edit.localita,
+    piano:edit.piano??undefined,dettagliAccesso:edit.dettagliAccesso??undefined,
+    bambini:edit.bambini,bambiniDettagli:edit.bambiniDettagli??undefined,
     note:edit.note,quotaOffertaCents:edit.quotaOffertaCents,
     quotaIncassataCents:edit.quotaIncassataCents,
     confirmedTime:edit.confirmedTime,status:edit.status,lat:edit.lat,lon:edit.lon,
@@ -121,6 +125,22 @@ function Organizzatori(){
    setEdit(null);setMessage('Prenotazione aggiornata.');
   }catch(e){setMessage(e instanceof Error?e.message:'Impossibile salvare.');}
   finally{setBusy(false);}
+ };
+ const updateEditChild=(index:number,key:keyof SantaChild,value:string|number|null)=>{
+  setEdit(prev=>{
+   if(!prev?.bambiniDettagli)return prev;
+   return {...prev,bambiniDettagli:prev.bambiniDettagli.map((c,i)=>
+    i===index?{...c,[key]:value}:c)};
+  });
+ };
+ const addEditChild=()=>{
+  if(!edit?.bambiniDettagli||edit.bambiniDettagli.length>=8)return;
+  change('bambiniDettagli',[...edit.bambiniDettagli,
+   {nome:'',cognome:'',soprannome:'',eta:null}]);
+ };
+ const removeEditChild=(index:number)=>{
+  if(!edit?.bambiniDettagli||edit.bambiniDettagli.length<=1)return;
+  change('bambiniDettagli',edit.bambiniDettagli.filter((_,i)=>i!==index));
  };
  const locateBooking=async(b:SantaBooking)=>{
   setMessage('Cerco la posizione dell’indirizzo…');setBusy(true);
@@ -140,8 +160,8 @@ function Organizzatori(){
    data-testid="santa-booking-card">
    <div className="flex items-start justify-between gap-2">
     <div><p className="font-semibold">{b.nome} {b.cognome}</p>
-     <p className="mt-1 text-xs text-muted-foreground">{b.indirizzo}, {b.localita}</p>
-     <p className="mt-1 text-xs text-muted-foreground">Bambini: {b.bambini.join(', ')}</p></div>
+     <p className="mt-1 text-xs text-muted-foreground">{santaAddress(b)}</p>
+     <p className="mt-1 text-xs text-muted-foreground">{santaChildrenLines(b).length} {santaChildrenLines(b).length===1?'bambino':'bambini'}: {santaChildrenLines(b).join(', ')}</p></div>
     <button type="button" onClick={()=>setEdit({...b,bambini:[...b.bambini]})}
      className="shrink-0 rounded-full border p-2" title="Modifica prenotazione" aria-label={'Modifica '+b.cognome}>
      <Pencil className="h-4 w-4"/></button>
@@ -258,10 +278,10 @@ function Organizzatori(){
       <div className="flex flex-wrap items-start justify-between gap-3">
        <div>
         <p className="font-display text-xl">{b.nome} {b.cognome} <span className="text-sm text-muted-foreground">· {b.status}</span></p>
-        <p className="mt-1 text-sm">{b.indirizzo}, {b.localita} · {b.telefono}</p>
-        <p className="mt-1 text-sm">Email: {b.email} · Bambini: {b.bambini.join(', ')}</p>
+        <p className="mt-1 text-sm">{santaAddress(b)} · {b.telefono}</p>
+        <p className="mt-1 text-sm">Email: {b.email} · {santaChildrenLines(b).length} {santaChildrenLines(b).length===1?'bambino':'bambini'}: {santaChildrenLines(b).join('; ')}</p>
         <p className="mt-1 text-sm">Offerta indicata {money(b.quotaOffertaCents)} · Incassato {money(b.quotaIncassataCents)}</p>
-        {b.note&&<p className="mt-1 text-sm text-muted-foreground">Per Babbo Natale: {b.note}</p>}
+        {b.note&&<p className="mt-1 text-sm text-muted-foreground">Tradizioni e informazioni per Babbo Natale: {b.note}</p>}
         <p className="mt-1 text-sm text-muted-foreground">{b.squadra??'Da assegnare'}{b.teamPosition?' · tappa '+b.teamPosition:''}{b.confirmedTime?' · '+b.confirmedTime:''}</p>
        </div>
        <div className="flex flex-wrap gap-2">
