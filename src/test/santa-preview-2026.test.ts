@@ -37,7 +37,9 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(page).toContain('suggestedAmounts.map');
   expect(page).toContain('onClick={()=>selectAmount(n)}');
   expect(page).toContain('aria-pressed={amount===n&&!otherAmount}');
-  expect(page).toContain('Aumenta l\'offerta di dieci euro');
+  expect(page).not.toContain('Aumenta l\'offerta di dieci euro');
+  expect(page).toContain('Altro importo');
+  expect(page).toContain('lg:grid-cols-6');
   expect(page).toContain('Altro importo');
   expect(page).toContain('inputMode="numeric"');
   expect(page).not.toContain("row('offerta'");
@@ -77,7 +79,7 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(text).toContain('Telefono');
   expect(text).toContain('Numero figli');
   expect(text).toContain('Piano');
-  expect(text).toContain('Soprannome');
+  expect(text).toContain('soprannome');
   expect(text).toContain('Annie');
   expect(text).toContain('Scala A, citofono Esempio');
   expect(text).toContain('Note per Babbo Natale');
