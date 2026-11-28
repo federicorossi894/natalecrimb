@@ -324,7 +324,7 @@ function Organizzatori(){
            onChange={e=>updateEditChild(i,'cognome',e.target.value)}/></label>
           <label className="text-xs font-semibold">Soprannome<input className={input} value={child.soprannome} maxLength={40}
            onChange={e=>updateEditChild(i,'soprannome',e.target.value)}/></label>
-          <label className="text-xs font-semibold">Età<input className={input} type="number" min={0} max={17}
+          <label className="text-xs font-semibold">Età<input className={input} type="number" min={0} max={120}
            value={child.eta??''} onChange={e=>updateEditChild(i,'eta',e.target.value===''?null:Number(e.target.value))}/></label>
          </div>
         </div>)
