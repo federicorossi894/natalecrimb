@@ -76,7 +76,7 @@ export function SantaRouteMap({bookings}:{bookings:SantaBooking[]}){
    for(const team of SANTA_TEAM_IDS){
     const ordered=board.teams.find(x=>x.id===team)!.bookings.filter(hasCoords);
     if(ordered.length>1){
-     L.polyline(ordered.map(b=>[b.lat,b.lon]),{
+     L.polyline(ordered.map(b=>[b.lat!,b.lon!]),{
       color:SANTA_TEAM_COLORS[team],weight:4,opacity:0.85,dashArray:'8 5',
      }).addTo(instance);
     }
