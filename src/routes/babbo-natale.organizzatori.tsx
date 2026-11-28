@@ -2,16 +2,16 @@ import {createFileRoute,Link} from '@tanstack/react-router';
 import {useServerFn} from '@tanstack/react-start';
 import {useEffect,useMemo,useState,type FormEvent, type DragEvent} from 'react';
 import {Download,LockKeyhole,LogOut,MapPinned,Users,Gift,Euro,RefreshCw,
- Pencil,ArrowUp,ArrowDown,Check,MapPin,Route as RouteIcon} from 'lucide-react';
+ Pencil,ArrowUp,ArrowDown,Check,MapPin,Trash2,ShieldCheck,Clock3,Route as RouteIcon} from 'lucide-react';
 import {Shell} from '@/components/xmas/Shell';
 import {SantaRouteMap} from '@/components/xmas/SantaRouteMap';
 import {SANTA_TEAM_IDS,SANTA_TEAM_COLORS,santaBoard,moveSantaBooking,
- santaBoardPayload,mapsRouteUrl,type SantaBooking,type SantaStatus,type SantaTeamId} from '@/lib/santa-planner';
+ santaBoardPayload,mapsRouteUrl,SANTA_VISIT_TIMES,santaVisitTime,type SantaBooking,type SantaTeamId} from '@/lib/santa-planner';
 import {santaXlsx} from '@/lib/santa-xlsx';
 import {santaAddress,santaChildrenLines} from '@/lib/santa-family';
 import type {SantaChild} from '@/lib/santa-planner';
 import {santaAdminLogin,santaAdminMe,santaAdminLogout,santaAdminList,
- santaAdminBoardSave,santaAdminUpdate,santaAdminLocate} from '@/lib/santa-admin.functions';
+ santaAdminBoardSave,santaAdminUpdate,santaAdminLocate,santaAdminConfirmPlanning,santaAdminCancelBooking,santaAdminRecordTransfer,santaAdminSyncPayments} from '@/lib/santa-admin.functions';
 
 export const Route=createFileRoute('/babbo-natale/organizzatori')({
  staticData:{sitemap:false},
@@ -27,7 +27,9 @@ function Organizzatori(){
  const me=useServerFn(santaAdminMe),login=useServerFn(santaAdminLogin),
   logout=useServerFn(santaAdminLogout),list=useServerFn(santaAdminList),
   saveBoard=useServerFn(santaAdminBoardSave),update=useServerFn(santaAdminUpdate),
-  locate=useServerFn(santaAdminLocate);
+  locate=useServerFn(santaAdminLocate),confirmPlan=useServerFn(santaAdminConfirmPlanning),
+  cancelBooking=useServerFn(santaAdminCancelBooking),recordTransfer=useServerFn(santaAdminRecordTransfer),
+  syncPayments=useServerFn(santaAdminSyncPayments);
  const [auth,setAuth]=useState<LoginState>('loading');
  const [email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [user,setUser]=useState(''),[error,setError]=useState('');
@@ -35,6 +37,8 @@ function Organizzatori(){
  const [records,setRecords]=useState<SantaBooking[]>([]);
  const [boardVersion,setBoardVersion]=useState(0);
  const [mode,setMode]=useState<'demo'|'live'>('demo');
+ const [planningConfirmed,setPlanningConfirmed]=useState(false);
+ const [confirmOpen,setConfirmOpen]=useState(false);
  const [message,setMessage]=useState('');
  const [dragId,setDragId]=useState<string|null>(null);
  const [edit,setEdit]=useState<SantaBooking|null>(null);
@@ -45,7 +49,7 @@ function Organizzatori(){
  const refresh=async()=>{
   try{
    const result=await list();
-   setRecords(result.bookings);setBoardVersion(result.version);setMode(result.mode);
+   setRecords(result.bookings);setBoardVersion(result.version);setMode(result.mode);setPlanningConfirmed(result.planningConfirmed);
    setError('');
   }catch(e){setError(e instanceof Error?e.message:'Impossibile caricare le richieste.');}
  };
@@ -65,8 +69,14 @@ function Organizzatori(){
  const offered=records.filter(b=>b.status!=='annullata').reduce((s,b)=>s+b.quotaOffertaCents,0);
  const paid=records.filter(b=>b.status!=='annullata').reduce((s,b)=>s+b.quotaIncassataCents,0);
  const assigned=board.teams.reduce((s,t)=>s+t.bookings.length,0);
+ const active=records.filter(b=>b.status!=='annullata');
+ const eligibleForConfirmation=!planningConfirmed&&active.length>0&&board.unassigned.length===0&&
+  board.teams.every(t=>t.bookings.length<=4);
+ const actuallyPaid=active.filter(b=>b.paymentState==='pagato_online'||b.paymentState==='pagato_bonifico').length;
+ const awaitingPayment=active.filter(b=>b.status==='confermata'&&
+  b.paymentState!=='pagato_online'&&b.paymentState!=='pagato_bonifico').length;
  const move=async(id:string,to:SantaTeamId|null,index?:number)=>{
-  if(saving)return;
+  if(saving||planningConfirmed)return;
   const booking=records.find(b=>b.id===id);
   if(!booking)return;
   if(!to&&['confermata','completata'].includes(booking.status)){
@@ -75,7 +85,7 @@ function Organizzatori(){
   }
   const previous=records;
   const next=moveSantaBooking(records,id,to,index);
-  if(next===records)return;
+  if(next===records){setMessage('Ogni squadra ha quattro fasce orarie. Non puoi aggiungere altre visite.');return;}
   setRecords(next);setSaving(true);setMessage('');
   try{
    const saved=await saveBoard({data:{
@@ -89,7 +99,7 @@ function Organizzatori(){
   }finally{setSaving(false);setDragId(null);}
  };
  const dragStart=(e:DragEvent<HTMLDivElement>,id:string)=>{
-  if(saving){e.preventDefault();return;}
+  if(saving||planningConfirmed){e.preventDefault();return;}
   e.dataTransfer.setData('text/plain',id);e.dataTransfer.effectAllowed='move';setDragId(id);
  };
  const dragOver=(e:DragEvent<HTMLElement>)=>{e.preventDefault();e.dataTransfer.dropEffect='move';};
@@ -152,7 +162,7 @@ function Organizzatori(){
   finally{setBusy(false);}
  };
  const card=(b:SantaBooking,index:number,team:SantaTeamId|null)=>
-  <div key={b.id} draggable={!saving&&!busy}
+  <div key={b.id} draggable={!saving&&!busy&&!planningConfirmed}
    onDragStart={e=>dragStart(e,b.id)} onDragEnd={()=>setDragId(null)}
    onDragOver={dragOver} onDrop={e=>drop(e,team,index)}
    className={'rounded-2xl border bg-background/80 p-3 text-sm shadow-sm '+(dragId===b.id?'opacity-45':'')}
@@ -167,25 +177,25 @@ function Organizzatori(){
      <Pencil className="h-4 w-4"/></button>
    </div>
    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-    {b.squadra?<span className="font-semibold">Tappa {b.teamPosition}</span>:<span>Da assegnare</span>}
+    {b.squadra?<span className="font-semibold">{santaVisitTime(b.teamPosition)??'Da definire'}</span>:<span>Da assegnare</span>}
     <span className="text-muted-foreground">{money(b.quotaOffertaCents)}</span>
     {b.confirmedTime&&<span className="text-gold">{b.confirmedTime}</span>}
    </div>
    <div className="mt-3 grid grid-cols-[1fr_auto_auto] items-center gap-2">
     <label className="text-xs">
      <span className="sr-only">Assegna squadra</span>
-     <select value={team??''} disabled={saving||busy}
+     <select value={team??''} disabled={saving||busy||planningConfirmed}
       onChange={e=>void move(b.id,(e.target.value||null) as SantaTeamId|null)}
       className="w-full rounded-lg border border-border bg-background px-2 py-2 text-xs">
       <option value="">Senza squadra</option>
       {SANTA_TEAM_IDS.map(t=><option key={t} value={t}>{t}</option>)}
      </select>
     </label>
-    <button type="button" disabled={saving||busy||index===0} title="Sposta su"
+    <button type="button" disabled={saving||busy||planningConfirmed||index===0} title="Sposta su"
      aria-label={'Sposta su '+b.cognome}
      onClick={()=>void move(b.id,team,index-1)}
      className="rounded-lg border p-2 disabled:opacity-30"><ArrowUp className="h-4 w-4"/></button>
-    <button type="button" disabled={saving||busy||index>=((team?board.teams.find(t=>t.id===team)!.bookings:board.unassigned).length-1)}
+    <button type="button" disabled={saving||busy||planningConfirmed||index>=((team?board.teams.find(t=>t.id===team)!.bookings:board.unassigned).length-1)}
      title="Sposta giù" aria-label={'Sposta giù '+b.cognome}
      onClick={()=>void move(b.id,team,index+1)}
      className="rounded-lg border p-2 disabled:opacity-30"><ArrowDown className="h-4 w-4"/></button>
