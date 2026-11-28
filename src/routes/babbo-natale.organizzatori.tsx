@@ -292,7 +292,7 @@ function Organizzatori(){
    </section>
    <section>
     <h2 className="font-display text-3xl">Organizza le squadre</h2>
-    <p className="mt-2 text-sm text-muted-foreground">Trascina le prenotazioni dalla colonna bianca alle squadre A, B, C o D, poi trascinale nell’ordine delle visite. Da telefono puoi usare il menu «Squadra» e le frecce. Ogni spostamento viene salvato automaticamente.</p>
+    <p className="mt-2 text-sm text-muted-foreground">Distribuisci le famiglie nelle squadre A, B, C e D. Ogni squadra ha quattro visite: 19:30, 20:30, 21:30 e 22:30. L’ordine nella colonna determina l’orario. Su telefono puoi usare il selettore e le frecce; ogni modifica viene salvata.</p>
     {saving&&<p role="status" className="mt-3 text-sm font-semibold text-gold">Salvataggio disposizione…</p>}
     <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(200px,1fr)_minmax(0,4fr)]">
      <div className="rounded-3xl border-2 border-dashed border-border bg-secondary/20 p-3"
@@ -307,18 +307,49 @@ function Organizzatori(){
        style={{borderColor:SANTA_TEAM_COLORS[team.id],backgroundColor:SANTA_TEAM_COLORS[team.id]+'0d'}}>
        <h3 className="flex items-center justify-between px-2 py-3 font-display text-xl">
         {team.id}<span className="text-sm text-muted-foreground">{team.bookings.length} visite</span></h3>
-       <div className="min-h-[140px] space-y-3">{team.bookings.map((b,i)=>card(b,i,team.id))}
-        {!team.bookings.length&&<p className="rounded-2xl border border-dashed p-5 text-center text-sm text-muted-foreground">Trascina qui una famiglia</p>}</div>
+       <div className="space-y-3">
+        {SANTA_VISIT_TIMES.map((time,i)=><div key={time}
+         onDragOver={dragOver} onDrop={e=>drop(e,team.id,i)}
+         className="rounded-2xl border border-border/60 bg-background/30 p-2">
+         <div className="flex items-center gap-2 pb-2 text-xs font-bold text-gold">
+          <Clock3 className="h-3.5 w-3.5"/>{time}
+         </div>
+         {team.bookings[i]
+          ?card(team.bookings[i]!,i,team.id)
+          :<div className="rounded-xl border border-dashed border-border/60 px-2 py-5 text-center text-xs text-muted-foreground">Fascia libera</div>}
+        </div>)}
+       </div>
        {team.bookings.length>0&&<a href={mapsRouteUrl(team)} target="_blank" rel="noreferrer"
         className="mt-4 inline-flex items-center gap-2 px-2 text-xs font-semibold text-gold underline">
         <MapPin className="h-4 w-4"/> Apri il giro su Google Maps</a>}
       </div>)}
      </div>
     </div>
+    <div className="mt-7 rounded-3xl border border-gold/40 bg-gold/10 p-5 sm:p-7">
+     <div className="flex flex-wrap items-center justify-between gap-4">
+      <div><p className="text-xs font-bold uppercase tracking-widest text-gold">Il programma della Vigilia</p>
+       <h3 className="mt-1 font-display text-2xl">{planningConfirmed?'Planning confermato':'Tutto pronto per confermare?'}</h3>
+       <p className="mt-2 max-w-xl text-sm text-muted-foreground">{planningConfirmed?
+        'Gli orari sono stati fissati e le email di conferma sono state elaborate.':
+        'Controlla tutte le squadre e gli orari. La conferma invia una mail a ogni famiglia; non potrai più riordinare le visite senza una procedura di modifica.'}</p>
+      </div>
+      {!planningConfirmed&&<button type="button" disabled={!eligibleForConfirmation||busy||saving}
+       onClick={()=>setConfirmOpen(true)}
+       className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40">
+       <ShieldCheck className="h-5 w-5"/> Conferma planning</button>}
+     </div>
+     {!planningConfirmed&&board.unassigned.length>0&&<p className="mt-3 text-sm text-amber-600">Assegna prima tutte le richieste: {board.unassigned.length} ancora senza squadra.</p>}
+    </div>
    </section>
    <section className="glass-strong rounded-3xl p-5 sm:p-7">
-    <h2 className="font-display text-3xl">Dettagli delle prenotazioni</h2>
-    <p className="mt-2 text-sm text-muted-foreground">Indirizzi, contatti e nomi dei bambini sono visibili solo qui. Per confermare una visita assegna prima la squadra e inserisci l’orario definitivo: la famiglia riceverà una mail dedicata.</p>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+     <div><h2 className="font-display text-3xl">Dettagli delle prenotazioni</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Pagamenti e dati delle famiglie, visibili soltanto agli organizzatori.</p></div>
+     {planningConfirmed&&<button type="button" disabled={busy} onClick={()=>void verifyPayments()}
+      className="inline-flex items-center gap-2 rounded-full border border-gold px-4 py-2 text-sm font-semibold text-gold">
+      <RefreshCw className="h-4 w-4"/> Verifica pagamenti</button>}
+    </div>
+    <p className="mt-2 text-sm text-muted-foreground">Contatti, bambini, dettagli di ingresso e offerte. Le visite sono confermate unicamente con il pulsante «Conferma planning» sopra, dopo aver assegnato tutti gli orari.</p>
     <div className="mt-5 space-y-3">
      {records.map(b=><article key={b.id} className="rounded-2xl border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -327,14 +358,26 @@ function Organizzatori(){
         <p className="mt-1 text-sm">{santaAddress(b)} · {b.telefono}</p>
         <p className="mt-1 text-sm">Email: {b.email} · {santaChildrenLines(b).length} {santaChildrenLines(b).length===1?'bambino':'bambini'}: {santaChildrenLines(b).join('; ')}</p>
         <p className="mt-1 text-sm">Offerta indicata {money(b.quotaOffertaCents)} · Incassato {money(b.quotaIncassataCents)}</p>
+        <p className={'mt-1 text-sm font-semibold '+(
+         b.paymentState==='pagato_online'||b.paymentState==='pagato_bonifico'?'text-green-600':'text-amber-600')}>
+         {b.paymentState==='pagato_online'?'Pagato online':b.paymentState==='pagato_bonifico'?
+          'Bonifico ricevuto':b.paymentState==='in_verifica'?'Pagamento in verifica':
+          b.status==='confermata'?'Da pagare':'Contributo non ancora richiesto'}
+        </p>
         {b.note&&<p className="mt-1 text-sm text-muted-foreground">Tradizioni e informazioni per Babbo Natale: {b.note}</p>}
         <p className="mt-1 text-sm text-muted-foreground">{b.squadra??'Da assegnare'}{b.teamPosition?' · tappa '+b.teamPosition:''}{b.confirmedTime?' · '+b.confirmedTime:''}</p>
        </div>
        <div className="flex flex-wrap gap-2">
         {!b.lat&&<button onClick={()=>void locateBooking(b)} disabled={busy}
          className="rounded-full border px-4 py-2 text-sm">Localizza</button>}
-        <button onClick={()=>setEdit({...b,bambini:[...b.bambini]})}
-         className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"><Pencil className="h-4 w-4"/> Modifica</button>
+        {!planningConfirmed&&<button onClick={()=>setEdit({...b,bambini:[...b.bambini]})}
+         className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"><Pencil className="h-4 w-4"/> Modifica</button>}
+        {!planningConfirmed&&b.status==='richiesta'&&<button type="button" disabled={busy}
+         onClick={()=>void removeBooking(b)}
+         className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-2 text-sm text-red-500"><Trash2 className="h-4 w-4"/> Elimina</button>}
+        {mode==='live'&&b.status==='confermata'&&b.paymentState!=='pagato_online'&&b.paymentState!=='pagato_bonifico'&&
+        <button type="button" disabled={busy} onClick={()=>void confirmBankTransfer(b)}
+         className="rounded-full border border-gold/50 px-4 py-2 text-sm font-semibold">Registra bonifico verificato</button>}
        </div>
       </div>
      </article>)}
