@@ -268,12 +268,14 @@ function Organizzatori(){
      <button onClick={()=>void quit()} className="inline-flex items-center gap-1 rounded-full border px-4 py-2"><LogOut className="h-4 w-4"/> Esci</button>
     </div>
    </div>
-   <div className="grid gap-3 sm:grid-cols-4">
+   <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
     {[
-     {icon:Users,label:'Richieste attive',value:String(records.filter(b=>b.status!=='annullata').length)},
+     {icon:Users,label:'Richieste attive',value:String(active.length)},
      {icon:Gift,label:'Offerte indicate',value:money(offered)},
      {icon:Euro,label:'Donazioni ricevute',value:money(paid)},
      {icon:RouteIcon,label:'Visite assegnate',value:String(assigned)},
+     {icon:ShieldCheck,label:'Famiglie che hanno pagato',value:String(actuallyPaid)},
+     {icon:Clock3,label:'Pagamenti in attesa',value:String(awaitingPayment)},
     ].map(k=><article key={k.label} className="glass rounded-2xl p-5">
      <k.icon className="h-5 w-5 text-gold"/><p className="mt-2 font-display text-3xl">{k.value}</p>
      <p className="text-xs text-muted-foreground">{k.label}</p>
