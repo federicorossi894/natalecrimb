@@ -179,19 +179,51 @@ function Babbo(){
    </div>
    {stage==='form'&&<form noValidate onSubmit={review} className="glass-strong mt-7 space-y-5 rounded-[2rem] p-5 shadow-deep sm:p-8">
     <div className="grid gap-4 sm:grid-cols-2">
-     {row('nome','Nome *',{placeholder:'Giulia'})}
-     {row('cognome','Cognome *',{placeholder:'Rossi'})}
+     {row('nome','Nome del genitore *',{placeholder:'Giulia'})}
+     {row('cognome','Cognome del genitore *',{placeholder:'Rossi'})}
      {row('email','Email *',{type:'email',inputMode:'email',placeholder:'nome@esempio.it'})}
      {row('telefono','Telefono *',{type:'tel',inputMode:'tel',placeholder:'333 1234567'})}
     </div>
-    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-     {row('indirizzo','Via e numero civico *',{placeholder:'Via… n. …'})}
-     {row('localita','Comune *',{placeholder:'Monza'})}
-    </div>
-    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-     {row('numeroBambini','Quanti bambini? *',{type:'number',min:1,max:8})}
-     {row('nomiBambini','Nomi dei bambini *',{placeholder:'Anna, Luca'})}
-    </div>
+    <fieldset className="space-y-4 rounded-3xl border border-border/70 bg-background/35 p-4 sm:p-5">
+     <legend className="px-2 font-display text-2xl">Dove arriverà Babbo Natale</legend>
+     <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      {row('indirizzo','Via e numero civico *',{placeholder:'Via… n. …'})}
+      {row('localita','Comune *',{placeholder:'Monza'})}
+     </div>
+     <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+      {row('piano','Piano *',{placeholder:'Terra, 1°, 2°…',maxLength:60})}
+      {row('dettagliAccesso','Citofono, scala, interno, indicazioni utili',{placeholder:'Citofono Rossi, scala B, interno 4…',maxLength:240})}
+     </div>
+     <p className="text-xs leading-relaxed text-muted-foreground">Aiutaci a trovare facilmente la porta giusta, così la sorpresa arriverà al momento perfetto.</p>
+    </fieldset>
+    <fieldset className="space-y-4 rounded-3xl border border-gold/40 bg-gold/5 p-4 sm:p-5">
+     <legend className="px-2 font-display text-2xl">Chi aspetta Babbo Natale?</legend>
+     <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><p className="text-sm font-semibold">Quanti bambini parteciperanno?</p>
+       <p className="mt-1 text-xs text-muted-foreground">Prepareremo una sorpresa per ognuno di loro.</p></div>
+      <div className="flex items-center gap-3 rounded-full border border-gold/40 bg-background px-3 py-2">
+       <button type="button" onClick={()=>setChildrenCount(kids.length-1)} disabled={kids.length<=1}
+        aria-label="Un bambino in meno" className="rounded-full p-1.5 disabled:opacity-30"><Minus className="h-5 w-5"/></button>
+       <strong aria-live="polite" className="min-w-5 text-center text-lg tabular-nums">{kids.length}</strong>
+       <button type="button" onClick={()=>setChildrenCount(kids.length+1)} disabled={kids.length>=8}
+        aria-label="Un bambino in più" className="rounded-full p-1.5 disabled:opacity-30"><Plus className="h-5 w-5"/></button>
+      </div>
+     </div>
+     <div className="space-y-4">{kids.map((child,i)=>
+      <div key={i} className="rounded-2xl border border-gold/25 bg-background/80 p-4">
+       <p className="mb-3 text-sm font-semibold text-gold">{i===0?'Primo bambino':`Bambino ${i+1}`}</p>
+       <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm font-semibold">Nome *<input className={input} value={child.nome} maxLength={60}
+         onChange={e=>updateChild(i,'nome',e.target.value)} placeholder="Anna" required/></label>
+        <label className="text-sm font-semibold">Cognome *<input className={input} value={child.cognome} maxLength={60}
+         onChange={e=>updateChild(i,'cognome',e.target.value)} placeholder="Rossi" required/></label>
+        <label className="text-sm font-semibold">Soprannome (facoltativo)<input className={input} value={child.soprannome} maxLength={40}
+         onChange={e=>updateChild(i,'soprannome',e.target.value)} placeholder="Come lo chiamano in famiglia?"/></label>
+        <label className="text-sm font-semibold">Età *<input className={input} type="number" inputMode="numeric" min={0} max={17} step={1}
+         value={child.eta} onChange={e=>updateChild(i,'eta',e.target.value)} placeholder="6" required/></label>
+       </div>
+      </div>)}</div>
+    </fieldset>
     <fieldset className="rounded-[1.75rem] border border-gold/50 bg-gradient-to-br from-gold/15 via-secondary/60 to-background p-5 sm:p-6">
      <legend className="px-2 text-sm font-semibold text-gold">Il tuo gesto solidale</legend>
      <div className="flex flex-wrap items-center justify-between gap-3">
@@ -228,10 +260,10 @@ function Babbo(){
      </label>}
      <p id="santa-offerta-minima" className="mt-4 text-xs leading-relaxed text-muted-foreground">L'offerta è libera, da {euro(minimum)}. Non viene addebitato nulla quando invii la richiesta.</p>
     </fieldset>
-    <label className="block text-sm font-semibold">Un piccolo segreto per Babbo Natale (facoltativo)
+    <label className="block text-sm font-semibold">Tradizioni di famiglia e informazioni per Babbo Natale (facoltativo)
      <textarea className={input} rows={3} maxLength={500} value={form.note}
       onChange={e=>change('note',e.target.value)}
-      placeholder="Una passione, un ricordo divertente, il suo personaggio preferito… qualcosa che lo farà sorridere!"/>
+      placeholder="Una tradizione di Natale, una passione, un episodio divertente o qualcosa di speciale che Babbo Natale dovrebbe sapere…"/>
     </label>
     <label className="flex items-start gap-3 text-sm">
      <input type="checkbox" checked={form.privacy} onChange={e=>change('privacy',e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]"/>
@@ -247,8 +279,8 @@ function Babbo(){
     <h3 className="mt-3 font-display text-3xl">Famiglia {form.cognome}</h3>
     <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
      {([['Referente',form.nome+' '+form.cognome],['Email',form.email],['Telefono',form.telefono],
-      ['Domicilio',form.indirizzo+', '+form.localita],['Bambini',children.join(', ')],
-      ['Quando','Vigilia, dalle 19:00 a mezzanotte'],['Offerta proposta',euro(amount)],['Note',form.note||'—']] as const).map(([label,val])=>
+      ['Domicilio',[form.indirizzo,form.localita,'Piano '+form.piano,form.dettagliAccesso].filter(Boolean).join(' · ')],['Bambini ('+kids.length+')',children.join(' | ')],
+      ['Quando','Vigilia, dalle 19:00 a mezzanotte'],['Offerta proposta',euro(amount)],['Tradizioni e informazioni',form.note||'—']] as const).map(([label,val])=>
       <div key={label}><dt className="text-xs uppercase tracking-wider text-muted-foreground">{label}</dt><dd className="mt-1 font-semibold">{val}</dd></div>)}
     </dl>
     {error&&<p role="alert" className="mt-4 text-sm text-red-500">{error}</p>}
