@@ -58,6 +58,7 @@ function Babbo(){
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
  const [doneId,setDoneId]=useState('');
+ const [mailState,setMailState]=useState<string|null>(null);
  const [otherAmount,setOtherAmount]=useState(false);
  useEffect(()=>{let alive=true;
   settings().then(s=>{if(!alive)return;
@@ -117,12 +118,14 @@ function Babbo(){
     bambiniDettagli:details(),note:form.note,offertaCents:Math.round(amount*100),
     privacyAcknowledged:true as const,website:'',
    }});
-   setDoneId(result.id);setStage('done');goTop();
+   setDoneId(result.id);
+   setMailState('mailState' in result?result.mailState??null:null);
+   setStage('done');goTop();
   }catch(err){
    setError(err instanceof Error?err.message:'Richiesta non registrata: riprova.');
   }finally{setBusy(false);}
  };
- const again=()=>{setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
+ const again=()=>{setMailState(null);setForm({...empty,offerta:String(minimum)});setKids([blankChild()]);setOtherAmount(false);setRequestId(crypto.randomUUID());setStage('form');setDoneId('');goTop();};
  const row=(key:keyof FormFields,label:string,opts:React.InputHTMLAttributes<HTMLInputElement>={})=>
   <label className="block text-sm font-semibold">{label}
    <input className={input} value={String(form[key])} onChange={e=>change(key,e.target.value)}
@@ -164,10 +167,25 @@ function Babbo(){
      <p className="mt-3 text-base font-semibold text-gold">Offerta libera a partire da {minimum} €.</p>
      <p className="mt-2 text-sm leading-relaxed text-foreground/85">Con la tua offerta sostieni le attività della Croce Rossa di Monza. Scegli tu quanto donare: ogni gesto in più conta.</p>
     </div>
-    <div className="space-y-4 text-sm leading-relaxed text-foreground/85">
-     <p className="flex gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>La sera del 24 dicembre, indicativamente dalle <strong>19:00</strong> a mezzanotte. L’orario esatto arriverà nella mail di conferma.</p>
-     <p className="flex gap-3"><MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>I nostri volontari organizzano le visite nelle diverse zone per portare la magia proprio a casa tua.</p>
-     <p className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>Ora basta la tua richiesta: gli aiutanti ti scriveranno per confermarti la visita, senza alcun pagamento anticipato.</p>
+    <div className="space-y-5 text-sm leading-relaxed text-foreground/90">
+     <div className="rounded-2xl border border-gold/35 bg-black/10 px-4 py-5 sm:px-5">
+      <div className="flex items-start gap-3">
+       <Clock3 aria-hidden="true" className="mt-0.5 h-6 w-6 shrink-0 text-gold"/>
+       <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-gold">La Vigilia · 24 dicembre</p>
+        <p className="mt-2 font-display text-xl leading-snug text-foreground sm:text-2xl">Dalle 19:00 a mezzanotte</p>
+        <p className="mt-2 text-sm leading-relaxed text-foreground/80">Le visite si svolgeranno indicativamente in questa fascia. Riceverai l’orario preciso nella mail di conferma.</p>
+       </div>
+      </div>
+     </div>
+     <div className="flex items-start gap-3">
+      <MapPin aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>
+      <p className="min-w-0 flex-1">I nostri volontari organizzeranno le visite per portare la magia direttamente a casa tua.</p>
+     </div>
+     <div className="flex items-start gap-3">
+      <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>
+      <p className="min-w-0 flex-1">Per ora basta inviare la richiesta: nessun pagamento anticipato. Ti scriveremo per confermare la visita.</p>
+     </div>
     </div>
    </div>
   </section>
@@ -289,6 +307,13 @@ function Babbo(){
     <CheckCircle2 className="mx-auto h-10 w-10 text-gold"/>
     <h3 className="mt-3 font-display text-3xl">Ho ho ho! Il messaggio è arrivato!</h3>
     <p className="mt-3 text-muted-foreground">Gli aiutanti hanno preso nota della vostra sorpresa! Organizzeremo il giro della Vigilia e, appena possibile, ti scriveremo per confermare la visita e comunicarti l’orario esatto.</p>
+    {mailState==='accepted'
+     ?<p role="status" className="mt-4 rounded-xl border border-gold/35 bg-gold/10 p-3 text-sm">La mail di ricezione è stata inviata al servizio di posta. Controlla la tua casella, anche nella cartella spam.</p>
+     :mailState==='suppressed'
+      ?<p role="status" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata. Durante il collaudo, le email partono soltanto verso gli indirizzi di prova autorizzati.</p>
+      :mailState==='failed'||mailState==='uncertain'
+       ?<p role="alert" className="mt-4 rounded-xl border border-gold/35 p-3 text-sm">La richiesta è salvata, ma l’invio della mail non è stato confermato. Non ripetere la prenotazione: per assistenza puoi scrivere a natale@crimonza.org.</p>
+       :null}
     <p className="mt-4 text-xs text-muted-foreground">Riferimento: {doneId.slice(0,8).toUpperCase()}</p>
     <button type="button" onClick={again} className="mt-6 rounded-full border hairline-gold px-6 py-3">Invia un’altra richiesta</button>
    </div>}

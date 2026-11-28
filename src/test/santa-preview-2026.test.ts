@@ -43,7 +43,10 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(page).toContain('Altro importo');
   expect(page).toContain('inputMode="numeric"');
   expect(page).not.toContain("row('offerta'");
-  expect(page).toContain('dalle <strong>19:00</strong> a mezzanotte');
+  expect(page).toContain('Dalle 19:00 a mezzanotte');
+  expect(page).toContain('La Vigilia · 24 dicembre');
+  expect(page).toContain('Riceverai l’orario preciso nella mail di conferma.');
+  expect(page).not.toContain('indicativamente dalle <strong>19:00</strong>');
   expect(page).toContain('santaCreateRequest');
   expect(page).toContain('privacy');
   expect(page).not.toContain('nessuna richiesta viene registrata');
@@ -125,7 +128,14 @@ describe('Babbo Natale — lavagna manuale e richieste DEMO persistenti',()=>{
   expect(publicFn).toContain("requestId");
   expect(publicFn).toContain('privacy_accepted_at');
   expect(sender).toContain("if(b.mode==='demo')");
-  expect(sender).toContain("santa_admin_allowlist");
+  expect(sender).toContain("santa_demo_mail_recipients");
+  expect(sender).not.toContain("db.from('santa_admin_allowlist')");
+  const allowlistSql=readFileSync('drizzle/migrations/0041_santa_demo_mail_recipients.sql','utf8');
+  expect(allowlistSql).toContain('CREATE TABLE IF NOT EXISTS public.santa_demo_mail_recipients');
+  expect(allowlistSql).toContain('ENABLE ROW LEVEL SECURITY');
+  expect(allowlistSql).not.toContain('federico.rossi894@gmail.com');
+  expect(publicFn).toContain('mailState');
+  expect(readFileSync('src/routes/babbo-natale.tsx','utf8')).toContain("mailState==='accepted'");
   expect(adminFn).toContain('santaAdminBoardSave');
   expect(adminFn).toContain('santaAdminLocate');
   expect(adminFn).toContain('verifyPassword(data.password,verifier)');
