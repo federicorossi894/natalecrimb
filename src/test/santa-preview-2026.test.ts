@@ -90,6 +90,6 @@ describe('Babbo Natale 2026 — preview safely gated',()=>{
   expect(route).toContain('santaAdminUpdate');
   expect(route).toContain('SantaRouteMap');
   expect(route).toContain('Scarica Excel');
-  expect(route).toContain("richieste reali");
+  expect(route).toContain("Richieste reali");
  });
 });
