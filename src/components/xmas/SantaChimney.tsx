@@ -173,7 +173,7 @@ export function AutoSantaScene({ mode, className = "" }: { mode: "teaser" | "ful
 const STEPS = [
   { t: "Prepara una sorpresa sulla soglia", d: "La famiglia lascia i regali già incartati appena fuori dalla porta, prima dell’arrivo dei volontari." },
   { t: "Arrivano Babbo Natale e gli aiutanti", d: "La squadra CRI bussa alla porta, recupera i pacchi preparati e li consegna ai bambini." },
-  { t: "La magia si fa a casa", d: "Una visita speciale, fotografie e una mezz’ora da ricordare. Le richieste saranno aperte dopo la conferma delle squadre." },
+  { t: "La magia si fa a casa", d: "Una visita speciale, la consegna dei regali, fotografie e una mezz’ora da ricordare." },
 ];
 
 /** Home storytelling section: a short automatic teaser (Santa lands on the chimney); the full story plays on /babbo-natale. */
@@ -198,7 +198,7 @@ export function SantaChimneySection() {
               <Link to="/babbo-natale" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground shadow-deep transition hover:scale-[1.02]">
                 Scopri la visita di Babbo Natale <ArrowRight className="h-4 w-4" />
               </Link>
-              <span className="text-xs text-muted-foreground">Offerta libera da €{SANTA_CONTRIBUTION_EUR} · richieste non ancora aperte</span>
+              <span className="text-xs text-muted-foreground">Offerta libera a partire da €{SANTA_CONTRIBUTION_EUR}</span>
             </div>
           </div>
           <AutoSantaScene mode="teaser" className="mx-auto aspect-[5/6] w-full max-w-[400px]" />
