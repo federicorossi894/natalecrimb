@@ -83,7 +83,7 @@ export const santaStartCheckout=createServerFn({method:'POST'})
      merchant_code:me.merchant_profile.merchant_code,
      description:'Babbo Natale a domicilio · CRI Monza',
      hosted_checkout:{enabled:true},redirect_url:returnUrl,
-     return_url:origin+'/api/public/santa-sumup-webhook',
+     return_url:origin+'/api/public/sumup-webhook',
     }));
    providerId=checkout.id;checkoutUrl=checkout.hosted_checkout_url;
   }else{
@@ -209,4 +209,23 @@ export async function syncSantaPendingPayments(){
   try{if(await reconcileSantaAttempt(a.id,false)==='paid')paid++;}catch{}
  }
  return {checked:attempts.data?.length??0,paid};
+}
+
+/** Untrusted SumUp notification: do not mark paid from the body. Re-query
+ * the provider with the stored ID and verify amount, currency and reference.
+ */
+export async function handleSantaSumupWebhook(request:Request){
+ const config=await db.from('santa_admin_settings').select('mode,online_checkout_enabled')
+  .eq('singleton',true).single();
+ if(config.data?.mode!=='live'||!config.data.online_checkout_enabled)return;
+ const raw=await request.text();
+ if(raw.length>4096)throw new Error('Notification too large');
+ const payload=z.object({event_type:z.string().max(100),id:z.string().min(1).max(100)})
+  .parse(JSON.parse(raw));
+ if(payload.event_type!=='CHECKOUT_STATUS_CHANGED')return;
+ const attempt=await db.from('santa_payment_attempts').select('id')
+  .eq('provider','sumup').eq('provider_id',payload.id).maybeSingle();
+ if(attempt.error)throw new Error('Santa payment register unavailable');
+ if(!attempt.data)return;
+ await reconcileSantaAttempt(attempt.data.id,false);
 }
