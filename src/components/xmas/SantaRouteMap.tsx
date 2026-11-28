@@ -49,7 +49,7 @@ export function SantaRouteMap({teams}:{teams:SantaTeam[]}){
    const coords:number[][]=[];
    teams.forEach((team,index)=>{
     const valid=team.bookings.filter(hasCoords);
-    const positions=valid.map(b=>[b.lat,b.lon]);
+    const positions=valid.map(b=>[b.lat!,b.lon!]);
     coords.push(...positions);
     if(positions.length>1)L.polyline(positions,{color:colors[index%colors.length],weight:4,opacity:0.8,dashArray:'7 5'}).addTo(map);
     valid.forEach((b)=>{
@@ -58,7 +58,7 @@ export function SantaRouteMap({teams}:{teams:SantaTeam[]}){
      const detail=document.createElement('p');detail.textContent=b.nome+' '+b.cognome+' · '+b.indirizzo;
      detail.style.margin='5px 0 0';
      popup.append(name,detail);
-     L.circleMarker([b.lat,b.lon],{
+     L.circleMarker([b.lat!,b.lon!],{
       radius:10,weight:3,color:'#ffffff',fillColor:colors[index%colors.length],fillOpacity:1,
      }).addTo(map).bindPopup(popup);
     });
