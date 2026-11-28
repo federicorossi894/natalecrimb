@@ -10,7 +10,7 @@ const childName=z.string().trim().min(2).max(60).regex(/^[\p{L}\p{M} .'\-’]+$/
 const childSchema=z.object({
  nome:childName,cognome:childName,
  soprannome:z.string().trim().max(40),
- eta:z.number().int().min(0).max(17),
+ eta:z.number().int().min(0).max(120),
 }).strict();
 const bookingInput=z.object({
  requestId:z.string().uuid(),
