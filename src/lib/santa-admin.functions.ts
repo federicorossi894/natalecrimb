@@ -225,14 +225,18 @@ export const santaAdminConfirmPlanning=createServerFn({method:'POST'})
   const ids=z.array(z.object({booking_id:z.string().uuid()})).parse(result.data??[]).map(x=>x.booking_id);
   const {deliverSantaEmail}=await import('./santa-mail.server');
   const counts={accepted:0,suppressed:0,failed:0,uncertain:0};
-  for(const id of ids){
-   try{
-    const state=await deliverSantaEmail(id,'confirmed');
+  // Four concurrent Gmail requests at most: up to 16 visits without a
+  // long serial request, and atomic outbox claims avoid duplicate sends.
+  for(let i=0;i<ids.length;i+=4){
+   const results=await Promise.allSettled(ids.slice(i,i+4).map(id=>deliverSantaEmail(id,'confirmed')));
+   for(const result of results){
+    if(result.status==='rejected'){counts.failed++;continue;}
+    const state=result.value;
     if(state==='accepted')counts.accepted++;
     else if(state==='suppressed')counts.suppressed++;
     else if(state==='uncertain')counts.uncertain++;
     else counts.failed++;
-   }catch{counts.failed++;}
+   }
   }
   return {confirmed:ids.length,delivery:counts};
  });
