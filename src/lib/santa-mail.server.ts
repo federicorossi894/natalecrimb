@@ -36,10 +36,20 @@ export async function deliverSantaEmail(bookingId:string,kind:Kind):Promise<Resu
   if(allowError)return finish('failed');
   if(!allowed?.enabled)return finish('suppressed');
  }
+ let paymentUrl: string|undefined;
+ if(kind==='confirmed'){
+  const {data:link,error:linkError}=await db.from('santa_payment_links')
+   .select('token').eq('booking_id',b.id).maybeSingle();
+  if(linkError||!link?.token)return finish('failed');
+  const origin=b.mode==='demo'
+   ?'https://id-preview--f6dd90ba-cd6d-4316-8b9b-58f8b12e499e.lovable.app'
+   :'https://natale.crimonza.org';
+  paymentUrl=origin+'/babbo-natale/pagamento?token='+link.token;
+ }
  const mail=kind==='request'
   ?santaRequestEmail({nome:b.nome,quotaOffertaCents:b.quota_offerta_cents})
   :santaConfirmedEmail({nome:b.nome,confirmedTime:b.confirmed_time,
-    indirizzo:b.indirizzo,localita:b.localita,piano:b.piano,dettagliAccesso:b.dettagli_accesso});
+    indirizzo:b.indirizzo,localita:b.localita,piano:b.piano,dettagliAccesso:b.dettagli_accesso},paymentUrl);
  const key=process.env['GOOGLE_MAIL_API_KEY_1'];
  const auth=process.env['LOVABLE_API_KEY'];
  if(!key||!auth)return finish('failed');
