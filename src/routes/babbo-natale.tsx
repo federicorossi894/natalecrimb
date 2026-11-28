@@ -171,7 +171,42 @@ function Babbo(){
      {row('numeroBambini','Quanti bambini? *',{type:'number',min:1,max:8})}
      {row('nomiBambini','Nomi dei bambini *',{placeholder:'Anna, Luca'})}
     </div>
-    {row('offerta','La tua offerta libera (€) *',{type:'number',min:minimum,max:1000,step:1})}
+    <fieldset className="rounded-[1.75rem] border border-gold/50 bg-gradient-to-br from-gold/15 via-secondary/60 to-background p-5 sm:p-6">
+     <legend className="px-2 text-sm font-semibold text-gold">Il tuo gesto solidale</legend>
+     <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2"><Heart className="h-5 w-5 text-gold"/><span className="text-sm font-semibold">La tua offerta</span></div>
+      <strong aria-live="polite" aria-atomic="true" className="font-display text-4xl tabular-nums text-gold">{Number.isFinite(amount)?euro(amount):'—'}</strong>
+     </div>
+     <p className="mt-3 text-sm leading-relaxed text-foreground/80">Si parte da {euro(minimum)}. Se desideri, puoi aggiungere un po' di solidarietà con un semplice tocco.</p>
+     <div role="group" aria-label="Scegli l'importo dell'offerta" className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+      {suggestedAmounts.map(n=><button key={n} type="button" onClick={()=>selectAmount(n)}
+       aria-pressed={amount===n&&!otherAmount}
+       className={amount===n&&!otherAmount?
+        "rounded-2xl border border-gold bg-gold px-2 py-3 text-base font-bold tabular-nums text-accent-foreground shadow-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold":
+        "rounded-2xl border border-gold/40 bg-background/75 px-2 py-3 text-base font-bold tabular-nums text-foreground transition hover:border-gold hover:bg-gold/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"}>
+       {euro(n)}
+      </button>)}
+     </div>
+     <div className="mt-4 flex flex-wrap items-center gap-2">
+      <button type="button" onClick={()=>nudgeAmount(-10)} disabled={amount<=minimum}
+       aria-label="Diminuisci l'offerta di dieci euro"
+       className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Minus className="h-4 w-4"/> 10 €</button>
+      <button type="button" onClick={()=>nudgeAmount(10)} disabled={amount>=1000}
+       aria-label="Aumenta l'offerta di dieci euro"
+       className="inline-flex items-center gap-1 rounded-full border border-gold bg-background px-4 py-2.5 text-sm font-semibold disabled:opacity-35"><Plus className="h-4 w-4"/> 10 €</button>
+      <button type="button" onClick={()=>setOtherAmount(v=>!v)}
+       aria-expanded={otherAmount}
+       className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold"><Pencil className="h-4 w-4"/> Altro importo</button>
+     </div>
+     {otherAmount&&<label className="mt-4 block text-sm font-semibold" htmlFor="santa-offerta-libera">
+      Inserisci l'importo che preferisci (€)
+      <input id="santa-offerta-libera" className={input} type="number" inputMode="numeric"
+       min={minimum} max={1000} step={1} value={form.offerta}
+       onChange={e=>change('offerta',e.target.value)} onFocus={e=>e.currentTarget.select()}
+       aria-describedby="santa-offerta-minima"/>
+     </label>}
+     <p id="santa-offerta-minima" className="mt-4 text-xs leading-relaxed text-muted-foreground">L'offerta è libera, da {euro(minimum)}. Non viene addebitato nulla quando invii la richiesta.</p>
+    </fieldset>
     <label className="block text-sm font-semibold">Un piccolo segreto per Babbo Natale (facoltativo)
      <textarea className={input} rows={3} maxLength={500} value={form.note}
       onChange={e=>change('note',e.target.value)}
