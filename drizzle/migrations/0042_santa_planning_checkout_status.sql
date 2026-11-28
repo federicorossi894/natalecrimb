@@ -44,6 +44,49 @@ BEGIN
  END LOOP;
 END $security$;
 
+-- Idempotency: the same booking/provider never produces a second
+-- checkout until the original payment is authoritatively reconciled.
+CREATE UNIQUE INDEX IF NOT EXISTS santa_payment_one_provider
+ ON public.santa_payment_attempts(booking_id,provider);
+CREATE OR REPLACE FUNCTION public.santa_claim_capture(_attempt uuid)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+DECLARE claimed boolean;
+BEGIN
+ UPDATE public.santa_payment_attempts SET capture_claimed_at=now()
+ WHERE id=_attempt AND provider='paypal' AND status='pending'
+  AND capture_claimed_at IS NULL RETURNING true INTO claimed;
+ RETURN coalesce(claimed,false);
+END $;
+REVOKE ALL ON FUNCTION public.santa_claim_capture(uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.santa_claim_capture(uuid) TO service_role;
+
+-- This entrypoint accepts trusted provider evidence only from the server
+-- service-role and refuses amount, currency or checkout-identity mismatches.
+CREATE OR REPLACE FUNCTION public.santa_settle_online_payment(
+ _attempt uuid,_provider_id text,_payment_id text,_amount_cents integer,_currency text
+) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+DECLARE a record; b record; existing boolean;
+BEGIN
+ IF _currency<>'EUR' THEN RAISE EXCEPTION 'Currency mismatch'; END IF;
+ SELECT * INTO a FROM public.santa_payment_attempts WHERE id=_attempt FOR UPDATE;
+ IF a.id IS NULL OR a.status NOT IN ('pending','paid') OR
+    a.provider_id<>_provider_id OR a.amount_cents<>_amount_cents OR length(_payment_id)<3
+ THEN RAISE EXCEPTION 'Payment evidence mismatch'; END IF;
+ SELECT * INTO b FROM public.santa_bookings WHERE id=a.booking_id FOR UPDATE;
+ IF b.id IS NULL OR b.mode<>'live' OR b.status<>'confermata'
+  OR b.quota_offerta_cents<>_amount_cents
+ THEN RAISE EXCEPTION 'Booking mismatch'; END IF;
+ IF a.status='paid' AND a.provider_payment_id=_payment_id THEN RETURN true; END IF;
+ IF b.payment_state IN ('pagato_online','pagato_bonifico')
+ THEN RAISE EXCEPTION 'Booking already paid'; END IF;
+ UPDATE public.santa_payment_attempts SET status='paid',provider_payment_id=_payment_id,updated_at=now() WHERE id=_attempt;
+ UPDATE public.santa_bookings SET payment_state='pagato_online',payment_method=a.provider,
+  quota_incassata_cents=_amount_cents,paid_at=now(),payment_reference=_payment_id WHERE id=b.id;
+ RETURN true;
+END $;
+REVOKE ALL ON FUNCTION public.santa_settle_online_payment(uuid,text,text,integer,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.santa_settle_online_payment(uuid,text,text,integer,text) TO service_role;
+
 -- An ordinary press of "Confirm planning" schedules no real transfer:
 -- it atomically allocates an hour, generates a private payment link,
 -- creates the email intents and closes intake. Only the caller
