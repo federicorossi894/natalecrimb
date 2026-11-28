@@ -191,7 +191,7 @@ function Babbo(){
      </div>
      <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
       {row('piano','Piano *',{placeholder:'Terra, 1°, 2°…',maxLength:60})}
-      {row('dettagliAccesso','Citofono, scala, interno, indicazioni utili',{placeholder:'Citofono Rossi, scala B, interno 4…',maxLength:240})}
+      {row('dettagliAccesso','Citofono, scala, interno, indicazioni utili',{placeholder:'Citofono Rossi, scala B, interno 4…',maxLength:240,required:false})}
      </div>
      <p className="text-xs leading-relaxed text-muted-foreground">Aiutaci a trovare facilmente la porta giusta, così la sorpresa arriverà al momento perfetto.</p>
     </fieldset>
