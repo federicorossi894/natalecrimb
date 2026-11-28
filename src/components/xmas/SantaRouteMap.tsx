@@ -32,8 +32,8 @@ function loadLeaflet():Promise<Leaflet>{
 }
 function houseIcon(L:Leaflet,color:string,position:number|null){
  const bg=color==='white'?'#ffffff':color;
- const label=position===null?'':\`<small style="position:absolute;top:-6px;right:-6px;border-radius:50%;background:#173d30;color:white;min-width:17px;height:17px;text-align:center;font:700 11px Arial;line-height:17px;">\${position}</small>\`;
- const html=\`<span aria-hidden="true" style="position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:\${bg};border:2px solid #fff;border-radius:11px;box-shadow:0 1px 9px #0004;font-size:20px;">🏠\${label}</span>\`;
+ const label=position===null?'':`<small style="position:absolute;top:-6px;right:-6px;border-radius:50%;background:#173d30;color:white;min-width:17px;height:17px;text-align:center;font:700 11px Arial;line-height:17px;">${position}</small>`;
+ const html=`<span aria-hidden="true" style="position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:${bg};border:2px solid #fff;border-radius:11px;box-shadow:0 1px 9px #0004;font-size:20px;">🏠${label}</span>`;
  return L.divIcon({html,className:'santa-house-pin',iconSize:[36,36],iconAnchor:[18,18]});
 }
 export function SantaRouteMap({bookings}:{bookings:SantaBooking[]}){
