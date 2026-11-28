@@ -17,7 +17,7 @@ const childSchema=z.object({
  nome:z.string().trim().min(2).max(60),
  cognome:z.string().trim().min(2).max(60),
  soprannome:z.string().trim().max(40),
- eta:z.number().int().min(0).max(17),
+ eta:z.number().int().min(0).max(120),
 }).strict();
 function csrf(){
  if(!santaOriginAllowed(getRequestHeader('origin')??null))
