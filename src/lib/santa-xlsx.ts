@@ -3,6 +3,7 @@
  * No spreadsheet content is uploaded to third-party services.
  */
 import type {SantaBooking,SantaTeam} from './santa-planner';
+import {santaVisitTime} from './santa-planner';
 import {santaChildrenLines} from './santa-family';
 const utf8=new TextEncoder();
 const escapeXml=(s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -51,29 +52,29 @@ const headers=[
  'ID richiesta','Stato','Nome genitore','Cognome genitore','Email','Telefono',
  'Indirizzo','Comune','Piano','Citofono, scala, interno',
  'Numero figli','Figli (nome, cognome, soprannome, età)','Tradizioni e informazioni',
- 'Offerta proposta (€)','Incassato (€)','Squadra','Ordine visita','Orario definitivo','Coordinate','Origine'
+ 'Offerta proposta (€)','Incassato (€)','Stato pagamento','Metodo pagamento','Squadra','Ordine visita','Orario visita','Coordinate','Origine'
 ];
 const euro=(x:number)=>(x/100).toFixed(2);
 const row=(b:SantaBooking):Array<string|number>=>
  [b.id,b.status,b.nome,b.cognome,b.email,b.telefono,b.indirizzo,b.localita,
  b.piano??'',b.dettagliAccesso??'',
  santaChildrenLines(b).length,santaChildrenLines(b).join(' | '),b.note,
- euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),
- b.squadra??'',b.teamPosition??'',b.confirmedTime??'',
+ euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),b.paymentState??'non_richiesto',b.paymentMethod??'',
+ b.squadra??'',b.teamPosition??'',b.confirmedTime??santaVisitTime(b.teamPosition)??'',
  b.lat!==null&&b.lon!==null?b.lat+','+b.lon:'',b.mode];
 export function santaXlsx(bookings:SantaBooking[],teams:SantaTeam[]){
  if(bookings.length>400)throw new Error('Esportazione troppo grande.');
  const sheets=[{name:'Tutte le richieste',data:sheet(headers,bookings.map(row))}];
  for(const team of teams){
-  const th=['Tappa','Orario definitivo','Genitore','Telefono','Indirizzo',
+  const th=['Tappa','Orario visita','Genitore','Telefono','Indirizzo',
    'Comune','Piano','Citofono / scala / interno','Email','Numero figli',
    'Figli (nome, cognome, soprannome, età)','Tradizioni e informazioni',
-   'Offerta proposta (€)','Incassato (€)','Stato','ID richiesta','Link Maps'];
+   'Offerta proposta (€)','Incassato (€)','Stato','Stato pagamento','ID richiesta','Link Maps'];
   const rows=team.bookings.map((b,i)=>[
-   b.teamPosition??i+1,b.confirmedTime??'',b.nome+' '+b.cognome,b.telefono,
+   b.teamPosition??i+1,b.confirmedTime??santaVisitTime(b.teamPosition)??'',b.nome+' '+b.cognome,b.telefono,
    b.indirizzo,b.localita,b.piano??'',b.dettagliAccesso??'',b.email,
    santaChildrenLines(b).length,santaChildrenLines(b).join(' | '),b.note,
-   euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),b.status,b.id,
+   euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),b.status,b.paymentState??'non_richiesto',b.id,
    b.lat!==null&&b.lon!==null
     ?'https://www.google.com/maps/search/?api=1&query='+b.lat+','+b.lon:''
   ] as Array<string|number>);

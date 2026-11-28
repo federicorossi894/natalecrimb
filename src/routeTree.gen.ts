@@ -15,6 +15,7 @@ import { Route as AlberoLiveRouteImport } from './routes/albero-live'
 import { Route as AuguriRouteImport } from './routes/auguri'
 import { Route as BabboNataleRouteImport } from './routes/babbo-natale'
 import { Route as BabboNataleOrganizzatoriRouteImport } from './routes/babbo-natale.organizzatori'
+import { Route as BabboNatalePagamentoRouteImport } from './routes/babbo-natale.pagamento'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CasettaRouteImport } from './routes/casetta'
 import { Route as CassaRouteImport } from './routes/cassa'
@@ -69,6 +70,11 @@ const BabboNataleRoute = BabboNataleRouteImport.update({
 const BabboNataleOrganizzatoriRoute = BabboNataleOrganizzatoriRouteImport.update({
   id: '/babbo-natale/organizzatori',
   path: '/babbo-natale/organizzatori',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BabboNatalePagamentoRoute = BabboNatalePagamentoRouteImport.update({
+  id: '/babbo-natale/pagamento',
+  path: '/babbo-natale/pagamento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarioRoute = CalendarioRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
   '/babbo-natale/organizzatori': typeof BabboNataleOrganizzatoriRoute
+  '/babbo-natale/pagamento': typeof BabboNatalePagamentoRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/cassa': typeof CassaRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
   '/babbo-natale/organizzatori': typeof BabboNataleOrganizzatoriRoute
+  '/babbo-natale/pagamento': typeof BabboNatalePagamentoRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/cassa': typeof CassaRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/auguri': typeof AuguriRoute
   '/babbo-natale': typeof BabboNataleRoute
   '/babbo-natale/organizzatori': typeof BabboNataleOrganizzatoriRoute
+  '/babbo-natale/pagamento': typeof BabboNatalePagamentoRoute
   '/calendario': typeof CalendarioRoute
   '/casetta': typeof CasettaRoute
   '/cassa': typeof CassaRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/auguri'
     | '/babbo-natale'
     | '/babbo-natale/organizzatori'
+    | '/babbo-natale/pagamento'
     | '/calendario'
     | '/casetta'
     | '/cassa'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/auguri'
     | '/babbo-natale'
     | '/babbo-natale/organizzatori'
+    | '/babbo-natale/pagamento'
     | '/calendario'
     | '/casetta'
     | '/cassa'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/auguri'
     | '/babbo-natale'
     | '/babbo-natale/organizzatori'
+    | '/babbo-natale/pagamento'
     | '/calendario'
     | '/casetta'
     | '/cassa'
@@ -409,6 +421,7 @@ export interface RootRouteChildren {
   AuguriRoute: typeof AuguriRoute
   BabboNataleRoute: typeof BabboNataleRoute
   BabboNataleOrganizzatoriRoute: typeof BabboNataleOrganizzatoriRoute
+  BabboNatalePagamentoRoute: typeof BabboNatalePagamentoRoute
   CalendarioRoute: typeof CalendarioRoute
   CasettaRoute: typeof CasettaRoute
   CassaRoute: typeof CassaRoute
@@ -478,6 +491,13 @@ declare module '@tanstack/react-router' {
       path: '/babbo-natale/organizzatori'
       fullPath: '/babbo-natale/organizzatori'
       preLoaderRoute: typeof BabboNataleOrganizzatoriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/babbo-natale/pagamento': {
+      id: '/babbo-natale/pagamento'
+      path: '/babbo-natale/pagamento'
+      fullPath: '/babbo-natale/pagamento'
+      preLoaderRoute: typeof BabboNatalePagamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendario': {
@@ -665,6 +685,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuguriRoute: AuguriRoute,
   BabboNataleRoute: BabboNataleRoute,
   BabboNataleOrganizzatoriRoute: BabboNataleOrganizzatoriRoute,
+  BabboNatalePagamentoRoute: BabboNatalePagamentoRoute,
   CalendarioRoute: CalendarioRoute,
   CasettaRoute: CasettaRoute,
   CassaRoute: CassaRoute,

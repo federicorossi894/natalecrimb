@@ -87,13 +87,13 @@ const rowSchema=z.object({
  piano:z.string().nullable(),dettagli_accesso:z.string().nullable(),
  bambini:z.array(z.string()),bambini_dettagli:z.array(childSchema).nullable(),
  note:z.string(),
- quota_offerta_cents:z.number(),quota_incassata_cents:z.number(),
+ quota_offerta_cents:z.number(),quota_incassata_cents:z.number(),payment_state:z.enum(['non_richiesto','da_pagare','in_verifica','pagato_online','pagato_bonifico']),payment_method:z.string().nullable(),
  squadra:z.enum(teams).nullable(),team_position:z.number().nullable(),
  confirmed_time:z.string().nullable(),status:z.enum(statuses),
  latitude:z.number().nullable(),longitude:z.number().nullable(),
  geocode_status:z.enum(['pending','located','approximate','unavailable']),
 }).passthrough();
-const fields='id,mode,nome,cognome,email,telefono,indirizzo,localita,piano,dettagli_accesso,bambini,bambini_dettagli,note,quota_offerta_cents,quota_incassata_cents,squadra,team_position,confirmed_time,status,latitude,longitude,geocode_status';
+const fields='id,mode,nome,cognome,email,telefono,indirizzo,localita,piano,dettagli_accesso,bambini,bambini_dettagli,note,quota_offerta_cents,quota_incassata_cents,payment_state,payment_method,squadra,team_position,confirmed_time,status,latitude,longitude,geocode_status';
 function toBooking(r:z.infer<typeof rowSchema>):SantaBooking{
  return {
   id:r.id,mode:r.mode as SantaMode,nome:r.nome,cognome:r.cognome,email:r.email,
@@ -101,19 +101,19 @@ function toBooking(r:z.infer<typeof rowSchema>):SantaBooking{
   piano:r.piano,dettagliAccesso:r.dettagli_accesso,
   bambini:r.bambini,bambiniDettagli:r.bambini_dettagli,
   note:r.note,quotaOffertaCents:r.quota_offerta_cents,
-  quotaIncassataCents:r.quota_incassata_cents,squadra:r.squadra as SantaTeamId|null,
+  quotaIncassataCents:r.quota_incassata_cents,paymentState:r.payment_state,paymentMethod:r.payment_method,squadra:r.squadra as SantaTeamId|null,
   teamPosition:r.team_position,confirmedTime:r.confirmed_time,
   status:r.status as SantaStatus,lat:r.latitude,lon:r.longitude,
   geocodeStatus:r.geocode_status,
  };
 }
 export type SantaAdminOverview={
- bookings:SantaBooking[];version:number;mode:SantaMode;requestsOpen:boolean;
+ bookings:SantaBooking[];version:number;mode:SantaMode;requestsOpen:boolean;planningConfirmed:boolean;
 };
 export const santaAdminList=createServerFn({method:'POST'}).handler(async():Promise<SantaAdminOverview>=>{
  csrf();await currentAdmin();
  const db=await adminDb();
- const config=await db.from('santa_admin_settings').select('mode,board_version,requests_open')
+ const config=await db.from('santa_admin_settings').select('mode,board_version,requests_open,planning_confirmed_at')
   .eq('singleton',true).single();
  if(config.error||!config.data)throw new Error('Servizio non disponibile.');
  const rows=await db.from('santa_bookings').select(fields)
@@ -121,7 +121,7 @@ export const santaAdminList=createServerFn({method:'POST'}).handler(async():Prom
  if(rows.error)throw new Error('Impossibile caricare le richieste.');
  return {bookings:z.array(rowSchema).parse(rows.data??[]).map(toBooking),
   version:Number(config.data.board_version),mode:config.data.mode as SantaMode,
-  requestsOpen:Boolean(config.data.requests_open)};
+  requestsOpen:Boolean(config.data.requests_open),planningConfirmed:!!config.data.planning_confirmed_at};
 });
 const boardSchema=z.object({
  version:z.number().int().min(0),
@@ -157,9 +157,9 @@ const detailsSchema=z.object({
   bambiniDettagli:z.array(childSchema).min(1).max(8).nullable().optional(),
   note:z.string().max(500).optional(),
   quotaOffertaCents:z.number().int().min(3000).max(100000).optional(),
-  quotaIncassataCents:z.number().int().min(0).max(100000).optional(),
-  confirmedTime:time.nullable().optional(),
-  status:z.enum(statuses).optional(),
+  // Payment totals and confirmation are NEVER editable as arbitrary booking fields.
+  // Online status requires provider evidence, and confirmation is bulk-only.
+
   lat:z.number().min(-90).max(90).nullable().optional(),
   lon:z.number().min(-180).max(180).nullable().optional(),
  }).strict(),
@@ -168,14 +168,14 @@ const columns:Record<string,string>={
  nome:'nome',cognome:'cognome',email:'email',telefono:'telefono',
  indirizzo:'indirizzo',localita:'localita',piano:'piano',dettagliAccesso:'dettagli_accesso',
  bambini:'bambini',bambiniDettagli:'bambini_dettagli',note:'note',
- quotaOffertaCents:'quota_offerta_cents',quotaIncassataCents:'quota_incassata_cents',
- confirmedTime:'confirmed_time',status:'status',lat:'latitude',lon:'longitude',
+ quotaOffertaCents:'quota_offerta_cents',lat:'latitude',lon:'longitude',
 };
 export const santaAdminUpdate=createServerFn({method:'POST'})
  .inputValidator(d=>detailsSchema.parse(d)).handler(async({data}):Promise<SantaBooking>=>{
   csrf();const actor=await currentAdmin(),db=await adminDb();
-  const config=await db.from('santa_admin_settings').select('mode').eq('singleton',true).single();
+  const config=await db.from('santa_admin_settings').select('mode,planning_confirmed_at').eq('singleton',true).single();
   if(!config.data)throw new Error('Servizio non disponibile.');
+  if(config.data.planning_confirmed_at)throw new Error('Planning confermato: le modifiche richiedono la gestione del coordinatore.');
   const patch:Record<string,unknown>={};
   for(const [key,value] of Object.entries(data.patch))if(value!==undefined)patch[columns[key]!]=value;
   if(!Object.keys(patch).length)throw new Error('Nessuna modifica.');
@@ -186,11 +186,7 @@ export const santaAdminUpdate=createServerFn({method:'POST'})
   const before=await db.from('santa_bookings').select('status,squadra,team_position,confirmed_time,indirizzo,localita')
    .eq('id',data.id).eq('mode',config.data.mode).maybeSingle();
   if(!before.data)throw new Error('Richiesta non trovata.');
-  const status=patch['status']??before.data.status;
-  const confirmedTime=patch['confirmed_time']===undefined?before.data.confirmed_time:patch['confirmed_time'];
-  if((status==='confermata'||status==='completata')&&(!before.data.squadra||
-    !before.data.team_position||!confirmedTime))
-    throw new Error('Prima assegna una squadra, poi inserisci l’orario definitivo.');
+  const status=before.data.status;
   if(patch['indirizzo']!==undefined||patch['localita']!==undefined){
    patch['latitude']=null;patch['longitude']=null;patch['geocode_status']='pending';
   }
@@ -205,10 +201,6 @@ export const santaAdminUpdate=createServerFn({method:'POST'})
    const {locateSantaBooking}=await import('./santa-geocode.server');
    await locateSantaBooking(data.id);
   }
-  if(before.data.status!=='confermata'&&status==='confermata'){
-   const {deliverSantaEmail}=await import('./santa-mail.server');
-   await deliverSantaEmail(data.id,'confirmed');
-  }
   const reread=await db.from('santa_bookings').select(fields).eq('id',data.id).single();
   return toBooking(rowSchema.parse(reread.data??res.data));
  });
@@ -219,3 +211,55 @@ export const santaAdminLocate=createServerFn({method:'POST'})
   const {locateSantaBooking}=await import('./santa-geocode.server');
   return {located:await locateSantaBooking(data.id)};
  });
+
+/** Confirm all teams in one DB transaction, then send each family once.
+ * Frontend requires an explicit second click. Confirmations never issue payment
+ * captures and demo emails only go to the test-recipient allowlist.
+ */
+export const santaAdminConfirmPlanning=createServerFn({method:'POST'})
+ .inputValidator(d=>z.object({version:z.number().int().min(0)}).strict().parse(d))
+ .handler(async({data})=>{
+  csrf();const actor=await currentAdmin(),db=await adminDb();
+  const result=await db.rpc('santa_confirm_planning',{_actor:actor,_expected:data.version});
+  if(result.error)throw new Error(result.error.message||'Planning non confermabile: verifica le squadre.');
+  const ids=z.array(z.object({booking_id:z.string().uuid()})).parse(result.data??[]).map(x=>x.booking_id);
+  const {deliverSantaEmail}=await import('./santa-mail.server');
+  const counts={accepted:0,suppressed:0,failed:0,uncertain:0};
+  // Four concurrent Gmail requests at most: up to 16 visits without a
+  // long serial request, and atomic outbox claims avoid duplicate sends.
+  for(let i=0;i<ids.length;i+=4){
+   const results=await Promise.allSettled(ids.slice(i,i+4).map(id=>deliverSantaEmail(id,'confirmed')));
+   for(const result of results){
+    if(result.status==='rejected'){counts.failed++;continue;}
+    const state=result.value;
+    if(state==='accepted')counts.accepted++;
+    else if(state==='suppressed')counts.suppressed++;
+    else if(state==='uncertain')counts.uncertain++;
+    else counts.failed++;
+   }
+  }
+  return {confirmed:ids.length,delivery:counts};
+ });
+export const santaAdminCancelBooking=createServerFn({method:'POST'})
+ .inputValidator(d=>z.object({id:z.string().uuid()}).strict().parse(d))
+ .handler(async({data})=>{
+  csrf();const actor=await currentAdmin();
+  const result=await(await adminDb()).rpc('santa_cancel_booking',{_actor:actor,_id:data.id});
+  if(result.error)throw new Error(result.error.message||'Impossibile eliminare la richiesta.');
+  return {ok:true as const};
+ });
+export const santaAdminRecordTransfer=createServerFn({method:'POST'})
+ .inputValidator(d=>z.object({id:z.string().uuid(),reference:z.string().trim().min(3).max(150)}).strict().parse(d))
+ .handler(async({data})=>{
+  csrf();const actor=await currentAdmin();
+  const result=await(await adminDb()).rpc('santa_record_bank_transfer',
+   {_actor:actor,_id:data.id,_reference:data.reference});
+  if(result.error)throw new Error('Bonifico non registrato: controlla che sia stato effettivamente accreditato.');
+  return {ok:true as const};
+ });
+
+export const santaAdminSyncPayments=createServerFn({method:'POST'}).handler(async()=>{
+ csrf();await currentAdmin();
+ const {syncSantaPendingPayments}=await import('./santa-payment.functions');
+ return syncSantaPendingPayments();
+});

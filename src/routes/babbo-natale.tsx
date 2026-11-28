@@ -43,7 +43,7 @@ const faq=[
  ['Come devo preparare i regali?','Bastano i pacchi già incartati. Poco prima dell’orario concordato, sistemali appena fuori dalla porta in un punto sicuro: i volontari li prenderanno prima di suonare il campanello.'],
  ['Quando arriverà Babbo Natale?','La sorpresa è prevista per la sera della Vigilia, indicativamente dalle 19:00 a mezzanotte. L’orario della tua visita sarà comunicato nella mail di conferma.'],
  ['La richiesta vale già come prenotazione?','L’invio della richiesta è il primo passo: riceverai una mail che ne conferma la ricezione. Quando avremo organizzato i giri, ti scriveremo nuovamente per confermare la visita e l’orario.'],
- ['Come funziona l’offerta?','L’offerta è libera, a partire da 30 € per famiglia. Se vuoi, puoi scegliere di donare di più: ogni contributo sostiene le attività solidali della Croce Rossa di Monza. Non è previsto alcun addebito quando invii la richiesta.'],
+ ['Come funziona l’offerta?','L’offerta è libera, a partire da 30 € per famiglia. Dopo la conferma della visita potrai versare il contributo in anticipo, preferibilmente online con PayPal o carta (anche tramite wallet digitale, quando disponibile), oppure con bonifico. Al momento della richiesta non paghi nulla.'],
 ];
 const input='mt-2 w-full rounded-2xl border border-border bg-background/85 px-4 py-3 text-base text-foreground outline-offset-2 focus:outline focus:outline-gold';
 const euro=(n:number)=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
@@ -90,6 +90,20 @@ function Babbo(){
  const suggestedAmounts=[minimum,minimum+10,minimum+20,minimum+45,minimum+70].filter(n=>n<=1000);
  const selectAmount=(n:number)=>{change('offerta',String(n));setOtherAmount(false);};
  const goTop=()=>document.getElementById('richiesta')?.scrollIntoView({behavior:'smooth',block:'start'});
+ // Scroll after React actually commits the new panel. On mobile the previous
+ // immediate scroll ran while the long form was still mounted, leaving the
+ // summary BELOW the viewport after the form collapsed.
+ useEffect(()=>{
+  if(stage!=='review'&&stage!=='done')return;
+  const frame=requestAnimationFrame(()=>{
+   const target=document.getElementById('santa-'+stage);
+   if(!target)return;
+   const top=window.scrollY+target.getBoundingClientRect().top-90;
+   window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+   target.focus({preventScroll:true});
+  });
+  return()=>cancelAnimationFrame(frame);
+ },[stage]);
  const validate=()=>{
   if(!form.nome.trim()||!form.cognome.trim()||!form.email.includes('@')||
    !form.telefono.trim()||form.indirizzo.trim().length<6||!form.localita.trim()||!form.piano.trim()){
@@ -106,7 +120,7 @@ function Babbo(){
   if(!form.privacy){setError('Prima di proseguire, conferma di aver letto l’informativa sulla privacy.');return false;}
   setError('');return true;
  };
- const review=(e:FormEvent)=>{e.preventDefault();if(validate()){setStage('review');goTop();}};
+ const review=(e:FormEvent)=>{e.preventDefault();if(validate())setStage('review');};
  const confirm=async()=>{
   if(!config?.requestsOpen||busy||!validate())return;
   setBusy(true);setError('');
@@ -120,7 +134,7 @@ function Babbo(){
    }});
    setDoneId(result.id);
    setMailState('mailState' in result?result.mailState??null:null);
-   setStage('done');goTop();
+   setStage('done');
   }catch(err){
    setError(err instanceof Error?err.message:'Richiesta non registrata: riprova.');
   }finally{setBusy(false);}
@@ -184,7 +198,7 @@ function Babbo(){
      </div>
      <div className="flex items-start gap-3">
       <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>
-      <p className="min-w-0 flex-1">Per ora basta inviare la richiesta: nessun pagamento anticipato. Ti scriveremo per confermare la visita.</p>
+      <p className="min-w-0 flex-1">Per prenotare basta inviare la richiesta. Il contributo sarà versato in anticipo, solo dopo la conferma della visita: ti invieremo il link per pagare online o le indicazioni per il bonifico.</p>
      </div>
     </div>
    </div>
@@ -192,7 +206,7 @@ function Babbo(){
   <section id="richiesta" className="mx-auto mt-16 max-w-3xl scroll-mt-28 px-4">
    <div className="text-center"><p className="text-xs uppercase tracking-widest text-gold">Facci conoscere la tua famiglia</p>
     <h2 className="mt-2 font-display text-4xl">Prepariamo insieme la sorpresa</h2>
-    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Raccontaci chi aspetterà Babbo Natale e dove raggiungervi. Una prima email ti dirà che la richiesta è arrivata; gli aiutanti ti scriveranno di nuovo con la conferma e l’orario della visita.</p>
+    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Raccontaci chi aspetterà Babbo Natale e dove raggiungervi. Ti scriveremo subito per confermare la ricezione della richiesta e, quando avremo organizzato i giri, riceverai l’orario e le indicazioni per versare il contributo in anticipo.</p>
    </div>
    {stage==='form'&&<form noValidate onSubmit={review} className="glass-strong mt-7 space-y-5 rounded-[2rem] p-5 shadow-deep sm:p-8">
     <div className="grid gap-4 sm:grid-cols-2">
@@ -271,7 +285,7 @@ function Babbo(){
        onChange={e=>change('offerta',e.target.value)} onFocus={e=>e.currentTarget.select()}
        aria-describedby="santa-offerta-minima"/>
      </label>}
-     <p id="santa-offerta-minima" className="mt-4 text-xs leading-relaxed text-muted-foreground">L'offerta è libera, da {euro(minimum)}. Non viene addebitato nulla quando invii la richiesta.</p>
+     <p id="santa-offerta-minima" className="mt-4 text-xs leading-relaxed text-muted-foreground">L'offerta è libera, da {euro(minimum)}. Il pagamento anticipato si effettua soltanto dopo che la visita è stata confermata: preferibilmente dal sito, oppure con bonifico.</p>
     </fieldset>
     <label className="block text-sm font-semibold">Tradizioni di famiglia e informazioni per Babbo Natale (facoltativo)
      <textarea className={input} rows={3} maxLength={500} value={form.note}
@@ -287,7 +301,7 @@ function Babbo(){
      className="w-full rounded-full bg-primary py-4 text-base font-bold text-primary-foreground disabled:opacity-50">Vai al riepilogo</button>
     {config&&!config.requestsOpen&&<p className="text-center text-sm text-muted-foreground">Le richieste saranno aperte a breve.</p>}
    </form>}
-   {stage==='review'&&<div className="glass-strong mt-7 rounded-[2rem] p-6 shadow-deep sm:p-8">
+   {stage==='review'&&<div id="santa-review" tabIndex={-1} className="glass-strong mt-7 scroll-mt-24 rounded-[2rem] p-6 shadow-deep outline-none sm:p-8">
     <p className="text-xs font-bold uppercase tracking-widest text-gold">Il riepilogo della sorpresa</p>
     <h3 className="mt-3 font-display text-3xl">Famiglia {form.cognome}</h3>
     <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
@@ -303,7 +317,7 @@ function Babbo(){
       className="rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground disabled:opacity-50">{busy?'Registrazione…':'Invia la richiesta'}</button>
     </div>
    </div>}
-   {stage==='done'&&<div className="glass-strong mt-7 rounded-[2rem] p-8 text-center shadow-deep">
+   {stage==='done'&&<div id="santa-done" tabIndex={-1} className="glass-strong mt-7 scroll-mt-24 rounded-[2rem] p-8 text-center shadow-deep outline-none">
     <CheckCircle2 className="mx-auto h-10 w-10 text-gold"/>
     <h3 className="mt-3 font-display text-3xl">Ho ho ho! Il messaggio è arrivato!</h3>
     <p className="mt-3 text-muted-foreground">Gli aiutanti hanno preso nota della vostra sorpresa! Organizzeremo il giro della Vigilia e, appena possibile, ti scriveremo per confermare la visita e comunicarti l’orario esatto.</p>
