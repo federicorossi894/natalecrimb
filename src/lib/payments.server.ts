@@ -37,7 +37,7 @@ async function providerJson(response: Response) {
   }
   return response.json() as Promise<unknown>;
 }
-async function sumup(path: string, method = "GET", body?: object) {
+export async function sumup(path: string, method = "GET", body?: object) {
   const key = process.env["UDC_SUMUP_API_KEY"];
   const gatewayKey = process.env["LOVABLE_API_KEY"];
   if (!key || !gatewayKey) throw new Error("Collegamento SumUp non disponibile.");
@@ -69,7 +69,7 @@ async function paypalToken() {
   );
   return z.object({ access_token: z.string().min(1) }).parse(result).access_token;
 }
-async function paypal(path: string, method = "GET", body?: object, requestId?: string) {
+export async function paypal(path: string, method = "GET", body?: object, requestId?: string) {
   const token = await paypalToken();
   return providerJson(
     await paymentFetch(`${PAYPAL}${path}`, {
