@@ -12,7 +12,7 @@ export const LIVE_READINESS = {
 export type Readiness = { [K in keyof typeof LIVE_READINESS]: boolean };
 /** Optional Committee-approved services, independent of campaign tier. */
 export const CAMPAIGN_OPTIONS = {
-  santaHomeVisitsEnabled: false,
+  santaHomeVisitsEnabled: true,
   courtesyBiscuitAvailable: false,
 } as const;
 export type CampaignOptions = { [K in keyof typeof CAMPAIGN_OPTIONS]: boolean };
