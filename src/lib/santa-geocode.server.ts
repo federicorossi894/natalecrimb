@@ -15,7 +15,7 @@ export async function locateSantaBooking(bookingId:string):Promise<boolean>{
  if(!b)return false;
  const address=(String(b.indirizzo)+', '+String(b.localita)+', Lombardia, Italia').replace(/\s+/g,' ').trim();
  const key=await hex(address.toLocaleLowerCase('it-IT'));
- const {data:cached}=await db.from('santa_geocode_cache').select('latitude,longitude,result')
+ const {data:cached}=await db.from('santa_geocode_cache').select('latitude,longitude,result,updated_at')
   .eq('address_key',key).maybeSingle();
  const apply=async(coords:{latitude:number|null;longitude:number|null;result:'located'|'unavailable'})=>{
   if(coords.result==='located'&&coords.latitude!==null&&coords.longitude!==null){
