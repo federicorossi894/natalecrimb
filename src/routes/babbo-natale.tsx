@@ -1,199 +1,169 @@
 import { CAMPAIGN } from "@/lib/campaign";
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
-import { Check, Gift, MapPin, Pencil, ShieldCheck } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { Gift, HeartHandshake, MapPin, Clock3, Mail, ShieldCheck, Snowflake, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Shell } from "@/components/xmas/Shell";
 import { AutoSantaScene } from "@/components/xmas/SantaChimney";
-import { OrnamentIcon } from "@/components/xmas/Ornament";
-import { PROJECTS } from "@/lib/data";
-import {
-  SANTA_CONTRIBUTION_EUR, SANTA_CONTRIBUTION_NOTE, SANTA_REFERENCES, SANTA_SLOTS,
-  emptySantaForm, santaBookingSchema, type SantaForm,
-} from "@/lib/santa";
+import { SANTA_VISIT_SLOTS } from "@/lib/santa-planner";
+import { SANTA_CONTRIBUTION_EUR } from "@/lib/santa";
 
-export const Route = createFileRoute("/babbo-natale")({
-  staticData: { sitemap: false },
-  head: () => ({
-    meta: [
-      { title: `Babbo Natale – CRI Monza${CAMPAIGN.demo ? " · DEMO" : ""}` },
-      { name: "description", content: "La sera della Vigilia i volontari CRI vestiti da Babbo Natale portano a casa i regali preparati dalla famiglia. Servizio in definizione." },
-      { property: "og:title", content: "Prenota il tuo Babbo Natale 🎅 – CRI Monza" },
-      { property: "og:description", content: "Una sorpresa a domicilio la sera della Vigilia. Servizio in definizione." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Babbo,
+export const Route=createFileRoute("/babbo-natale")({
+ staticData:{sitemap:false},
+ head:()=>({meta:[
+  {title:"Babbo Natale a domicilio · Il Natale che fa bene · CRI Monza"},
+  {name:"description",content:"Una visita speciale dei volontari della Croce Rossa di Monza nella notte della Vigilia. Regali già incartati fuori dalla porta. Offerta libera da 30 €."},
+  {name:"robots",content:"noindex, nofollow"},
+ ]}),
+ component:Babbo,
 });
 
-type Stage = "form" | "review" | "done";
-const inp = "glass mt-1.5 w-full rounded-2xl px-4 py-3.5 text-base normal-case tracking-normal text-foreground outline-none focus:border-gold aria-[invalid=true]:border-primary";
-const lbl = "block text-xs font-semibold uppercase tracking-widest text-muted-foreground";
-
-function Babbo() {
-  const [stage, setStage] = useState<Stage>("form");
-  const [form, setForm] = useState<SantaForm>(emptySantaForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof SantaForm, string>>>({});
-  const [proj, setProj] = useState<string | null>(null);
-  const set = <K extends keyof SantaForm>(k: K, v: SantaForm[K]) => { setForm((f) => ({ ...f, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
-  const top = () => document.getElementById("prenota")?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const review = () => {
-    if (!CAMPAIGN.bookingSimulator) return;
-    const r = santaBookingSchema.safeParse(form);
-    if (!r.success) {
-      const next: Partial<Record<keyof SantaForm, string>> = {};
-      for (const i of r.error.issues) { const k = i.path[0] as keyof SantaForm; next[k] ??= i.message; }
-      setErrors(next);
-      document.querySelector<HTMLElement>(`[name="${Object.keys(next)[0]}"]`)?.focus();
-      return;
-    }
-    setStage("review"); top();
-  };
-  const confirm = () => { if (!CAMPAIGN.bookingSimulator) return; setForm(emptySantaForm()); setStage("done"); top(); };
-
-  const field = (k: keyof SantaForm, label: string, extra: ReactNode) => (
-    <label className={lbl}>
-      {label}
-      {extra}
-      {errors[k] && <span role="alert" className="mt-1 block text-[12px] normal-case tracking-normal text-primary">{errors[k]}</span>}
-    </label>
-  );
-  const text = (k: Exclude<keyof SantaForm, "demo">, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) =>
-    field(k, label, <input name={k} value={form[k]} onChange={(e) => set(k, e.target.value)} aria-invalid={!!errors[k]} autoComplete="off" className={inp} {...props} />);
-
-  return (
-    <Shell hidePiazzaPill>
-      <div className="mx-auto max-w-6xl px-4 pt-6">
-        <div className="rounded-2xl bg-gold px-4 py-3 text-sm font-semibold text-accent-foreground">🤫 Area grandi: meglio non far leggere questa pagina ai bambini.</div>
-      </div>
-
-      <section className="mx-auto grid max-w-6xl items-end gap-6 px-4 pt-8 md:grid-cols-[1.1fr_1fr]">
-        <div className="pb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sezione speciale · 24 dicembre</p>
-          <h1 className="mt-3 font-display text-5xl leading-[1.02] sm:text-7xl">Prenota il tuo<br /><span className="text-gold">Babbo Natale</span></h1>
-          <p className="mt-4 max-w-md text-lg text-foreground/85">La sera della Vigilia, qualcuno bussa alla porta. Con la barba bianca, il sacco pieno e i regali che hai preparato tu.</p>
-          <span className="mt-5 inline-block rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary">Servizio in definizione · contenuti e disponibilità da confermare</span>
-        </div>
-        <div className="santa-stage overflow-hidden rounded-[2rem] shadow-deep">
-          <AutoSantaScene mode="full" className="mx-auto h-[46svh] max-h-[460px] w-full" />
-        </div>
-      </section>
-
-      <section className="mx-auto mt-12 grid max-w-6xl gap-3 px-4 sm:grid-cols-3">
-        {[
-          { i: <Gift className="h-5 w-5" />, t: "I regali li scegli tu", d: "La famiglia prepara e incarta i regali: Babbo Natale li porta, non li compra." },
-          { i: <MapPin className="h-5 w-5" />, t: "Consegna in sede prima", d: "I regali si lasciano in sede, indicativamente il sabato prima della Vigilia. Data e luogo da confermare." },
-          { i: <ShieldCheck className="h-5 w-5" />, t: "La sera del 24", d: "Volontari CRI nei panni di Babbo Natale e aiutanti. Zone servite e fasce orarie da confermare." },
-        ].map((c) => (
-          <div key={c.t} className="glass rounded-3xl p-5">
-            <span className="inline-flex rounded-full bg-primary p-2.5 text-primary-foreground">{c.i}</span>
-            <p className="mt-3 font-display text-xl">{c.t}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{c.d}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="mx-auto mt-6 max-w-6xl px-4">
-        <div className="flex flex-col gap-4 rounded-3xl border hairline-gold bg-burgundy p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Contributo proposto {CAMPAIGN.demo && "· DEMO"}</p>
-            <p className="mt-1 font-display text-4xl">€{SANTA_CONTRIBUTION_EUR} <span className="text-lg">a famiglia</span></p>
-            <p className="mt-1 text-sm font-semibold text-gold">{SANTA_CONTRIBUTION_NOTE}</p>
-          </div>
-          <p className="max-w-sm text-xs text-foreground/75">Contributo indicativo, da confermare dal Comitato. {CAMPAIGN.demo ? "Nessun importo viene richiesto in questa demo." : "Prenotazioni non ancora disponibili."}</p>
-        </div>
-      </section>
-
-      {CAMPAIGN.bookingSimulator ? <section id="prenota" className="mx-auto mt-12 max-w-2xl scroll-mt-24 px-4">
-        <div className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest">
-          {(["form", "review", "done"] as Stage[]).map((s, i) => (
-            <span key={s} className={`rounded-full px-3 py-1 ${stage === s ? "bg-gold text-accent-foreground" : "glass text-muted-foreground"}`}>{i + 1}. {s === "form" ? "Dati" : s === "review" ? "Riepilogo" : "Conferma"}</span>
-          ))}
-        </div>
-
-        {stage === "form" && (
-          <form noValidate onSubmit={(e) => { e.preventDefault(); review(); }} className="glass-strong space-y-4 rounded-[2rem] p-5 shadow-deep sm:p-7">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Modulo DEMO per un adulto · nessun dato viene inviato o salvato</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {text("nome", "Nome", { placeholder: "Giulia" })}
-              {text("cognome", "Cognome", { placeholder: "Rossi" })}
-              {text("email", "Email", { type: "email", inputMode: "email", placeholder: "nome@esempio.it" })}
-              {text("telefono", "Telefono", { type: "tel", inputMode: "tel", placeholder: "333 1234567" })}
-            </div>
-            {text("indirizzo", "Indirizzo a Monza", { placeholder: "Via…, numero civico" })}
-            <div className="grid grid-cols-[7rem_1fr] gap-3">
-              {text("bambini", "Bambini", { type: "number", inputMode: "numeric", min: 1, max: 8, placeholder: "2" })}
-              {field("fascia", "Fascia preferita", (
-                <select name="fascia" value={form.fascia} onChange={(e) => set("fascia", e.target.value)} aria-invalid={!!errors.fascia} className={inp}>
-                  <option value="" disabled>Da scegliere</option>
-                  {SANTA_SLOTS.map((s) => <option key={s}>{s}</option>)}
-                </select>
-              ))}
-            </div>
-            {text("nomiBambini", "Nomi dei bambini (facoltativo)", { placeholder: "Sofia, Leo" })}
-            {field("note", "Note per Babbo Natale (facoltative)", (
-              <textarea name="note" rows={3} maxLength={300} value={form.note} onChange={(e) => set("note", e.target.value)} aria-invalid={!!errors.note} className={inp} placeholder="Curiosità, un desiderio speciale…" />
-            ))}
-            <p className="text-[11px] text-muted-foreground">Fasce orarie, zone servite e date di consegna dei regali sono da confermare.</p>
-            <label className="flex items-start gap-3 text-sm">
-              <input name="demo" type="checkbox" checked={form.demo} onChange={(e) => set("demo", e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--gold)]" />
-              <span>Ho capito che è una <strong>simulazione</strong>: nessuna prenotazione viene creata e i dati non vengono inviati né salvati.</span>
-            </label>
-            {errors.demo && <p role="alert" className="text-[12px] text-primary">{errors.demo}</p>}
-            <button className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-deep">Vai al riepilogo</button>
-          </form>
-        )}
-
-        {stage === "review" && (
-          <div className="animate-rise glass-strong rounded-[2rem] p-5 shadow-deep sm:p-7">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">Riepilogo DEMO</p>
-            <h2 className="mt-2 font-display text-3xl">Famiglia {form.cognome.trim()}</h2>
-            <dl className="mt-5 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-              {[
-                ["Referente", `${form.nome.trim()} ${form.cognome.trim()}`], ["Email", form.email.trim()], ["Telefono", form.telefono.trim()],
-                ["Indirizzo", form.indirizzo.trim()], ["Bambini", `${form.bambini}${form.nomiBambini.trim() ? ` · ${form.nomiBambini.trim()}` : ""}`],
-                ["Fascia preferita", `${form.fascia} · da confermare`], ["Note", form.note.trim() || "—"],
-                ["Contributo", `€${SANTA_CONTRIBUTION_EUR} · ${SANTA_CONTRIBUTION_NOTE}`],
-              ].map(([k, v]) => (
-                <div key={k} className="border-b pb-2"><dt className="text-[11px] uppercase tracking-widest text-muted-foreground">{k}</dt><dd className="mt-0.5 break-words">{v}</dd></div>
-              ))}
-            </dl>
-            <p className="mt-6 font-display text-xl">A quale progetto vuoi destinare il tuo contributo?</p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {PROJECTS.map((p) => (
-                <button key={p.id} type="button" aria-pressed={proj === p.id} onClick={() => setProj(p.id)} className={`flex flex-col items-center rounded-2xl border p-3 text-center text-sm transition ${proj === p.id ? "border-gold bg-secondary" : "glass"}`}>
-                  <OrnamentIcon kind={p.ornament} className="w-10" />{p.title}
-                </button>
-              ))}
-            </div>
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={() => { setStage("form"); top(); }} className="glass inline-flex flex-1 items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold"><Pencil className="h-4 w-4" /> Modifica</button>
-              <button type="button" onClick={confirm} className="flex-[2] rounded-full bg-primary py-3.5 font-semibold text-primary-foreground shadow-deep">Conferma prenotazione simulata</button>
-            </div>
-            <p className="mt-3 text-center text-[11px] text-muted-foreground">Demo: alla conferma i dati vengono cancellati da questa pagina. Nessun pagamento, nessuna email.</p>
-          </div>
-        )}
-
-        {stage === "done" && (
-          <div className="animate-rise glass-strong rounded-[2rem] p-6 text-center shadow-deep">
-            <span className="mx-auto inline-flex rounded-full bg-gold p-3 text-accent-foreground"><Check className="h-6 w-6" /></span>
-            <p className="mt-4 font-display text-3xl">Ho, ho, ho! Simulazione completata.</p>
-            <p className="mt-2 text-muted-foreground">Demo – nessuna prenotazione è stata inviata né memorizzata. I dati inseriti sono già stati cancellati.</p>
-            {proj && <p className="mt-3 text-sm text-gold">Nella versione reale il contributo andrebbe a “{PROJECTS.find((p) => p.id === proj)?.title}”.</p>}
-            <div className="mt-6 rounded-2xl border p-4 text-left text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground">Nella versione reale (da definire con il Comitato):</p>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                <li>conferma della disponibilità per zona e fascia oraria;</li>
-                <li>indicazioni su data e luogo di consegna dei regali in sede;</li>
-                <li>contributo definitivo e modalità di pagamento.</li>
-              </ul>
-            </div>
-            <button onClick={() => { setProj(null); setStage("form"); }} className="mt-6 rounded-full border px-6 py-3 text-sm font-semibold">Prova di nuovo</button>
-          </div>
-        )}
-        <p className="mt-6 text-center text-[11px] text-muted-foreground">Questo servizio vive solo in questa sezione: i regali per Monza non danno diritto alla visita di Babbo Natale.</p>
-      </section> : <section className="mx-auto mt-12 max-w-2xl px-4"><p role="status">Prenotazioni non disponibili: servizio e disponibilità da confermare dal Comitato.</p></section>}
-    </Shell>
-  );
+/** Safety gate: no customer data is sent, no payment is captured and no
+ * booking is created until the number of available teams is approved.
+ * This page is a visual and UX preview, NOT an open booking channel.
+ */
+export const SANTA_PUBLIC_REQUESTS_OPEN=false;
+type FamilyPreview={
+ nome:string;cognome:string;email:string;telefono:string;
+ indirizzo:string;localita:string;numeroBambini:string;
+ nomiBambini:string;note:string;slot:string;offerta:string;
+};
+const blank:FamilyPreview={
+ nome:"",cognome:"",email:"",telefono:"",indirizzo:"",localita:"Monza",
+ numeroBambini:"1",nomiBambini:"",note:"",slot:"indifferente",offerta:"30",
+};
+const steps=[
+ {icon:Gift,title:"I regali li prepari tu",body:"Incarta i regali e lasciali pronti appena fuori dalla porta, poco prima dell’arrivo. Non occorre portarli in sede."},
+ {icon:Snowflake,title:"Bussano Babbo Natale e gli aiutanti",body:"I volontari della Croce Rossa arrivano travestiti da Babbo Natale, elfi e aiutanti, recuperano i pacchi e creano la sorpresa."},
+ {icon:HeartHandshake,title:"Una visita da ricordare",body:"Circa mezz’ora con i bambini, la consegna dei regali e la possibilità di una fotografia insieme."},
+];
+const faq=[
+ ["Devo portare i regali in sede?","No. I regali devono essere già incartati e pronti fuori dalla porta poco prima della visita. La squadra li raccoglierà prima di bussare."],
+ ["La richiesta è una prenotazione confermata?","No. Le fasce orarie dipendono dal numero di squadre disponibili e dai percorsi. Riceverai una conferma separata solo quando gli organizzatori avranno verificato la disponibilità."],
+ ["Quanto costa?","È un’offerta libera a partire da 30 € per la visita. L’importo minimo è provvisorio e potrà essere aggiornato prima dell’apertura delle richieste."],
+ ["A che ora passa Babbo Natale?","Per organizzare i giri stiamo considerando quattro fasce: 19:30, 20:30, 21:30 e 22:30. L’orario definitivo sarà comunicato dagli organizzatori."],
+];
+const inputClass="mt-2 w-full rounded-2xl border border-border bg-background/85 px-4 py-3 text-base text-foreground outline-offset-2 focus:outline focus:outline-gold";
+function Babbo(){
+ const [form,setForm]=useState<FamilyPreview>(blank);
+ const [phase,setPhase]=useState<"form"|"review"|"done">("form");
+ const [error,setError]=useState("");
+ const set=(field:keyof FamilyPreview,value:string)=>{setForm(p=>({...p,[field]:value}));setError("");};
+ const amount=Number(form.offerta.replace(",","."));
+ const preview=(event:FormEvent)=>{
+  event.preventDefault();
+  if(!form.nome.trim()||!form.cognome.trim()||!form.email.includes("@")||!form.telefono.trim()||!form.indirizzo.trim()||!form.nomiBambini.trim()){
+   setError("Completa i dati richiesti, compresi i nomi dei bambini.");return;
+  }
+  if(!Number.isFinite(amount)||amount<SANTA_CONTRIBUTION_EUR||amount>1000){
+   setError("Inserisci un'offerta di almeno 30 €, massimo 1.000 €.");return;
+  }
+  if(Number(form.numeroBambini)<1||Number(form.numeroBambini)>8){
+   setError("Il numero di bambini deve essere compreso tra uno e otto.");return;
+  }
+  setPhase("review");document.getElementById("richiesta")?.scrollIntoView({behavior:"smooth"});
+ };
+ const finish=()=>{setPhase("done");document.getElementById("richiesta")?.scrollIntoView({behavior:"smooth"});};
+ return <Shell hidePiazzaPill>
+  <div className="mx-auto max-w-6xl px-4 pt-6">
+   <div className="rounded-2xl bg-gold px-4 py-3 text-sm font-semibold text-accent-foreground">🤫 Per i grandi: meglio tenere segreta questa pagina ai bambini.</div>
+  </div>
+  <section className="mx-auto grid max-w-6xl items-end gap-8 px-4 pt-9 md:grid-cols-[1.05fr_1fr]">
+   <div className="pb-5">
+    <p className="text-xs font-semibold uppercase tracking-[.24em] text-gold">La Vigilia · 24 dicembre · Monza</p>
+    <h1 className="mt-4 font-display text-5xl leading-[1.02] sm:text-7xl">Questa volta, Babbo Natale <em className="not-italic text-gold">bussa davvero.</em></h1>
+    <p className="mt-5 max-w-xl text-lg leading-relaxed text-foreground/85">La magia arriva sulla soglia di casa. I volontari di Croce Rossa Italiana – Comitato di Monza, vestiti da Babbo Natale e aiutanti, consegnano ai bambini i regali che la tua famiglia ha già preparato.</p>
+    <div className="mt-7 flex flex-wrap gap-3">
+     <a href="#come-funziona" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground">Scopri come funziona <ArrowRight className="h-4 w-4"/></a>
+     <a href="#richiesta" className="inline-flex items-center gap-2 rounded-full border hairline-gold px-6 py-3.5 text-sm font-semibold text-gold">Anteprima richiesta</a>
+    </div>
+    <p className="mt-4 text-xs text-muted-foreground">Il servizio è in preparazione: non stiamo ancora accettando richieste effettive.</p>
+   </div>
+   <div className="santa-stage overflow-hidden rounded-[2rem] shadow-deep">
+    <AutoSantaScene mode="full" className="mx-auto h-[48svh] max-h-[500px] w-full"/>
+   </div>
+  </section>
+  <section id="come-funziona" className="mx-auto mt-16 max-w-6xl scroll-mt-24 px-4">
+   <div className="text-center"><p className="text-xs font-semibold uppercase tracking-widest text-gold">Un piccolo segreto fra grandi</p><h2 className="mt-2 font-display text-4xl">Come funziona la sorpresa</h2></div>
+   <div className="mt-8 grid gap-4 md:grid-cols-3">
+    {steps.map((step,i)=><article key={step.title} className="glass rounded-[1.75rem] p-6">
+     <div className="mb-4 flex items-center justify-between"><step.icon className="h-8 w-8 text-gold"/><span className="font-display text-3xl text-gold/65">0{i+1}</span></div>
+     <h3 className="font-display text-2xl">{step.title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+    </article>)}
+   </div>
+  </section>
+  <section className="mx-auto mt-12 max-w-6xl px-4">
+   <div className="grid gap-6 rounded-[2rem] border hairline-gold bg-burgundy p-6 sm:grid-cols-[1fr_1.1fr] sm:p-9">
+    <div><p className="text-xs uppercase tracking-widest text-gold">Un gesto che fa bene</p><h2 className="mt-2 font-display text-4xl">Offerta libera <span className="text-gold">da 30 €</span></h2>
+     <p className="mt-3 text-sm text-foreground/80">Puoi scegliere liberamente un importo pari o superiore a 30 €. La soglia è provvisoria, in attesa di conferma da parte degli organizzatori.</p></div>
+    <div className="space-y-3 text-sm leading-relaxed text-foreground/85">
+     <p className="flex gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>Quattro fasce proposte: 19:30, 20:30, 21:30 e 22:30. Ogni squadra può effettuare fino a quattro visite, compatibilmente con gli spostamenti.</p>
+     <p className="flex gap-3"><MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>Gli orari e le zone coperte saranno definiti quando sapremo quante squadre di volontari saranno disponibili.</p>
+     <p className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold"/>Una richiesta non equivale a una visita confermata. Nessun pagamento viene richiesto in questa anteprima.</p>
+    </div>
+   </div>
+  </section>
+  <section id="richiesta" className="mx-auto mt-16 max-w-3xl scroll-mt-28 px-4">
+   <div className="text-center"><p className="text-xs uppercase tracking-widest text-gold">La visita di Babbo Natale</p>
+    <h2 className="mt-2 font-display text-4xl">Richiedi la tua sorpresa</h2>
+    <p className="mt-3 text-sm text-muted-foreground">Il modulo qui sotto è un’anteprima interattiva: puoi provarlo, ma <strong>non invia e non salva richieste</strong>. Apriremo le adesioni dopo la conferma delle squadre.</p>
+   </div>
+   <div className="mt-7 rounded-2xl border border-gold/60 bg-gold/10 px-5 py-4 text-sm"><strong>Richieste non ancora aperte.</strong> Nessuna richiesta viene registrata, nessuna email parte e non si incassa alcuna donazione.</div>
+   {phase==="form"&&<form onSubmit={preview} className="glass-strong mt-5 space-y-5 rounded-[2rem] p-5 sm:p-8" noValidate>
+    <div className="grid gap-4 sm:grid-cols-2">
+     {([["nome","Nome"],["cognome","Cognome"],["email","Indirizzo email"],["telefono","Telefono"]] as const).map(([key,label])=>
+      <label key={key} className="text-sm font-semibold">{label} *<input className={inputClass} type={key==="email"?"email":key==="telefono"?"tel":"text"} value={form[key]} maxLength={120} onChange={e=>set(key,e.target.value)} autoComplete="off" required/></label>)}
+    </div>
+    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+     <label className="text-sm font-semibold">Indirizzo con numero civico *<input className={inputClass} value={form.indirizzo} maxLength={180} onChange={e=>set("indirizzo",e.target.value)} placeholder="Via e numero civico" required/></label>
+     <label className="text-sm font-semibold">Comune *<input className={inputClass} value={form.localita} onChange={e=>set("localita",e.target.value)} maxLength={80} required/></label>
+    </div>
+    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+     <label className="text-sm font-semibold">Quanti bambini? *<input className={inputClass} type="number" min="1" max="8" value={form.numeroBambini} onChange={e=>set("numeroBambini",e.target.value)}/></label>
+     <label className="text-sm font-semibold">Nomi dei bambini *<input className={inputClass} value={form.nomiBambini} maxLength={200} onChange={e=>set("nomiBambini",e.target.value)} placeholder="Per esempio: Anna, Luca"/></label>
+    </div>
+    <div className="grid gap-4 sm:grid-cols-2">
+     <label className="text-sm font-semibold">Fascia oraria preferita<select className={inputClass} value={form.slot} onChange={e=>set("slot",e.target.value)}>
+      <option value="indifferente">Indifferente</option>{SANTA_VISIT_SLOTS.map(slot=><option key={slot} value={slot}>{slot}</option>)}
+     </select></label>
+     <label className="text-sm font-semibold">Offerta libera (€) *<input className={inputClass} type="number" min="30" max="1000" step="1" value={form.offerta} onChange={e=>set("offerta",e.target.value)}/></label>
+    </div>
+    <label className="block text-sm font-semibold">Una cosa che Babbo Natale dovrebbe sapere (facoltativa)
+     <textarea className={inputClass} rows={3} maxLength={500} value={form.note} onChange={e=>set("note",e.target.value)} placeholder="Un episodio divertente, una passione, un dettaglio per rendere speciale la visita. Evita informazioni sanitarie."/></label>
+    {error&&<p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm font-semibold text-red-500">{error}</p>}
+    <button type="submit" className="w-full rounded-full bg-primary py-4 text-base font-bold text-primary-foreground">Prova il riepilogo (non invia nulla)</button>
+   </form>}
+   {phase==="review"&&<div className="glass-strong mt-5 rounded-[2rem] p-6 sm:p-8">
+    <p className="text-xs font-bold uppercase tracking-widest text-gold">Riepilogo simulato · nessuna richiesta registrata</p>
+    <h3 className="mt-3 font-display text-3xl">Famiglia {form.cognome}</h3>
+    <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+     {([["Referente",form.nome+" "+form.cognome],["Email",form.email],["Telefono",form.telefono],
+      ["Domicilio",form.indirizzo+", "+form.localita],["Bambini",form.nomiBambini],
+      ["Orario preferito",form.slot],["Offerta proposta",amount.toFixed(2)+" €"],["Note",form.note||"—"]] as const).map(([k,v])=>
+      <div key={k}><dt className="text-xs uppercase tracking-wider text-muted-foreground">{k}</dt><dd className="mt-1 font-semibold">{v}</dd></div>)}
+    </dl>
+    <div className="mt-7 grid gap-3 sm:grid-cols-2">
+     <button type="button" onClick={()=>setPhase("form")} className="rounded-full border hairline-gold px-5 py-3 font-semibold">Modifica</button>
+     <button type="button" onClick={finish} className="rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground">Termina simulazione</button>
+    </div>
+   </div>}
+   {phase==="done"&&<div className="glass-strong mt-5 rounded-[2rem] p-8 text-center">
+    <CheckCircle2 className="mx-auto h-10 w-10 text-gold"/><h3 className="mt-3 font-display text-3xl">La prova è terminata!</h3>
+    <p className="mt-3 text-muted-foreground">Nessuna prenotazione è stata creata, nessuna email inviata e nessuna offerta incassata. Quando apriremo le richieste riceverai un messaggio che conferma soltanto la ricezione, non la visita.</p>
+    <button type="button" onClick={()=>{setForm(blank);setPhase("form");}} className="mt-6 rounded-full border hairline-gold px-6 py-3">Riprova</button>
+   </div>}
+  </section>
+  <section className="mx-auto mt-20 max-w-4xl px-4" id="faq">
+   <p className="text-center text-xs uppercase tracking-widest text-gold">Tutto quello che serve sapere</p><h2 className="mt-2 text-center font-display text-4xl">Domande frequenti</h2>
+   <div className="mt-6 space-y-3">{faq.map(([q,a])=><details key={q} className="glass rounded-2xl px-5 py-4">
+    <summary className="cursor-pointer font-semibold">{q}</summary><p className="pt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
+   </details>)}</div>
+   <p className="mt-7 text-center text-sm text-muted-foreground">Hai un dubbio? Scrivi agli aiutanti di Babbo Natale: <a href="mailto:natale@crimonza.org" className="font-semibold text-gold underline">natale@crimonza.org</a>.</p>
+  </section>
+  <section className="mx-auto mt-20 max-w-4xl px-4 pb-6">
+   <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border hairline-gold p-5 text-center sm:flex-row sm:text-left">
+    <div><p className="text-xs font-bold uppercase tracking-widest text-gold">Solo per gli organizzatori</p><p className="mt-1 text-sm text-muted-foreground">Gestione richieste, squadre, percorsi ed esportazione Excel.</p></div>
+    <Link to="/babbo-natale/organizzatori" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold px-5 py-3 text-sm font-semibold text-gold">Area organizzatori <ArrowRight className="h-4 w-4"/></Link>
+   </div>
+  </section>
+ </Shell>;
 }
