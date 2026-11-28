@@ -49,28 +49,29 @@ function zip(files:Array<[string,string]>){
 const headers=[
  'ID richiesta','Stato','Nome','Cognome','Email','Telefono','Indirizzo','Località',
  'Bambini','Note per Babbo Natale','Offerta proposta (€)','Incassato (€)',
- 'Fascia preferita','Squadra suggerita','Slot suggerito','Squadra definitiva','Slot confermato'
+ 'Squadra','Ordine visita','Orario definitivo','Coordinate','Origine'
 ];
 const euro=(x:number)=>(x/100).toFixed(2);
-const row=(b:SantaBooking,team='',slot=''):[string,...Array<string>]=>
+const row=(b:SantaBooking):Array<string|number>=>
  [b.id,b.status,b.nome,b.cognome,b.email,b.telefono,b.indirizzo,b.localita,
  b.bambini.join(', '),b.note,euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),
- b.slotPreferito,team,slot,b.squadra??'',b.slotAssegnato??''];
+ b.squadra??'',b.teamPosition??'',b.confirmedTime??'',
+ b.lat!==null&&b.lon!==null?b.lat+','+b.lon:'',b.mode];
 export function santaXlsx(bookings:SantaBooking[],teams:SantaTeam[]){
- if(bookings.length>400)throw new Error('Massimo 400 richieste per esportazione.');
- const assignments=new Map(teams.flatMap(t=>t.bookings.map(b=>[b.id,[t.id,b.slot]] as const)));
- const sheets=[{name:'Tutte le richieste',data:sheet(headers,bookings.map(b=>{
-  const a=assignments.get(b.id);return row(b,a?.[0]??'',a?.[1]??'');
- }))}];
- for(const t of teams){
-  // Print-friendly team sheet: every phone, child name, note and address included.
-  const th=['Ora','Famiglia','Telefono','Indirizzo','Località','Bambini','Note',
-    'Offerta proposta (€)','Incassato (€)','Stato','ID richiesta','Link Maps'];
-  const rows=t.bookings.map(b=>[b.slot,`${b.nome} ${b.cognome}`,b.telefono,
-   b.indirizzo,b.localita,b.bambini.join(', '),b.note,
+ if(bookings.length>400)throw new Error('Esportazione troppo grande.');
+ const sheets=[{name:'Tutte le richieste',data:sheet(headers,bookings.map(row))}];
+ for(const team of teams){
+  const th=['Tappa','Orario definitivo','Famiglia','Telefono','Indirizzo',
+   'Località','Email','Bambini','Note per Babbo Natale','Offerta proposta (€)',
+   'Incassato (€)','Stato','ID richiesta','Link Maps'];
+  const rows=team.bookings.map((b,i)=>[
+   b.teamPosition??i+1,b.confirmedTime??'',b.nome+' '+b.cognome,b.telefono,
+   b.indirizzo,b.localita,b.email,b.bambini.join(', '),b.note,
    euro(b.quotaOffertaCents),euro(b.quotaIncassataCents),b.status,b.id,
-   b.lat!==null&&b.lon!==null?`https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lon}`:''] as Array<string|number>);
-  sheets.push({name:t.id,data:sheet(th,rows)});
+   b.lat!==null&&b.lon!==null
+    ?'https://www.google.com/maps/search/?api=1&query='+b.lat+','+b.lon:''
+  ] as Array<string|number>);
+  sheets.push({name:team.id,data:sheet(th,rows)});
  }
  const types='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
   '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
