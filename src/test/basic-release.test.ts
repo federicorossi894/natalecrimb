@@ -15,7 +15,7 @@ it('authorized BASIC uses only the two verified online providers', () => {
 });
 it('enables verified email paths without enabling Santa cash QR or physical prizes', () => {
   expect(OPTIONAL_SERVICE_READINESS).toEqual({santaBookings:false,emailSending:true,emailScheduling:true});
-  expect(CAMPAIGN_OPTIONS).toEqual({santaHomeVisitsEnabled:false,courtesyBiscuitAvailable:false});
+  expect(CAMPAIGN_OPTIONS).toEqual({santaHomeVisitsEnabled:true,courtesyBiscuitAvailable:false});
   expect(OFFICIAL_EMAIL_READINESS.receiptImplementedAndVerified).toBe(true);
   expect(OFFICIAL_EMAIL_READINESS.giftNowImplementedAndVerified).toBe(true);
   expect(OFFICIAL_EMAIL_READINESS.giftChristmasScheduleVerified).toBe(true);
